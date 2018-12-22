@@ -1,0 +1,286 @@
+from math import exp
+from random import seed, random
+
+import keywords as kw
+import util
+
+seed()
+
+
+class Mechanism():
+    '''Base class for mechanisms'''
+
+    def __init__(self, parameters):
+        self.parameters = parameters
+        # parameters.scalar_expand()
+
+        self.v = None
+        self.w = None
+        self.prev_stimulus = None
+        self.response = None
+
+        # Make self.stimulus_req
+        self.stimulus_req = util.dict_inv(parameters.get(kw.RESPONSE_REQUIREMENTS))
+
+        self.subject_reset()
+
+    def subject_reset(self):
+        self.v = dict(self.parameters.get(kw.START_V))
+        self.w = dict(self.parameters.get(kw.START_W))
+
+        # self.v = dict(parameters.get(kw.START_V))
+        # self.w = dict(parameters.get(kw.START_W))
+        # self._initialize_v()
+        # self._initialize_w()
+        self.prev_stimulus = None
+        self.response = None
+
+    def learn_and_respond(self, stimulus, omit=False):
+        """stimulus is a tuple."""
+        # element_in_omit = False
+        # for e in stimulus:
+        #     if e in self.omit_learning:
+        #         element_in_omit = True
+        #         break
+        if self.prev_stimulus is not None and not omit:
+            # Do not update if first time or if omit
+            self.learn(stimulus)
+
+        self.response = self._get_response(stimulus)
+        self.prev_stimulus = stimulus
+        return self.response
+
+    def _get_response(self, stimulus):
+        x, feasible_behaviors = self._support_vector(stimulus)
+        q = random() * sum(x)
+        index = 0
+        while q > sum(x[0:index + 1]):
+            index += 1
+        return feasible_behaviors[index]
+
+    def _support_vector(self, stimulus):
+        behaviors = self.parameters.get(kw.BEHAVIORS)
+        # stimulus_req = self.parameters.get(kw.STIMULUS_REQUIREMENTS)
+        beta = self.parameters.get(kw.BETA)
+        return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, self.v)
+
+    def has_w(self):
+        return False
+
+
+# This cache doesn't seem to speed things up.
+# feasible_behaviors_cache = dict()
+def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
+    if not stimulus_req:  # If stimulus_req is empty
+        return list(behaviors)  # XXX conversion to list expensive?
+
+    # if stimulus in feasible_behaviors_cache:
+    #     return feasible_behaviors_cache[stimulus]
+
+    feasible_behaviors = list()
+    for element in stimulus:
+        for b in stimulus_req[element]:
+            if b not in feasible_behaviors:
+                feasible_behaviors.append(b)
+    # feasible_behaviors_cache[stimulus] = feasible_behaviors
+    return feasible_behaviors
+
+
+def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
+    feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
+    vector = list()
+    for behavior in feasible_behaviors:
+        value = 0
+        for element in stimulus:
+            value += beta * v[(element, behavior)]
+        value = exp(value)
+        vector.append(value)
+    return vector, feasible_behaviors
+
+
+# For postprocessing only
+def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, v):
+    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, v)
+    index = feasible_behaviors.index(behavior)
+    p = x[index] / sum(x)
+    return p
+
+
+class RescorlaWagner(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def learn(self, stimulus):
+        u = self.parameters.get(kw.U)
+        if self.prev_stimulus is None:
+            return
+        usum, vsum = 0, 0
+        for element in stimulus:
+            usum += u[element]
+        for element in self.prev_stimulus:
+            vsum += self.v[(element, self.response)]
+        for element in self.prev_stimulus:
+            self.v[(element, self.response)] += self.alpha_v * \
+                (usum - vsum - self.c[self.response])
+
+
+# class SARSA(Mechanism):
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#
+#     def learn(self, stimulus):
+#         usum, vsum1, vsum2 = 0, 0, 0
+#         for element in stimulus:
+#             usum += self.u[element]
+#         for element in self.prev_stimulus:
+#             vsum1 += self.v[(element, self.response)]
+#         for element in self.stimulus:
+#             vsum2 += self.v[(element, self.response)]   # XXX ???
+#         for element in self.prev_stimulus:
+#             self.v[(element, self.response)] += self.alpha_v * \
+#                 (usum + vsum2 - vsum1 - self.c[self.response])
+
+
+class EXP_SARSA(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def learn(self, stimulus):
+        u = self.parameters.get(kw.U)
+        usum, vsum, vsum_prev = 0, 0, 0
+        for element in stimulus:
+            usum += u[element]
+            vsum += self.v[(element, self.response)]
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+
+        E = 0
+        for element in stimulus:
+            x, feasible_behaviors = self._support_vector((element,))
+            sum_x = sum(x)
+
+            expected_value = 0
+            for index, b in enumerate(feasible_behaviors):
+                p = x[index] / sum_x
+                expected_value += p * self.v[(element, b)]
+            E += expected_value
+
+        for element in self.prev_stimulus:
+            alpha_v = self.alpha_v_all[(element, self.response)]
+            delta = alpha_v * (usum + E - self.c[self.response] - vsum_prev)
+            self.v[(element, self.response)] += delta
+
+
+class Qlearning(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def learn(self, stimulus):
+        behaviors = self.parameters.get(kw.BEHAVIORS)
+        stimulus_req = self.parameters.get(kw.STIMULUS_REQUIREMENTS)
+        u = self.parameters.get(kw.U)
+
+        usum, vsum, vsum_prev = 0, 0, 0
+        for element in stimulus:
+            usum += u[element]
+            vsum += self.v[(element, self.response)]
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+
+        maxvsum_future = 0
+        for index, element in enumerate(stimulus):
+            feasible_behaviors = get_feasible_behaviors((element,), behaviors, stimulus_req)
+            vsum_future = 0
+            for b in feasible_behaviors:
+                vsum_future += self.v[(element, b)]
+
+            if (index == 0) or (vsum_future > maxvsum_future):
+                maxvsum_future = vsum_future
+
+        for element in self.prev_stimulus:
+            alpha_v = self.alpha_v_all[(element, self.response)]
+            delta = alpha_v * (usum + maxvsum_future - self.c[self.response] - vsum_prev)
+            self.v[(element, self.response)] += delta
+
+
+'''class ActorCritic(Mechanism):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def learn(self, stimulus):
+        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+            wsum_prev += self.w[element]
+        for element in stimulus:
+            usum += self.u[element]
+            wsum += self.w[element]
+
+        delta = usum + wsum - wsum_prev - self.c[self.response]
+        deltav = self.alpha_v * delta
+        deltaw = self.alpha_w * delta
+
+        # v
+        for element in self.prev_stimulus:
+            self.v[(element, self.response)] += deltav
+        # w
+        for element in self.prev_stimulus:
+            self.w[element] += deltaw'''
+
+
+class ActorCritic(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def learn(self, stimulus):
+        u = self.parameters.get(kw.U)
+        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+            wsum_prev += self.w[element]
+        for element in stimulus:
+            usum += u[element]
+            wsum += self.w[element]
+        # v
+        # Markus, I copied Enquist and just changed this row by replacing vsum_prev with wsum_prev
+        delta = self.alpha_v * (usum + wsum - self.c[self.response] - wsum_prev)
+        for element in self.prev_stimulus:
+            self.v[(element, self.response)] += delta
+        # w
+        delta = self.alpha_w * (usum + wsum - self.c[self.response] - wsum_prev)
+        for element in self.prev_stimulus:
+            self.w[element] += delta
+
+    def has_w(self):
+        return True
+
+
+class Enquist(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def learn(self, stimulus):
+        u = self.parameters.get(kw.U)
+        c = self.parameters.get(kw.BEHAVIOR_COST)
+        alpha_w = self.parameters.get(kw.ALPHA_W)
+
+        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
+        for element in self.prev_stimulus:
+            vsum_prev += self.v[(element, self.response)]
+            wsum_prev += self.w[element]
+        for element in stimulus:
+            usum += u[element]
+            wsum += self.w[element]
+        # v
+        for element in self.prev_stimulus:
+            # alpha_v = self.alpha_v_all[(element, self.response)]
+            alpha_v = self.parameters.get(kw.ALPHA_V)[(element, self.response)]
+            delta = alpha_v * (usum + wsum - c[self.response] - vsum_prev)
+            self.v[(element, self.response)] += delta
+        # w
+        for element in self.prev_stimulus:
+            delta = alpha_w[element] * (usum + wsum - c[self.response] - wsum_prev)
+            self.w[element] += delta
+
+    def has_w(self):
+        return True
