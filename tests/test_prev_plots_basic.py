@@ -17,7 +17,7 @@ class TestPlots(unittest.TestCase):
         n_subjects        : 1
         mechanism         : GA
         behaviors         : R0, R1, R2
-        stimulus_elements : S1, S2, reward, reward2, new_trial
+        stimulus_elements : S1, S2, reward, reward2 # , new_trial
         start_v           : default:-1
         alpha_v           : 0.1
         alpha_w           : 0.1
@@ -28,10 +28,10 @@ class TestPlots(unittest.TestCase):
 
         ## ------------- SEQUENCE LEARNING -------------
         @phase chaining stop:reward=100
-        NEW_TRIAL   new_trial  | STIMULUS_1
-        STIMULUS_1  S1         | R1: STIMULUS_2     | NEW_TRIAL
-        STIMULUS_2  S2         | R2: REWARD         | NEW_TRIAL
-        REWARD     reward      | NEW_TRIAL
+        # NEW_TRIAL   new_trial  | STIMULUS_1
+        NEW_TRIAL   S1           | R1: STIMULUS_2     | NEW_TRIAL
+        STIMULUS_2  S2           | R2: REWARD         | NEW_TRIAL
+        REWARD     reward        | NEW_TRIAL
 
         @run chaining
 
@@ -95,75 +95,72 @@ class TestPlots(unittest.TestCase):
         self.assertEqual(xmax, 99)
         self.assertAlmostEqual(ymax, 9, 2)
 
-        # ydata = lines[0].get_ydata(True).tolist()
+    def test_vplot(self):
+        script = '''
+        n_subjects        : 1
+        mechanism         : GA
+        behaviors         : R0, R1, R2
+        stimulus_elements : S1, S2, reward, reward2
+        start_v           : default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : R1:1, R2:1, default:0
+        u                 : reward:10, default: 0
+        # 'omit_learning' : new_trial
 
-    # def test_vplot(self):
-    #     script = '''@parameters
-    #     {
-    #     'subjects'          : 1,
-    #     'mechanism'         : 'GA',
-    #     'behaviors'         : ['R0','R1','R2'],
-    #     'stimulus_elements' : ['S1','S2','reward','reward2','new trial'],
-    #     'start_v'           : {'default':-1},
-    #     'alpha_v'           : 0.1,
-    #     'alpha_w'           : 0.1,
-    #     'beta'              : 1,
-    #     'behavior_cost'     : {'R1':1, 'R2':1, 'default':0},
-    #     'u'                 : {'reward':10, 'default': 0},
-    #     'omit_learning'     : ['new trial']
-    #     }
+        ## ------------- SEQUENCE LEARNING -------------
+        @phase chaining stop:reward=100
+        # NEW_TRIAL   new_trial  | STIMULUS_1
+        NEW_TRIAL   S1         | R1: STIMULUS_2     | NEW_TRIAL
+        STIMULUS_2  S2         | R2: REWARD         | NEW_TRIAL
+        REWARD      reward     | NEW_TRIAL
 
-    #     ## ------------- SEQUENCE LEARNING -------------
-    #     @phase {'label':'chaining', 'end': 'reward=100'}
-    #     NEW_TRIAL   'new trial'     | STIMULUS_1
-    #     STIMULUS_1  'S1'              | R1: STIMULUS_2     | NEW_TRIAL
-    #     STIMULUS_2  'S2'              | R2: REWARD         | NEW_TRIAL
-    #     REWARD     reward      | NEW_TRIAL
+        @run chaining
 
-    #     @run {'phases':('chaining',)}
+        xscale: reward
+        @vplot S1->R1 {'linestyle':'-'}
+        @vplot S1->R0 {'linestyle':':'}
+        '''
+        script_obj = Script(script)
+        script_obj.parse()
+        simulation_data = script_obj.run()
+        script_obj.postproc(simulation_data, False)
 
-    #     @vplot ('S1', 'R1') {'steps':'reward'} {'linestyle':'-'}
-    #     @vplot ('S1', 'R0') {'steps':'reward'} {'linestyle':':'}
-    #     '''
-    #     script_obj = LsScript.LsScript(script)
-    #     simulation_data = script_obj.run()
-    #     script_obj.postproc(simulation_data, False)
-    #     # plt.show(block=False)
+        axv = plt.figure(1).axes
+        self.assertEqual(len(axv), 1)
+        axv = axv[0]
 
-    #     axv = plt.figure(1).axes
-    #     self.assertEqual(len(axv), 1)
-    #     axv = axv[0]
+        lines = axv.get_lines()
+        self.assertEqual(len(lines), 2)
+        if lines[0].get_linestyle() == '-':
+            vS1R1 = lines[0]
+            vS1R0 = lines[1]
+        else:
+            vS1R1 = lines[1]
+            vS1R0 = lines[0]
+        self.assertEqual(vS1R1.get_linestyle(), '-')
+        self.assertEqual(vS1R0.get_linestyle(), ':')
 
-    #     lines = axv.get_lines()
-    #     self.assertEqual(len(lines), 2)
-    #     if lines[0].get_linestyle() == '-':
-    #         vS1R1 = lines[0]
-    #         vS1R0 = lines[1]
-    #     else:
-    #         vS1R1 = lines[1]
-    #         vS1R0 = lines[0]
-    #     self.assertEqual(vS1R1.get_linestyle(), '-')
-    #     self.assertEqual(vS1R0.get_linestyle(), ':')
+        # vS1R1
+        xmin = vS1R1.get_xdata(True).min(0)
+        xmax = vS1R1.get_xdata(True).max(0)
+        ymin = vS1R1.get_ydata(True).min(0)
+        ymax = vS1R1.get_ydata(True).max(0)
+        self.assertEqual(xmin, 0)
+        self.assertEqual(xmax, 99)
+        self.assertLessEqual(ymin, 0)
+        self.assertAlmostEqual(ymax, 8, 2)
 
-    #     # vS1R1
-    #     xmin = vS1R1.get_xdata(True).min(0)
-    #     xmax = vS1R1.get_xdata(True).max(0)
-    #     ymin = vS1R1.get_ydata(True).min(0)
-    #     ymax = vS1R1.get_ydata(True).max(0)
-    #     self.assertEqual(xmin, 0)
-    #     self.assertEqual(xmax, 99)
-    #     self.assertLessEqual(ymin, 0)
-    #     self.assertAlmostEqual(ymax, 8, 2)
-
-    #     # vS1R0
-    #     xmin = vS1R0.get_xdata(True).min(0)
-    #     xmax = vS1R0.get_xdata(True).max(0)
-    #     ymin = vS1R0.get_ydata(True).min(0)
-    #     ymax = vS1R0.get_ydata(True).max(0)
-    #     self.assertEqual(xmin, 0)
-    #     self.assertEqual(xmax, 99)
-    #     self.assertLessEqual(ymin, 0)
-    #     self.assertAlmostEqual(ymax, -1, 2)
+        # vS1R0
+        xmin = vS1R0.get_xdata(True).min(0)
+        xmax = vS1R0.get_xdata(True).max(0)
+        ymin = vS1R0.get_ydata(True).min(0)
+        ymax = vS1R0.get_ydata(True).max(0)
+        self.assertEqual(xmin, 0)
+        self.assertEqual(xmax, 99)
+        self.assertLessEqual(ymin, 0)
+        self.assertAlmostEqual(ymax, -1, 2)
 
     # def test_pplot(self):
     #     script = '''@parameters

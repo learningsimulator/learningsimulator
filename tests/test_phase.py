@@ -7,9 +7,8 @@ def parse(text, phase_label):
     script.parse()
     script_parser = script.script_parser
     phase_obj = script_parser.phases.phases[phase_label]
-
-    variables = script_parser.variables
-    phase_obj.parse(script_parser.parameters, variables)
+    if not phase_obj.is_parsed:
+        phase_obj.parse(script_parser.parameters, script_parser.variables)
     return phase_obj
 
 
@@ -30,14 +29,14 @@ class TestBasic(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 19):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
     def test_first_line(self):
@@ -49,14 +48,14 @@ class TestBasic(LsTestCase):
         @new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 19):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',), f"{i}")
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
     def test_variables(self):
@@ -69,14 +68,14 @@ class TestBasic(LsTestCase):
         @new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 19):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',), f"{i}")
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
         text = '''
@@ -90,17 +89,16 @@ class TestBasic(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 10):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
-
 
     def test_local_variable_in_stop(self):
         text = '''
@@ -113,14 +111,15 @@ class TestBasic(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, ('e1',))
         for i in range(1, 10):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
 
@@ -135,14 +134,14 @@ class TestBasic(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 10):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
 
@@ -154,10 +153,10 @@ class TestBasic(LsTestCase):
         L1 e1               | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for _ in range(1, 10):
-            stimulus = phase.next_stimulus('b1')
-        stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
 
@@ -169,93 +168,66 @@ class TestHelpLine(LsTestCase):
         text = '''
         stimulus_elements: e1, e2
         behaviors: b1, b2
-        @PHASE phase_label stop:count(e1)=10
+        @PHASE phase_label stop:e1=10
         L1 e1 | H1
         H1    | L2
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 19):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
         text = '''
         stimulus_elements: e1, e2
         behaviors: b1, b2
-        @PHASE phase_label stop:count(e1)=10
+        @PHASE phase_label stop:e1=10
         L1 e1 | H1
         H1    | H2
         H2    | L2
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for i in range(1, 19):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             if i % 2 == 0:
                 self.assertEqual(stimulus, ('e1',))
             else:
                 self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
     def test_ignore_response_increment(self):
         text = '''
         stimulus_elements: e1, e2
         behaviors: b1, b2
-        @PHASE phase_label stop:count(b1)=5
+        @PHASE phase_label stop:b1=5
         L1 e1 | H1
         H1    | L2
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)  # First stimulus
+        stimulus, _ = phase.next_stimulus(None)  # First stimulus
         self.assertEqual(stimulus, ('e1',))
 
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
-        stimulus = phase.next_stimulus('b1')
-        self.assertIsNotNone(stimulus)  # Now count(b1) is 6
-
-        # With two consecutive help lines
-        text = '''
-        stimulus_elements: e1, e2
-        behaviors: b1, b2
-        @PHASE phase_label stop:count(b1)=5
-        L1 e1  | H1
-        H1     | H2
-        H2 x:0 | L2
-        L2 e2  | L1
-        '''
-        phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)  # First stimulus
-        self.assertEqual(stimulus, ('e1',))
-
-        stimulus = phase.next_stimulus('b1')
-        self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
-        self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
-        self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
-        self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
-        self.assertIsNone(stimulus)
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNotNone(stimulus)  # Now count(b1) is 6
 
         # With two consecutive help lines
@@ -269,20 +241,47 @@ class TestHelpLine(LsTestCase):
         L2 e2  | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)  # First stimulus
+        stimulus, _ = phase.next_stimulus(None)  # First stimulus
         self.assertEqual(stimulus, ('e1',))
 
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertIsNotNone(stimulus)  # Now count(b1) is 6
+
+        # With two consecutive help lines
+        text = '''
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase_label stop:b1=5
+        L1 e1  | H1
+        H1     | H2
+        H2 x:0 | L2
+        L2 e2  | L1
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _ = phase.next_stimulus(None)  # First stimulus
+        self.assertEqual(stimulus, ('e1',))
+
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertIsNone(stimulus)
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNotNone(stimulus)  # Now count(b1) is 6
 
     def test_count_in_logic(self):
@@ -295,19 +294,19 @@ class TestHelpLine(LsTestCase):
         L3 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)  # First stimulus
+        stimulus, _ = phase.next_stimulus(None)  # First stimulus
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
     def test_count_reset(self):
@@ -322,26 +321,26 @@ class TestHelpLine(LsTestCase):
         L3 e2              | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         for _ in range(1, 5):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
         for _ in range(5):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
         for _ in range(5):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
         # Reset a behavior
@@ -355,10 +354,10 @@ class TestHelpLine(LsTestCase):
         L3 e2              | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)  # First stimulus
+        stimulus, _ = phase.next_stimulus(None)  # First stimulus
         self.assertEqual(stimulus, ('e1',))
         for i in range(2, 100):
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             if i % 6 == 0:
                 self.assertEqual(stimulus, ('e2',))
             else:
@@ -378,12 +377,12 @@ class TestHelpLine(LsTestCase):
         for _ in range(1, 10):
             for i in range(5):
                 if first:
-                    stimulus = phase.next_stimulus(None)
+                    stimulus, _ = phase.next_stimulus(None)
                     first = False
                 else:
-                    stimulus = phase.next_stimulus('b1')
+                    stimulus, _ = phase.next_stimulus('b1')
                 self.assertEqual(stimulus, ('e1',))
-            stimulus = phase.next_stimulus('b1')
+            stimulus, _ = phase.next_stimulus('b1')
             self.assertEqual(stimulus, ('e2',))
 
         # Reset a line label
@@ -400,14 +399,14 @@ class TestHelpLine(LsTestCase):
         first = True
         for i in range(1, 100):
             if first:
-                stimulus = phase.next_stimulus(None)
+                stimulus, _ = phase.next_stimulus(None)
             else:
-                stimulus = phase.next_stimulus('b1')
+                stimulus, _ = phase.next_stimulus('b1')
             if i % 10 == 0:
                 self.assertEqual(stimulus, ('e2',))
             else:
                 self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
     def test_count_line(self):
@@ -419,17 +418,41 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         self.assertEqual(stimulus, ('e1',))
         for _ in range(42):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         for _ in range(42):
-            stimulus = phase.next_stimulus('b2')
+            stimulus, _ = phase.next_stimulus('b2')
             self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+
+        # Test same thing but with b1=3 instead of count_line(b1)=3
+        text = '''
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase_label stop:e2=5
+        L1 e1 | b1=3 : L2 | L1
+        L2 e2 | L1
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, ('e1',))
+        for _ in range(42):
+            stimulus, _ = phase.next_stimulus('b2')
+            self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
+        for _ in range(42):
+            stimulus, _ = phase.next_stimulus('b2')
+            self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
     def test_count_line_noarg(self):
@@ -441,21 +464,21 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
         text = '''
@@ -466,24 +489,24 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e1',))
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
 
@@ -521,6 +544,19 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
         msg = "Condition 'e1' is not a boolean expression."
+        with self.assertRaisesX(Exception, msg):
+            phase.next_stimulus(None)
+
+        text = '''
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase_label stop:count(b1)=5
+        L1 e1 | H1
+        H1    | L2
+        L2 e2 | L1
+        '''
+        phase = parse(text, 'phase_label')
+        msg = "Unknown variable 'count'."
         with self.assertRaisesX(Exception, msg):
             phase.next_stimulus(None)
 
@@ -837,11 +873,49 @@ class TestExceptions(LsTestCase):
         L2  e2                 | L1
         '''
         phase = parse(text, 'thelabel')
-        stimulus = phase.next_stimulus(None)
+        stimulus, _ = phase.next_stimulus(None)
         self.assertEqual(stimulus, ('e1',))
         msg = "No condition in 'b3\=7\:L2 \| b2\=42\:L2' was met for response 'b1'."
         with self.assertRaisesX(Exception, msg):
             phase.next_stimulus('b1')
+
+        text = """
+        mechanism: ga
+        stimulus_elements : lever1, lever2, lever3, reward
+        behaviors : R
+
+        @phase vi stop: reward=25000
+        FI3 lever1       | count_line()=3:ON     | FI3
+        FI2 lever2       | count_line()=2:ON     | FI2
+        ON  lever3       | R:REWARD | ON
+        REWARD  reward   | ON(1/6),FI2(1/6),FI3(1/6)
+
+        @run vi
+        """
+        phase = parse(text, 'vi')
+        stimulus, _ = phase.next_stimulus(None)
+        msg = "No condition in 'ON\(1/6\),FI2\(1/6\),FI3\(1/6\)' was met for response 'R'."
+        with self.assertRaisesX(Exception, msg):
+            for _ in range(100):
+                phase.next_stimulus('R')
+
+    def test_prob_greater_than_1(self):
+        text = """
+        mechanism: ga
+        stimulus_elements : lever1, lever2, lever3, reward
+        behaviors : R
+
+        @phase vi stop: reward=25000
+        FI3 lever1       | count_line()=3:ON     | FI3
+        FI2 lever2       | count_line()=2:ON     | FI2
+        ON  lever3       | R:REWARD | ON
+        REWARD  reward   | ON(1/2),FI2(1/2),FI3(1/2)
+
+        @run vi
+        """
+        msg = "Invalid condition 'ON\(1/2\),FI2\(1/2\),FI3\(1/2\)'. Sum of probabilities is 1.5>1."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'vi')
 
     def test_condition_has_more_than_one_colon(self):
         text = '''
@@ -891,7 +965,7 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'thelabel')
         phase.next_stimulus(None)
-        stimulus = phase.next_stimulus('b1')
+        stimulus, _ = phase.next_stimulus('b1')
         self.assertEqual(stimulus, ('e2',))
 
         text = '''
@@ -903,7 +977,7 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'thelabel')
         phase.next_stimulus(None)
-        stimulus = phase.next_stimulus('b2')
+        stimulus, _ = phase.next_stimulus('b2')
         self.assertEqual(stimulus, ('e1',))
 
     def test_invalid_condition(self):

@@ -311,7 +311,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}:
         '''.format(name)
-        msg = "Parameter '{}' not specified.".format(name)
+        msg = "Parameter '{}' is not specified.".format(name)
         with self.assertRaisesX(Exception, msg):
             parse(text, name)
 
@@ -376,7 +376,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}:
         '''.format(name)
-        msg = "Parameter '{}' not specified.".format(name)
+        msg = "Parameter '{}' is not specified.".format(name)
         with self.assertRaisesX(Exception, msg):
             parse(text, name)
 

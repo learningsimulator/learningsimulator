@@ -107,7 +107,7 @@ class TestExceptions(LsTestCase):
         beta:
         mechanism: foo
         '''
-        msg = "Parameter 'beta' not specified."
+        msg = "Parameter 'beta' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
@@ -118,7 +118,7 @@ class TestExceptions(LsTestCase):
         beta
         mechanism: foo
         '''
-        msg = "Parameter 'beta' not specified."
+        msg = "Parameter 'beta' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 

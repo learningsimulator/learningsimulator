@@ -110,17 +110,17 @@ class TestExceptions(LsTestCase):
         self._test_empty_name(CUMULATIVE)
 
     def _test_empty_name(self, name):
-        text = '''
-        {}:
-        '''.format(name)
-        msg = "Parameter '{}' not specified.".format(name)        
+        text = f'''
+        {name}:
+        '''
+        msg = f"Parameter '{name}' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text, name)
 
         text = '''
         {}   :
         '''.format(name)
-        msg = "Parameter '{}' not specified.".format(name)
+        msg = "Parameter '{}' is not specified.".format(name)
         with self.assertRaisesX(Exception, msg):
             parse(text, name)
 
@@ -132,7 +132,7 @@ class TestExceptions(LsTestCase):
         text = '''
         {}
         '''.format(name)
-        msg = "Parameter '{}' not specified.".format(name)
+        msg = "Parameter '{}' is not specified.".format(name)
         with self.assertRaisesX(Exception, msg):
             parse(text, name)
 

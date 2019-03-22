@@ -1,0 +1,92 @@
+.. 
+  Learning Simulator documentation master file.
+
+  The reStructuredText documents in this documentation set (including document
+  names, in particular the file name suffix '.txt' rather than '.rst') adapts
+  the style guide
+  https://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html
+
+
+##############################################
+Welcome to Learning Simulator's documentation!
+##############################################
+
+Learning Simulator is a GUI-based Python program used for simulating
+associative learning mechanisms. It uses a simple and well-documented
+scripting language to specify the properties of the mechanism and the
+description of the experiment setup being simulated.
+.. If :math:`\sigma_{1}` equals :math:`\sigma_{2}` then etc, etc.
+    
+The documentation for ``Learning Simulator`` is hosted on `Read the
+docs <https://readthedocs.org/>`_.
+
+
+********
+Contents
+********
+
+.. toctree::
+   :maxdepth: 2
+
+   whatis
+   license
+   installation
+   starting
+   usage-example
+   background
+   scripting-language
+   examples
+   community
+
+
+
+..
+ .. toctree::
+    :maxdepth: 2
+
+    license
+..
+   :caption: Contents:
+
+..
+  Indices and tables
+  ==================
+
+  * :ref:`genindex`
+  * :ref:`modindex`
+  * :ref:`search`
+
+
+
+..
+	##################
+	H1: document title
+	##################
+
+	Introduction text.
+
+
+	*********
+	Sample H2
+	*********
+
+	Sample content.
+
+
+	**********
+	Another H2
+	**********
+
+	Sample H3
+	=========
+
+	Sample H4
+	---------
+
+	Sample H5
+	^^^^^^^^^
+
+	Sample H6
+	"""""""""
+
+	And some text.

@@ -89,7 +89,7 @@ class TestExceptions(LsTestCase):
         n_subjects:
         mechanism: foo
         '''
-        msg = "Parameter 'n_subjects' not specified."
+        msg = "Parameter 'n_subjects' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
@@ -100,7 +100,7 @@ class TestExceptions(LsTestCase):
         n_subjects
         mechanism: foo
         '''
-        msg = "Parameter 'n_subjects' not specified."
+        msg = "Parameter 'n_subjects' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 

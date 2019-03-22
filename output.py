@@ -196,17 +196,17 @@ class RunOutputSubject():
         Filter evalout (output from {v,w,p}-eval) as well as self.history w.r.t. the parameter
         'phase'.
         """
-        if parameters.get(kw.EVAL_PHASES) == kw.EVAL_ALL:
+        phases = parameters.get(kw.EVAL_PHASES)
+        if phases == kw.EVAL_ALL:
             return evalout, self.history
         else:
             out = list()
             history_out = list()
-            phases = parameters.get(kw.PHASE)
-            if type(phases) is not tuple:
+            if type(phases) is not list:
                 phases = (phases,)
             for phase in phases:
                 if phase not in self.first_step_phase[0]:
-                    raise EvalException("Invalid phase label {}.".format(phase))
+                    raise EvalException(f"Invalid phase label {phase}.")
             for phase in phases:
                 fsp_index = self.first_step_phase[0].index(phase)
                 phase_startind = self.first_step_phase[1][fsp_index]

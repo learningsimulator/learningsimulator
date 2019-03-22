@@ -99,7 +99,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements:
         '''
-        msg = "Parameter 'response_requirements' not specified."
+        msg = "Parameter 'response_requirements' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 

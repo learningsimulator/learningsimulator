@@ -191,10 +191,10 @@ class ScriptParser():
                 # Handle line that sets a parameter (e.g. "prop   :    val")
                 prop = line_parser.param
                 if len(linesplit_colon) == 1:
-                    raise ParseException(lineno, f"Parameter '{prop}' not specified.")
+                    raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
                 possible_val = linesplit_colon[1].strip()
                 if len(possible_val) == 0:
-                    raise ParseException(lineno, f"Parameter '{prop}' not specified.")
+                    raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
                 if line_endswith_comma:
                     if not self.parameters.may_end_with_comma(prop):
                         raise ParseException(lineno, "Value for {} may not end by comma.".format(prop))
@@ -224,7 +224,9 @@ class ScriptParser():
                 run_label, run_phase_labels = self._parse_run(after_run, lineno)
                 world = self.phases.make_world(run_phase_labels)
                 run_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen runs
-                mechanism_obj = run_parameters.make_mechanism_obj()
+                mechanism_obj, err = run_parameters.make_mechanism_obj()
+                if err:
+                    raise ParseException(lineno, err)
                 n_subjects = run_parameters.get(kw.N_SUBJECTS)
                 bind_trials = run_parameters.get(kw.BIND_TRIALS)
                 run = Run(world, mechanism_obj, n_subjects, bind_trials)
@@ -296,7 +298,7 @@ class ScriptParser():
     def _parse_legend(self, lineno, linesplit_space):
         if len(linesplit_space) == 1:  # @legend
             mpl_prop = dict()
-        elif len(linesplit_space) == 2:  # @legend {mpl_prop]}
+        elif len(linesplit_space) == 2:  # @legend {mpl_prop}
             arg = linesplit_space[1]
             is_dict, mpl_prop = ParseUtil.is_dict(arg)
             if not is_dict:

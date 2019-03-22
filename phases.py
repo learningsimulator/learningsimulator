@@ -1,6 +1,8 @@
+import copy
+
 from exceptions import ParseException
 from util import ParseUtil
-from keywords import PHASEDIV, STIMULUS_ELEMENTS, BEHAVIORS, BIND_TRIALS
+from keywords import PHASEDIV, STIMULUS_ELEMENTS, BEHAVIORS
 from variables import Variables
 
 
@@ -118,6 +120,7 @@ class Phase():
             elif label in behaviors:
                 raise ParseException(lineno, coincide_err + "behavior.")
             if label in self.linelabels:
+                print(self.linelabels)
                 raise ParseException(lineno, f"Duplicate of phase line label '{label}'.")
             self.linelabels.append(label)
             phase_lines_afterlabel.append(afterlabel)
@@ -129,7 +132,7 @@ class Phase():
         for label, after_label, lineno in zip(self.linelabels, phase_lines_afterlabel, linenos):
             self.phase_lines[label] = PhaseLine(lineno, label, after_label, self.linelabels,
                                                 self.parameters, self.variables)
-            if label == "@new_trial":  # Change self.first_label to the @new_trial line
+            if label == "new_trial":  # Change self.first_label to the new_trial line
                 self.first_label = label
 
         # Local variables
@@ -188,7 +191,7 @@ class Phase():
         if stimulus is None:  # Help line
             action = self.phase_lines[rowlbl].action
             self._perform_action(action)
-            stimulus = self.next_stimulus(response, ignore_response_increment=True)
+            stimulus, rowlbl = self.next_stimulus(response, ignore_response_increment=True)
         else:
             for stimulus_element in stimulus:
                 self.event_counter.increment_count(stimulus_element)
@@ -224,6 +227,11 @@ class Phase():
             self.event_counter.reset_count(event)
         else:
             raise Exception("Internal error.")
+
+    def copy(self):
+        cpy = copy.deepcopy(self)
+        cpy.end_condition = copy.deepcopy(self.end_condition)
+        return cpy
 
 
 class PhaseEventCounter():
@@ -357,8 +365,8 @@ class PhaseLine():
         self.stimulus = None
         self.action = None
 
-        self.consec_linecnt = 1
-        self.consec_respcnt = 1
+        # self.consec_linecnt = 1
+        # self.consec_respcnt = 1
         # self.prev_response = None
 
         self.action_lhs_var = None
@@ -417,8 +425,8 @@ class PhaseLineConditions():
         cond_gotos = conditions_str.split(PHASEDIV)
         cond_gotos = [c.strip() for c in cond_gotos]
         for cond_goto in cond_gotos:
-            condition_obj = PhaseCondition(lineno, is_help_line, cond_goto,
-                                           parameters, all_linelabels, global_variables)
+            condition_obj = PhaseLineCondition(lineno, is_help_line, cond_goto,
+                                               parameters, all_linelabels, global_variables)
             self.conditions.append(condition_obj)
 
     def next_line(self, response, variables, event_counter):
@@ -429,7 +437,7 @@ class PhaseLineConditions():
         raise Exception(f"No condition in '{self.conditions_str}' was met for response '{response}'.")
 
 
-class PhaseCondition():
+class PhaseLineCondition():
     def __init__(self, lineno, is_help_line, cond_goto, parameters, all_linelabels,
                  global_variables):
         self.lineno = lineno
@@ -455,7 +463,7 @@ class PhaseCondition():
         else:  # n_colons == 1
             cond, goto = ParseUtil.split1_strip(cond_goto, ':')
             self.cond = cond
-            self.cond_is_behavior = cond in parameters.get(BEHAVIORS)
+            self.cond_is_behavior = (cond in parameters.get(BEHAVIORS))
             if self.cond_is_behavior and is_help_line:
                 raise ParseException(lineno, "Condition on help line cannot depend on response.")
         self._parse_goto(goto, lineno, all_linelabels, global_variables)
@@ -466,7 +474,8 @@ class PhaseCondition():
         elif self.cond_is_behavior:
             ismet = (self.cond == response)
         else:
-            ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter)
+            ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter,
+                                            ParseUtil.PHASE_LINE)
             if err:
                 raise ParseException(self.lineno, err)
             if type(ismet) is not bool:
@@ -529,180 +538,18 @@ class PhaseCondition():
             raise ParseException(lineno, err + f"Sum of probabilities is {cumsum}>1.")
 
 
-class PhaseCondition_old():
-    def __init__(self, lineno, is_help_line, condition_str, parameters, all_linelabels, variables):
-        # Before colon
-        self.response = None
-        self.count = None
-
-        # After colon
-        self.goto = list()  # List of 2-tuples (probability, row_label)
-
-        # To speed up random row selection
-        self.goto_prob_cumsum = None
-
-        self._parse(lineno, is_help_line, condition_str, parameters, all_linelabels, variables)
-
-    def is_met(self, response, event_counter):
-        pass
-        # ismet = False
-        # if (self.response is not None) and (self.count is not None):
-        #     ismet = (response == self.response) and (consec_respcnt >= self.count)
-        # elif (self.response is None) and (self.count is not None):
-        #     ismet = (consec_linecnt >= self.count)
-        # elif (self.response is not None) and (self.count is None):
-        #     ismet = (response == self.response)
-        # else:  # (self.response is None) and (self.count is None):
-        #     ismet = True
-
-        # if ismet:
-        #     label = self._goto_if_met()
-        #     if label is None:  # In "ROW1(0.1),ROW2(0.3)", goto_if_met returns None with prob. 0.6
-        #         ismet = False
-        # else:
-        #     label = None
-        # return ismet, label
-
-    def _goto_if_met(self):
-        tuple_ind = ParseUtil.weighted_choice(self.goto_prob_cumsum)
-        if tuple_ind is None:
-            return None
-        else:
-            return self.goto[tuple_ind][1]
-
-    def _parse(self, lineno, is_help_line, condition_str, parameters, all_linelabels, variables):
-        if condition_str.count(':') > 1:
-            raise ParseException(lineno, "Condition '{}' has more than one colon.".format(condition_str))
-        lcolon, rcolon = ParseUtil.split1_strip(condition_str, ':')
-        if rcolon is None:
-            rcolon = lcolon
-            lcolon = None
-
-        # ---------- First parse lcolon ----------
-        if lcolon is not None:
-            if '=' in lcolon:
-                response, count_str = ParseUtil.split1_strip(lcolon, '=')
-                errmsg = "Expected an integer, got '{}'.".format(count_str)
-                posintval, err = ParseUtil.parse_posint(count_str, variables)
-                if err:
-                    raise ParseException(lineno, err)
-                if not posintval:
-                    raise ParseException(lineno, errmsg)
-                self.count = posintval
-            else:
-                if lcolon in parameters.get(BEHAVIORS):
-                    response = lcolon
-                else:
-                    posintval, err = ParseUtil.parse_posint(lcolon, variables)
-                    if err:
-                        raise ParseException(lineno, err)
-                    if posintval:
-                        response = None
-                        self.count = posintval
-                    else:
-                        raise ParseException(lineno, errmsg)
-
-            # Check that response is valid
-            if response is not None:
-                if response not in parameters.get(BEHAVIORS):
-                    raise ParseException(lineno, "Unknown response '{}'.".format(response))
-                if is_help_line:
-                    raise ParseException(lineno, "Condition on help line cannot depend on response.")
-                self.response = response
-
-        # ---------- Then parse rcolon ----------
-        lbls_and_probs = rcolon.split(',')
-        for lbl_and_prob in lbls_and_probs:
-            if lbl_and_prob in all_linelabels:
-                if len(lbls_and_probs) > 1:
-                    raise ParseException(lineno, "Invalid condition '{}'.".format(lbls_and_probs))
-                self.goto.append((1, lbl_and_prob))
-            else:
-                if '(' and ')' in lbl_and_prob:
-                    if lbl_and_prob.count('(') > 1 or lbl_and_prob.count(')') > 1:
-                        raise ParseException(lineno, "Invalid condition '{}'. Too many parentheses".format(lbl_and_prob))
-                    if lbl_and_prob.find('(') > lbl_and_prob.find('('):
-                        raise ParseException(lineno, "Invalid condition '{}'.".format(lbl_and_prob))
-                    lindex = lbl_and_prob.find('(')
-                    rindex = lbl_and_prob.find(')')
-                    lbl = lbl_and_prob[0:lindex]
-                    if lbl not in all_linelabels:
-                        raise ParseException(lineno, "Invalid line label '{}'.".format(lbl))
-                    prob_str = lbl_and_prob[(lindex + 1): rindex]
-                    isprob, prob = ParseUtil.is_prob(prob_str)
-                    if not isprob:
-                        raise ParseException(lineno, "Expected a probability, got {}.".format(prob_str))
-                    for prob_lbl in self.goto:
-                        if prob_lbl[1] == lbl:
-                            raise ParseException(lineno, "Label {0} duplicated in {1}.".format(lbl, rcolon))
-                    self.goto.append((prob, lbl))
-                else:
-                    raise ParseException(lineno, "Malformed condition '{}'.".format(condition_str))
-
-        self.goto_prob_cumsum = list()
-        cumsum = 0
-        for prob_lbl in self.goto:
-            cumsum += prob_lbl[0]
-            self.goto_prob_cumsum.append(cumsum)
-        if cumsum > 1:
-            raise ParseException(lineno, "Sum of probabilities in '{0}' is {1}>1.".format(rcolon, cumsum))
-
-
 class EndPhaseCondition():
     def __init__(self, lineno, endcond_str):
         self.lineno = lineno
         self.cond = endcond_str
 
     def is_met(self, variables, event_counter):
-        ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter)
+        ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter, ParseUtil.STOP_COND)
         if err:
             raise ParseException(self.lineno, err)
         if type(ismet) is not bool:
             raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
         return ismet
-
-
-class EndPhaseCondition_old():
-    def __init__(self, lineno, endcond_str, valid_items, variables):
-        lhsrhs, err = ParseUtil.parse_equals(endcond_str)
-        if err:
-            raise ParseException(lineno, err)
-        item = lhsrhs[0]
-        number_str = lhsrhs[1]
-        if item not in valid_items:
-            raise ParseException(lineno, "Error in condition {0}. Invalid item {1}.".format(endcond_str, item))
-        self.item = item
-        # isnumber, number = ParseUtil.is_posint(number_str)
-        # errmsg = "Expected positive integer. Got '{}'.".format(number_str)
-        posintval, err = ParseUtil.parse_posint(number_str, variables)
-        if err:
-            raise ParseException(lineno, err)
-        if not posintval:
-            raise ParseException(lineno, "Error on condition {0}. {1} is not an integer.".format(endcond_str, posintval))
-        self.limit = posintval
-
-        self.itemfreq = 0
-        # self.itemfreq = dict()
-        # for item in valid_items:
-        #     self.itemfreq[item] = 0
-
-    def update_itemfreq(self, item):
-        if type(item) is tuple:
-            for element in item:
-                if element == self.item:
-                    self.itemfreq += 1
-                # self.itemfreq[element] += 1
-        else:
-            if item == self.item:
-                self.itemfreq += 1
-            # self.itemfreq[item] += 1
-
-    def is_met(self):
-        # if self.item not in self.itemfreq:
-        #     return False
-        # else:
-        # return self.itemfreq[self.item] >= self.limit
-        return self.itemfreq >= self.limit
 
 
 class World():
@@ -713,7 +560,7 @@ class World():
 
     def __init__(self, phases_dict, phase_labels):
         self.phase_labels = phase_labels
-        self.phases = [phases_dict[phase_label] for phase_label in phase_labels]
+        self.phases = [phases_dict[phase_label].copy() for phase_label in phase_labels]
         # for phase_label in phase_labels:
         #     self.phases[phase_label] = phases_obj.get(phase_label)
         self.nphases = len(phase_labels)
@@ -728,7 +575,7 @@ class World():
                 return None, curr_phase.label, row_lbl
             else:  # Go to next phase
                 self.curr_phaseind += 1
-                return self.next_stimulus(response)
+                return self.next_stimulus(None)
         else:
             return stimulus, curr_phase.label, row_lbl
 
@@ -740,6 +587,7 @@ class World():
         self.curr_phaseind = 0
         for phase in self.phases:
             phase.subject_reset()
+
 
 # ------------------------------------
 

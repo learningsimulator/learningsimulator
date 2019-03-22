@@ -22,6 +22,10 @@ def count_line(event_counter, event):
 
 
 class ParseUtil():
+    # Used for evaluation in EndPhaseCondition.is_met and PhaseLineCondition.is_met
+    STOP_COND = 0
+    PHASE_LINE = 1
+
     @staticmethod
     def is_float(expr):
         """
@@ -107,7 +111,7 @@ class ParseUtil():
         return v, None
 
     @staticmethod
-    def evaluate(expr, variables, phase_event_counter=None):
+    def evaluate(expr, variables, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
         objects.
@@ -125,8 +129,13 @@ class ParseUtil():
         context.update(variables.values)
 
         if phase_event_counter:
-            expr = phase_event_counter.replace_count_functions(expr)
-            context.update(phase_event_counter.count)
+            if phase_event_counter_type == ParseUtil.STOP_COND:
+                context.update(phase_event_counter.count)
+            elif phase_event_counter_type == ParseUtil.PHASE_LINE:
+                expr = phase_event_counter.replace_count_functions(expr)
+                context.update(phase_event_counter.count_line)
+            else:
+                return None, "Internal error."
 
             # Try simple evaluation (e.g. "count(event)=12", "event=42")
             # out = phase_event_counter.eval(expr, variables)

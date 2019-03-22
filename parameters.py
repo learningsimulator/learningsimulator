@@ -128,7 +128,7 @@ class Parameters():
 
         # 'average', 'all' or 1-based index
         elif prop == kw.SUBJECT:
-            return self._parse_subject(v_str)
+            return self._parse_subject(v_str, variables)
 
         # 'all' or s1->b1->s2->..., s=se1,se2,...
         elif prop == kw.XSCALE:
@@ -143,7 +143,7 @@ class Parameters():
 
         # 'all' or cs-list of phase labels
         elif prop == kw.PHASES:
-            return self._parse_phases(self, v_str)
+            return self._parse_phases(v_str, all_phase_labels)
 
         # String (@run-labels) (for postprocessing)
         elif prop == kw.RUNLABEL:
@@ -197,7 +197,7 @@ class Parameters():
             mechanism_obj = mechanism.Enquist(self)
         else:
             raise Exception(f"Internal error. Unknown mechanism {mechanism_name}.")
-        return mechanism_obj
+        return mechanism_obj, None
 
     def _parse_behaviors(self, behaviors_str, variables, is_appending):
         """
@@ -536,14 +536,15 @@ class Parameters():
         return None  # No error
 
     def _parse_subject(self, v_str, variables):
+        err = f"Parameter {kw.SUBJECT} must be 'average', 'all', or a positive integer."
         if v_str.lower() in ('average', 'all'):
             self.val[kw.SUBJECT] = v_str.lower()
         else:
-            v, err = ParseUtil.parse_posint(v_str, variables)
-            if err:
+            v, interr = ParseUtil.parse_posint(v_str, variables)
+            if interr:  # Parsing error
+                return err + " " + interr
+            if not v:  # Parsing worked, but negative integer
                 return err
-            if not v:
-                return "Parameter {} must be a positive integer.".format(kw.SUBJECT)
             self.val[kw.N_SUBJECTS] = v
         return None
 
@@ -552,16 +553,23 @@ class Parameters():
             chain = v_str.split('->')
             first_link = chain[0].split(',')
             chain_starts_with_stimulus = first_link[0] in self.val[kw.STIMULUS_ELEMENTS]
+            if chain_starts_with_stimulus:
+                # Check that all elements in first_link are stimulus elements
+                for s in first_link:
+                    if s not in self.val[kw.STIMULUS_ELEMENTS]:
+                        return f"Expected stimulus element, got {s}."
+            elif first_link[0] not in self.val[kw.BEHAVIORS]:
+                return f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
             expecting_stimulus = chain_starts_with_stimulus
             for sb in chain:
                 if expecting_stimulus:
                     stimulus_elements = sb.split(',')
                     for e in stimulus_elements:
                         if e not in self.val[kw.STIMULUS_ELEMENTS]:
-                            return "Expected stimulus element, got {}".format(e)
+                            return f"Expected stimulus element, got {e}."
                 else:
                     if sb not in self.val[kw.BEHAVIORS]:
-                        return "Expected behavior name, got {}".format(sb)
+                        return f"Expected behavior name, got {sb}."
                 expecting_stimulus = not expecting_stimulus
         self.val[kw.XSCALE] = v_str
         return None

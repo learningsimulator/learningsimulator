@@ -97,14 +97,14 @@ class Gui():
         lntb_frame.pack(side="top", anchor="w", fill=BOTH, expand=YES)
 
         # XXX
-        self.scriptField.text_box.insert(1.0, """mechanism: ga
-        stimulus_elements: e1, e2
-        behaviors: b1, b2
-        @PHASE phase1 stop:e1=10
-        L1 e1 | L2
-        L2 e2 | L1
-        @run phase1
-        @vplot e1->b1""")
+        # self.scriptField.text_box.insert(1.0, """mechanism: ga
+        # stimulus_elements: e1, e2
+        # behaviors: b1, b2
+        # @PHASE phase1 stop:e1=10
+        # L1 e1 | L2
+        # L2 e2 | L1
+        # @run phase1
+        # @vplot e1->b1""")
         # End XXX
 
         # The Quit button

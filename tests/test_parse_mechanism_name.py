@@ -92,12 +92,23 @@ class TestParseMechanismNameErrors(LsTestCase):
     def setUp(self):
         pass
 
+    def test_no_mechanism(self):
+        text = '''
+        stimulus_elements: a, b
+        @phase foo stop:False
+        A a | A
+        @run foo
+        '''
+        msg = "Parameter 'mechanism' is not specified."
+        with self.assertRaisesX(Exception, msg):
+            parse(text)
+
     def test_empty_name(self):
         text = '''
         mechanism:
         stimulus_elements: a, b
         '''
-        msg = "Parameter 'mechanism' not specified."
+        msg = "Parameter 'mechanism' is not specified."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 

@@ -351,7 +351,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         @run phase1 label:run1
         '''
-        msg = "Parameter 'mechanism' not specified."
+        msg = "Parameter 'mechanism' is not specified."
         with self.assertRaisesX(Exception, msg):
             run, parameters = parse(text, 'run1')
 

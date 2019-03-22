@@ -30,4 +30,4 @@ class TestBasic(LsTestCase):
         @vplot e1->b1
         '''
         script = run(text)
-        print(script.script_parser.postcmds.cmds)
+        self.assertEqual(len(script.script_parser.postcmds.cmds), 1)
