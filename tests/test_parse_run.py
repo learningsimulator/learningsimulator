@@ -323,7 +323,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L1
         @run phase4, phase1
         '''
-        msg = "Redefinition of phase with label 'phase3'."
+        msg = "Redefinition of phase 'phase3'."
         with self.assertRaisesX(Exception, msg):
             run, parameters = parse(text, 'run1')
 

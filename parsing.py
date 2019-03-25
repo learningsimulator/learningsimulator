@@ -234,15 +234,16 @@ class ScriptParser():
                 continue
 
             elif line_parser.line_type == LineParser.PHASE:
+                gen_err = "@PHASE line must have the form '@PHASE label stop:condition'."
                 if len(linesplit_space) == 1:
-                    raise ParseException(lineno, "@PHASE line must have the form '@PHASE label stop:condition'.")
+                    raise ParseException(lineno, gen_err)
                 curr_phase_label, stop_condition = ParseUtil.split1(linesplit_space[1])
                 if self.phases.contains(curr_phase_label):
-                    raise ParseException(lineno, f"Redefinition of phase with label '{curr_phase_label}'.")
+                    raise ParseException(lineno, f"Redefinition of phase '{curr_phase_label}'.")
                 if not curr_phase_label.isidentifier():
-                    raise ParseException(lineno, "Phase label '{}' is not a valid identifier.".format(curr_phase_label))
+                    raise ParseException(lineno, f"Phase label '{curr_phase_label}' is not a valid identifier.")
                 if stop_condition is None:
-                    raise ParseException(lineno, "@PHASE line must have the form '@PHASE label stop:condition'.")
+                    raise ParseException(lineno, gen_err)
                 stop, condition = ParseUtil.split1_strip(stop_condition, ':')
                 if stop != "stop" or condition is None or len(condition) == 0:
                     raise ParseException(lineno, "Phase stop condition must have the form 'stop:condition'.")
@@ -439,6 +440,7 @@ class ScriptParser():
                     mpl_prop = d
                 else:        # @figure title
                     title = arg1
+                    mpl_prop = dict()
             else:
                 title = arg1
                 is_dict, d = ParseUtil.is_dict(arg2)

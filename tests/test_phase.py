@@ -44,8 +44,8 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2
         behaviors: b1, b2
         @PHASE phase_label stop:e1=10
-        L2           e2 | @new_trial
-        @new_trial   e1 | L2
+        L2           e2 | new_trial
+        new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
         stimulus, _ = phase.next_stimulus(None)
@@ -64,8 +64,8 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2
         behaviors: b1, b2
         @PHASE phase_label stop:e1=nsteps
-        L2           e2 | @new_trial
-        @new_trial   e1 | L2
+        L2           e2 | new_trial
+        new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
         stimulus, _ = phase.next_stimulus(None)
