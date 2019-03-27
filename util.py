@@ -238,6 +238,101 @@ class ParseUtil():
         except Exception:
             return False, None
 
+    @staticmethod
+    def parse_chain(v_str, all_stimulus_elements, all_behaviors):
+        out = list()
+        chain = v_str.split('->')
+        first_link = chain[0].split(',')
+        chain_starts_with_stimulus = first_link[0] in all_stimulus_elements
+        if chain_starts_with_stimulus:
+            # Check that all elements in first_link are stimulus elements
+            for s in first_link:
+                if s not in all_stimulus_elements:
+                    return None, f"Expected stimulus element, got {s}."
+        elif first_link[0] not in all_behaviors:
+            return None, f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
+        expecting_stimulus = chain_starts_with_stimulus
+        for sb in chain:
+            if expecting_stimulus:
+                stimulus_elements = sb.split(',')
+                for e in stimulus_elements:
+                    if e not in all_stimulus_elements:
+                        return None, f"Expected stimulus element, got {e}."
+                if len(stimulus_elements) == 1:
+                    out.append(stimulus_elements[0])
+                else:
+                    out.append(tuple(stimulus_elements))
+            else:
+                if sb not in all_behaviors:
+                    return None, f"Expected behavior name, got {sb}."
+                out.append(sb)
+            expecting_stimulus = not expecting_stimulus
+        return out, None
+
+    @staticmethod
+    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors):
+        # arrow2evalexpr_p
+        """
+        From an expression of the form "s1,s2,...->r", return the tuple (('s1','s2',...), 'r').
+        """
+        arrow_inds = [m.start() for m in re.finditer('->', expr)]
+        n_arrows = len(arrow_inds)
+        if n_arrows == 0:
+            return None, "Expression must include a '->'."
+        elif n_arrows > 1:
+            return None, "Expression must include only one '->'."
+
+        stimulus, behavior = expr.split('->')
+        stimulus_elements = tuple(stimulus.split(','))
+        for element in stimulus_elements:
+            if element not in all_stimulus_elements:
+                return None, f"Expected a stimulus element, got {element}."
+        if behavior not in all_behaviors:
+            return None, f"Expected a behavior name, got {behavior}."
+        return (stimulus_elements, behavior), None
+
+    @staticmethod
+    def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
+        # arrow2evalexpr_v
+        """
+        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
+
+        Example:
+            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
+        """
+        arrow_inds = [m.start() for m in re.finditer('->', expr)]
+        n_arrows = len(arrow_inds)
+        if n_arrows == 0:
+            return None, "Expression must include a '->'."
+        elif n_arrows > 1:
+            return None, "Expression must include only one '->'."
+
+        stimulus_element, behavior = expr.split('->')
+        if stimulus_element not in all_stimulus_elements:
+            return None, f"Expected a stimulus element, got {stimulus_element}."
+        if behavior not in all_behaviors:
+            return None, f"Expected a behavior name, got {behavior}."
+        return (stimulus_element, behavior), None
+
+    # @staticmethod
+    # def arrow2evalexpr_n(expr):
+    #     # arrow2evalexpr_n
+    #     """
+    #     From an expression of the form "s11,s12,...->r1->s21,s22,...->r2->...", return the
+    #     list [('s11','s12',...), 'r1', ('s21','s22',...), 'r2', ...]. If there is only one "s",
+    #     it will not be in a tuple (of length 1).
+
+    #     Example: "s->b->s1,s2" returns ['s', 'b', ('s1','s2')].
+    #     """
+    #     if '->' in expr:
+    #         arrowsplit = expr.split('->')
+    #         return list(ParseUtil.arrow2evalexpr_n(x.strip()) for x in arrowsplit)
+    #     elif ',' in expr:
+    #         commasplit = expr.split(',')
+    #         return tuple(x.strip() for x in commasplit)
+    #     else:
+    #         return expr
+
 
 def parse_equals(str):
     strspl = re.split('=| =|= ', str)
@@ -471,7 +566,6 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     '''seq is list of strings and tuples.
        pattern is a string, a tuple of strings or a list of strings and tuples of strings.
        If use_exact_match is false, count also part of tuples as match.'''
-
     assert(type(seq) == list)
     for s in seq:
         s_type = type(s)

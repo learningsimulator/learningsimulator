@@ -3,7 +3,7 @@ import mechanism_names as mn
 import mechanism
 from util import ParseUtil
 
-# All parameters and their defaults. None means that the parameter is required (where used).
+# All parameters and their defaults.
 PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings                  , REQ
       kw.STIMULUS_ELEMENTS: set(),       # set of (restricted) strings                  , REQ
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
@@ -21,7 +21,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.TITLE: '',                      # String                                      (,)
       kw.SUBPLOTTITLE: '',               # String                                      (,)
       kw.RUNLABEL: '',                   # String (restricted), for postrocessing only (,)
-      kw.SUBJECT: 'all',                 # average, all or zero-based index
+      kw.SUBJECT: 'average',             # average, all or zero-based index
       kw.XSCALE: 'all',                  # all or s1->b1->s2->..., s=se1,se2,...
       kw.XSCALE_MATCH: 'subset',         # subset or exact
       kw.EVAL_PHASES: 'all',             # @post: all or list of phase labels           ,
@@ -151,6 +151,7 @@ class Parameters():
             for runlabel in runlabels:
                 if runlabel not in all_run_labels:
                     return "Invalid @RUN-label {}".format(runlabel)
+            self.val[kw.RUNLABEL] = v_str
             return None
 
         # Valid path to writable file
@@ -548,30 +549,13 @@ class Parameters():
             self.val[kw.N_SUBJECTS] = v
         return None
 
-    def _parse_xscale(self, v_str):
-        if v_str != 'all':
-            chain = v_str.split('->')
-            first_link = chain[0].split(',')
-            chain_starts_with_stimulus = first_link[0] in self.val[kw.STIMULUS_ELEMENTS]
-            if chain_starts_with_stimulus:
-                # Check that all elements in first_link are stimulus elements
-                for s in first_link:
-                    if s not in self.val[kw.STIMULUS_ELEMENTS]:
-                        return f"Expected stimulus element, got {s}."
-            elif first_link[0] not in self.val[kw.BEHAVIORS]:
-                return f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
-            expecting_stimulus = chain_starts_with_stimulus
-            for sb in chain:
-                if expecting_stimulus:
-                    stimulus_elements = sb.split(',')
-                    for e in stimulus_elements:
-                        if e not in self.val[kw.STIMULUS_ELEMENTS]:
-                            return f"Expected stimulus element, got {e}."
-                else:
-                    if sb not in self.val[kw.BEHAVIORS]:
-                        return f"Expected behavior name, got {sb}."
-                expecting_stimulus = not expecting_stimulus
-        self.val[kw.XSCALE] = v_str
+    def _parse_xscale(self, xscale):
+        if xscale != 'all':
+            xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
+                                                self.val[kw.BEHAVIORS])
+            if err:
+                return err
+        self.val[kw.XSCALE] = xscale
         return None
 
     def _set_default_values(self, NAME):

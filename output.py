@@ -163,6 +163,9 @@ class RunOutputSubject():
         # first step in each phase
         self.first_step_phase = (list(), list())
 
+        # List of phase line labels, used for evaluating when parameter XSCALE is phase line label
+        self.phase_line_labels = list()
+
     def write_history(self, stimulus, response):
         assert(type(stimulus) is tuple)
         if len(stimulus) == 1:

@@ -262,11 +262,11 @@ class ScriptParser():
                 self.postcmds.add(subplot_cmd)
 
             elif line_parser.line_type == LineParser.PLOT:
-                expr, mpl_prop = self._parse_plot(lineno, linesplit_space)
+                expr, mpl_prop, expr0 = self._parse_plot(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 plot_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, plot_parameters)
-                plot_cmd = PlotCmd(cmd, expr, plot_parameters, mpl_prop)
+                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, mpl_prop)
                 self.postcmds.add(plot_cmd)
 
             elif line_parser.line_type == LineParser.LEGEND:
@@ -275,7 +275,7 @@ class ScriptParser():
                 self.postcmds.add(legend_cmd)
 
             elif line_parser.line_type == LineParser.EXPORT:
-                expr, filename = self._parse_export(lineno, linesplit_space)
+                expr, filename, expr0 = self._parse_export(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, export_parameters)
@@ -293,7 +293,7 @@ class ScriptParser():
             run_label = list(self.runs.runs.keys())[-1]
             parameters.val[kw.EVAL_RUNLABEL] = run_label
         else:
-            if run_label not in self.run_outputs:
+            if run_label not in self.all_run_labels:
                 raise ParseException(lineno, f"Unknown run label '{run_label}'.")
 
     def _parse_legend(self, lineno, linesplit_space):
@@ -316,17 +316,25 @@ class ScriptParser():
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
         args = linesplit_space[1]
-        expr, filename = ParseUtil.split1_strip(args)
+        expr0, filename = ParseUtil.split1_strip(args)
+        expr = expr0
         if filename is None:
             if len(filename_param) == 0:
                 raise ParseException(lineno, f"No filename given to {cmd}.")
             else:
                 filename = filename_param
+        all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
+        all_behaviors = self.parameters.get(kw.BEHAVIORS)
+        err = None
         if cmd == kw.VPLOT:
-            expr = self._arrow2tuple_v(expr)
+            expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.PPLOT:
-            expr = self._arrow2tuple_np(expr)
-        return expr, filename
+            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+        elif cmd == kw.NPLOT:
+            expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
+        if err:
+            raise ParseException(lineno, err)
+        return expr, filename, expr0
 
     def _parse_plot(self, lineno, linesplit_space):
         """
@@ -336,59 +344,37 @@ class ScriptParser():
         if len(linesplit_space) == 1:  # @plot
             raise ParseException(lineno, f"Invalid {cmd} command.")
         args = linesplit_space[1]
-        expr, mpl_prop_str = ParseUtil.split1_strip(args)
+        expr0, mpl_prop_str = ParseUtil.split1_strip(args)
+        expr = expr0
         if mpl_prop_str is None:
             mpl_prop = dict()
         else:
             is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
             if not is_dict:
                 raise Exception(lineno, f"Expected a dict, got {mpl_prop_str}.")
+        all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
+        all_behaviors = self.parameters.get(kw.BEHAVIORS)
+        err = None
         if cmd == kw.VPLOT:
-            expr = self._arrow2tuple_v(expr)
+            expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.PPLOT:
-            expr = self._arrow2tuple_np(expr)
-        return expr, mpl_prop
+            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+        elif cmd == kw.NPLOT:
+            expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
+        if err:
+            raise ParseException(lineno, err)
+            # expr = ParseUtil._arrow2tuple_np(expr0, self.parameters.get(kw.STIMULUS_ELEMENTS))
 
-    def _arrow2tuple_np(self, expr):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
+            # # util.find_and_cumsum takes list
+            # expr = list(expr)
 
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
+            # # Single-element stimuli are written to history as strings, so ('s',) in expr won't
+            # # match 's' in history, so change ('s',) to 's' in expr
+            # for i, _ in enumerate(expr):
+            #     if type(expr[i]) is tuple and len(expr[i]) == 1:
+            #         expr[i] = expr[i][0]
 
-        """
-        if '->' in expr:
-            arrowsplit = expr.split('->')
-            return tuple(self._arrow2tuple_np(x.strip()) for x in arrowsplit)
-        elif ',' in expr:
-            commasplit = expr.split(',')
-            return tuple(x.strip() for x in commasplit)
-        else:
-            if expr in self.parameters.get(kw.STIMULUS_ELEMENTS):
-                return (expr,)
-            else:
-                return expr
-
-    @staticmethod
-    def _arrow2tuple_v(expr):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
-
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
-
-        """
-        if '->' in expr:
-            arrowsplit = expr.split('->')
-            return tuple(ScriptParser._arrow2tuple_v(x.strip()) for x in arrowsplit)
-        elif ',' in expr:
-            commasplit = expr.split(',')
-            return tuple(x.strip() for x in commasplit)
-        else:
-            # if expr in se:
-            #     return (expr,)
-            # else:
-            return expr
+        return expr, mpl_prop, expr0
 
     def _parse_subplot(self, lineno, linesplit_space):
         """
@@ -432,24 +418,19 @@ class ScriptParser():
         if len(linesplit_space) == 1:  # @figure
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @figure args
-            args = linesplit_space[1]
-            arg1, arg2 = ParseUtil.split1_strip(args)
-            if arg2 is None:
-                is_dict, d = ParseUtil.is_dict(arg1)
-                if is_dict:  # @figure {...}
+            args = linesplit_space[1].split()
+            nargs = len(args)
+            found_dict = False
+            for i in range(nargs - 1, 0, -1):
+                candidate = ''.join(args[i: nargs])
+                found_dict, d = ParseUtil.is_dict(candidate)
+                if found_dict:
                     mpl_prop = d
-                else:        # @figure title
-                    title = arg1
-                    mpl_prop = dict()
-            else:
-                title = arg1
-                is_dict, d = ParseUtil.is_dict(arg2)
-                if is_dict:
-                    mpl_prop = d
-                else:
-                    raise Exception(lineno, f"Expected a dict, got {arg2}.")
-        else:
-            raise ParseException(lineno, "Invalid syntax on @figure line.")
+                    title = ' '.join(args[0: i])
+                    break
+            if not found_dict:
+                mpl_prop = dict()
+                title = ' '.join(linesplit_space[1:])
         return title, mpl_prop
 
     def _parse_run(self, after_run, lineno):
@@ -499,6 +480,7 @@ class PostCmds():
         for cmd in self.cmds:
             type_cmd = type(cmd)
             if type_cmd is not FigureCmd and \
+               type_cmd is not SubplotCmd and \
                type_cmd is not PlotCmd and \
                type_cmd is not ExportCmd and \
                type_cmd is not LegendCmd:
@@ -507,9 +489,10 @@ class PostCmds():
 
 
 class PlotCmd():
-    def __init__(self, cmd, expr, parameters, mpl_prop):
+    def __init__(self, cmd, expr, expr0, parameters, mpl_prop):
         self.cmd = cmd
         self.expr = expr
+        self.expr0 = expr0
         self.parameters = parameters
         self.mpl_prop = mpl_prop
         # parse_eval_prop(cmd, expr, parameters)
@@ -517,19 +500,19 @@ class PlotCmd():
     def run(self, simulation_data):
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
-        label_expr = beautify_expr_for_label(self.expr)
         if self.cmd == kw.VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
-            legend_label = "v{}".format(label_expr)
+            legend_label = f"v({self.expr0})"
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
-            legend_label = "w{}".format(label_expr)
+            # label_expr = beautify_expr_for_label(self.expr)
+            legend_label = f"w({self.expr0})"
         elif self.cmd == kw.PPLOT:
             ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
-            legend_label = "p{}".format(label_expr)
+            legend_label = f"p({self.expr0})"
         elif self.cmd == kw.NPLOT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
-            legend_label = "n{}".format(label_expr)
+            legend_label = f"n({self.expr0})"
 
         if self.parameters.get(kw.SUBJECT) == kw.EVAL_ALL:
             subject_legend_labels = list()
@@ -545,9 +528,10 @@ class PlotCmd():
 
 
 class ExportCmd():
-    def __init__(self, cmd, expr, parameters):
+    def __init__(self, cmd, expr, expr0, parameters):
         self.cmd = cmd
         self.expr = expr
+        self.expr0 = expr0
         self.parameters = parameters
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
@@ -609,7 +593,7 @@ class ExportCmd():
             #         w.writerow(datarow)
 
     def _vwpn_export(self, file, simulation_data):
-        label_expr = beautify_expr_for_label(self.expr)
+        label_expr = self.expr0  # beautify_expr_for_label(self.expr)
         if self.cmd == kw.VEXPORT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
             legend_label = "v{}".format(label_expr)
@@ -703,25 +687,25 @@ class LegendCmd():
 
 
 # ---------------------- Static methods ----------------------
-def beautify_expr_for_label(expr0):
-    expr = expr0[:]
-    expr_type = type(expr)
-    is_list = (expr_type is list)
-    is_tuple = (expr_type is tuple)
-    if is_list or is_tuple:
-        expr = [e for e in expr if e is not None]
-    else:
-        return "('" + expr + "')"
-    for i, e in enumerate(expr):
-        if type(e) is tuple and len(e) == 1:
-            expr[i] = e[0]
-    if len(expr) == 1:
-        return beautify_expr_for_label(expr[0])
-    else:
-        if is_tuple:
-            return tuple(expr)
-        else:
-            return expr
+# def beautify_expr_for_label(expr0):
+#     expr = expr0[:]
+#     expr_type = type(expr)
+#     is_list = (expr_type is list)
+#     is_tuple = (expr_type is tuple)
+#     if is_list or is_tuple:
+#         expr = [e for e in expr if e is not None]
+#     else:
+#         return "('" + expr + "')"
+#     for i, e in enumerate(expr):
+#         if type(e) is tuple and len(e) == 1:
+#             expr[i] = e[0]
+#     if len(expr) == 1:
+#         return beautify_expr_for_label(expr[0])
+#     else:
+#         if is_tuple:
+#             return tuple(expr)
+#         else:
+#             return expr
 
 
 # def parse_postcmd(cmd, cmdarg, simulation_parameters):
