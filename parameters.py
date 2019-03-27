@@ -17,7 +17,6 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.RESPONSE_REQUIREMENTS: dict(),  # List of b:se or b:(se1,se2,...)              ,
       kw.BIND_TRIALS: 'off',             # on or off
       kw.N_SUBJECTS: 1,                  # Positive integer
-      kw.LABEL: '',                      # @run String                                 (,)
       kw.TITLE: '',                      # String                                      (,)
       kw.SUBPLOTTITLE: '',               # String                                      (,)
       kw.RUNLABEL: '',                   # String (restricted), for postrocessing only (,)
@@ -120,7 +119,7 @@ class Parameters():
             return None
 
         # Any nonempty (after strip) string
-        elif prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.LABEL):
+        elif prop in (kw.TITLE, kw.SUBPLOTTITLE):
             if to_be_continued:  # Add the removed comma
                 v_str = v_str + ","
             self.val[prop] = v_str
@@ -147,10 +146,8 @@ class Parameters():
 
         # String (@run-labels) (for postprocessing)
         elif prop == kw.RUNLABEL:
-            runlabels = v_str.split(',')
-            for runlabel in runlabels:
-                if runlabel not in all_run_labels:
-                    return "Invalid @RUN-label {}".format(runlabel)
+            if v_str not in all_run_labels:
+                return "Invalid @RUN-label {}".format(v_str)
             self.val[kw.RUNLABEL] = v_str
             return None
 
@@ -576,7 +573,7 @@ class Parameters():
         return self.val[prop]
 
     def may_end_with_comma(self, prop):
-        return self.is_csv(prop) or prop in (kw.LABEL, kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
+        return self.is_csv(prop) or prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
 
     def is_csv(self, prop):
         return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.START_V, kw.START_W, kw.ALPHA_V,

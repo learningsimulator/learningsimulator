@@ -219,7 +219,7 @@ class ScriptParser():
 
             elif line_parser.line_type == LineParser.RUN:
                 if len(linesplit_space) == 1:
-                    raise ParseException(lineno, "@RUN line must have the form '@RUN phases [label:runlabel].")
+                    raise ParseException(lineno, "@RUN line must have the form '@RUN phases [runlabel:label].")
                 after_run = linesplit_space[1].strip()
                 run_label, run_phase_labels = self._parse_run(after_run, lineno)
                 world = self.phases.make_world(run_phase_labels)
@@ -435,10 +435,10 @@ class ScriptParser():
 
     def _parse_run(self, after_run, lineno):
         """
-        Parses a @RUN line ("@RUN  phase1,phase2,... [label:lbl]") and returns the run label and
+        Parses a @RUN line ("@RUN  phase1,phase2,... [runlabel:lbl]") and returns the run label and
         a list of phase labels.
         """
-        match_objs_iterator = re.finditer(' label[\s]*:', after_run)
+        match_objs_iterator = re.finditer(' runlabel[\s]*:', after_run)
         match_objs = tuple(match_objs_iterator)
         n_matches = len(match_objs)
         if n_matches == 0:
@@ -452,7 +452,7 @@ class ScriptParser():
             label = after_run[end_index:].strip()
             phases_str = after_run[0: start_index].strip()
         else:
-            raise ParseException(lineno, f"Maximum one instance of 'label:' on a {kw.RUN} line.")
+            raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")
 
         if label in self.all_run_labels:
             raise ParseException(lineno, f"Duplication of run label '{label}'.")

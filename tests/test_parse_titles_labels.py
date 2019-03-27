@@ -1,8 +1,8 @@
 from .testutil import LsTestCase
-from keywords import TITLE, SUBPLOTTITLE, LABEL
+from keywords import TITLE, SUBPLOTTITLE
 from parsing import Script
 
-prop_names = (TITLE, SUBPLOTTITLE, LABEL)
+prop_names = (TITLE, SUBPLOTTITLE)
 
 
 def parse(text, name):

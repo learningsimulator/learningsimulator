@@ -3,7 +3,7 @@ from parsing import Script
 from mechanism import Enquist, RescorlaWagner, ActorCritic, Qlearning, EXP_SARSA
 import keywords as kw
 
-# @RUN  phase1,phase2,... [label:lbl]
+# @RUN  phase1,phase2,... [runlabel:lbl]
 
 
 def parse(text, run_label):
@@ -269,11 +269,11 @@ class TestBasic(LsTestCase):
         L3 e1 | L1
 
         beta: 1.1
-        @run phase1 label:myrun1
+        @run phase1 runlabel:myrun1
 
         beta: 2.2
         n_subjects: 2
-        @run phase1,phase2 label:myrun2
+        @run phase1,phase2 runlabel:myrun2
         '''
         run1, parameters1 = parse(text, 'myrun1')
         self.assertEqual(set(run1.world.phase_labels), {'phase1'})
@@ -300,7 +300,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "@RUN line must have the form '@RUN phases \[label:runlabel\]."
+        msg = "@RUN line must have the form '@RUN phases \[runlabel:label\]."
         with self.assertRaisesX(Exception, msg):
             run, parameters = parse(text, '_')
 
@@ -335,7 +335,7 @@ class TestExceptions(LsTestCase):
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run foo label:run1
+        @run foo runlabel:run1
         '''
         msg = "Phase foo undefined."
         with self.assertRaisesX(Exception, msg):
@@ -349,7 +349,7 @@ class TestExceptions(LsTestCase):
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run phase1 label:run1
+        @run phase1 runlabel:run1
         '''
         msg = "Parameter 'mechanism' is not specified."
         with self.assertRaisesX(Exception, msg):
@@ -366,8 +366,8 @@ class TestExceptions(LsTestCase):
         @PHASE phase2 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run phase1 label:mylabel
-        @run phase2 label:    mylabel
+        @run phase1 runlabel:mylabel
+        @run phase2 runlabel:    mylabel
         '''
         msg = "Duplication of run label 'mylabel'."
         with self.assertRaisesX(Exception, msg):
@@ -384,10 +384,10 @@ class TestExceptions(LsTestCase):
         @PHASE phase2 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run phase1 label:run1
-        @run phase2 label:run1 label:run2
+        @run phase1 runlabel:run1
+        @run phase2 runlabel:run1 runlabel:run2
         '''
-        msg = "Maximum one instance of 'label:' on a @run line."
+        msg = "Maximum one instance of 'runlabel:' on a @run line."
         with self.assertRaisesX(Exception, msg):
             run, parameters = parse(text, 'run1')
 

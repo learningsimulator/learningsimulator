@@ -12,7 +12,6 @@ U = 'u'
 RESPONSE_REQUIREMENTS = 'response_requirements'
 BIND_TRIALS = 'bind_trials'
 N_SUBJECTS = 'n_subjects'
-LABEL = 'label'
 TITLE = 'title'
 SUBPLOTTITLE = 'subplottitle'
 RUNLABEL = 'runlabel'
@@ -59,7 +58,6 @@ KEYWORDS = (BEHAVIORS,
             RESPONSE_REQUIREMENTS,
             BIND_TRIALS,
             N_SUBJECTS,
-            LABEL,
             TITLE,
             SUBPLOTTITLE,
             RUNLABEL,
