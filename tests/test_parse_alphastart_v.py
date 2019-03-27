@@ -88,6 +88,15 @@ class TestBasic(LsTestCase):
         expected = {('e1', 'b1'): 0.42, ('e1', 'b2'): 0.42, ('e2', 'b1'): 0.42, ('e2', 'b2'): 0.42}
         self.assertEqual(v, expected)
 
+        text = '''
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        {}: 0
+        '''.format(name)
+        v = parse(text, name)
+        expected = {('e1', 'b1'): 0, ('e1', 'b2'): 0, ('e2', 'b1'): 0, ('e2', 'b2'): 0}
+        self.assertEqual(v, expected)
+
     def test_redefinition(self):
         self._test_redefinition(START_V)
         self._test_redefinition(ALPHA_V)

@@ -379,7 +379,7 @@ class Parameters():
             self.val[NAME][kw.DEFAULT] = None
 
         single_v, _ = ParseUtil.evaluate(alphastart_v_str, variables)
-        if single_v:
+        if single_v is not None:
             if is_appending:
                 return f"A single value for '{NAME}' cannot follow other values."
             elif to_be_continued:
