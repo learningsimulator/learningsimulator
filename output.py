@@ -120,8 +120,8 @@ class RunOutput():
     def write_history(self, subject_ind, stimulus, response):
         self.output_subjects[subject_ind].write_history(stimulus, response)
 
-    def write_step(self, subject_ind, phase_label, step):
-        self.output_subjects[subject_ind].write_step(phase_label, step)
+    def write_step(self, subject_ind, phase_label, phase_line_label, step):
+        self.output_subjects[subject_ind].write_step(phase_label, phase_line_label, step)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
@@ -174,10 +174,11 @@ class RunOutputSubject():
             self.history.append(stimulus)
         self.history.append(response)
 
-    def write_step(self, phase_label, step):
+    def write_step(self, phase_label, phase_line_label, step):
         if phase_label not in self.first_step_phase[0]:
             self.first_step_phase[0].append(phase_label)
             self.first_step_phase[1].append(step)
+        self.phase_line_labels.append(phase_line_label)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':

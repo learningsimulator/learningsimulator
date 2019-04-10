@@ -120,7 +120,6 @@ class Phase():
             elif label in behaviors:
                 raise ParseException(lineno, coincide_err + "behavior.")
             if label in self.linelabels:
-                print(self.linelabels)
                 raise ParseException(lineno, f"Duplicate of phase line label '{label}'.")
             self.linelabels.append(label)
             phase_lines_afterlabel.append(afterlabel)
@@ -135,17 +134,18 @@ class Phase():
             if label == "new_trial":  # Change self.first_label to the new_trial line
                 self.first_label = label
 
-        # Local variables
+        self.initialize_local_variables()
+        self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
+
+        self.subject_reset()
+        self.is_parsed = True
+
+    def initialize_local_variables(self):
         action_lhs_vars = dict()
         for label, phase_line_obj in self.phase_lines.items():
             if phase_line_obj.action_lhs_var is not None:
                 action_lhs_vars[phase_line_obj.action_lhs_var] = 0
         self.local_variables = Variables(action_lhs_vars)
-
-        self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
-
-        self.subject_reset()
-        self.is_parsed = True
 
     def subject_reset(self):
         self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
@@ -153,6 +153,7 @@ class Phase():
         self._make_current_line(self.first_label)
         self.prev_linelabel = None
         self.is_first_line = True
+        self.initialize_local_variables()
 
     def next_stimulus(self, response, ignore_response_increment=False):
         # if not self.is_parsed:

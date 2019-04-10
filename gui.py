@@ -224,8 +224,6 @@ class Gui():
             script = self.scriptField.text_box.get("1.0", "end-1c")
             script_obj = Script(script)
             script_obj.parse()
-            print(self.simulation_data)
-            print(script_obj.script_parser.postcmds.cmds)
             script_obj.postproc(self.simulation_data)
         except Exception as ex:
             self.handle_exception(ex)

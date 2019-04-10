@@ -101,6 +101,9 @@ def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
 # For postprocessing only
 def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, v):
     x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, v)
+    if behavior not in feasible_behaviors:
+        csse = ','.join(stimulus)  # Comma-separated stimulus elements
+        raise Exception(f"Behavior '{behavior}' is not a possible response to '{csse}'.")
     index = feasible_behaviors.index(behavior)
     p = x[index] / sum(x)
     return p

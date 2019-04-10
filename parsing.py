@@ -326,11 +326,11 @@ class ScriptParser():
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
-        if cmd == kw.VPLOT:
+        if cmd == kw.VEXPORT:
             expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
-        elif cmd == kw.PPLOT:
+        elif cmd == kw.PEXPORT:
             expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
-        elif cmd == kw.NPLOT:
+        elif cmd == kw.NEXPORT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
             raise ParseException(lineno, err)

@@ -312,7 +312,7 @@ class Parameters():
             self.val[kw.BEHAVIOR_COST][kw.DEFAULT] = None
 
         single_c, _ = ParseUtil.evaluate(behavior_cost_str, variables)
-        if single_c:
+        if single_c is not None:
             if is_appending:
                 return "A single value for '{}' cannot follow other values.".format(kw.BEHAVIOR_COST)
             elif to_be_continued:
@@ -494,7 +494,7 @@ class Parameters():
             self.val[NAME][kw.DEFAULT] = None
 
         single_w, _ = ParseUtil.evaluate(stimulus_values, variables)
-        if single_w:
+        if single_w is not None:
             if is_appending:
                 return "A single value for '{}' cannot follow other values.".format(NAME)
             elif to_be_continued:
@@ -547,6 +547,10 @@ class Parameters():
         return None
 
     def _parse_xscale(self, xscale):
+        if not self.val[kw.STIMULUS_ELEMENTS]:
+            return f"The parameter 'stimulus_elements' must be assigned before the parameter '{kw.XSCALE}'."
+        if not self.val[kw.BEHAVIORS]:
+            return f"The parameter 'behaviors' must be assigned before the parameter '{kw.XSCALE}'."
         if xscale != 'all':
             xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
                                                 self.val[kw.BEHAVIORS])

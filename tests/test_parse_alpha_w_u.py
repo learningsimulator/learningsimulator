@@ -78,6 +78,14 @@ class TestBasic(LsTestCase):
 
         text = '''
         stimulus_elements: e1, e2, e3
+        {}: 0
+        '''.format(name)
+        w = parse(text, name)
+        expected = {'e1': 0, 'e2': 0, 'e3': 0}
+        self.assertEqual(w, expected)
+
+        text = '''
+        stimulus_elements: e1, e2, e3
         {}:default:0.42
         '''.format(name)
         w = parse(text, name)

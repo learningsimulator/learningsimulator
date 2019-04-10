@@ -49,6 +49,7 @@ if __name__ == "__main__":
                 file_obj = open(file, "r")
                 script = file_obj.read()
                 script_obj = parsing.Script(script)
+                script_obj.parse()
                 simulation_data = script_obj.run()
                 block = (i == nfiles - 1)
                 script_obj.postproc(simulation_data, block)

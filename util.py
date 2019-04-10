@@ -241,14 +241,14 @@ class ParseUtil():
     @staticmethod
     def parse_chain(v_str, all_stimulus_elements, all_behaviors):
         out = list()
-        chain = v_str.split('->')
+        chain = v_str.replace(' ', '').split('->')
         first_link = chain[0].split(',')
         chain_starts_with_stimulus = first_link[0] in all_stimulus_elements
         if chain_starts_with_stimulus:
             # Check that all elements in first_link are stimulus elements
             for s in first_link:
                 if s not in all_stimulus_elements:
-                    return None, f"Expected stimulus element, got {s}."
+                    return None, f"Expected stimulus element, got '{s}'."
         elif first_link[0] not in all_behaviors:
             return None, f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
         expecting_stimulus = chain_starts_with_stimulus
@@ -257,14 +257,14 @@ class ParseUtil():
                 stimulus_elements = sb.split(',')
                 for e in stimulus_elements:
                     if e not in all_stimulus_elements:
-                        return None, f"Expected stimulus element, got {e}."
+                        return None, f"Expected stimulus element, got '{e}'."
                 if len(stimulus_elements) == 1:
                     out.append(stimulus_elements[0])
                 else:
                     out.append(tuple(stimulus_elements))
             else:
                 if sb not in all_behaviors:
-                    return None, f"Expected behavior name, got {sb}."
+                    return None, f"Expected behavior name, got '{sb}'."
                 out.append(sb)
             expecting_stimulus = not expecting_stimulus
         return out, None
@@ -675,15 +675,17 @@ def arrayind(x, ind):
 def dict_inv(d_in):
     d = dict(d_in)
     key_errmsg = "All keys must be non-empty strings."
-    val_errmsg = "All values must be non-empty strings or lists of non-empty strings."
+    val_errmsg = "Each value must be a non-empty string or a list/set of non-empty strings."
     for key, val in d.items():
         if type(key) is not str:
             raise Exception(key_errmsg)
         elif len(key) == 0:
             raise Exception(key_errmsg)
-        if type(val) is not list:
+        if type(val) is str:  # not list:
             val = [val]
             d[key] = val
+        elif type(val) is not list and type(val) is not set:
+            raise Exception(val_errmsg)
         for v in val:
             if type(v) is not str:
                 raise Exception(val_errmsg)

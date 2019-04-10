@@ -72,6 +72,14 @@ class TestBasic(LsTestCase):
         expected = {'b1': 0.42, 'b2': 0.42, 'b3': 0.42}
         self.assertEqual(w, expected)
 
+        text = '''
+        behaviors: b1, b2, b3
+        {}: 0
+        '''.format(name)
+        w = parse(text)
+        expected = {'b1': 0, 'b2': 0, 'b3': 0}
+        self.assertEqual(w, expected)
+
     def test_redefinition(self):
         text = '''
         behaviors: b1, b2
