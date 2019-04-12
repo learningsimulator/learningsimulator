@@ -104,7 +104,7 @@ class ErrorDlg(tk.Toplevel):
         super().__init__()
         self.details_expanded = False
         self.title(title)
-        self.geometry("350x75")
+        self.geometry("500x85")
         self.minsize(350, 75)
         self.maxsize(700, 500)
         self.rowconfigure(0, weight=0)
@@ -122,7 +122,8 @@ class ErrorDlg(tk.Toplevel):
         text_frame.columnconfigure(0, weight=1)
 
         ttk.Label(button_frame, text=message).grid(row=0, column=0, columnspan=3, pady=(7, 7), padx=(7, 7), sticky="w")
-        ttk.Button(button_frame, text="OK", command=self.destroy).grid(row=1, column=1, sticky="e")
+        ok_button = ttk.Button(button_frame, text="OK", command=self.destroy)
+        ok_button.grid(row=1, column=1, sticky="e")
         self.details_button = ttk.Button(button_frame, text="Details >>",
                                          command=self.toggle_details)
         self.details_button.grid(row=1, column=2, padx=(7, 7), sticky="e")
@@ -133,6 +134,7 @@ class ErrorDlg(tk.Toplevel):
         # self.scrollb = tk.Scrollbar(text_frame, command=self.textbox.yview)
         # self.textbox.config(yscrollcommand=self.scrollb.set)
 
+        ok_button.focus_set()
         self.grab_set()  # Make this dialog box modal
 
     def toggle_details(self):
@@ -141,7 +143,7 @@ class ErrorDlg(tk.Toplevel):
             self.textbox.grid(row=0, column=0, sticky='nsew')
             # self.scrollb.grid(row=0, column=1, sticky='nsew')
             self.resizable(True, True)
-            self.geometry('350x160' + '+' + curr_x + '+' + curr_y)
+            self.geometry('700x500' + '+' + curr_x + '+' + curr_y)
             self.details_button.config(text="<< Details")
             self.details_expanded = True
 
@@ -149,7 +151,7 @@ class ErrorDlg(tk.Toplevel):
             self.textbox.grid_forget()
             # self.scrollb.grid_forget()
             self.resizable(False, False)
-            self.geometry('350x75' + '+' + curr_x + '+' + curr_y)
+            self.geometry('500x85' + '+' + curr_x + '+' + curr_y)
             self.details_button.config(text="Details >>")
             self.details_expanded = False
 

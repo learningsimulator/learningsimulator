@@ -55,6 +55,12 @@ class Phases():
     def make_world(self, labels):
         return World(self.phases, labels)
 
+    def is_phase_label(self, name):
+        for _, phase in self.phases.items():
+            if phase.is_phase_label(name):
+                return True
+        return False
+
     # def make_world(self, phases_to_use):
     #     if len(phases_to_use) == 0:  # Empty tuple means all phases
     #         phases_to_use = self.phases[0]  # list(self.phases.keys())
@@ -228,6 +234,9 @@ class Phase():
             self.event_counter.reset_count(event)
         else:
             raise Exception("Internal error.")
+
+    def is_phase_label(self, label):
+        return label in self.linelabels
 
     def copy(self):
         cpy = copy.deepcopy(self)

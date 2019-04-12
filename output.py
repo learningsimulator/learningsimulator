@@ -120,8 +120,11 @@ class RunOutput():
     def write_history(self, subject_ind, stimulus, response):
         self.output_subjects[subject_ind].write_history(stimulus, response)
 
-    def write_step(self, subject_ind, phase_label, phase_line_label, step):
-        self.output_subjects[subject_ind].write_step(phase_label, phase_line_label, step)
+    def write_step(self, subject_ind, phase_label, step):
+        self.output_subjects[subject_ind].write_step(phase_label, step)
+
+    def write_phase_line_label(self, subject_ind, phase_line_label):
+        self.output_subjects[subject_ind].write_phase_line_label(phase_line_label)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
@@ -174,16 +177,18 @@ class RunOutputSubject():
             self.history.append(stimulus)
         self.history.append(response)
 
-    def write_step(self, phase_label, phase_line_label, step):
+    def write_step(self, phase_label, step):
         if phase_label not in self.first_step_phase[0]:
             self.first_step_phase[0].append(phase_label)
             self.first_step_phase[1].append(step)
+
+    def write_phase_line_label(self, phase_line_label):
         self.phase_line_labels.append(phase_line_label)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':
             _, history = self._phasefilter(None, parameters)
-            return RunOutputSubject.n_eval(expr, history, parameters)
+            return RunOutputSubject.n_eval(expr, history, self.phase_line_labels, parameters)
         else:
             switcher = {
                 'v': self.v_eval,
@@ -193,7 +198,7 @@ class RunOutputSubject():
             fun = switcher[vwpn]
             funout = fun(expr, parameters)
             funout, history = self._phasefilter(funout, parameters)
-            return self.stepsfilter(funout, history, parameters)
+            return self._stepsfilter(funout, history, parameters)
 
     def _phasefilter(self, evalout, parameters):
         """
@@ -222,24 +227,36 @@ class RunOutputSubject():
                         out.append(evalout[j])
             return out, history_out
 
-    def stepsfilter(self, evalout, history, parameters):
+    def _stepsfilter(self, evalout, history, parameters):
         eval_steps = parameters.get(kw.XSCALE)
         if eval_steps == kw.EVAL_ALL:
             return evalout
         else:
-            pattern = eval_steps
-            pattern_len = RunOutputSubject.compute_patternlen(pattern)
-            use_exact_match = (parameters.get(kw.XSCALE_MATCH) == 'exact')
-            findind, cumsum = util.find_and_cumsum(history, pattern, use_exact_match)
-            n_matches = cumsum[-1]
-            out = [None] * n_matches
-            out_ind = 0
-            for history_ind, zero_or_one in enumerate(findind):
-                if zero_or_one == 1:
-                    evalout_ind = RunOutputSubject.historyind2stepind(history_ind, pattern_len)
-                    out[out_ind] = evalout[evalout_ind]
-                    out_ind += 1
-            return out
+            if eval_steps in self.phase_line_labels:  # xscale is a phase line label
+                findind, cumsum = util.find_and_cumsum(self.phase_line_labels, eval_steps,
+                                                       True)
+                n_matches = cumsum[-1]
+                out = [None] * n_matches
+                out_ind = 0
+                for evalout_ind, zero_or_one in enumerate(findind):
+                    if zero_or_one == 1:
+                        out[out_ind] = evalout[evalout_ind]
+                        out_ind += 1
+                return out
+            else:
+                pattern = eval_steps
+                pattern_len = RunOutputSubject.compute_patternlen(pattern)
+                use_exact_match = (parameters.get(kw.XSCALE_MATCH) == 'exact')
+                findind, cumsum = util.find_and_cumsum(history, pattern, use_exact_match)
+                n_matches = cumsum[-1]
+                out = [None] * n_matches
+                out_ind = 0
+                for history_ind, zero_or_one in enumerate(findind):
+                    if zero_or_one == 1:
+                        evalout_ind = RunOutputSubject.historyind2stepind(history_ind, pattern_len)
+                        out[out_ind] = evalout[evalout_ind]
+                        out_ind += 1
+                return out
 
     @staticmethod
     def historyind2stepind(history_ind, pattern_len):
@@ -282,7 +299,7 @@ class RunOutputSubject():
         return out
 
     @staticmethod
-    def n_eval(seqs, history, parameters):
+    def n_eval(seqs, history, phase_line_labels, parameters):
         seqstype = type(seqs)
         if seqstype is not tuple:
             seqs = (seqs, None)
@@ -296,8 +313,18 @@ class RunOutputSubject():
         all_steps = (steps == kw.EVAL_ALL)
         findind_steps = None
         if not all_steps:
-            exact_steps = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
-            findind_steps, _ = util.find_and_cumsum(history, steps, exact_steps)
+            if steps in phase_line_labels:  # xscale is a phase line label
+                findind_steps_lbls, _ = util.find_and_cumsum(phase_line_labels, steps, True)
+
+                # findind_steps has length #steps - change to len(history) by adding zeros
+                # in the response positions
+                findind_steps = list()
+                for ind in findind_steps_lbls:
+                    findind_steps.append(ind)
+                    findind_steps.append(0)
+            else:
+                exact_steps = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
+                findind_steps, _ = util.find_and_cumsum(history, steps, exact_steps)
 
         args = [findind_steps, cumulative, all_steps]
         out_seq = RunOutputSubject.n_eval_out(findind_seq, cumsum_seq, *args)

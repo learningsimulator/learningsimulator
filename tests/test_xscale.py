@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from .testutil import LsTestCase
+from .testutil import LsTestCase, get_plot_data
 from parsing import Script
 
 
@@ -52,7 +52,6 @@ class TestSmall(LsTestCase):
         '''
         script, simulation_data = run(text)
         history = simulation_data.run_outputs['run1'].output_subjects[0].history
-        # print(simulation_data.run_outputs['run1'].output_subjects[0].phase_line_labels)
         expected_history = ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's1', 'b']
         self.assertEqual(history, expected_history)
 
@@ -120,11 +119,9 @@ class TestDifferentTypes(LsTestCase):
         @nplot s->b
         '''
         script, simulation_data = run(text)
-        # output = simulation_data.run_outputs["alpha01"].output_subjects[0]
-        # print(simulation_data.run_outputs["myrunlabel"].output_subjects[0].history)
         self.assertEqual(len(script.script_parser.postcmds.cmds), 2)
 
-    def test_phase_line_label(self):
+    def test_phase_line_label_ref1(self):
         text = '''
         n_subjects        : 1
         mechanism         : SR
@@ -138,23 +135,150 @@ class TestDifferentTypes(LsTestCase):
         u                 : reward:2, default:0
 
         @phase instrumental_conditioning stop:s=60
-        XSTIMULUS   s          | b: REWARD  | XSTIMULUS
+        XSTIMULUS   s          | REWARD
         REWARD      reward     | XSTIMULUS
 
         @run instrumental_conditioning runlabel: alpha01
 
-        @figure foo bar   carr
-        xscale: s  # XSTIMULUS
+        @figure
         runlabel: alpha01
-        @nplot s->b {'linewidth':2}
+
+        xscale: s
+        @pplot s->b
+
+        xscale: XSTIMULUS
+        @pplot s->b
         '''
         script, simulation_data = run(text)
         output = simulation_data.run_outputs["alpha01"].output_subjects[0]
         history_len = len(output.history)
-        self.assertTrue(history_len % 2 == 0)
+        self.assertEqual(history_len, 4 * 59 + 2)
         n_steps = history_len / 2
-        self.assertEqual(len(output.phase_line_labels), n_steps + 1)
-        self.assertEqual(output.phase_line_labels[0], "init")
-        self.assertEqual(output.phase_line_labels[-1], "last")
+        self.assertEqual(len(output.phase_line_labels), n_steps)
         for eb in output.v:
             self.assertEqual(max(output.v[eb].steps), n_steps)
+
+        ax = plt.figure(1).axes
+        self.assertEqual(len(ax), 1)
+        ax = ax[0]
+
+        lines = ax.get_lines()
+        self.assertEqual(len(lines), 2)
+        line1 = lines[0]
+        line2 = lines[1]
+        self.assertEqual(list(line1.get_xdata(True)), list(line2.get_xdata(True)))
+        self.assertEqual(list(line1.get_ydata(True)), list(line2.get_ydata(True)))
+
+    def test_phase_line_label_ref2(self):
+        text = '''
+        n_subjects        : 1
+        mechanism         : SR
+        behaviors         : b, b0
+        stimulus_elements : s, reward
+        start_v           : s->b0:0, default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : default:0
+        u                 : reward:2, default:0
+
+        @phase instrumental_conditioning stop:s=60
+        XSTIMULUS   s          | REWARD
+        REWARD      reward     | XSTIMULUS
+
+        @run instrumental_conditioning runlabel: alpha01
+
+        @figure
+        runlabel: alpha01
+
+        xscale: reward
+        @pplot s->b
+
+        xscale: REWARD
+        @pplot s->b
+        '''
+        script, simulation_data = run(text)
+        output = simulation_data.run_outputs["alpha01"].output_subjects[0]
+        history_len = len(output.history)
+        self.assertEqual(history_len, 4 * 59 + 2)
+        n_steps = history_len / 2
+        self.assertEqual(len(output.phase_line_labels), n_steps)
+        for eb in output.v:
+            self.assertEqual(max(output.v[eb].steps), n_steps)
+
+        ax = plt.figure(1).axes
+        self.assertEqual(len(ax), 1)
+        ax = ax[0]
+
+        lines = ax.get_lines()
+        self.assertEqual(len(lines), 2)
+        line1 = lines[0]
+        line2 = lines[1]
+        self.assertEqual(list(line1.get_xdata(True)), list(line2.get_xdata(True)))
+        self.assertEqual(list(line1.get_ydata(True)), list(line2.get_ydata(True)))
+
+    def test_phase_line_label_ref3(self):
+        text = '''
+        n_subjects        : 1
+        mechanism         : GA
+        behaviors         : b, b0
+        stimulus_elements : s, reward
+        start_v           : s->b0:0, default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : default:0
+        u                 : reward:2, default:0
+
+        @phase instrumental_conditioning stop:s=6
+        XSTIMULUS   s          | REWARD
+        REWARD      reward     | XSTIMULUS
+
+        @run instrumental_conditioning runlabel: alpha01
+        runlabel: alpha01
+
+        @figure
+        xscale: reward
+        @pplot s->b {'label':'p_reward'}
+        xscale: REWARD
+        @pplot s->b {'label':'p_REWARD'}
+
+        @figure
+        xscale: reward
+        @vplot s->b {'label':'v_reward'}
+        xscale: REWARD
+        @vplot s->b {'label':'v_REWARD'}
+
+        @figure
+        xscale: reward
+        @nplot b0 {'label':'n_reward'}
+        xscale: REWARD
+        @nplot b0 {'label':'n_REWARD'}
+
+        @figure
+        xscale: reward
+        @wplot s {'label':'w_reward'}
+        xscale: REWARD
+        @wplot s {'label':'w_REWARD'}
+        '''
+        run(text)
+
+        plot_data = get_plot_data(1, 1)
+        self.assertEqual(len(plot_data), 2)
+        self.assertEqual(plot_data['p_reward']['x'], plot_data['p_REWARD']['x'])
+        self.assertEqual(plot_data['p_reward']['y'], plot_data['p_REWARD']['y'])
+
+        plot_data = get_plot_data(2, 1)
+        self.assertEqual(len(plot_data), 2)
+        self.assertEqual(plot_data['v_reward']['x'], plot_data['v_REWARD']['x'])
+        self.assertEqual(plot_data['v_reward']['y'], plot_data['v_REWARD']['y'])
+
+        plot_data = get_plot_data(3, 1)
+        self.assertEqual(len(plot_data), 2)
+        self.assertEqual(plot_data['n_reward']['x'], plot_data['n_REWARD']['x'])
+        self.assertEqual(plot_data['n_reward']['y'], plot_data['n_REWARD']['y'])
+
+        plot_data = get_plot_data(4, 1)
+        self.assertEqual(len(plot_data), 2)
+        self.assertEqual(plot_data['w_reward']['x'], plot_data['w_REWARD']['x'])
+        self.assertEqual(plot_data['w_reward']['y'], plot_data['w_REWARD']['y'])

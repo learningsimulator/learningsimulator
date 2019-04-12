@@ -155,7 +155,6 @@ class ScriptParser():
             line_endswith_comma = line.endswith(',')
             if line_endswith_comma:
                 line = line[:-1]
-                # line = line.strip(',')
 
             line_parser = LineParser(line)
             line_parser.parse()
@@ -167,9 +166,8 @@ class ScriptParser():
                 err = None
                 if in_prop:
                     in_prop = line_endswith_comma
-                    err = self.parameters.str_append(prop, line, self.variables,
-                                                     self.phases.labels_set(), self.all_run_labels,
-                                                     line_endswith_comma)
+                    err = self.parameters.str_append(prop, line, self.variables, self.phases,
+                                                     self.all_run_labels, line_endswith_comma)
                 elif in_variables:
                     in_variables = line_endswith_comma
                     err = self.variables.add_cs_varvals(line, self.parameters)
@@ -199,9 +197,8 @@ class ScriptParser():
                     if not self.parameters.may_end_with_comma(prop):
                         raise ParseException(lineno, "Value for {} may not end by comma.".format(prop))
                     in_prop = self.parameters.is_csv(prop)
-                err = self.parameters.str_set(prop, possible_val, self.variables,
-                                              self.phases.labels_set(), self.all_run_labels,
-                                              line_endswith_comma)
+                err = self.parameters.str_set(prop, possible_val, self.variables, self.phases,
+                                              self.all_run_labels, line_endswith_comma)
                 if err:
                     raise ParseException(lineno, err)
                 continue
@@ -288,9 +285,11 @@ class ScriptParser():
 
     def _evalparse(self, lineno, parameters):
         """Handles parameters that depend on currently defined runs."""
+        if len(self.all_run_labels) == 0:
+            raise ParseException(lineno, "There is no @RUN.")
         run_label = parameters.get(kw.EVAL_RUNLABEL)
         if len(run_label) == 0:
-            run_label = list(self.runs.runs.keys())[-1]
+            run_label = self.all_run_labels[-1]
             parameters.val[kw.EVAL_RUNLABEL] = run_label
         else:
             if run_label not in self.all_run_labels:
@@ -521,9 +520,11 @@ class PlotCmd():
                 subject_legend_labels.append(subject_legend_label)
             for i, subject_ydata in enumerate(ydata):
                 subject_legend_label = subject_legend_labels[i]
-                plt.plot(subject_ydata, label=subject_legend_label, **self.mpl_prop)
+                plot_args = dict({'label': subject_legend_label}, **self.mpl_prop)
+                plt.plot(subject_ydata, **plot_args)
         else:
-            plt.plot(ydata, label=legend_label, **self.mpl_prop)
+            plot_args = dict({'label': legend_label}, **self.mpl_prop)
+            plt.plot(ydata, **plot_args)
         plt.grid(True)
 
 

@@ -45,17 +45,16 @@ class Parameters():
         self.val = dict(PD)
         # self.got = dict.fromkeys(PD, False)
 
-    def str_append(self, prop, v_str, variables, all_phase_labels, all_run_labels,
-                   to_be_continued):
+    def str_append(self, prop, v_str, variables, phases, all_run_labels, to_be_continued):
         err = check_is_parameter_name(prop)
         if err:
             return err
         if not self.is_csv(prop):
             return f"Internal error: Parameter '{prop}' is not of type list."
-        return self.str_set(prop, v_str, variables, all_phase_labels, all_run_labels,
+        return self.str_set(prop, v_str, variables, phases, all_run_labels,
                             to_be_continued, True)
 
-    def str_set(self, prop, v_str, variables, all_phase_labels, all_run_labels, to_be_continued,
+    def str_set(self, prop, v_str, variables, phases, all_run_labels, to_be_continued,
                 is_appending=False):
         """
         Parses the specified value (as a string) of the specified parameter and sets the resulting
@@ -67,6 +66,7 @@ class Parameters():
         if err:
             return err
 
+        all_phase_labels = phases.labels_set()
         if prop == kw.BEHAVIORS:
             return self._parse_behaviors(v_str, variables, is_appending)
 
@@ -131,7 +131,7 @@ class Parameters():
 
         # 'all' or s1->b1->s2->..., s=se1,se2,...
         elif prop == kw.XSCALE:
-            return self._parse_xscale(v_str)
+            return self._parse_xscale(v_str, phases)
 
         # 'subset' or 'exact'
         elif prop in (kw.MATCH, kw.XSCALE_MATCH):
@@ -263,7 +263,7 @@ class Parameters():
         if v_str == 'all':
             self.val[kw.PHASES] = list(all_phase_labels)
         else:
-            phase_labels = v_str.split(',')
+            phase_labels = ParseUtil.comma_split_strip(v_str)
             for phase_label in phase_labels:
                 if len(phase_label) == 0:
                     return "Expected comma-separated list of phase labels, found {}".format(phase_labels)
@@ -546,16 +546,26 @@ class Parameters():
             self.val[kw.N_SUBJECTS] = v
         return None
 
-    def _parse_xscale(self, xscale):
+    def _parse_xscale(self, xscale, phases):
         if not self.val[kw.STIMULUS_ELEMENTS]:
             return f"The parameter 'stimulus_elements' must be assigned before the parameter '{kw.XSCALE}'."
         if not self.val[kw.BEHAVIORS]:
             return f"The parameter 'behaviors' must be assigned before the parameter '{kw.XSCALE}'."
-        if xscale != 'all':
+        if '->' in xscale:
             xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
                                                 self.val[kw.BEHAVIORS])
             if err:
                 return err
+        elif xscale in self.val[kw.STIMULUS_ELEMENTS]:
+            pass
+        elif xscale in self.val[kw.BEHAVIORS]:
+            pass
+        elif phases.is_phase_label(xscale):
+            pass
+        elif xscale == 'all':
+            pass
+        else:
+            return f"Invalid value '{xscale}' for parameter '{kw.XSCALE}'."
         self.val[kw.XSCALE] = xscale
         return None
 

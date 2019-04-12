@@ -1,4 +1,5 @@
 import unittest
+import matplotlib.pyplot as plt
 
 
 def check_run_output_subject(test_obj, output):
@@ -26,6 +27,24 @@ def check_run_output_subject_vw(test_obj, output_vw):
     all_steps = list(steps_union)
     all_steps.sort()
     test_obj.assertEqual(all_steps, list(range(1, max_step)))
+
+
+def get_plot_data(figure_number=1, axes_number=1):
+    """figure_number and axes_number are 1-index based."""
+    axes = plt.figure(figure_number).axes
+    ax = axes[axes_number - 1]
+
+    lines = ax.get_lines()
+    if len(lines) == 1:
+        line = lines[0]
+        return {'x': list(line.get_xdata(True)),
+                'y': list(line.get_ydata(True))}
+    else:
+        out = dict()
+        for line in lines:
+            out[line.get_label()] = {'x': list(line.get_xdata(True)),
+                                     'y': list(line.get_ydata(True))}
+        return out
 
 
 class LsTestCase(unittest.TestCase):

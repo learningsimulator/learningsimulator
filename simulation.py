@@ -48,7 +48,7 @@ class Run():
                     out.write_w(subject_ind, (element,), 0, self.mechanism_obj)
                 for behavior in behaviors:
                     out.write_v(subject_ind, (element,), behavior, 0, self.mechanism_obj)
-            out.write_step(subject_ind, self.world.phases[0].label, "init", 0)
+            out.write_step(subject_ind, self.world.phases[0].label, 0)
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
@@ -70,8 +70,9 @@ class Run():
                         out.write_v(subject_ind, prev_stimulus, prev_response, step,
                                     self.mechanism_obj)
                         out.write_history(subject_ind, prev_stimulus, prev_response)
-                        out.write_step(subject_ind, phase_label, phase_line_label, step)
+                        out.write_step(subject_ind, phase_label, step)
                         step += 1
+                    out.write_phase_line_label(subject_ind, phase_line_label)
                     last_stimulus = stimulus
                     last_response = response
                 else:
@@ -83,11 +84,10 @@ class Run():
                                 out.write_w(subject_ind, (element,), step, self.mechanism_obj)
                     for element in stimulus_elements:
                         for behavior in behaviors:
-                            if True:  #(element not in last_stimulus) or (behavior!=last_response):
-                                out.write_v(subject_ind, (element,), behavior, step,
-                                            self.mechanism_obj)
+                            out.write_v(subject_ind, (element,), behavior, step,
+                                        self.mechanism_obj)
                     out.write_history(subject_ind, last_stimulus, last_response)
-                    out.write_step(subject_ind, "last", "last", step)
+                    out.write_step(subject_ind, "last", step)
 
                     # Reset mechanism and world for the next subject
                     self.mechanism_obj.subject_reset()

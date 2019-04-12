@@ -55,6 +55,59 @@ class TestBasic(LsTestCase):
         expected = ['s1', 'b1', ('s1', 's2'), 'b2', ('s1', 's2', 's3'), 'b3']
         self.assertEqual(c, expected)
 
+    def test_phase_line_label(self):
+        text = '''
+        n_subjects        : 1
+        mechanism         : GA
+        behaviors         : b, b0
+        stimulus_elements : s, reward
+        start_v           : s->b0:0, default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : default:0
+        u                 : reward:2, default:0
+
+        @phase instrumental_conditioning stop:s=6
+        XSTIMULUS   s          | REWARD
+        REWARD      reward     | XSTIMULUS
+
+        @run instrumental_conditioning runlabel: alpha01
+        runlabel: alpha01
+
+        @figure
+        xscale: XSTIMULUS
+        '''
+        c = parse(text)
+        expected = 'XSTIMULUS'
+        self.assertEqual(c, expected)
+
+        text = '''
+        n_subjects        : 1
+        mechanism         : GA
+        behaviors         : b, b0
+        stimulus_elements : s, reward
+        start_v           : s->b0:0, default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : default:0
+        u                 : reward:2, default:0
+
+        @phase instrumental_conditioning stop:s=6
+        XSTIMULUS   s          | REWARD
+        REWARD      reward     | XSTIMULUS
+
+        @run instrumental_conditioning runlabel: alpha01
+        runlabel: alpha01
+
+        @figure
+        xscale: REWARD
+        '''
+        c = parse(text)
+        expected = 'REWARD'
+        self.assertEqual(c, expected)
+
 
 class TestExceptions(LsTestCase):
     def setUp(self):
@@ -107,5 +160,32 @@ class TestExceptions(LsTestCase):
         xscale: s1->b1->b3->foo->bar
         '''
         msg = "Expected stimulus element, got 'b3'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text)
+
+    def test_wrong_phase_line_label(self):
+        text = '''
+        n_subjects        : 1
+        mechanism         : GA
+        behaviors         : b, b0
+        stimulus_elements : s, reward
+        start_v           : s->b0:0, default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : default:0
+        u                 : reward:2, default:0
+
+        @phase instrumental_conditioning stop:s=6
+        XSTIMULUS   s          | REWARD
+        REWARD      reward     | XSTIMULUS
+
+        @run instrumental_conditioning runlabel: alpha01
+        runlabel: alpha01
+
+        @figure
+        xscale: XfooSTIMULUS
+        '''
+        msg = "Invalid value 'XfooSTIMULUS' for parameter 'xscale'."
         with self.assertRaisesX(Exception, msg):
             parse(text)
