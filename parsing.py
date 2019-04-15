@@ -234,7 +234,17 @@ class ScriptParser():
                 gen_err = "@PHASE line must have the form '@PHASE label stop:condition'."
                 if len(linesplit_space) == 1:
                     raise ParseException(lineno, gen_err)
-                curr_phase_label, stop_condition = ParseUtil.split1(linesplit_space[1])
+                lbl_and_stopcond = linesplit_space[1].strip()
+                curr_phase_label, stop_condition = ParseUtil.split1(lbl_and_stopcond)
+
+                inherited_from = None
+                if '(' in curr_phase_label and curr_phase_label.endswith(')'):
+                    lind = curr_phase_label.index('(')
+                    inherited_from = curr_phase_label[(lind + 1):-1]
+                    curr_phase_label = curr_phase_label[0:lind]
+                    if not self.phases.contains(inherited_from):
+                        raise ParseException(lineno, f"Invalid phase label '{inherited_from}'.")
+
                 if self.phases.contains(curr_phase_label):
                     raise ParseException(lineno, f"Redefinition of phase '{curr_phase_label}'.")
                 if not curr_phase_label.isidentifier():
@@ -245,7 +255,10 @@ class ScriptParser():
                 if stop != "stop" or condition is None or len(condition) == 0:
                     raise ParseException(lineno, "Phase stop condition must have the form 'stop:condition'.")
                 in_phase = True
-                self.phases.add_phase(curr_phase_label, condition, lineno)
+                if inherited_from:
+                    self.phases.inherit_from(inherited_from, curr_phase_label, condition, lineno)
+                else:
+                    self.phases.add_phase(curr_phase_label, condition, lineno)
                 continue
 
             elif line_parser.line_type == LineParser.FIGURE:

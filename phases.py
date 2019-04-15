@@ -29,6 +29,19 @@ class Phases():
             raise Exception("Internal error.")
         self.phases[label] = Phase(label, stop_condition, lineno)
 
+    def inherit_from(self, inherit_from, label, stop_condition, lineno):
+        if inherit_from not in self.phases:
+            raise Exception("Internal error.")
+        inherited_phase = self.phases[inherit_from]
+        if label in self.phases:
+            raise Exception("Internal error.")
+
+        self.phases[label] = Phase(label, stop_condition, lineno)  # Not inherited_phase.copy()!
+        self.phases[label].lines = copy.deepcopy(inherited_phase.lines)
+        self.phases[label].stop_condition = stop_condition
+        self.phases[label].lineno = lineno
+        self.phases[label].is_inherited = True
+
     def append_line(self, label, line, lineno):
         if label not in self.phases:
             raise Exception("Internal error.")
@@ -99,6 +112,8 @@ class Phase():
 
         self.is_first_line = True
 
+        self.is_inherited = False
+
         self.is_parsed = False
 
     def append_line(self, line, lineno):
@@ -125,7 +140,7 @@ class Phase():
                 raise ParseException(lineno, coincide_err + "stimulus element.")
             elif label in behaviors:
                 raise ParseException(lineno, coincide_err + "behavior.")
-            if label in self.linelabels:
+            if label in self.linelabels and not self.is_inherited:
                 raise ParseException(lineno, f"Duplicate of phase line label '{label}'.")
             self.linelabels.append(label)
             phase_lines_afterlabel.append(afterlabel)
