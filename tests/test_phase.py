@@ -20,6 +20,9 @@ class TestBasic(LsTestCase):
     def setUp(self):
         pass
 
+    def tearDown(self):
+        pass
+
     def test_simple(self):
         text = '''
         stimulus_elements: e1, e2
@@ -125,13 +128,23 @@ class TestBasic(LsTestCase):
 
         # Default 0 for local_var
         text = '''
-        stimulus_elements: e1, e2
+        stimulus_elements: e1, e2, par1, par2
         behaviors: b1, b2
-        @PHASE phase_label stop:local_var=5
+
+        # Squeeze in a little test of inheritance
+        @PHASE parent stop:local_var2=5
+        L0 local_var2:9            | L2
+        L1 par1                    | L1
+        L2 par2,par1               | L1
+        H1 local_var2:local_var2+1 | H1
+
+        @PHASE phase_label(parent) stop:local_var=5
         L0                       | L1
         L1 e1                    | L2
         L2 e2                    | H1
         H1 local_var:local_var+1 | L1
+
+        beta: 1
         '''
         phase = parse(text, 'phase_label')
         stimulus, _, _ = phase.next_stimulus(None)
@@ -158,6 +171,196 @@ class TestBasic(LsTestCase):
             stimulus, _, _ = phase.next_stimulus('b1')
         stimulus, _, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
+
+
+class TestInheritance(LsTestCase):
+    def setUp(self):
+        pass
+
+    def test_simple(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar(foo) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        phase = parse(text, 'bar')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e1',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertIsNone(stimulus)
+
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar(foo) stop:e3=3
+        L1 e3 | L2
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        phase = parse(text, 'bar')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertIsNone(stimulus)
+
+    def test_multiple_space(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE     bar(foo)     stop   :    e3 =     3
+        L1 e3 | L2
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        phase = parse(text, 'bar')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e2',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, ('e3',))
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertIsNone(stimulus)
+
+    def test_wrong_parent_name(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar(foofel) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Invalid phase label 'foofel'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
+
+    def test_wrong_child_name(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE foo(foo) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Redefinition of phase 'foo'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
+
+    def test_wrong_syntax(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar (foo) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Phase stop condition must have the form 'stop:condition'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
+
+    def test_wrong_parentheses1(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar((foo)) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Invalid phase label '\(foo\)'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
+
+    def test_wrong_parentheses2(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE bar(foo)baz stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Phase label 'bar\(foo\)baz' is not a valid identifier."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
+
+    def test_wrong_parentheses3(self):
+        text = '''
+        stimulus_elements: e1, e2, e3
+        behaviors: b1, b2
+        @PHASE foo stop:L1=5
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE barbazfoo) stop:e1=3
+        L2 e3 | L1
+
+        xscale: all  # Just to finish the parsing of bar
+        '''
+        msg = "Phase label 'barbazfoo\)' is not a valid identifier."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'bar')
 
 
 class TestHelpLine(LsTestCase):
