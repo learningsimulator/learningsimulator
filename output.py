@@ -123,8 +123,9 @@ class RunOutput():
     def write_step(self, subject_ind, phase_label, step):
         self.output_subjects[subject_ind].write_step(phase_label, step)
 
-    def write_phase_line_label(self, subject_ind, phase_line_label):
-        self.output_subjects[subject_ind].write_phase_line_label(phase_line_label)
+    def write_phase_line_label(self, subject_ind, phase_line_label, step, preceeding_help_lines):
+        self.output_subjects[subject_ind].write_phase_line_label(phase_line_label, step,
+                                                                 preceeding_help_lines)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
@@ -169,6 +170,10 @@ class RunOutputSubject():
         # List of phase line labels, used for evaluating when parameter XSCALE is phase line label
         self.phase_line_labels = list()
 
+        # Step numbers for the phase line labels in self.phase_line_labels. Used to keep track of
+        # step numbers for help lines
+        self.phase_line_labels_steps = list()
+
     def write_history(self, stimulus, response):
         assert(type(stimulus) is tuple)
         if len(stimulus) == 1:
@@ -182,8 +187,13 @@ class RunOutputSubject():
             self.first_step_phase[0].append(phase_label)
             self.first_step_phase[1].append(step)
 
-    def write_phase_line_label(self, phase_line_label):
+    def write_phase_line_label(self, phase_line_label, step, preceeding_help_lines):
+        if preceeding_help_lines:
+            for line_label in preceeding_help_lines:
+                self.phase_line_labels.append(line_label)
+                self.phase_line_labels_steps.append(step)
         self.phase_line_labels.append(phase_line_label)
+        self.phase_line_labels_steps.append(step)
 
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':
@@ -238,8 +248,9 @@ class RunOutputSubject():
                 n_matches = cumsum[-1]
                 out = [None] * n_matches
                 out_ind = 0
-                for evalout_ind, zero_or_one in enumerate(findind):
+                for pll_ind, zero_or_one in enumerate(findind):
                     if zero_or_one == 1:
+                        evalout_ind = self.phase_line_labels_steps[pll_ind] - 1  # Zero-based index
                         out[out_ind] = evalout[evalout_ind]
                         out_ind += 1
                 return out
@@ -305,49 +316,53 @@ class RunOutputSubject():
             seqs = (seqs, None)
         seq = seqs[0]
         seqref = seqs[1]
-        exact_n = (parameters.get(kw.MATCH) == kw.EVAL_EXACT)
-        cumulative = (parameters.get(kw.EVAL_CUMULATIVE) == kw.EVAL_ON)
-        findind_seq, cumsum_seq = util.find_and_cumsum(history, seq, exact_n)
+        is_exact_n_match = (parameters.get(kw.MATCH) == kw.EVAL_EXACT)
+        is_cumulative = (parameters.get(kw.EVAL_CUMULATIVE) == kw.EVAL_ON)
+        findind_seq, cumsum_seq = util.find_and_cumsum(history, seq, is_exact_n_match)
 
-        steps = parameters.get(kw.XSCALE)
-        all_steps = (steps == kw.EVAL_ALL)
-        findind_steps = None
+        xscale = parameters.get(kw.XSCALE)
+        all_steps = (xscale == kw.EVAL_ALL)
+        findind_steps = list()
         if not all_steps:
-            if steps in phase_line_labels:  # xscale is a phase line label
-                findind_steps_lbls, _ = util.find_and_cumsum(phase_line_labels, steps, True)
+            if xscale in phase_line_labels:  # xscale is a phase line label
+                raise Exception("xscale cannot be a phase line label in @nplot/@nexport.")
+                findind_pll, _ = util.find_and_cumsum(phase_line_labels, xscale, True)
 
-                # findind_steps has length #steps - change to len(history) by adding zeros
-                # in the response positions
-                findind_steps = list()
-                for ind in findind_steps_lbls:
-                    findind_steps.append(ind)
-                    findind_steps.append(0)
+                # findind_steps has length (number of visited phase line labels, including help
+                # lines) - change to len(history) by adding zeros in the response positions
+                findind_steps = [0] * len(history)
+                for ind_pll, zero_or_one in enumerate(findind_pll):
+                    if zero_or_one == 1:
+                        steps_ind = 0  # phase_line_labels_steps[ind_pll]
+                        findind_steps[steps_ind] = 1
             else:
-                exact_steps = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
-                findind_steps, _ = util.find_and_cumsum(history, steps, exact_steps)
+                is_exact_xscale_match = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
+                findind_steps, _ = util.find_and_cumsum(history, xscale, is_exact_xscale_match)
 
-        args = [findind_steps, cumulative, all_steps]
-        out_seq = RunOutputSubject.n_eval_out(findind_seq, cumsum_seq, *args)
+        out_seq = RunOutputSubject.n_eval_out(findind_seq, cumsum_seq, findind_steps,
+                                              is_cumulative, all_steps)
         if seqref is None:
             out = out_seq
         else:
-            findind_seqref, cumsum_seqref = util.find_and_cumsum(history, seqref, exact_n)
-            out_seqref = RunOutputSubject.n_eval_out(findind_seqref, cumsum_seqref, *args)
+            findind_seqref, cumsum_seqref = util.find_and_cumsum(history, seqref, is_exact_n_match)
+            out_seqref = RunOutputSubject.n_eval_out(findind_seqref, cumsum_seqref, findind_steps,
+                                                     is_cumulative, all_steps)
             out = util.arraydivide(out_seq, out_seqref)
         return [0] + out
 
     @staticmethod
-    def n_eval_out(findind, cumsum, findind_steps, cumulative, all_steps):
-        if cumulative:
+    def n_eval_out(findind_n, cumsum, findind_steps, is_cumulative, all_steps):
+        if is_cumulative:
             if all_steps:
                 out = cumsum
             else:
                 out = util.arrayind(cumsum, findind_steps)
         else:
             if all_steps:
-                out = findind
+                out = findind_n
             else:
-                out = util.diff(cumsum, findind_steps)
+                # out = util.diff(cumsum, findind_steps)
+                out = util.arrayind(findind_n, findind_steps)
         return out
 
     def write_v(self, stimulus, response, step, mechanism):

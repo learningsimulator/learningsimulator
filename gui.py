@@ -33,8 +33,6 @@ class Gui():
         self.root.style = ttk.Style()
         self.root.style.theme_use("alt")  # ('clam', 'alt', 'default', 'classic')
 
-        # self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
-
         self.set_title()
 
         self.scriptLabel = None
@@ -52,6 +50,7 @@ class Gui():
 
         self.root.minsize(width=400, height=500)
 
+        self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
         self.root.mainloop()
 
     def _create_widgets(self):
@@ -346,7 +345,12 @@ class Gui():
         if not save_changes:
             return
         self.close_figs()
-        self.root.destroy()  # sys.exit(0)
+        # self.root.destroy()  # sys.exit(0)
+
+        # Workaround for tk bug that clipboard is not appended to os clipboard after app exit
+        # (Issue #29)
+        self.root.after(200, self.root.destroy)
+        self.root.mainloop()
 
     def set_title(self, event=None):
         if self.file_path is not None:

@@ -161,10 +161,13 @@ class Phase():
         self.is_first_line = True
         self.initialize_local_variables()
 
-    def next_stimulus(self, response, ignore_response_increment=False):
+    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None):
         # if not self.is_parsed:
         #     raise Exception("Internal error: Cannot call Phase.next_stimulus" +
         #                     " before Phase.parse().")
+
+        if not preceeding_help_lines:
+            preceeding_help_lines = list()
 
         variables = Variables.join(self.variables, self.local_variables)
 
@@ -175,7 +178,7 @@ class Phase():
                 self.event_counter.increment_count_line(response)
 
         if self.end_condition.is_met(variables, self.event_counter):
-            return None, None
+            return None, None, preceeding_help_lines
 
         if self.is_first_line:
             assert(response is None)
@@ -198,13 +201,14 @@ class Phase():
         if stimulus is None:  # Help line
             action = self.phase_lines[rowlbl].action
             self._perform_action(action)
-            stimulus, rowlbl = self.next_stimulus(response, ignore_response_increment=True)
+            preceeding_help_lines.append(rowlbl)
+            stimulus, rowlbl, preceeding_help_lines = self.next_stimulus(response, ignore_response_increment=True, preceeding_help_lines=preceeding_help_lines)
         else:
             for stimulus_element in stimulus:
                 self.event_counter.increment_count(stimulus_element)
                 self.event_counter.increment_count_line(stimulus_element)
 
-        return stimulus, rowlbl
+        return stimulus, rowlbl, preceeding_help_lines
 
     def _make_current_line(self, label):
         # self.curr_linelabel = label
@@ -579,15 +583,15 @@ class World():
     def next_stimulus(self, response):
         """Returns a stimulus-tuple and current phase label."""
         curr_phase = self.phases[self.curr_phaseind]
-        stimulus, row_lbl = curr_phase.next_stimulus(response)
+        stimulus, row_lbl, preceeding_help_lines = curr_phase.next_stimulus(response)
         if stimulus is None:  # Phase done
             if self.curr_phaseind + 1 >= self.nphases:  # No more phases
-                return None, curr_phase.label, row_lbl
+                return None, curr_phase.label, row_lbl, preceeding_help_lines
             else:  # Go to next phase
                 self.curr_phaseind += 1
                 return self.next_stimulus(None)
         else:
-            return stimulus, curr_phase.label, row_lbl
+            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines
 
     # def get_phase_labels(self):
     #     phase_labels = [phase.label for phase in self.phases]

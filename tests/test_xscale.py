@@ -251,15 +251,16 @@ class TestDifferentTypes(LsTestCase):
 
         @figure
         xscale: reward
-        @nplot b0 {'label':'n_reward'}
-        xscale: REWARD
-        @nplot b0 {'label':'n_REWARD'}
-
-        @figure
-        xscale: reward
         @wplot s {'label':'w_reward'}
         xscale: REWARD
         @wplot s {'label':'w_REWARD'}
+
+        # Issue #32
+        # @figure
+        # xscale: reward
+        # @nplot b0 {'label':'n_reward'}
+        # xscale: REWARD
+        # @nplot b0 {'label':'n_REWARD'}
         '''
         run(text)
 
@@ -275,10 +276,13 @@ class TestDifferentTypes(LsTestCase):
 
         plot_data = get_plot_data(3, 1)
         self.assertEqual(len(plot_data), 2)
-        self.assertEqual(plot_data['n_reward']['x'], plot_data['n_REWARD']['x'])
-        self.assertEqual(plot_data['n_reward']['y'], plot_data['n_REWARD']['y'])
-
-        plot_data = get_plot_data(4, 1)
-        self.assertEqual(len(plot_data), 2)
         self.assertEqual(plot_data['w_reward']['x'], plot_data['w_REWARD']['x'])
         self.assertEqual(plot_data['w_reward']['y'], plot_data['w_REWARD']['y'])
+
+        # Issue #32
+        # plot_data = get_plot_data(4, 1)
+        # self.assertEqual(len(plot_data), 2)
+        # self.assertEqual(plot_data['n_reward']['x'], plot_data['n_REWARD']['x'])
+        # self.assertEqual(plot_data['n_reward']['y'], plot_data['n_REWARD']['y'])
+
+

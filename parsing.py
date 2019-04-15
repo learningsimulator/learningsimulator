@@ -109,7 +109,7 @@ class LineParser():
             self.line_type = LineParser.FIGURE
         elif first_word == kw.SUBPLOT:
             self.line_type = LineParser.SUBPLOT
-        elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT):
+        elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT, kw.HEXPORT):
             self.line_type = LineParser.EXPORT
         elif first_word == kw.LEGEND:
             self.line_type = LineParser.LEGEND
@@ -274,10 +274,10 @@ class ScriptParser():
             elif line_parser.line_type == LineParser.EXPORT:
                 expr, filename, expr0 = self._parse_export(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
-                export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
+                export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen exports
                 self._evalparse(lineno, export_parameters)
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
-                export_cmd = ExportCmd(cmd, expr, export_parameters)
+                export_cmd = ExportCmd(cmd, expr, expr0, export_parameters)
                 self.postcmds.add(export_cmd)
 
             else:
@@ -309,9 +309,23 @@ class ScriptParser():
         """
         @export expr
         @export expr filename
+
+        @hexport
+        @hexport filename
         """
         cmd = linesplit_space[0]
         filename_param = self.parameters.get(kw.FILENAME)
+
+        if cmd == kw.HEXPORT:
+            if len(linesplit_space) == 1:  # @hexport
+                if len(filename_param) == 0:
+                    raise ParseException(lineno, f"Invalid {cmd} command.")
+                else:
+                    filename = filename_param
+            else:  # @hexport filename
+                filename = linesplit_space[1]
+            return None, filename, None
+
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
         args = linesplit_space[1]
@@ -540,8 +554,8 @@ class ExportCmd():
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise Exception(f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
-        if not filename.endswith(".csv"):
-            filename = filename + ".csv"
+        # if not filename.endswith(".csv"):
+        #     filename = filename + ".csv"
         file = open(filename, 'w', newline='')
 
         if self.cmd == kw.HEXPORT:
@@ -550,15 +564,16 @@ class ExportCmd():
             self._vwpn_export(file, simulation_data)
 
     def _h_export(self, file, simulation_data):
-        evalprops = simulation_data._evalparse(self.parameters)
+        # evalprops = simulation_data._evalparse(self.parameters)
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
 
             # if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
-            run_label = evalprops[kw.EVAL_RUNLABEL]
+            run_label = self.parameters.get(kw.EVAL_RUNLABEL)
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
             subject_legend_labels = list()
             for i in range(n_subjects):
+                subject_legend_labels.append("phase line subject {}".format(i))
                 subject_legend_labels.append("stimulus subject {}".format(i))
                 subject_legend_labels.append("response subject {}".format(i))
 
@@ -576,9 +591,15 @@ class ExportCmd():
                 datarow = [histind // 2]
                 for i in range(n_subjects):
                     history = simulation_data.run_outputs[run_label].output_subjects[i].history
+                    # phase_line_labels = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels
+                    # phase_line_labels_steps = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels_steps
+                    # print(history)
+                    # print(phase_line_labels)
+                    # print(phase_line_labels_steps)
                     if histind < len(history):
                         stimulus = history[histind]
                         response = history[histind + 1]
+                        # phase_line = phase_line_labels[]
                         datarow.append(stimulus)
                         datarow.append(response)
                     else:
@@ -597,23 +618,23 @@ class ExportCmd():
         label_expr = self.expr0  # beautify_expr_for_label(self.expr)
         if self.cmd == kw.VEXPORT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
-            legend_label = "v{}".format(label_expr)
+            legend_label = f"v({label_expr})"
         elif self.cmd == kw.WEXPORT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
-            legend_label = "w{}".format(label_expr)
+            legend_label = f"w({label_expr})"
         elif self.cmd == kw.PEXPORT:
             ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
-            legend_label = "p{}".format(label_expr)
+            legend_label = f"p({label_expr})"
         elif self.cmd == kw.NEXPORT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
-            legend_label = "n{}".format(label_expr)
+            legend_label = f"n({label_expr})"
 
         n_ydata = len(ydata)
 
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
 
-            if self.parameters(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
+            if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
                 subject_legend_labels = list()
                 for i, subject_ydata in enumerate(ydata):
                     subject_legend_label = "{0} subject {1}".format(legend_label, i)

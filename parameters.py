@@ -1,3 +1,5 @@
+import os
+
 import keywords as kw
 import mechanism_names as mn
 import mechanism
@@ -154,14 +156,16 @@ class Parameters():
         # Valid path to writable file
         elif prop == kw.FILENAME:
             filename = v_str
-            if '.' not in filename:  # filename.endswith(".csv"):
-                filename = filename + ".csv"
             try:
                 file = open(filename, 'w', newline='')
             except Exception as ex:
                 return str(ex)
             finally:
                 file.close()
+                try:
+                    os.remove(filename)
+                except FileNotFoundError:
+                    pass
             self.val[kw.FILENAME] = filename
             return None
 

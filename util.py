@@ -650,7 +650,7 @@ def arraydivide(num, den):
 def diff(x, diffind):
     '''Returns [ x[ind1[0]]-x[0], x[ind1[1]]-x[ind1[0]], x[ind1[2]]-x[ind1[1]], ...,
                  x[-1]-x[ind1[-1]] ]
-       where ind1 are the indices to the ones in diffind.'''
+       where ind1 are the indices to the ones (1) in diffind.'''
     assert (len(x) == len(diffind)), "x and diffind must have equal length."
     out = list()
     if len(x) > 0:

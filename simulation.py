@@ -56,7 +56,7 @@ class Run():
             subject_done = False
             response = None
             while not subject_done:
-                stimulus, phase_label, phase_line_label = self.world.next_stimulus(response)
+                stimulus, phase_label, phase_line_label, preceeding_help_lines = self.world.next_stimulus(response)
                 subject_done = (stimulus is None)
                 if not subject_done:
                     omit_learn = (phase_line_label.lower() == "new_trial" and self.bind_trials == "off")
@@ -72,7 +72,8 @@ class Run():
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         out.write_step(subject_ind, phase_label, step)
                         step += 1
-                    out.write_phase_line_label(subject_ind, phase_line_label)
+                    out.write_phase_line_label(subject_ind, phase_line_label, step,
+                                               preceeding_help_lines)
                     last_stimulus = stimulus
                     last_response = response
                 else:
