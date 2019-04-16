@@ -586,7 +586,7 @@ class ExportCmd():
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
             subject_legend_labels = list()
             for i in range(n_subjects):
-                subject_legend_labels.append("phase line subject {}".format(i))
+                # subject_legend_labels.append("phase line subject {}".format(i))
                 subject_legend_labels.append("stimulus subject {}".format(i))
                 subject_legend_labels.append("response subject {}".format(i))
 
