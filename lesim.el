@@ -1,3 +1,7 @@
+;;; Emacs syntax highlighting for lesim2
+;;; version 1 by Stefano Ghirlanda
+;;; 
+
 (require 'generic-x)
 
 (define-generic-mode 'lesim2-mode
@@ -16,7 +20,6 @@
     "response_requirements"
     "bind_trials"
     "n_subjects"
-;;    "title"
     "subplottitle"
     "runlabel"
     "subject"
@@ -26,8 +29,10 @@
     "cumulative"
     "match"
     "filename"
-    )                     ;; some keywords
+    )
   '(
+    ;;; title is a keyword when it is not a string:
+    ("title[^']" . 'font-lock-keyword-face)
     ;;; stop:
     ("stop:" . 'font-lock-builtin-face)
     ;;; stop:
