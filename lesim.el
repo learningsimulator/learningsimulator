@@ -1,6 +1,20 @@
-;;; Emacs syntax highlighting for lesim2
+;;; emacs syntax highlighting for lesim2
+;;;
 ;;; version 1 by Stefano Ghirlanda
-;;; 
+;;;
+;;; this file is distributed under the same terms as lesim2
+;;;
+;;; this file is not complete:
+;;;
+;;; - comment blocks delimited by ### are not handled
+;;;
+;;; - anything starting with one or more uppercase characters is
+;;;   highlighted as a phase line
+;;;
+;;; - a final underscore is highlighted in red, following the
+;;;   convention that phase "help line" names end in an underscore;
+;;;   this convention is not part of the lesim2 syntax and it makes no
+;;;   difference whether you use it or not.
 
 (require 'generic-x)
 
