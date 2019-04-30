@@ -47,9 +47,9 @@ class Phases():
             raise Exception("Internal error.")
         self.phases[label].append_line(line, lineno)
 
-    def labels_set(self):
-        """Return all phase labels as a set."""
-        return set(self.phases.keys())
+    # def labels_set(self):
+    #     """Return all phase labels as a set."""
+    #     return set(self.phases.keys())
 
     def parse_phase(self, label, parameters, variables):
         if label not in self.phases:

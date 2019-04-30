@@ -197,8 +197,8 @@ class RunOutputSubject():
 
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':
-            _, history = self._phasefilter(None, parameters)
-            return RunOutputSubject.n_eval(expr, history, self.phase_line_labels, parameters)
+            _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
+            return RunOutputSubject.n_eval(expr, history, phase_line_labels, parameters)
         else:
             switcher = {
                 'v': self.v_eval,
@@ -207,71 +207,99 @@ class RunOutputSubject():
             }
             fun = switcher[vwpn]
             funout = fun(expr, parameters)
-            funout, history = self._phasefilter(funout, parameters)
-            return self._stepsfilter(funout, history, parameters)
+            funout, history, phase_line_labels, phase_line_labels_steps = self._phasefilter(funout, parameters)
+            return self._xscalefilter(funout, history, phase_line_labels, phase_line_labels_steps, parameters)
 
     def _phasefilter(self, evalout, parameters):
         """
-        Filter evalout (output from {v,w,p}-eval) as well as self.history w.r.t. the parameter
-        'phase'.
+        Filter evalout (output from {v,w,p}-eval) as well as self.history,
+        self.phase_line_labels and self.phase_line_labels_steps w.r.t. the parameter
+        'phases'.
         """
-        phases = parameters.get(kw.EVAL_PHASES)
-        if phases == kw.EVAL_ALL:
-            return evalout, self.history
+        plot_phases = parameters.get(kw.EVAL_PHASES)
+        if plot_phases == kw.EVAL_ALL:
+            return evalout, self.history, self.phase_line_labels, self.phase_line_labels_steps
         else:
+            run_phases = self.first_step_phase[0]  # List of phases in the order they were run
+            assert(len(run_phases) > 0)
+
             out = list()
             history_out = list()
-            if type(phases) is not list:
-                phases = (phases,)
-            for phase in phases:
-                if phase not in self.first_step_phase[0]:
-                    raise EvalException(f"Invalid phase label {phase}.")
-            for phase in phases:
-                fsp_index = self.first_step_phase[0].index(phase)
+            phase_line_labels_out = list()
+            phase_line_labels_steps_out = list()
+            if type(plot_phases) is not list:
+                plot_phases = (plot_phases,)
+            for phase in plot_phases:
+                if phase not in run_phases:
+                    raise EvalException(f"Invalid phase label {phase}. Must be in {run_phases}.")
+
+            if evalout is not None:
+                if plot_phases[0] == run_phases[0]:
+                    # First value (out[0]) should be inital value (evalout[0]) if the first phase
+                    # in 'phases' is the first run-phase.
+                    out.append(evalout[0])
+                else:
+                    # First value (out[0]) should be last value of previous phase if the first
+                    # phase in 'phases' is NOT the first run-phase.
+                    first_plot_phase_index = run_phases.index(plot_phases[0])
+                    first_plot_phase_startind = self.first_step_phase[1][first_plot_phase_index]
+                    first_value_previous_phase = evalout[first_plot_phase_startind - 1]
+                    out.append(first_value_previous_phase)
+
+            cnt = 1
+            for phase in plot_phases:
+                fsp_index = run_phases.index(phase)
                 phase_startind = self.first_step_phase[1][fsp_index]
-                phase_endind = self.first_step_phase[1][fsp_index + 1]  # - 1
-                for j in range(phase_startind, phase_endind):
+                phase_endind = self.first_step_phase[1][fsp_index + 1]
+                for j in range(phase_startind - 1, phase_endind - 1):
                     history_out.append(self.history[2 * j])
                     history_out.append(self.history[2 * j + 1])
+                for j in range(phase_startind, phase_endind):
                     if evalout is not None:
                         out.append(evalout[j])
-            return out, history_out
 
-    def _stepsfilter(self, evalout, history, parameters):
+                    enum_plls = enumerate(self.phase_line_labels_steps)
+                    pll_inds = [i for i, pll in enum_plls if pll == j]  # pll 1-based
+                    for pll_ind in pll_inds:
+                        phase_line_labels_out.append(self.phase_line_labels[pll_ind])
+                        phase_line_labels_steps_out.append(cnt)
+                    cnt += 1
+            return out, history_out, phase_line_labels_out, phase_line_labels_steps_out
+
+    def _xscalefilter(self, evalout, history, phase_line_labels, phase_line_labels_steps,
+                      parameters):
         eval_steps = parameters.get(kw.XSCALE)
         if eval_steps == kw.EVAL_ALL:
             return evalout
         else:
-            if eval_steps in self.phase_line_labels:  # xscale is a phase line label
-                findind, cumsum = util.find_and_cumsum(self.phase_line_labels, eval_steps,
-                                                       True)
-                n_matches = cumsum[-1]
-                out = [None] * n_matches
-                out_ind = 0
+            if eval_steps in phase_line_labels:  # xscale is a phase line label
+                # Because the first update is done after S->B->S'
+                phase_line_labels = phase_line_labels[2:]
+                phase_line_labels_steps = [x - 1 for x in phase_line_labels_steps[2:]]
+
+                findind, cumsum = util.find_and_cumsum(phase_line_labels, eval_steps, True)
+                out = [evalout[0]]  # evalout[0] must be kept
                 for pll_ind, zero_or_one in enumerate(findind):
                     if zero_or_one == 1:
-                        evalout_ind = self.phase_line_labels_steps[pll_ind] - 1  # Zero-based index
-                        out[out_ind] = evalout[evalout_ind]
-                        out_ind += 1
+                        evalout_ind = phase_line_labels_steps[pll_ind]  # Zero-based index
+                        out.append(evalout[evalout_ind])
                 return out
             else:
                 pattern = eval_steps
                 pattern_len = RunOutputSubject.compute_patternlen(pattern)
                 use_exact_match = (parameters.get(kw.XSCALE_MATCH) == 'exact')
-                findind, cumsum = util.find_and_cumsum(history, pattern, use_exact_match)
-                n_matches = cumsum[-1]
-                out = [None] * n_matches
-                out_ind = 0
+                # history[2:] because the first update is done after S->B->S'
+                findind, cumsum = util.find_and_cumsum(history[2:], pattern, use_exact_match)
+                out = [evalout[0]]  # evalout[0] must be kept
                 for history_ind, zero_or_one in enumerate(findind):
-                    if zero_or_one == 1:
+                    if zero_or_one == 1 and history_ind >= 2:
                         evalout_ind = RunOutputSubject.historyind2stepind(history_ind, pattern_len)
-                        out[out_ind] = evalout[evalout_ind]
-                        out_ind += 1
+                        out.append(evalout[evalout_ind])
                 return out
 
     @staticmethod
     def historyind2stepind(history_ind, pattern_len):
-        step_ind = (history_ind + pattern_len - 1) // 2
+        step_ind = (history_ind + pattern_len - 1) // 2 + 1
         return step_ind
 
     @staticmethod
@@ -380,12 +408,15 @@ class RunOutputSubject():
             self.w[key].write(mechanism.w[key], step)
 
     def printout(self):
+        print("\n")
         for key, val in self.v.items():
             print("v({0}) = {1})".format(key, val))
         for key, val in self.w.items():
             print("w({0}) = {1})".format(key, val))
-        print("history=")
-        print(self.history)
+        print(f"history={self.history}")
+        print(f"first_step_phase={self.first_step_phase}")
+        print(f"phase_line_labels={self.phase_line_labels}")
+        print(f"phase_line_labels_steps={self.phase_line_labels_steps}")
 
 
 class Val():

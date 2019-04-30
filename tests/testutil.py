@@ -1,6 +1,16 @@
 import unittest
 import matplotlib.pyplot as plt
 
+from parsing import Script
+
+
+def run(text):
+    script_obj = Script(text)
+    script_obj.parse()
+    script_output = script_obj.run()
+    script_obj.postproc(script_output, False)
+    return script_obj, script_output
+
 
 def check_run_output_subject(test_obj, output):
     check_run_output_subject_vw(test_obj, output.v)

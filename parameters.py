@@ -68,7 +68,7 @@ class Parameters():
         if err:
             return err
 
-        all_phase_labels = phases.labels_set()
+        # all_phase_labels = phases.labels_set()
         if prop == kw.BEHAVIORS:
             return self._parse_behaviors(v_str, variables, is_appending)
 
@@ -144,7 +144,7 @@ class Parameters():
 
         # 'all' or cs-list of phase labels
         elif prop == kw.PHASES:
-            return self._parse_phases(v_str, all_phase_labels)
+            return self._parse_phases(v_str)  # , all_phase_labels)
 
         # String (@run-labels) (for postprocessing)
         elif prop == kw.RUNLABEL:
@@ -263,17 +263,17 @@ class Parameters():
         self.val[kw.MECHANISM_NAME] = mn_lower
         return None
 
-    def _parse_phases(self, v_str, all_phase_labels):
+    def _parse_phases(self, v_str):
         if v_str == 'all':
-            self.val[kw.PHASES] = list(all_phase_labels)
+            self.val[kw.PHASES] = v_str  # list(all_phase_labels)
         else:
             phase_labels = ParseUtil.comma_split_strip(v_str)
             for phase_label in phase_labels:
                 if len(phase_label) == 0:
                     return "Expected comma-separated list of phase labels, found {}".format(phase_labels)
-                else:
-                    if phase_label not in all_phase_labels:
-                        return "Undefined phase label '{}'.".format(phase_label)
+                # else:
+                #     if phase_label not in all_phase_labels:
+                #         return "Undefined phase label '{}'.".format(phase_label)
             self.val[kw.PHASES] = phase_labels
         return None
 
