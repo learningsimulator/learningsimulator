@@ -617,6 +617,7 @@ class ExportCmd():
                         datarow.append(response)
                     else:
                         datarow.append(' ')
+                        datarow.append(' ')
                 w.writerow(datarow)
             # else:
             #     # Write headers
