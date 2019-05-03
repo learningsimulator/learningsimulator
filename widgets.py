@@ -104,9 +104,9 @@ class ErrorDlg(tk.Toplevel):
         super().__init__()
         self.details_expanded = False
         self.title(title)
-        self.geometry("500x85")
-        self.minsize(350, 75)
-        self.maxsize(700, 500)
+        self.geometry("500x100")
+        self.minsize(500, 100)
+        self.maxsize(1000, 1000)
         self.rowconfigure(0, weight=0)
         self.rowconfigure(1, weight=1)
         self.columnconfigure(0, weight=1)
