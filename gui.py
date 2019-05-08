@@ -10,7 +10,7 @@ from tkinter.constants import BOTH, YES, NO, DISABLED
 from tkinter import messagebox, filedialog
 import matplotlib.pyplot as plt
 
-from widgets import LineNumberedTextBox, ErrorDlg
+from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg
 from parsing import Script
 from exceptions import ParseException
 
@@ -24,11 +24,12 @@ class Gui():
         self.file_path = None
         self.last_open_folder = None
         self.simulation_data = None  # A ScriptOutput object
-        self.progress_control = None
-        self.progressbar = None
         self.simulation_thread = None
 
-        self.root = tk.Tk()
+        # className appears (at least) in Ubuntu sidebar "tooltip" (app name)
+        self.root = tk.Tk(className=TITLE)
+
+        self.progress = Progress(self.root)
 
         self.root.style = ttk.Style()
         self.root.style.theme_use("alt")  # ('clam', 'alt', 'default', 'classic')
@@ -147,12 +148,6 @@ class Gui():
             # undo=True,  # Tk 8.4
         )
 
-        self.progress = tk.DoubleVar()  # From 0 to 100
-        self.progressbar = ttk.Progressbar(frame, length=200,
-                                           mode='determinate',  # indeterminate
-                                           variable=self.progress)
-        self.progressbar.pack(anchor='w')
-
         frame.pack(fill=BOTH, expand=YES)
 
     def simulate_thread(self):
@@ -174,6 +169,7 @@ class Gui():
     def simulate(self, event=None):
         # self.enable_simulation_controls(False)
         # self.progressbar.start()
+        self.progress.start()
 
         try:
             script = self.scriptField.text_box.get("1.0", "end-1c")
@@ -181,7 +177,6 @@ class Gui():
             script_obj.parse()
             self.simulation_data = script_obj.run()
             script_obj.postproc(self.simulation_data)
-            # plt.show()
         except Exception as ex:
             if isinstance(ex, ParseException):
                 self._select_line(ex.lineno)
@@ -391,6 +386,21 @@ class Gui():
 
     def redo(self):
         self.scriptField.redo()
+
+
+class Progress():
+    def __init__(self, tk_obj):
+        self.progress_variable1 = tk.DoubleVar(tk_obj)  # From 0 to 100
+        self.progress_variable2 = tk.DoubleVar(tk_obj)  # From 0 to 100
+
+        # The dialog box for the progress bar
+        # self.progress_dlg = None
+
+        # Set to True when the Stop button has been clicked
+        self.stop_clicked = False
+
+    def start(self):
+        progress_dlg = ProgressDlg(self)
 
 
 if __name__ == "__main__":

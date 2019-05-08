@@ -137,30 +137,52 @@ class ErrorDlg(tk.Toplevel):
         ok_button.focus_set()
         self.grab_set()  # Make this dialog box modal
 
-    def toggle_details(self):
-        curr_x, curr_y = self._get_current_pos()
-        if not self.details_expanded:
-            self.textbox.grid(row=0, column=0, sticky='nsew')
-            # self.scrollb.grid(row=0, column=1, sticky='nsew')
-            self.resizable(True, True)
-            self.geometry('700x500' + '+' + curr_x + '+' + curr_y)
-            self.details_button.config(text="<< Details")
-            self.details_expanded = True
 
-        else:
-            self.textbox.grid_forget()
-            # self.scrollb.grid_forget()
-            self.resizable(False, False)
-            self.geometry('500x85' + '+' + curr_x + '+' + curr_y)
-            self.details_button.config(text="Details >>")
-            self.details_expanded = False
+class ProgressDlg(tk.Toplevel):
+    def __init__(self, progress_obj):
+        super().__init__()
+        self.progress_obj = progress_obj
+        self._create_widgets()
 
-    def _get_current_pos(self):
-        current_geometry = self.geometry()
-        first_plus_ind = current_geometry.index('+')
-        pos_xy = current_geometry[(first_plus_ind + 1):].split('+')
-        assert(len(pos_xy) == 2)
-        return pos_xy[0], pos_xy[1]
+    def _create_widgets(self):
+        self.title("Simulation Progress")
+
+        label1 = ttk.Label(self, text="Overall progress")
+        label1.grid(row=0, column=0, columnspan=2, padx=(10, 0), pady=(10, 4), sticky="w")
+
+        self.progressbar1 = ttk.Progressbar(self,
+                                            mode='determinate',  # indeterminate
+                                            variable=self.progress_obj.progress_variable1)
+        self.progressbar1.grid(row=1, column=0, padx=(10, 10), pady=(0, 10), sticky="nsew")
+
+        label2 = ttk.Label(self, text="Subject progress")
+        label2.grid(row=2, column=0, padx=(10, 0), pady=(0, 4), sticky="w")
+
+        self.progressbar2 = ttk.Progressbar(self,
+                                            mode='determinate',  # indeterminate
+                                            variable=self.progress_obj.progress_variable2)
+        self.progressbar2.grid(row=3, column=0, padx=(10, 10), pady=(0, 5), sticky="nsew")
+
+        self.details_box = tk.scrolledtext.ScrolledText(self, height=10)
+        self.details_box.insert("1.0", "Lots of info...")
+        self.details_box.config(state="disabled")
+        self.details_box.grid(row=4, column=0, padx=(10, 10), pady=(5, 5), sticky="nsew")
+
+        button_frame = tk.Frame(self)
+        button_frame.grid(row=5, column=0, padx=(10, 10), sticky="e")
+
+        stop_button = ttk.Button(button_frame, text="Stop Simulation",
+                                 command=self.stop_simulation)
+        stop_button.grid(row=0, column=0, padx=(10, 0), pady=(0, 5), sticky="w")
+        self.close_button = ttk.Button(button_frame, text="Close",
+                                       command=self.destroy)
+        self.close_button.grid(row=0, column=1, padx=(5, 0), pady=(0, 5), sticky="e")
+
+        # stop_button.focus_set()
+        self.grab_set()  # Make this dialog box modal
+
+    def stop_simulation(self):
+        self.progress.stop_clicked = True
 
 
 # if __name__ == "__main__":
