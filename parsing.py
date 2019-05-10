@@ -41,9 +41,8 @@ def clean_script(text):
         if in_comment_block:
             line = ''
             if lineno == len(lines):
-                raise Exception("Comment block start '###' on line " +
-                                "{}".format(lineno_multicomment_delimiter) +
-                                " has no matching end.")
+                msg = f"Comment block start '###' on line {lineno_multicomment_delimiter} has no matching end."
+                raise ParseException(lineno, msg)
         lines[lineno0] = line
 
     # Remove all blank lines at the end of the script
@@ -290,7 +289,7 @@ class ScriptParser():
                 export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen exports
                 self._evalparse(lineno, export_parameters)
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
-                export_cmd = ExportCmd(cmd, expr, expr0, export_parameters)
+                export_cmd = ExportCmd(lineno, cmd, expr, expr0, export_parameters)
                 self.postcmds.add(export_cmd)
 
             else:
@@ -377,7 +376,7 @@ class ScriptParser():
         else:
             is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
             if not is_dict:
-                raise Exception(lineno, f"Expected a dict, got {mpl_prop_str}.")
+                raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
@@ -430,7 +429,7 @@ class ScriptParser():
                 else:
                     is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
                     if not is_dict:
-                        raise Exception(lineno, f"Expected a dict, got {mpl_prop_str}.")
+                        raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
         return subplotspec, title, mpl_prop
 
     def _parse_figure(self, lineno, linesplit_space):
@@ -556,7 +555,8 @@ class PlotCmd():
 
 
 class ExportCmd():
-    def __init__(self, cmd, expr, expr0, parameters):
+    def __init__(self, lineno, cmd, expr, expr0, parameters):
+        self.lineno = lineno
         self.cmd = cmd
         self.expr = expr
         self.expr0 = expr0
@@ -566,7 +566,7 @@ class ExportCmd():
     def run(self, simulation_data):
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
-            raise Exception(f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
+            raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
         # if not filename.endswith(".csv"):
         #     filename = filename + ".csv"
         file = open(filename, 'w', newline='')
@@ -616,6 +616,7 @@ class ExportCmd():
                         datarow.append(stimulus)
                         datarow.append(response)
                     else:
+                        datarow.append(' ')
                         datarow.append(' ')
                 w.writerow(datarow)
             # else:
@@ -712,279 +713,3 @@ class LegendCmd():
         #     plt.legend(self.labels, **self.mpl_prop)
         # else:
         plt.legend(**self.mpl_prop)
-
-
-# class ScriptBlock():
-#     def __init__(self, keyword, pvdict, content):
-#         self.keyword = keyword
-#         self.pvdict = pvdict
-#         self.content = content
-
-
-# ---------------------- Static methods ----------------------
-# def beautify_expr_for_label(expr0):
-#     expr = expr0[:]
-#     expr_type = type(expr)
-#     is_list = (expr_type is list)
-#     is_tuple = (expr_type is tuple)
-#     if is_list or is_tuple:
-#         expr = [e for e in expr if e is not None]
-#     else:
-#         return "('" + expr + "')"
-#     for i, e in enumerate(expr):
-#         if type(e) is tuple and len(e) == 1:
-#             expr[i] = e[0]
-#     if len(expr) == 1:
-#         return beautify_expr_for_label(expr[0])
-#     else:
-#         if is_tuple:
-#             return tuple(expr)
-#         else:
-#             return expr
-
-
-# def parse_postcmd(cmd, cmdarg, simulation_parameters):
-#     if cmdarg is not None:
-#         args = LsUtil.parse_sso(cmdarg)
-#         if args is None:  # Parse failed
-#             raise LsParseException("Invalid argument list to {}".format(cmd))
-#         nargs = len(args)
-#     else:
-#         args = list()  # Empty list
-#         nargs = 0
-
-#     if cmd == FIGURE:
-#         if nargs > 2:
-#             raise LsParseException("The number of arguments to {} must be <= 2.".format(cmd))
-#         title = None
-#         mpl_prop = dict()
-#         if nargs == 2:
-#             title = args[0]
-#             mpl_prop = args[1]
-#         elif nargs == 1:
-#             either = args[0]
-#             if type(either) is str:
-#                 title = either
-#             elif type(either) is dict:
-#                 mpl_prop = either
-#             else:
-#                 raise LsParseException("Arguments to {} must be string and/or dict.".format(cmd))
-
-#         if title is not None:
-#             if type(title) != str:
-#                 raise LsParseException("Title argument to {} must be a string.".format(cmd))
-#         if type(mpl_prop) != dict:
-#             raise LsParseException("Figure properties argument to {} must be a dict.".format(cmd))
-#         return FigureCmd(title, mpl_prop)
-
-#     elif cmd == SUBPLOT:
-#         if nargs > 2 or nargs == 0:
-#             raise LsParseException("The number of arguments to {} must be 1 or 2.".format(cmd))
-#         spec = args[0]
-#         errmsg = "First argument (subplot specification) to {} must be a tuple or three-positive-digits integer.".format(cmd)
-#         parse_subplotspec(spec, errmsg)
-#         mpl_prop = dict()
-#         if nargs == 2:
-#             mpl_prop = args[1]
-#             if type(mpl_prop) is not dict:
-#                 raise LsParseException("Second argument to {} must be a dictionary.".format(cmd))
-#         return SubplotCmd(spec, mpl_prop)
-
-#     elif cmd == LEGEND:
-#         if nargs > 2:
-#             raise LsParseException("The number of arguments to {} must be <=2.".format(cmd))
-#         labels = None
-#         mpl_prop = dict()
-#         if nargs == 2:
-#             labels = args[0]
-#             mpl_prop = args[1]
-#         elif nargs == 1:
-#             either = args[0]
-#             if (type(either) is tuple) or (type(either) is str):
-#                 labels = either
-#             elif type(either) is dict:
-#                 mpl_prop = either
-#             else:
-#                 raise LsParseException("Arguments to {} must be tuple, string or dict.".format(cmd))
-#         if labels is not None:
-#             if type(labels) is str:
-#                 labels = (labels,)
-#             if type(labels) is not tuple:
-#                 raise LsParseException(
-#                     "Legend labels must be a tuple ('label1','label2',...) or a string.".format(cmd))
-#         if type(mpl_prop) is not dict:
-#             raise LsParseException("Second argument to {} must be a dictionary.".format(cmd))
-#         return LegendCmd(labels, mpl_prop)
-
-#     elif cmd == PPLOT or cmd == PEXPORT:
-#         if nargs == 0:
-#             raise LsParseException("No arguments given to {}".format(cmd))
-#         expr = args[0]
-#         if type(expr) is not tuple:
-#             raise LsParseException("First argument to {} must be a tuple.".format(cmd))
-#         if type(expr[0]) is not tuple:
-#             listexpr = list(expr)
-#             listexpr[0] = (listexpr[0],)
-#             expr = tuple(listexpr)
-#         beta = simulation_parameters.get(BETA)
-#         eval_prop = {BETA: beta}
-#         if nargs >= 2:
-#             eval_prop.update(args[1])
-#         if cmd == PPLOT:
-#             plot_prop = dict()
-#             if nargs >= 3:
-#                 plot_prop = args[2]
-#             return PlotCmd(cmd, expr, eval_prop, plot_prop)
-#         else:
-#             if nargs >= 3:
-#                 raise LsParseException("The number of arguments to {} must be 1 or 2.".format(cmd))
-#             return ExportCmd(cmd, expr, eval_prop)
-
-#     elif cmd == NPLOT or cmd == NEXPORT:
-#         if cmd == NPLOT:
-#             if (nargs == 0) or (nargs > 4):
-#                 raise LsParseException("The number of arguments to {} must be 1, 2, 3 or 4.".
-#                                        format(cmd))
-#         elif cmd == NEXPORT:
-#             if (nargs == 0) or (nargs > 3):
-#                 raise LsParseException("The number of arguments to {} must be 1, 2 or 3.".
-#                                        format(cmd))
-#         seq = args[0]
-#         seqref = None
-#         eval_prop = dict()
-#         if nargs >= 2:
-#             if (type(args[1]) is str) or (type(args[1]) is tuple) or (type(args[1]) is list):
-#                 seqref = args[1]
-#             elif type(args[1]) is dict:
-#                 eval_prop = args[1]
-#             else:
-#                 raise LsParseException("Invalid second argument to {}.".format(cmd))
-#         if cmd == NPLOT:
-#             plot_prop = dict()
-#             if nargs >= 3:
-#                 if seqref is None:
-#                     plot_prop = args[2]
-#                 else:
-#                     eval_prop = args[2]
-#             if nargs == 4:
-#                 plot_prop = args[3]
-#             return PlotCmd(cmd, (seq, seqref), eval_prop, plot_prop)
-#         else:
-#             if nargs >= 3:
-#                 if seqref is None:
-#                     raise LsParseException("Invalid arguments to {}.".format(cmd))
-#                 else:
-#                     eval_prop = args[2]
-#             return ExportCmd(cmd, (seq, seqref), eval_prop)
-
-#     elif cmd == VPLOT or cmd == WPLOT:
-#         if nargs == 0:
-#             raise LsParseException("No arguments given to {}".format(cmd))
-#         expr = args[0]
-#         if cmd == VPLOT:
-#             if type(expr) is not tuple:
-#                 raise LsParseException("First argument to {} must be a tuple.".format(cmd))
-#             for e in expr:
-#                 if type(e) is not str:
-#                     raise LsParseException("First argument to {} must be a tuple of strings.".format(cmd))
-#         else:  # WPLOT
-#             if type(expr) is not str:
-#                 raise LsParseException("First argument to {} must be a string.".format(cmd))
-#         eval_prop = dict()
-#         if nargs >= 2:
-#             eval_prop = args[1]
-#             if type(eval_prop) is not dict:
-#                 raise LsParseException("Properties to {} must be a dict.".format(cmd))
-#         plot_prop = dict()
-#         if nargs >= 3:
-#             plot_prop = args[2]
-#             if type(plot_prop) is not dict:
-#                 raise LsParseException("Plot properties to {} must be a dict.".format(cmd))
-#         return PlotCmd(cmd, expr, eval_prop, plot_prop)
-
-#     elif cmd == VEXPORT or cmd == WEXPORT:
-#         if nargs == 0:
-#             raise LsParseException("No arguments given to {}".format(cmd))
-#         expr = args[0]
-#         if cmd == VEXPORT:
-#             if type(expr) is not tuple:
-#                 raise LsParseException("First argument to {} must be a tuple.".format(cmd))
-#             for e in expr:
-#                 if type(e) is not str:
-#                     raise LsParseException("First argument to {} must be a tuple of strings.".format(cmd))
-#         else:  # WEXPORT
-#             if type(expr) is not str:
-#                 raise LsParseException("First argument to {} must be a string.".format(cmd))
-#         eval_prop = dict()
-#         if nargs >= 2:
-#             eval_prop = args[1]
-#         if nargs >= 3:
-#             raise LsParseException("The number of arguments to {} must be 1 or 2.".
-#                                    format(cmd))
-#         return ExportCmd(cmd, expr, eval_prop)
-
-#     else:  # cmd == HEXPORT
-#         if nargs == 0:
-#             raise LsParseException("No arguments given to {}".format(cmd))
-#         if nargs > 1:
-#             raise LsParseException("The number of arguments to {} must be 1.".format(cmd))
-#         eval_prop = args[0]
-#         if type(eval_prop) is not dict:
-#             raise LsParseException("Export properties to {} must be a dict.".format(cmd))
-#         return ExportCmd(cmd, expr=None, eval_prop=eval_prop)
-
-
-# def parse_eval_prop(cmd, expr, eval_prop, valid_prop):
-#     pass
-#     # if type(expr) is not str:
-#     #     raise LsParseException("First input to {} must be a string, got {}".format(cmd, expr))
-#     #    for p in eval_prop:
-#     #        if p not in valid_prop:
-#     #            raise LsParseException("Invalid property '{}' to {}".format(p, cmd))
-
-
-# def parse_subplotspec(spec, errmsg):
-#     if type(spec) is tuple:
-#         if len(spec) != 3:
-#             raise LsParseException(errmsg)
-#         for i in spec:
-#             if type(spec[i]) != int:
-#                 raise LsParseException(errmsg)
-#             if spec[i] <= 0:
-#                 raise LsParseException(errmsg)
-#     elif type(spec) is int:
-#         if spec <= 0:
-#             raise LsParseException(errmsg)
-#         strspec = str(spec)
-#         if len(strspec) != 3:
-#             raise LsParseException(errmsg)
-#         if '0' in strspec:
-#             raise LsParseException(errmsg)
-#     else:
-#         raise LsParseException(errmsg)
-# ----------------------------------------------------------------------------------
-
-# class Figure():
-#     parameters = {'title'}
-
-#     def __init__(self):
-#         pass
-
-
-# class Subplot():
-#     parameters = {'subplottitle'}
-
-#     def __init__(self):
-#         pass
-
-
-# class Plot():
-#     parameters = {''}
-
-#     def __init__(self):
-#         pass
-
-
-# class Export():
-#     def __init__(self):
-#         pass

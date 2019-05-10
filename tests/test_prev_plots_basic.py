@@ -82,7 +82,7 @@ class TestPlots(unittest.TestCase):
         ymin = wS1.get_ydata(True).min(0)
         ymax = wS1.get_ydata(True).max(0)
         self.assertEqual(xmin, 0)
-        self.assertEqual(xmax, 99)
+        self.assertEqual(xmax, 100)
         self.assertLessEqual(ymin, 0)
         self.assertAlmostEqual(ymax, 8, 2)
 
@@ -92,7 +92,7 @@ class TestPlots(unittest.TestCase):
         ymin = wS2.get_ydata(True).min(0)
         ymax = wS2.get_ydata(True).max(0)
         self.assertEqual(xmin, 0)
-        self.assertEqual(xmax, 99)
+        self.assertEqual(xmax, 100)
         self.assertAlmostEqual(ymax, 9, 2)
 
     def test_vplot(self):
@@ -148,7 +148,7 @@ class TestPlots(unittest.TestCase):
         ymin = vS1R1.get_ydata(True).min(0)
         ymax = vS1R1.get_ydata(True).max(0)
         self.assertEqual(xmin, 0)
-        self.assertEqual(xmax, 99)
+        self.assertEqual(xmax, 100)
         self.assertLessEqual(ymin, 0)
         self.assertAlmostEqual(ymax, 8, 2)
 
@@ -158,7 +158,7 @@ class TestPlots(unittest.TestCase):
         ymin = vS1R0.get_ydata(True).min(0)
         ymax = vS1R0.get_ydata(True).max(0)
         self.assertEqual(xmin, 0)
-        self.assertEqual(xmax, 99)
+        self.assertEqual(xmax, 100)
         self.assertLessEqual(ymin, 0)
         self.assertAlmostEqual(ymax, -1, 2)
 

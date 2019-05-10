@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__/*
+tests/__pycache__/*
 *.py[cod]
 
 # C extensions
@@ -51,3 +52,6 @@ docs/_build/
 
 # LaTex
 *.synctex.gz
+
+# Test files
+tests/exported_files/*

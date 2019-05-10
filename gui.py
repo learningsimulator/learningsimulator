@@ -3,8 +3,6 @@ import threading
 import traceback
 import os
 
-from parsing import Script
-
 import tkinter as tk
 from tkinter import ttk
 from tkinter.constants import BOTH, YES, NO, DISABLED
@@ -13,6 +11,8 @@ from tkinter import messagebox, filedialog
 import matplotlib.pyplot as plt
 
 from widgets import LineNumberedTextBox, ErrorDlg
+from parsing import Script
+from exceptions import ParseException
 
 
 TITLE = "Learning Simulator"
@@ -48,7 +48,7 @@ class Gui():
         img = tk.PhotoImage(file=icon_file)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 
-        self.root.minsize(width=400, height=500)
+        self.root.minsize(width=500, height=800)
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
         self.root.mainloop()
@@ -183,12 +183,20 @@ class Gui():
             script_obj.postproc(self.simulation_data)
             # plt.show()
         except Exception as ex:
+            if isinstance(ex, ParseException):
+                self._select_line(ex.lineno)
+            self.close_figs()
             self.handle_exception(ex)
         # finally:
             # self.progressbar.stop()
             # self.enable_simulation_controls(True)
         # self.simulation_done = True
         # return None  # XXX perhaps not needed? for threading
+
+    def _select_line(self, lineno):
+        start = f"{lineno}.0"
+        end = f"{lineno}.{tk.END}"
+        self.scriptField.text_box.tag_add(tk.SEL, start, end)
 
     def foo_simulate(self):
         self.enable_simulation_controls(False)
@@ -198,7 +206,7 @@ class Gui():
             for i in range(5000):
                 time.sleep(0.001)
                 if i > 500:
-                    raise Exception("Error message from simulation.")
+                    raise Exception("Foo Error message from simulation.")
                 self.progress.set(i / 5000.0 * 100)
         except Exception as ex:
             self.progressbar.stop()

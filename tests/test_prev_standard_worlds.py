@@ -322,7 +322,7 @@ class TestProbabilitySchedule(LsTestCase):
         self.assertEqual(s, ('lever',))
 
         d = {'lever': 0, 'reward1': 0, 'reward2': 0}
-        n = 100000
+        n = 200000
         prev_was_lever = True
         for _ in range(n):
             s = world.next_stimulus('R')[0][0]

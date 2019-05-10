@@ -156,7 +156,7 @@ class TestDifferentTypes(LsTestCase):
         n_steps = history_len / 2
         self.assertEqual(len(output.phase_line_labels), n_steps)
         for eb in output.v:
-            self.assertEqual(max(output.v[eb].steps), n_steps)
+            self.assertEqual(max(output.v[eb].steps), n_steps - 1)
 
         ax = plt.figure(1).axes
         self.assertEqual(len(ax), 1)
@@ -204,7 +204,8 @@ class TestDifferentTypes(LsTestCase):
         n_steps = history_len / 2
         self.assertEqual(len(output.phase_line_labels), n_steps)
         for eb in output.v:
-            self.assertEqual(max(output.v[eb].steps), n_steps)
+            # n_steps-1 since no update is done after first exposure to s
+            self.assertEqual(max(output.v[eb].steps), n_steps - 1)
 
         ax = plt.figure(1).axes
         self.assertEqual(len(ax), 1)
@@ -284,5 +285,3 @@ class TestDifferentTypes(LsTestCase):
         # self.assertEqual(len(plot_data), 2)
         # self.assertEqual(plot_data['n_reward']['x'], plot_data['n_REWARD']['x'])
         # self.assertEqual(plot_data['n_reward']['y'], plot_data['n_REWARD']['y'])
-
-

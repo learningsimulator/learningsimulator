@@ -1,4 +1,6 @@
-from .testutil import LsTestCase
+import matplotlib.pyplot as plt
+
+from .testutil import LsTestCase, run, get_plot_data
 from parsing import Script
 
 
@@ -711,6 +713,113 @@ class TestHelpLine(LsTestCase):
 
         stimulus, _, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
+
+
+class TestWithPlots(LsTestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_stopcond_stimulus(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s
+        behaviors: b
+
+        @phase phase1 stop:s=2
+        NT s | NT
+
+        @run phase1
+
+        @nplot s
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        ns = plot_data
+        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
+        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+
+    def test_stopcond_phase_line_label(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s
+        behaviors: b
+
+        @phase phase1 stop:NT=2
+        NT s | NT
+
+        @run phase1
+
+        @nplot s
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        ns = plot_data
+        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
+        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+
+    def test_stopcond_stimulus_with_xscale(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s
+        behaviors: b
+
+        @phase phase1 stop:s=2
+        NT s | NT
+
+        @run phase1
+
+        xscale: s
+        @nplot s
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        ns = plot_data
+        self.assertEqual(ns['x'], [0, 1, 2])
+        self.assertEqual(ns['y'], [0, 1, 2])
+
+    def test_stopcond_stimulus_with_phases(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s
+        behaviors: b
+
+        @phase phase1 stop:s=2
+        NT s | NT
+
+        @phase phase2 stop:s=2
+        NT s | NT
+
+        @run phase1, phase2
+
+        phases: phase2
+        @nplot s
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        ns = plot_data
+        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
+        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+
+    def test_stopcond_phase_line_label_with_xscale(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s
+        behaviors: b
+
+        @phase phase1 stop:NT=2
+        NT s | NT
+
+        @run phase1
+
+        xscale: NT
+        @nplot s
+        '''
+        msg = "xscale cannot be a phase line label in @nplot/@nexport."
+        with self.assertRaisesX(Exception, msg):
+            run(text)
 
 
 class TestExceptions(LsTestCase):
