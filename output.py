@@ -1,5 +1,5 @@
 import util
-import mechanism
+from mechanism import probability_of_response
 from exceptions import EvalException
 import keywords as kw
 
@@ -12,6 +12,10 @@ class ScriptOutput():
     def write_v(self, run_label, subject_ind, stimulus, response, step, mechanism):
         '''stimulus is a tuple.'''
         self.run_outputs[run_label].write_v(subject_ind, stimulus, response, step, mechanism)
+
+    def write_vss(self, run_label, subject_ind, stimulus1, stimulus2, step, mechanism):
+        '''stimulus is a tuple.'''
+        self.run_outputs[run_label].write_vss(subject_ind, stimulus1, stimulus2, step, mechanism)
 
     def write_w(self, run_label, subject_ind, stimulus, step, mechanism):
         '''stimulus is a tuple.'''
@@ -113,6 +117,10 @@ class RunOutput():
         '''stimulus is a tuple.'''
         self.output_subjects[subject_ind].write_v(stimulus, response, step, mechanism)
 
+    def write_vss(self, subject_ind, stimulus1, stimulus2, step, mechanism):
+        '''stimulus is a tuple.'''
+        self.output_subjects[subject_ind].write_vss(stimulus1, stimulus2, step, mechanism)
+
     def write_w(self, subject_ind, stimulus, step, mechanism):
         '''stimulus is a tuple.'''
         self.output_subjects[subject_ind].write_w(stimulus, step, mechanism)
@@ -157,6 +165,9 @@ class RunOutputSubject():
         # Keys are 2-tuples (stimulus_element,response), values are Val objects
         self.v = dict()
 
+        # Keys are 2-tuples (stimulus_element,stimulus_element), values are Val objects
+        self.vss = dict()
+
         # Keys are stimulus elements (strings), values are Val objects
         self.w = dict()
 
@@ -195,6 +206,31 @@ class RunOutputSubject():
         self.phase_line_labels.append(phase_line_label)
         self.phase_line_labels_steps.append(step)
 
+    def write_v(self, stimulus, response, step, mechanism):
+        for element in stimulus:
+            key = (element, response)
+            if key not in self.v:
+                self.v[key] = Val()
+            self.v[key].write(mechanism.v[key], step)
+
+    def write_vss(self, stimulus1, stimulus2, step, mechanism):
+        # XXX Handle compound stimuli
+        assert(len(stimulus1) == 1)
+        assert(len(stimulus2) == 1)
+
+        key = (stimulus1[0], stimulus2[0])
+        if key not in self.vss:
+            self.vss[key] = Val()
+
+        self.vss[key].write(mechanism.vss[key], step)
+
+    def write_w(self, stimulus, step, mechanism):
+        for element in stimulus:
+            key = element
+            if key not in self.w:
+                self.w[key] = Val()
+            self.w[key].write(mechanism.w[key], step)
+
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':
             _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
@@ -202,6 +238,7 @@ class RunOutputSubject():
         else:
             switcher = {
                 'v': self.v_eval,
+                'vss': self.vss_eval,
                 'w': self.w_eval,
                 'p': self.p_eval,
             }
@@ -313,6 +350,9 @@ class RunOutputSubject():
     def v_eval(self, er, parameters):
         return self.v[er].evaluate(parameters)
 
+    def vss_eval(self, ss, parameters):
+        return self.vss[ss].evaluate(parameters)
+
     def w_eval(self, element, parameters):
         return self.w[element].evaluate(parameters)
 
@@ -332,9 +372,8 @@ class RunOutputSubject():
         out = [None] * nval
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
-            out[i] = mechanism.probability_of_response(sr[0], sr[1], behaviors,
-                                                       self.stimulus_req, parameters.get(kw.BETA),
-                                                       v_local)
+            out[i] = probability_of_response(sr[0], sr[1], behaviors, self.stimulus_req,
+                                             parameters.get(kw.BETA), v_local)
         return out
 
     @staticmethod
@@ -393,26 +432,17 @@ class RunOutputSubject():
                 out = util.arrayind(findind_n, findind_steps)
         return out
 
-    def write_v(self, stimulus, response, step, mechanism):
-        for element in stimulus:
-            key = (element, response)
-            if key not in self.v:
-                self.v[key] = Val()
-            self.v[key].write(mechanism.v[key], step)
-
-    def write_w(self, stimulus, step, mechanism):
-        for element in stimulus:
-            key = element
-            if key not in self.w:
-                self.w[key] = Val()
-            self.w[key].write(mechanism.w[key], step)
-
     def printout(self):
         print("\n")
         for key, val in self.v.items():
-            print("v({0}) = {1})".format(key, val))
+            print(f"v({key}):")
+            val.printout()
         for key, val in self.w.items():
-            print("w({0}) = {1})".format(key, val))
+            print(f"w({key}):")
+            val.printout()
+        for key, val in self.vss.items():
+            print(f"vss({key}):")
+            val.printout()
         print(f"history={self.history}")
         print(f"first_step_phase={self.first_step_phase}")
         print(f"phase_line_labels={self.phase_line_labels}")
@@ -461,5 +491,5 @@ class Val():
         # return out
 
     def printout(self):
-        print("values: {} floats".format(len(self.values)))
-        print("steps: {} ints".format(len(self.steps)))
+        print(f"values: {self.values}")
+        print(f"steps: {self.steps}")

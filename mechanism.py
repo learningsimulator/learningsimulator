@@ -64,7 +64,13 @@ class Mechanism():
         beta = self.parameters.get(kw.BETA)
         return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, self.v)
 
+    def has_v(self):
+        return True
+
     def has_w(self):
+        return False
+
+    def has_vss(self):
         return False
 
 
@@ -300,3 +306,43 @@ class Enquist(Mechanism):
 
     def has_w(self):
         return True
+
+
+class OriginalRescorlaWagner(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def subject_reset(self):
+        super().subject_reset()
+        self.vss = dict(self.parameters.get(kw.START_VSS))
+
+    def learn_and_respond(self, stimulus, omit=False):
+        if self.prev_stimulus is not None:  # and not omit: # Never omit in this mechanism
+            # Do not update if first time or if omit
+            self.learn(stimulus)
+
+        # self.response = self._get_response(stimulus)
+        self.prev_stimulus = stimulus
+        return None  # Dummy response
+
+    def learn(self, stimulus):
+        _lambda = self.parameters.get(kw.LAMBDA)
+        alpha_vss = self.parameters.get(kw.ALPHA_VSS)
+
+        # XXX Handle compound stimuli
+        assert(len(self.prev_stimulus) == 1)
+        assert(len(stimulus) == 1)
+
+        ss = (self.prev_stimulus[0], stimulus[0])
+        self.vss[ss] += alpha_vss[ss] * (_lambda[stimulus[0]] - self.vss[ss])
+
+        for s in self.parameters.get(kw.STIMULUS_ELEMENTS):
+            if s != stimulus[0]:
+                key = (self.prev_stimulus[0], s)
+                self.vss[key] += -alpha_vss[key] * self.vss[key]
+
+    def has_vss(self):
+        return True
+
+    def has_v(self):
+        return False

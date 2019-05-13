@@ -10,8 +10,11 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.STIMULUS_ELEMENTS: set(),       # set of (restricted) strings                  , REQ
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
+      kw.START_VSS: 0,                   # Scalar or list of se->se:val or default:val  ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
+      kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
+      kw.LAMBDA: 0,                      # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
       kw.ALPHA_W: 1,                     # -"-                                          ,
       kw.BETA: 1,                        # Scalar
@@ -78,14 +81,21 @@ class Parameters():
         elif prop == kw.MECHANISM_NAME:
             return self._parse_mechanism_name(v_str)
 
-        elif prop == kw.START_V:
-            return self._parse_start_v(v_str, variables, to_be_continued, is_appending)
+        elif prop in (kw.START_V, kw.ALPHA_V):
+            return self._parse_alphastart_v(prop, v_str, variables, to_be_continued, is_appending)
 
-        elif prop == kw.START_W:
-            return self._parse_start_w(v_str, variables, to_be_continued, is_appending)
+        elif prop in (kw.START_VSS, kw.ALPHA_VSS):
+            return self._parse_alphastart_vss(prop, v_str, variables, to_be_continued,
+                                              is_appending)
 
-        elif prop == kw.U:
-            return self._parse_u(v_str, variables, to_be_continued, is_appending)
+        elif prop in (kw.START_W, kw.ALPHA_W):
+            # return self._parse_start_w(v_str, variables, to_be_continued, is_appending)
+            return self._parse_stimulus_values(prop, v_str, variables, to_be_continued,
+                                               is_appending)
+
+        elif prop in (kw.U, kw.LAMBDA):
+            return self._parse_stimulus_values(prop, v_str, variables, to_be_continued,
+                                               is_appending)
 
         elif prop == kw.ALPHA_V:
             return self._parse_alpha_v(v_str, variables, to_be_continued, is_appending)
@@ -177,7 +187,8 @@ class Parameters():
         ES = 'es'
         QL = 'ql'
         AC = 'ac'
-        MECHANISM_NAMES = (GA, SR, ES, QL, AC)
+        RW = 'rw'
+        MECHANISM_NAMES = (GA, SR, ES, QL, AC, RW)
         """
         mechanism_name = self.val[kw.MECHANISM_NAME]
         if not mechanism_name:
@@ -197,6 +208,8 @@ class Parameters():
             mechanism_obj = mechanism.ActorCritic(self)
         elif mechanism_name == mn.GA:
             mechanism_obj = mechanism.Enquist(self)
+        elif mechanism_name == mn.RW:
+            mechanism_obj = mechanism.OriginalRescorlaWagner(self)
         else:
             raise Exception(f"Internal error. Unknown mechanism {mechanism_name}.")
         return mechanism_obj, None
@@ -277,25 +290,29 @@ class Parameters():
             self.val[kw.PHASES] = phase_labels
         return None
 
-    def _parse_start_v(self, start_v_str, variables, to_be_continued, is_appending):
-        return self._parse_alphastart_v(kw.START_V, start_v_str, variables, to_be_continued,
-                                        is_appending)
+    # def _parse_start_v(self, start_v_str, variables, to_be_continued, is_appending):
+    #     return self._parse_alphastart_v(kw.START_V, start_v_str, variables, to_be_continued,
+    #                                     is_appending)
 
-    def _parse_alpha_v(self, alpha_v_str, variables, to_be_continued, is_appending):
-        return self._parse_alphastart_v(kw.ALPHA_V, alpha_v_str, variables, to_be_continued,
-                                        is_appending)
+    # def _parse_alpha_v(self, alpha_v_str, variables, to_be_continued, is_appending):
+    #     return self._parse_alphastart_v(kw.ALPHA_V, alpha_v_str, variables, to_be_continued,
+    #                                     is_appending)
 
-    def _parse_u(self, u_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.U, u_str, variables, to_be_continued,
-                                           is_appending)
+    # def _parse_u(self, u_str, variables, to_be_continued, is_appending):
+    #     return self._parse_stimulus_values(kw.U, u_str, variables, to_be_continued,
+    #                                        is_appending)
 
-    def _parse_start_w(self, start_w_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.START_W, start_w_str, variables, to_be_continued,
-                                           is_appending)
+    # def _parse_lambda(self, lambda_str, variables, to_be_continued, is_appending):
+    #     return self._parse_stimulus_values(kw.LAMBDA, lambda_str, variables, to_be_continued,
+    #                                        is_appending)
 
-    def _parse_alpha_w(self, alpha_w_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.ALPHA_W, alpha_w_str, variables, to_be_continued,
-                                           is_appending)
+    # def _parse_start_w(self, start_w_str, variables, to_be_continued, is_appending):
+    #     return self._parse_stimulus_values(kw.START_W, start_w_str, variables, to_be_continued,
+    #                                        is_appending)
+
+    # def _parse_alpha_w(self, alpha_w_str, variables, to_be_continued, is_appending):
+    #     return self._parse_stimulus_values(kw.ALPHA_W, alpha_w_str, variables, to_be_continued,
+    #                                        is_appending)
 
     def _parse_beta(self, beta_str, variables):
         beta, err = ParseUtil.evaluate(beta_str, variables)
@@ -420,6 +437,73 @@ class Parameters():
 
             if not to_be_continued:
                 # Set the default value for non-set stimulus-behavior pairs
+                err = self._set_default_values(NAME)
+                if err:
+                    return err
+
+        return None  # No error
+
+    def _parse_alphastart_vss(self, NAME, vss_str, variables, to_be_continued,
+                              is_appending):
+        """
+        Parse the string vss_str with a start_vss/alpha_vss specification.
+
+        Example: "S1->S2: 1.23, S2->S1:3.45, default:1" sets the parameter to
+                 {('S1','S2'):1.23, ('S2','S1'):3.45, ('S1','S1'):1, ('S2','S2'):1}
+                 under the assumption that stimulus_elements = {'S1', 'S2'}
+        """
+        if not self.val[kw.STIMULUS_ELEMENTS]:
+            return f"The parameter 'stimulus_elements' must be assigned before the parameter '{NAME}'."
+
+        # Create and populate the struct with None values
+        if not is_appending:
+            self.val[NAME] = dict()
+            for e1 in self.val[kw.STIMULUS_ELEMENTS]:
+                for e2 in self.val[kw.STIMULUS_ELEMENTS]:
+                    self.val[NAME][(e1, e2)] = None
+            self.val[NAME][kw.DEFAULT] = None
+
+        single_vss, _ = ParseUtil.evaluate(vss_str, variables)
+        if single_vss is not None:
+            if is_appending:
+                return f"A single value for '{NAME}' cannot follow other values."
+            elif to_be_continued:
+                return f"A single value for '{NAME}' cannot be followed by other values."
+            else:
+                for key in self.val[NAME]:
+                    self.val[NAME][key] = single_vss
+                self.val[NAME].pop(kw.DEFAULT)
+        else:
+            vs = ParseUtil.comma_split(vss_str)
+            vs = [x.strip() for x in vs]
+            for ee_str in vs:  # eb_v_str is 'e1->e2:value' or 'default:value'
+                if ee_str.count(':') != 1:
+                    return f"Expected 'x->y:value' or 'default:value' in '{NAME}', got '{ee_str}'."
+                ee, v_str = ee_str.split(':')
+                ee = ee.strip()
+                v_str = v_str.strip()
+                v, err = ParseUtil.evaluate(v_str, variables)
+                if err:
+                    return f"Invalid value '{v_str}' for '{ee}' in parameter '{NAME}'."
+
+                if ee == kw.DEFAULT:
+                    if self.val[NAME][kw.DEFAULT] is not None:
+                        return f"Default value for '{NAME}' can only be stated once."
+                    self.val[NAME][kw.DEFAULT] = v
+                elif ee.count('->') == 1:
+                    e1, e2 = ee.split('->')
+                    if e1 not in self.val[kw.STIMULUS_ELEMENTS]:
+                        return f"Error in parameter '{NAME}': '{e1}' is an invalid stimulus element."
+                    if e2 not in self.val[kw.STIMULUS_ELEMENTS]:
+                        return f"Error in parameter '{NAME}': '{e2}' is an invalid stimulus element."
+                    if self.val[NAME][(e1, e2)] is not None:
+                        return f"Duplicate of {e1}->{e2} in '{NAME}'."
+                    self.val[NAME][(e1, e2)] = v
+                else:
+                    return f"Invalid string '{ee}' in parameter '{NAME}'."
+
+            if not to_be_continued:
+                # Set the default value for non-set stimulus-stimulus pairs
                 err = self._set_default_values(NAME)
                 if err:
                     return err
@@ -553,7 +637,7 @@ class Parameters():
     def _parse_xscale(self, xscale, phases):
         if not self.val[kw.STIMULUS_ELEMENTS]:
             return f"The parameter 'stimulus_elements' must be assigned before the parameter '{kw.XSCALE}'."
-        if not self.val[kw.BEHAVIORS]:
+        if not self.val[kw.BEHAVIORS] and self.val[kw.MECHANISM_NAME] != mn.RW:
             return f"The parameter 'behaviors' must be assigned before the parameter '{kw.XSCALE}'."
         if '->' in xscale:
             xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
@@ -594,8 +678,9 @@ class Parameters():
         return self.is_csv(prop) or prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
 
     def is_csv(self, prop):
-        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.START_V, kw.START_W, kw.ALPHA_V,
-                        kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS, kw.PHASES)
+        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.START_V, kw.START_VSS, kw.START_W,
+                        kw.ALPHA_V, kw.ALPHA_VSS, kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U,
+                        kw.RESPONSE_REQUIREMENTS, kw.PHASES)
 
     def _scalar_expand(self):
         """
@@ -611,11 +696,17 @@ class Parameters():
                 key = (stimulus_element, behavior)
                 expected_sb_keys.add(key)
 
+        expected_ss_keys = set()
+        for stimulus_element1 in stimulus_elements:
+            for stimulus_element2 in stimulus_elements:
+                key = (stimulus_element1, stimulus_element2)
+                expected_ss_keys.add(key)
+
         # Check START_V
         start_v = self.val[kw.START_V]
         if type(start_v) is dict:
             if set(start_v.keys()) != expected_sb_keys:
-                self._raise_match_err(kw.ALPHA_V, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
+                self._raise_match_err(kw.START_V, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
         else:  # scalar expand
             self.val[kw.START_V] = dict()
             scalar = start_v
@@ -623,6 +714,19 @@ class Parameters():
                 for behavior in behaviors:
                     key = (stimulus_element, behavior)
                     self.val[kw.START_V][key] = scalar
+
+        # Check START_VSS
+        start_vss = self.val[kw.START_VSS]
+        if type(start_vss) is dict:
+            if set(start_vss.keys()) != expected_ss_keys:
+                self._raise_match_err(kw.START_SS, kw.STIMULUS_ELEMENTS)
+        else:  # scalar expand
+            self.val[kw.START_VSS] = dict()
+            scalar = start_vss
+            for stimulus_element1 in stimulus_elements:
+                for stimulus_element2 in stimulus_elements:
+                    key = (stimulus_element1, stimulus_element2)
+                    self.val[kw.START_VSS][key] = scalar
 
         # Check ALPHA_V
         alpha_v = self.val[kw.ALPHA_V]
@@ -633,9 +737,22 @@ class Parameters():
             self.val[kw.ALPHA_V] = dict()
             scalar = alpha_v
             for stimulus_element in stimulus_elements:
-                    for behavior in behaviors:
-                        key = (stimulus_element, behavior)
-                        self.val[kw.ALPHA_V][key] = scalar
+                for behavior in behaviors:
+                    key = (stimulus_element, behavior)
+                    self.val[kw.ALPHA_V][key] = scalar
+
+        # Check ALPHA_VSS
+        alpha_vss = self.val[kw.ALPHA_VSS]
+        if type(alpha_vss) is dict:
+            if set(alpha_vss.keys()) != expected_ss_keys:
+                self._raise_match_err(kw.ALPHA_VSS, kw.STIMULUS_ELEMENTS)
+        else:  # scalar expand
+            self.val[kw.ALPHA_VSS] = dict()
+            scalar = alpha_vss
+            for stimulus_element1 in stimulus_elements:
+                for stimulus_element2 in stimulus_elements:
+                    key = (stimulus_element1, stimulus_element2)
+                    self.val[kw.ALPHA_VSS][key] = scalar
 
         expected_s_keys = set()
         for stimulus_element in stimulus_elements:
@@ -696,7 +813,3 @@ class Parameters():
         else:
             err = f"The parameter '{param1}' does not match '{param2}'."
         raise Exception(err)
-
-    def pr(self):
-        for key, val in self.val.items():
-            print("{} = {}".format(key, val))

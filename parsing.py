@@ -102,7 +102,7 @@ class LineParser():
             self.line_type = LineParser.RUN
         elif first_word == kw.PHASE:
             self.line_type = LineParser.PHASE
-        elif first_word in (kw.VPLOT, kw.WPLOT, kw.PPLOT, kw.NPLOT):
+        elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.PPLOT, kw.NPLOT):
             self.line_type = LineParser.PLOT
         elif first_word == kw.FIGURE:
             self.line_type = LineParser.FIGURE
@@ -382,6 +382,8 @@ class ScriptParser():
         err = None
         if cmd == kw.VPLOT:
             expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
+        elif cmd == kw.VSSPLOT:
+            expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PPLOT:
             expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.NPLOT:
@@ -528,6 +530,9 @@ class PlotCmd():
         if self.cmd == kw.VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
             legend_label = f"v({self.expr0})"
+        elif self.cmd == kw.VSSPLOT:
+            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            legend_label = f"vss({self.expr0})"
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
             # label_expr = beautify_expr_for_label(self.expr)

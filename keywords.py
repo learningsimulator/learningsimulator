@@ -3,12 +3,15 @@ BEHAVIORS = 'behaviors'
 STIMULUS_ELEMENTS = 'stimulus_elements'
 MECHANISM_NAME = 'mechanism'
 START_V = 'start_v'
+START_VSS = 'start_vss'
 START_W = 'start_w'
 ALPHA_V = 'alpha_v'
+ALPHA_VSS = 'alpha_vss'
 ALPHA_W = 'alpha_w'
 BETA = 'beta'
 BEHAVIOR_COST = 'behavior_cost'
 U = 'u'
+LAMBDA = 'lambda'
 RESPONSE_REQUIREMENTS = 'response_requirements'
 BIND_TRIALS = 'bind_trials'
 N_SUBJECTS = 'n_subjects'
@@ -31,6 +34,7 @@ FIGURE = '@figure'
 SUBPLOT = '@subplot'
 LEGEND = '@legend'
 VPLOT = '@vplot'
+VSSPLOT = '@vssplot'
 WPLOT = '@wplot'
 PPLOT = '@pplot'
 NPLOT = '@nplot'
@@ -50,12 +54,15 @@ KEYWORDS = (BEHAVIORS,
             STIMULUS_ELEMENTS,
             MECHANISM_NAME,
             START_V,
+            START_VSS,
             START_W,
             ALPHA_V,
+            ALPHA_VSS,
             ALPHA_W,
             BETA,
             BEHAVIOR_COST,
             U,
+            LAMBDA,
             RESPONSE_REQUIREMENTS,
             BIND_TRIALS,
             N_SUBJECTS,
@@ -76,6 +83,7 @@ KEYWORDS = (BEHAVIORS,
             SUBPLOT,
             LEGEND,
             VPLOT,
+            VSSPLOT,
             WPLOT,
             PPLOT,
             NPLOT,
