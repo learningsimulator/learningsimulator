@@ -1,19 +1,22 @@
-import time
 import threading
 import traceback
 import os
+# import matplotlib
+from matplotlib import pyplot as plt
 
 import tkinter as tk
 from tkinter import ttk
 from tkinter.constants import BOTH, YES, NO, DISABLED
 # from tkinter.scrolledtext import ScrolledText
 from tkinter import messagebox, filedialog
-import matplotlib.pyplot as plt
+
+# import matplotlib.pyplot as plt
 
 from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg
 from parsing import Script
-from exceptions import ParseException
+from exceptions import ParseException, InterruptedSimulation
 
+# matplotlib.use('Agg')
 
 TITLE = "Learning Simulator"
 FILETYPES = (('Text files', '*.txt'), ('All files', '*.*'))
@@ -24,12 +27,13 @@ class Gui():
         self.file_path = None
         self.last_open_folder = None
         self.simulation_data = None  # A ScriptOutput object
-        self.simulation_thread = None
+
+        self.script_obj = None
 
         # className appears (at least) in Ubuntu sidebar "tooltip" (app name)
         self.root = tk.Tk(className=TITLE)
 
-        self.progress = Progress(self.root)
+        self.progress = None
 
         self.root.style = ttk.Style()
         self.root.style.theme_use("alt")  # ('clam', 'alt', 'default', 'classic')
@@ -53,6 +57,7 @@ class Gui():
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
         self.root.mainloop()
+        self.root.quit()
 
     def _create_widgets(self):
         # The frame containing the widgets
@@ -79,8 +84,8 @@ class Gui():
 
         # The Run menu
         run_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
-        run_menu.add_command(label="Simulate and Plot", underline=0, command=self.simulate, accelerator="F5")
-        run_menu.add_command(label="Plot", underline=0, command=self.plot)
+        run_menu.add_command(label="Simulate and Plot", underline=0, command=self.simulate_thread, accelerator="F5")
+        run_menu.add_command(label="Plot", underline=0, command=self.plot_thread)
         self.menu_bar.add_cascade(label="Run", underline=0, menu=run_menu)
 
         self.root.config(menu=self.menu_bar)
@@ -119,11 +124,11 @@ class Gui():
 
         # The Simulate button
         self.simButton = ttk.Button(button_frame, text="Simulate and Plot",
-                                    command=self.simulate)
+                                    command=self.simulate_thread)
         self.simButton.pack(side="left")
 
         # The Plot button
-        self.plotButton = ttk.Button(button_frame, text="Plot", command=self.plot)
+        self.plotButton = ttk.Button(button_frame, text="Plot", command=self.plot_thread)
         self.plotButton.pack(side="left")
 
         button_frame.pack(side="top", anchor="w", fill=BOTH, expand=NO)
@@ -150,66 +155,54 @@ class Gui():
 
         frame.pack(fill=BOTH, expand=YES)
 
-    def simulate_thread(self):
-        self.simulation_done = False
-        self.simulation_thread = threading.Thread(target=self.simulate)
-        self.simulation_thread.start()
-
-        # self._check_if_simulation_done()
-        # print("done in main")
-
-    # def _check_if_simulation_done(self):
-    #     if not self.simulation_done:
-    #         print("checking...")
-    #         # self.root.after(250, self._check_if_simulation_done)
-    #         time.sleep(250)
-    #     else:
-    #         pass  # return True
-
-    def simulate(self, event=None):
-        # self.enable_simulation_controls(False)
-        # self.progressbar.start()
-        self.progress.start()
-
+    def simulate_thread(self, event=None):
         try:
             script = self.scriptField.text_box.get("1.0", "end-1c")
-            script_obj = Script(script)
-            script_obj.parse()
-            self.simulation_data = script_obj.run()
-            script_obj.postproc(self.simulation_data)
+            self.script_obj = Script(script)
+            self.script_obj.parse()
         except Exception as ex:
-            if isinstance(ex, ParseException):
-                self._select_line(ex.lineno)
-            self.close_figs()
             self.handle_exception(ex)
-        # finally:
-            # self.progressbar.stop()
-            # self.enable_simulation_controls(True)
-        # self.simulation_done = True
+            return
+
+        self.progress = Progress(self.root, self.script_obj)
+        self.progress.start()
+        # self.start_progress_job = self.root.after(1000, self.progress.start)
+
+        self.simulation_thread = threading.Thread(target=self.simulate)
+        self.simulation_thread.daemon = True  # So that the thread dies if main program exits
+        self.simulation_thread.start()
+        self.check_job = self.root.after(100, self.handle_simulation_end)
+
+    def handle_simulation_end(self):
+        if self.progress.done:
+            assert(not self.simulation_thread.is_alive())
+            self.simulation_thread.join()
+            self.root.after_cancel(self.check_job)
+            if self.progress.exception is not None:
+                if not isinstance(self.progress.exception, InterruptedSimulation):
+                    self.progress.close_dlg()
+                    self.handle_exception(self.progress.exception)
+            elif self.progress.done:
+                # This will also close the progress dialog box
+                self.script_obj.plot(progress=self.progress)
+        else:
+            assert(self.simulation_thread.is_alive())
+            self.check_job = self.root.after(100, self.handle_simulation_end)
+
+    def simulate(self):
+        try:
+            self.simulation_data = self.script_obj.run(self.progress)
+            self.script_obj.postproc(self.simulation_data, progress=self.progress)
+        except Exception as ex:
+            self.progress.exception = ex
+        finally:
+            self.progress.set_done(True)
         # return None  # XXX perhaps not needed? for threading
 
     def _select_line(self, lineno):
         start = f"{lineno}.0"
         end = f"{lineno}.{tk.END}"
         self.scriptField.text_box.tag_add(tk.SEL, start, end)
-
-    def foo_simulate(self):
-        self.enable_simulation_controls(False)
-        self.progressbar.start()
-
-        try:
-            for i in range(5000):
-                time.sleep(0.001)
-                if i > 500:
-                    raise Exception("Foo Error message from simulation.")
-                self.progress.set(i / 5000.0 * 100)
-        except Exception as ex:
-            self.progressbar.stop()
-            self.handle_exception(ex)
-        finally:
-            print("done")
-            self.progressbar.stop()
-            self.enable_simulation_controls(True)
 
     def enable_simulation_controls(self, enable=True):
         state = "normal"
@@ -219,14 +212,36 @@ class Gui():
         self.plotButton.config(state=state)
         self.menu_bar.entryconfig("Run", state=state)
 
+    def plot_thread(self):
+        try:
+            if self.simulation_data is None:
+                raise Exception("No simulation data to plot.")
+
+            script = self.scriptField.text_box.get("1.0", "end-1c")
+            script_obj = Script(script)
+            script_obj.parse()
+            script_obj.postproc(self.simulation_data)
+        except Exception as ex:
+            self.handle_exception(ex)
+            return
+
+        self.progress = Progress(self.root, self.script_obj)
+        self.progress.start()
+        # self.start_progress_job = self.root.after(1000, self.progress.start)
+
+        self.simulation_thread = threading.Thread(target=self.plot)
+        self.simulation_thread.daemon = True  # So that the thread dies if main program exits
+        self.simulation_thread.start()
+        self.check_job = self.root.after(100, self.handle_simulation_end)
+
     def plot(self):
         try:
             if self.simulation_data is None:
                 raise Exception("No simulation data to plot.")
             script = self.scriptField.text_box.get("1.0", "end-1c")
-            script_obj = Script(script)
-            script_obj.parse()
-            script_obj.postproc(self.simulation_data)
+            self.script_obj = Script(script)
+            self.script_obj.parse()
+            self.script_obj.postproc(self.simulation_data)
         except Exception as ex:
             self.handle_exception(ex)
 
@@ -234,6 +249,11 @@ class Gui():
         plt.close("all")
 
     def handle_exception(self, ex):
+        print(ex)
+        if isinstance(ex, ParseException):
+            self._select_line(ex.lineno)
+        self.close_figs()
+
         err_msg = str(ex)
         # messagebox.showerror("Error", err_msg)
         st = traceback.format_exc()
@@ -319,7 +339,9 @@ class Gui():
         #         pass  # self.handle_exception(e)
 
     def file_open_textbox(self, event=None):
-        'To override default behavior of <Control-O> which inserts a new line in the textbox.'
+        """
+        To override default behavior of <Control-O> which inserts a new line in the textbox.
+        """
         self.file_open(event)
         return "break"
 
@@ -379,7 +401,7 @@ class Gui():
         # self.root.bind_class("Text", ",<Control-y>", self.redo)
         # self.root.bind_class("Text", ",<Control-Y>", self.redo)
 
-        self.root.bind("<F5>", self.simulate)
+        self.root.bind("<F5>", self.simulate_thread)
 
     def undo(self):
         self.scriptField.undo()
@@ -389,18 +411,77 @@ class Gui():
 
 
 class Progress():
-    def __init__(self, tk_obj):
-        self.progress_variable1 = tk.DoubleVar(tk_obj)  # From 0 to 100
-        self.progress_variable2 = tk.DoubleVar(tk_obj)  # From 0 to 100
+    def __init__(self, tk_obj, script_obj):  # XXX tk_obj?
+        self.script_obj = script_obj
+
+        # self.run_labels = script_obj.script_parser.runs.run_labels
+        # self.run_lengths = script_obj.script_parser.runs.get_n_subjects()
+        self.nsteps1 = sum(script_obj.script_parser.runs.get_n_subjects())
+        self.nsteps1_percent = 100 / self.nsteps1
+
+        self.nsteps2 = script_obj.script_parser.runs.get_n_phases()
+        self.nsteps2_percent = dict()
+        for key in self.nsteps2:
+            self.nsteps2_percent[key] = 100 / self.nsteps2[key]
+
+        self.progress1 = tk.DoubleVar()  # tk_obj? # From 0 to 100
+        self.progress2 = tk.DoubleVar()  # tk_obj? # From 0 to 100
+        self.progress1.set(0)
+        self.progress2.set(0)
+
+        self.message1 = tk.StringVar()  # XXX tk_obj?
+        self.message2 = tk.StringVar()
 
         # The dialog box for the progress bar
-        # self.progress_dlg = None
+        self.dlg = None
 
         # Set to True when the Stop button has been clicked
         self.stop_clicked = False
 
+        self.exception = None
+
+        self.done = False
+
     def start(self):
-        progress_dlg = ProgressDlg(self)
+        self.dlg = ProgressDlg(self)
+
+    def stop(self):
+        self.stop_clicked = True
+
+    def set_done(self, done):
+        self.done = done
+
+    def close_dlg(self):
+        if self.dlg:
+            self.dlg.destroy()
+            self.dlg = None
+
+    def get_n_runs(self):
+        return len(self.nsteps2)
+
+    def increment1(self):
+        self.progress1.set(self.progress1.get() + self.nsteps1_percent)
+
+    def increment2(self, run_label):
+        self.progress2.set(self.progress2.get() + self.nsteps2_percent[run_label])
+
+    def reset1(self):
+        self.progress1.set(0)
+
+    def reset2(self):
+        self.progress2.set(0)
+
+    # def _update(self, level, fraction_done):
+    #     if level == 1:
+    #         self.progress1.set(100 * fraction_done)
+    #     elif level == 2:
+    #         self.progress2.set(100 * fraction_done)
+
+    def report1(self, message):
+        self.message1.set(message)
+
+    def report2(self, message):
+        self.message2.set(message)
 
 
 if __name__ == "__main__":
