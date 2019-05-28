@@ -189,7 +189,7 @@ class TestOriginalRescorlaWagner(LsTestCase):
             self.assertAlmostEqual(us_us['y'][i], 1 - expected_increasing_y[i], 6)
             self.assertAlmostEqual(cs_cs['y'][i], 1 - expected_increasing_y[i], 6)
 
-    def test_stuff(self):
+    def test_stuff(self):  # XXX
         text = '''
         mechanism: rw
         stimulus_elements: cs, us
@@ -220,6 +220,8 @@ class TestOriginalRescorlaWagner(LsTestCase):
         @vssplot us->cs
         @vssplot us->us
         @vssplot cs->cs
+
+#####################################
 
         mechanism: rw
         stimulus_elements: cs, us
