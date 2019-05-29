@@ -1,5 +1,5 @@
 from .testutil import LsTestCase
-from keywords import START_V, ALPHA_V
+from keywords import START_V, ALPHA_V, BETA
 from parsing import Script
 
 
@@ -20,6 +20,7 @@ class TestBasic(LsTestCase):
     def test_simple(self):
         self._test_simple(START_V)
         self._test_simple(ALPHA_V)
+        self._test_simple(BETA)
 
     def _test_simple(self, name):
         text = '''
@@ -43,6 +44,7 @@ class TestBasic(LsTestCase):
     def test_multiline(self):
         self._test_multiline(START_V)
         self._test_multiline(ALPHA_V)
+        self._test_multiline(BETA)
 
     def _test_multiline(self, name):
         text = '''
@@ -68,6 +70,7 @@ class TestBasic(LsTestCase):
     def test_scalar(self):
         self._test_scalar(START_V)
         self._test_scalar(ALPHA_V)
+        self._test_scalar(BETA)
 
     def _test_scalar(self, name):
         text = '''
@@ -100,6 +103,7 @@ class TestBasic(LsTestCase):
     def test_redefinition(self):
         self._test_redefinition(START_V)
         self._test_redefinition(ALPHA_V)
+        self._test_redefinition(BETA)
 
     def _test_redefinition(self, name):
         text = '''
@@ -137,6 +141,7 @@ class TestBasic(LsTestCase):
     def test_default_not_needed(self):
         self._test_default_not_needed(START_V)
         self._test_default_not_needed(ALPHA_V)
+        self._test_default_not_needed(BETA)
 
     def _test_default_not_needed(self, name):
         text = '''
@@ -154,6 +159,7 @@ class TestBasic(LsTestCase):
     def test_unfinished(self):
         self._test_unfinished(START_V)
         self._test_unfinished(ALPHA_V)
+        self._test_unfinished(BETA)
 
     def _test_unfinished(self, name):
         text = '''stimulus_elements: e1, e2
@@ -174,6 +180,7 @@ class TestWithVariables(LsTestCase):
     def test_simple(self):
         self._test_simple(START_V)
         self._test_simple(ALPHA_V)
+        self._test_simple(BETA)
 
     def _test_simple(self, name):
         text = '''
@@ -230,6 +237,7 @@ class TestWithExpressions(LsTestCase):
     def test_simple(self):
         self._test_simple(START_V)
         self._test_simple(ALPHA_V)
+        self._test_simple(BETA)
 
     def _test_simple(self, name):
         text = '''
@@ -261,6 +269,7 @@ class TestWithFunctions(LsTestCase):
     def test_simple(self):
         self._test_rand(START_V)
         self._test_rand(ALPHA_V)
+        self._test_rand(BETA)
 
     def _test_rand(self, name):
         text = '''
@@ -313,6 +322,7 @@ class TestExceptions(LsTestCase):
     def test_empty_name(self):
         self._test_empty_name(START_V)
         self._test_empty_name(ALPHA_V)
+        self._test_empty_name(BETA)
 
     def _test_empty_name(self, name):
         text = '''
@@ -330,6 +340,7 @@ class TestExceptions(LsTestCase):
     def test_duplicate(self):
         self._test_duplicate(START_V)
         self._test_duplicate(ALPHA_V)
+        self._test_duplicate(BETA)
 
     def _test_duplicate(self, name):
         text = '''
@@ -371,6 +382,7 @@ class TestExceptions(LsTestCase):
     def test_stimulus_element_not_defined(self):
         self._test_stimulus_element_not_defined(START_V)
         self._test_stimulus_element_not_defined(ALPHA_V)
+        self._test_stimulus_element_not_defined(BETA)
 
     def _test_stimulus_element_not_defined(self, name):
         text = '''
@@ -407,6 +419,7 @@ class TestExceptions(LsTestCase):
     def test_invalid_value(self):
         self._test_invalid_value(START_V)
         self._test_invalid_value(ALPHA_V)
+        self._test_invalid_value(BETA)
 
     def _test_invalid_value(self, name):
         text = '''
@@ -446,6 +459,7 @@ class TestExceptions(LsTestCase):
     def test_invalid_eb_value(self):
         self._test_invalid_eb_value(START_V)
         self._test_invalid_eb_value(ALPHA_V)
+        self._test_invalid_eb_value(BETA)
 
     def _test_invalid_eb_value(self, name):
         text = '''stimulus_elements: e1, e2
@@ -475,6 +489,7 @@ class TestExceptions(LsTestCase):
     def test_multiple_single_values(self):
         self._test_multiple_single_values(START_V)
         self._test_multiple_single_values(ALPHA_V)
+        self._test_multiple_single_values(BETA)
 
     def _test_multiple_single_values(self, name):
         text = '''
@@ -538,6 +553,7 @@ class TestExceptions(LsTestCase):
     def test_multiple_default(self):
         self._test_multiple_default(START_V)
         self._test_multiple_default(ALPHA_V)
+        self._test_multiple_default(BETA)
 
     def _test_multiple_default(self, name):
         text = '''
@@ -572,6 +588,7 @@ class TestExceptions(LsTestCase):
     def test_invalid_stimulus_element(self):
         self._test_invalid_stimulus_element(START_V)
         self._test_invalid_stimulus_element(ALPHA_V)
+        self._test_invalid_stimulus_element(BETA)
 
     def _test_invalid_stimulus_element(self, name):
         text = '''
@@ -595,6 +612,7 @@ class TestExceptions(LsTestCase):
     def test_invalid_behavior(self):
         self._test_invalid_behavior(START_V)
         self._test_invalid_behavior(ALPHA_V)
+        self._test_invalid_behavior(BETA)
 
     def _test_invalid_behavior(self, name):
         text = '''
@@ -618,6 +636,7 @@ class TestExceptions(LsTestCase):
     def test_invalid_eb(self):
         self._test_invalid_eb(START_V)
         self._test_invalid_eb(ALPHA_V)
+        self._test_invalid_eb(BETA)
 
     def _test_invalid_eb(self, name):
         text = '''
@@ -651,6 +670,7 @@ class TestExceptions(LsTestCase):
     def test_missing_default(self):
         self._test_missing_default(START_V)
         self._test_missing_default(ALPHA_V)
+        self._test_missing_default(BETA)
 
     def _test_missing_default(self, name):
         text = '''

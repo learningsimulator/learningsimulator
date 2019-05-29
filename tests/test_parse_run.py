@@ -280,7 +280,7 @@ class TestBasic(LsTestCase):
         self.assertEqual(run1.world.nphases, 1)
         self.assertEqual(run1.world.curr_phaseind, 0)
         self.assertEqual(run1.n_subjects, 1)
-        self.assertEqual(parameters1.get(kw.BETA), 1.1)
+        self.assertEqual(parameters1.get(kw.BETA), {('e2', 'b2'): 1.1, ('e2', 'b1'): 1.1, ('e1', 'b2'): 1.1, ('e1', 'b1'): 1.1})
         self.assertEqual(parameters1.get(kw.N_SUBJECTS), 1)
 
         run2, parameters2 = parse(text, 'myrun2')
@@ -288,7 +288,7 @@ class TestBasic(LsTestCase):
         self.assertEqual(run2.world.nphases, 2)
         self.assertEqual(run2.world.curr_phaseind, 0)
         self.assertEqual(run2.n_subjects, 2)
-        self.assertEqual(parameters2.get(kw.BETA), 2.2)
+        self.assertEqual(parameters2.get(kw.BETA), {('e1', 'b2'): 2.2, ('e1', 'b1'): 2.2, ('e2', 'b2'): 2.2, ('e2', 'b1'): 2.2})
         self.assertEqual(parameters2.get(kw.N_SUBJECTS), 2)
 
 
