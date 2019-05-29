@@ -11,10 +11,10 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
+      kw.BETA: 1,                        # -"-                                          ,
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
       kw.ALPHA_W: 1,                     # -"-                                          ,
-      kw.BETA: 1,                        # Scalar
       kw.BEHAVIOR_COST: 0,               # Scalar or list of b:val or default:val       ,
       kw.RESPONSE_REQUIREMENTS: dict(),  # List of b:se or b:(se1,se2,...)              ,
       kw.BIND_TRIALS: 'off',             # on or off
@@ -94,7 +94,7 @@ class Parameters():
             return self._parse_alpha_w(v_str, variables, to_be_continued, is_appending)
 
         elif prop == kw.BETA:
-            return self._parse_beta(v_str, variables)
+            return self._parse_beta(v_str, variables, to_be_continued, is_appending)
 
         elif prop == kw.BEHAVIOR_COST:
             return self._parse_behavior_cost(v_str, variables, to_be_continued, is_appending)
@@ -183,7 +183,7 @@ class Parameters():
         if not mechanism_name:
             return None, "Parameter 'mechanism' is not specified."
 
-        self._scalar_expand()
+        self.scalar_expand()
 
         if mechanism_name == mn.SR:
             mechanism_obj = mechanism.RescorlaWagner(self)
@@ -278,12 +278,12 @@ class Parameters():
         return None
 
     def _parse_start_v(self, start_v_str, variables, to_be_continued, is_appending):
-        return self._parse_alphastart_v(kw.START_V, start_v_str, variables, to_be_continued,
-                                        is_appending)
+        return self._parse_stimulus_response_values(kw.START_V, start_v_str, variables,
+                                                    to_be_continued, is_appending)
 
     def _parse_alpha_v(self, alpha_v_str, variables, to_be_continued, is_appending):
-        return self._parse_alphastart_v(kw.ALPHA_V, alpha_v_str, variables, to_be_continued,
-                                        is_appending)
+        return self._parse_stimulus_response_values(kw.ALPHA_V, alpha_v_str, variables,
+                                                    to_be_continued, is_appending)
 
     def _parse_u(self, u_str, variables, to_be_continued, is_appending):
         return self._parse_stimulus_values(kw.U, u_str, variables, to_be_continued,
@@ -297,12 +297,9 @@ class Parameters():
         return self._parse_stimulus_values(kw.ALPHA_W, alpha_w_str, variables, to_be_continued,
                                            is_appending)
 
-    def _parse_beta(self, beta_str, variables):
-        beta, err = ParseUtil.evaluate(beta_str, variables)
-        if err:
-            return err
-        self.val[kw.BETA] = beta
-        return None
+    def _parse_beta(self, beta_str, variables, to_be_continued, is_appending):
+        return self._parse_stimulus_response_values(kw.BETA, beta_str, variables, to_be_continued,
+                                                    is_appending)
 
     def _parse_behavior_cost(self, behavior_cost_str, variables, to_be_continued, is_appending):
         if not self.val[kw.BEHAVIORS]:
@@ -355,10 +352,10 @@ class Parameters():
 
         return None  # No error
 
-    def _parse_alphastart_v(self, NAME, alphastart_v_str, variables, to_be_continued,
-                            is_appending):
+    def _parse_stimulus_response_values(self, NAME, sr_str, variables, to_be_continued,
+                                        is_appending):
         """
-        Parse the string alphastart_v_str with a alpha_v/start_v specification.
+        Parse the string sr_str with a value for stimulus-response pairs.
 
         Example: "S1->R1: 1.23, S2->R1:3.45, default:1" sets the parameter to
                  {('S1','R1'):1.23, ('S1','R2'):1, ('S2','R1'):3.45, ('S2','R2'):1}
@@ -379,7 +376,7 @@ class Parameters():
                     self.val[NAME][(e, b)] = None
             self.val[NAME][kw.DEFAULT] = None
 
-        single_v, _ = ParseUtil.evaluate(alphastart_v_str, variables)
+        single_v, _ = ParseUtil.evaluate(sr_str, variables)
         if single_v is not None:
             if is_appending:
                 return f"A single value for '{NAME}' cannot follow other values."
@@ -390,7 +387,7 @@ class Parameters():
                     self.val[NAME][key] = single_v
                 self.val[NAME].pop(kw.DEFAULT)
         else:
-            vs = ParseUtil.comma_split(alphastart_v_str)
+            vs = ParseUtil.comma_split(sr_str)
             vs = [x.strip() for x in vs]
             for eb_v_str in vs:  # eb_v_str is 'e->b:value' or 'default:value'
                 if eb_v_str.count(':') != 1:
@@ -594,10 +591,11 @@ class Parameters():
         return self.is_csv(prop) or prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
 
     def is_csv(self, prop):
-        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.START_V, kw.START_W, kw.ALPHA_V,
-                        kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS, kw.PHASES)
+        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.START_V, kw.START_W,
+                        kw.ALPHA_V, kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS,
+                        kw.PHASES)
 
-    def _scalar_expand(self):
+    def scalar_expand(self):
         """
         Expand dict-parameters that are defined by scalar. If defined as dict, check that keys are
         compatible with stimulus elements and behaviors.
@@ -633,9 +631,22 @@ class Parameters():
             self.val[kw.ALPHA_V] = dict()
             scalar = alpha_v
             for stimulus_element in stimulus_elements:
-                    for behavior in behaviors:
-                        key = (stimulus_element, behavior)
-                        self.val[kw.ALPHA_V][key] = scalar
+                for behavior in behaviors:
+                    key = (stimulus_element, behavior)
+                    self.val[kw.ALPHA_V][key] = scalar
+
+        # Check BETA
+        beta = self.val[kw.BETA]
+        if type(beta) is dict:
+            if set(beta.keys()) != expected_sb_keys:
+                self._raise_match_err(kw.BETA, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
+        else:  # scalar expand
+            self.val[kw.BETA] = dict()
+            scalar = beta
+            for stimulus_element in stimulus_elements:
+                for behavior in behaviors:
+                    key = (stimulus_element, behavior)
+                    self.val[kw.BETA][key] = scalar
 
         expected_s_keys = set()
         for stimulus_element in stimulus_elements:

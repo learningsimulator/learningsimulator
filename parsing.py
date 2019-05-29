@@ -523,6 +523,7 @@ class PlotCmd():
         # parse_eval_prop(cmd, expr, parameters)
 
     def run(self, simulation_data):
+        self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
