@@ -1,15 +1,6 @@
 import matplotlib.pyplot as plt
 
-from .testutil import LsTestCase
-from parsing import Script
-
-
-def run(text):
-    script = Script(text)
-    script.parse()
-    script_output = script.run()
-    script.postproc(script_output, False)
-    return script
+from .testutil import LsTestCase, run
 
 
 class TestBasic(LsTestCase):
@@ -34,7 +25,7 @@ class TestBasic(LsTestCase):
         @run phase1
         @vplot e1->b1
         '''
-        script = run(text)
+        script, _ = run(text)
         self.assertEqual(len(script.script_parser.postcmds.cmds), 1)
 
 

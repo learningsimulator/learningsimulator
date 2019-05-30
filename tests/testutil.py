@@ -8,7 +8,8 @@ def run(text):
     script_obj = Script(text)
     script_obj.parse()
     script_output = script_obj.run()
-    script_obj.postproc(script_output, False)
+    script_obj.postproc(script_output)
+    script_obj.plot(block=False)
     return script_obj, script_output
 
 

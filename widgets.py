@@ -163,6 +163,81 @@ class ErrorDlg(tk.Toplevel):
         return pos_xy[0], pos_xy[1]
 
 
+class ProgressDlg(tk.Toplevel):
+    def __init__(self, progress_obj):
+        super().__init__()
+        self.progress_obj = progress_obj
+        self._create_widgets()
+        self.is_visible2 = True
+
+    def _create_widgets(self):
+        self.title("Simulation Progress")
+
+        self.label1 = ttk.Label(self, textvariable=self.progress_obj.message1)
+        self.label1.grid(row=0, column=0, columnspan=2, padx=(10, 0), pady=(10, 4), sticky="w")
+
+        self.progressbar1 = ttk.Progressbar(self,
+                                            mode='determinate',  # indeterminate
+                                            variable=self.progress_obj.progress1,
+                                            length=500)
+        self.progressbar1.grid(row=1, column=0, padx=(10, 10), pady=(0, 10), sticky="nsew")
+
+        self.label2 = ttk.Label(self, textvariable=self.progress_obj.message2)
+        self.label2.grid(row=2, column=0, padx=(10, 0), pady=(0, 4), sticky="w")
+
+        self.progressbar2 = ttk.Progressbar(self,
+                                            mode='determinate',  # indeterminate
+                                            variable=self.progress_obj.progress2,
+                                            length=500)
+        self.progressbar2.grid(row=3, column=0, padx=(10, 10), pady=(0, 5), sticky="nsew")
+
+        # XXX Address in issue 70
+        # self.details_box = tk.scrolledtext.ScrolledText(self, height=10)
+        # self.details_box.insert("1.0", "Lots of info...")
+        # self.details_box.config(state="disabled")
+        # self.details_box.grid(row=4, column=0, padx=(10, 10), pady=(5, 5), sticky="nsew")
+
+        button_frame = tk.Frame(self)
+        button_frame.grid(row=5, column=0, padx=(10, 10), pady=(0, 0), sticky="e")
+
+        self.stop_button = ttk.Button(button_frame, text="Stop", command=self.stop)
+        self.stop_button.grid(row=0, column=0, padx=(10, 0), pady=(0, 5), sticky="w")
+        self.close_button = ttk.Button(button_frame, text="Close", command=self.destroy)
+        self.close_button.grid(row=0, column=1, padx=(5, 0), pady=(0, 5), sticky="e")
+        self.close_button.config(state=tk.DISABLED)
+
+        # stop_button.focus_set()
+        self.grab_set()  # Make this dialog box modal
+
+    def set_title(self, title):
+        self.title(title)
+
+    def set_visibility2(self, visible):
+        if visible:
+            if not self.is_visible2:
+                self.progressbar2.grid()
+                self.label2.grid()
+                self.is_visible2 = True
+        else:
+            if self.is_visible2:
+                self.progressbar2.grid_remove()
+                self.label2.grid_remove()
+                self.is_visible2 = False
+
+    def stop(self):
+        self.progress_obj.stop()
+        self.close_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+
+    def update_progress(self, level, fraction_done):
+        self.progress_obj.update(level, fraction_done)
+
+    def report1(self, message):
+        self.label1.config(text=message)
+
+    def report2(self, message):
+        self.label2.config(text=message)
+
 # if __name__ == "__main__":
 #     root = tk.Tk()
 #

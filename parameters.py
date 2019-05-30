@@ -544,7 +544,7 @@ class Parameters():
                 return err + " " + interr
             if not v:  # Parsing worked, but negative integer
                 return err
-            self.val[kw.N_SUBJECTS] = v
+            self.val[kw.SUBJECT] = v
         return None
 
     def _parse_xscale(self, xscale, phases):
