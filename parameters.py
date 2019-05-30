@@ -577,43 +577,20 @@ class Parameters():
                 expected_sb_keys.add(key)
 
         # Check START_V
-        start_v = self.val[kw.START_V]
-        if type(start_v) is dict:
-            if set(start_v.keys()) != expected_sb_keys:
-                self._raise_match_err(kw.ALPHA_V, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
-        else:  # scalar expand
-            self.val[kw.START_V] = dict()
-            scalar = start_v
-            for stimulus_element in stimulus_elements:
-                for behavior in behaviors:
-                    key = (stimulus_element, behavior)
-                    self.val[kw.START_V][key] = scalar
+        self._scalar_expand_element_behavior(kw.START_V, stimulus_elements, behaviors,
+                                             expected_sb_keys)
 
         # Check ALPHA_V
-        alpha_v = self.val[kw.ALPHA_V]
-        if type(alpha_v) is dict:
-            if set(alpha_v.keys()) != expected_sb_keys:
-                self._raise_match_err(kw.ALPHA_V, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
-        else:  # scalar expand
-            self.val[kw.ALPHA_V] = dict()
-            scalar = alpha_v
-            for stimulus_element in stimulus_elements:
-                for behavior in behaviors:
-                    key = (stimulus_element, behavior)
-                    self.val[kw.ALPHA_V][key] = scalar
+        self._scalar_expand_element_behavior(kw.ALPHA_V, stimulus_elements, behaviors,
+                                             expected_sb_keys)
 
         # Check BETA
-        beta = self.val[kw.BETA]
-        if type(beta) is dict:
-            if set(beta.keys()) != expected_sb_keys:
-                self._raise_match_err(kw.BETA, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
-        else:  # scalar expand
-            self.val[kw.BETA] = dict()
-            scalar = beta
-            for stimulus_element in stimulus_elements:
-                for behavior in behaviors:
-                    key = (stimulus_element, behavior)
-                    self.val[kw.BETA][key] = scalar
+        self._scalar_expand_element_behavior(kw.BETA, stimulus_elements, behaviors,
+                                             expected_sb_keys)
+
+        # Check MU
+        self._scalar_expand_element_behavior(kw.MU, stimulus_elements, behaviors,
+                                             expected_sb_keys)
 
         expected_s_keys = set()
         for stimulus_element in stimulus_elements:
@@ -666,6 +643,20 @@ class Parameters():
             scalar = behavior_cost
             for behavior in behaviors:
                 self.val[kw.BEHAVIOR_COST][behavior] = scalar
+
+    def _scalar_expand_element_behavior(self, param_name, stimulus_elements, behaviors,
+                                        expected_sb_keys):
+        val = self.val[param_name]
+        if type(val) is dict:
+            if set(val.keys()) != expected_sb_keys:
+                self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
+        else:  # scalar expand
+            self.val[param_name] = dict()
+            scalar = val
+            for stimulus_element in stimulus_elements:
+                for behavior in behaviors:
+                    key = (stimulus_element, behavior)
+                    self.val[param_name][key] = scalar
 
     @staticmethod
     def _raise_match_err(param1, param2, param3=None):
