@@ -9,7 +9,7 @@ from parameters import is_parameter_name
 from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
-from exceptions import ParseException
+from exceptions import ParseException, InterruptedSimulation
 from util import ParseUtil
 
 
@@ -60,12 +60,20 @@ class Script():
     def parse(self):
         self.script_parser.parse()
 
-    def run(self):
-        return self.script_parser.runs.run()
+    def run(self, progress=None):
+        return self.script_parser.runs.run(progress)
 
-    def postproc(self, simulation_data, block=True):
-        # self.postcmds.set_output(self.script_output)
-        self.script_parser.postcmds.run(simulation_data)
+    def postproc(self, simulation_data, progress=None):
+        if progress is not None:
+            progress.dlg.set_visibility2(False)
+            progress.dlg.set_title("Plot/Export Progress")
+
+        self.script_parser.postcmds.run(simulation_data, progress)
+
+    def plot(self, block=True, progress=None):
+        self.script_parser.postcmds.plot()
+        if progress is not None:
+            progress.close_dlg()
         plt.show(block)
 
 
@@ -137,6 +145,8 @@ class ScriptParser():
         self.unnamed_phase_cnt = 1
 
     def parse(self):
+        if len(self.lines) == 0:
+            raise ParseException(1, "Script is empty.")
         prop = None
         curr_phase_label = None
         in_prop = False
@@ -225,7 +235,7 @@ class ScriptParser():
                     raise ParseException(lineno, err)
                 n_subjects = run_parameters.get(kw.N_SUBJECTS)
                 bind_trials = run_parameters.get(kw.BIND_TRIALS)
-                run = Run(world, mechanism_obj, n_subjects, bind_trials)
+                run = Run(run_label, world, mechanism_obj, n_subjects, bind_trials)
                 self.runs.add(run, run_label, lineno)
                 continue
 
@@ -496,31 +506,53 @@ class ScriptParser():
 # -----------------------------------------------------------
 class PostCmds():
     def __init__(self):
-        self.cmds = list()  # List of PlotCmd or ExportCmd objects
+        self.cmds = list()  # List of PostCmd objects
 
     def add(self, cmd):
         self.cmds.append(cmd)
 
-    def run(self, simulation_data):
-        for cmd in self.cmds:
-            type_cmd = type(cmd)
-            if type_cmd is not FigureCmd and \
-               type_cmd is not SubplotCmd and \
-               type_cmd is not PlotCmd and \
-               type_cmd is not ExportCmd and \
-               type_cmd is not LegendCmd:
-                raise Exception(f"Internal error. Invalid type {type_cmd}.")
+    def run(self, simulation_data, progress=None):
+        if progress:
+            progress.reset1()
+            progress.reset2()
+            progress.report2("")
+        n_commands = len(self.cmds)
+        for i, cmd in enumerate(self.cmds):
+            assert(isinstance(cmd, PostCmd))
+            if progress and progress.stop_clicked:
+                raise InterruptedSimulation()
             cmd.run(simulation_data)
+            if progress:
+                progress.report1(f"Running {cmd.progress_label()}")
+                progress.progress1.set((i + 1) / n_commands * 100)
+
+    def plot(self):
+        for cmd in self.cmds:
+            cmd.plot()
 
 
-class PlotCmd():
+class PostCmd():
+    def __init__(self):
+        self.plot_data = None
+
+    def run(self, simulation_data, progress=None):
+        pass  # All matplotlib commands should be done in plot()
+
+    def plot(self):  # Matplotlib commands may be placed here
+        pass
+
+    def progress_label(self):
+        return ""
+
+
+class PlotCmd(PostCmd):
     def __init__(self, cmd, expr, expr0, parameters, mpl_prop):
+        super().__init__()
         self.cmd = cmd
         self.expr = expr
         self.expr0 = expr0
         self.parameters = parameters
         self.mpl_prop = mpl_prop
-        # parse_eval_prop(cmd, expr, parameters)
 
     def run(self, simulation_data):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
@@ -531,7 +563,6 @@ class PlotCmd():
             legend_label = f"v({self.expr0})"
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
-            # label_expr = beautify_expr_for_label(self.expr)
             legend_label = f"w({self.expr0})"
         elif self.cmd == kw.PPLOT:
             ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
@@ -541,22 +572,46 @@ class PlotCmd():
             legend_label = f"n({self.expr0})"
 
         if self.parameters.get(kw.SUBJECT) == kw.EVAL_ALL:
-            subject_legend_labels = list()
-            for i, subject_ydata in enumerate(ydata):
-                subject_legend_label = "{0}, subject {1}".format(legend_label, i)
-                subject_legend_labels.append(subject_legend_label)
-            for i, subject_ydata in enumerate(ydata):
-                subject_legend_label = subject_legend_labels[i]
+            self.ydata_list = ydata
+            self.plot_args_list = list()
+            for i, _ in enumerate(ydata):
+                subject_legend_label = f"{legend_label}, subject {i}"
                 plot_args = dict({'label': subject_legend_label}, **self.mpl_prop)
-                plt.plot(subject_ydata, **plot_args)
+                # plt.plot(subject_ydata, **plot_args)
+                self.plot_args_list.append(plot_args)
         else:
+            self.ydata_list = [ydata]
             plot_args = dict({'label': legend_label}, **self.mpl_prop)
+            self.plot_args_list = [plot_args]
+            # plt.plot(ydata, **plot_args)
+        # plt.grid(True)
+        self.plot_data = PlotData(self.ydata_list, self.plot_args_list)
+
+    def plot(self):
+        self.plot_data.plot()
+
+    def progress_label(self):
+        return f"{self.cmd} {self.expr0}"
+
+
+class PlotData():
+    """
+    Encapsulates the data required to produce a PlotCmd plot.
+    """
+
+    def __init__(self, ydata_list, plot_args_list):
+        self.ydata_list = ydata_list
+        self.plot_args_list = plot_args_list
+
+    def plot(self):
+        for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
             plt.plot(ydata, **plot_args)
         plt.grid(True)
 
 
-class ExportCmd():
+class ExportCmd(PostCmd):
     def __init__(self, lineno, cmd, expr, expr0, parameters):
+        super().__init__()
         self.lineno = lineno
         self.cmd = cmd
         self.expr = expr
@@ -564,7 +619,7 @@ class ExportCmd():
         self.parameters = parameters
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
-    def run(self, simulation_data):
+    def run(self, simulation_data, progress=None):
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
@@ -681,36 +736,51 @@ class ExportCmd():
                     datarow = [row, ydata[row]]
                     w.writerow(datarow)
 
+    def progress_label(self):
+        return f"{self.cmd} {self.expr0}"
 
-class FigureCmd():
+
+class FigureCmd(PostCmd):
     def __init__(self, title, mpl_prop):
+        super().__init__()
         self.title = title
         self.mpl_prop = mpl_prop
 
-    def run(self, simulation_data):
+    def plot(self):
         f = plt.figure(**self.mpl_prop)
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
 
+    def progress_label(self):
+        return kw.FIGURE
 
-class SubplotCmd():
+
+class SubplotCmd(PostCmd):
     def __init__(self, spec, title, mpl_prop):
+        super().__init__()
         self.spec = spec  # Subplot specification, e.g. 211 or (2,1,1)
         self.mpl_prop = mpl_prop
         if kw.TITLE not in mpl_prop:
             self.mpl_prop[kw.TITLE] = title
 
-    def run(self, simulation_data):
+    def plot(self):
         plt.subplot(self.spec, **self.mpl_prop)
 
+    def progress_label(self):
+        return kw.SUBPLOT
 
-class LegendCmd():
+
+class LegendCmd(PostCmd):
     def __init__(self, mpl_prop):
+        super().__init__()
         # self.labels = labels
         self.mpl_prop = mpl_prop
 
-    def run(self, simulation_data):
+    def plot(self):
         # if self.labels is not None:
         #     plt.legend(self.labels, **self.mpl_prop)
         # else:
         plt.legend(**self.mpl_prop)
+
+    def progress_label(self):
+        return kw.LEGEND

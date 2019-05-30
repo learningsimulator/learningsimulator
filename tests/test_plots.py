@@ -279,9 +279,6 @@ class TestPlotProperties(LsTestCase):
                          plot_data_nt['both_phase1nt_and_phase2nt'])
 
     def test_phase_order_not_run_order(self):
-        """
-        
-        """
         text = '''
         mechanism: ga
         stimulus_elements: s1, s2

@@ -9,6 +9,10 @@ class EvalException(Exception):
         super().__init__(msg)
 
 
+class InterruptedSimulation(Exception):
+    def __init__(self):
+        super().__init__()
+
 # class GuiException(Exception):
 #     def __init__(self, code, msg):
 #         super().__init__(code, msg)

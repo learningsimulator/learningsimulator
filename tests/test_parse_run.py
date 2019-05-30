@@ -34,7 +34,6 @@ class TestBasic(LsTestCase):
         @run phase1
         '''
         run, parameters = parse(text, 'run1')
-        self.assertEqual(run.world.phase_labels, ['phase1'])
         self.assertEqual(run.world.nphases, 1)
         self.assertEqual(run.world.curr_phaseind, 0)
         self.assertTrue(isinstance(run.mechanism_obj, Enquist))
@@ -67,7 +66,6 @@ class TestBasic(LsTestCase):
         @run phase1 , phase2
         '''
         run, parameters = parse(text, 'run1')
-        self.assertEqual(run.world.phase_labels, ['phase1', 'phase2'])
         self.assertEqual(run.world.nphases, 2)
         self.assertEqual(run.world.curr_phaseind, 0)
         self.assertTrue(isinstance(run.mechanism_obj, Enquist))
@@ -99,7 +97,6 @@ class TestBasic(LsTestCase):
         @run phase1
         '''
         run, parameters = parse(text, 'run1')
-        self.assertEqual(run.world.phase_labels, ['phase1'])
         self.assertEqual(run.world.nphases, 1)
         self.assertEqual(run.world.curr_phaseind, 0)
         self.assertTrue(isinstance(run.mechanism_obj, Enquist))
@@ -135,7 +132,6 @@ class TestBasic(LsTestCase):
         @run phase4, phase1
         '''
         run, parameters = parse(text, 'run1')
-        self.assertEqual(run.world.phase_labels, ['phase4', 'phase1'])
         self.assertEqual(run.world.nphases, 2)
         self.assertEqual(run.world.curr_phaseind, 0)
         self.assertTrue(isinstance(run.mechanism_obj, RescorlaWagner))
@@ -276,7 +272,6 @@ class TestBasic(LsTestCase):
         @run phase1,phase2 runlabel:myrun2
         '''
         run1, parameters1 = parse(text, 'myrun1')
-        self.assertEqual(set(run1.world.phase_labels), {'phase1'})
         self.assertEqual(run1.world.nphases, 1)
         self.assertEqual(run1.world.curr_phaseind, 0)
         self.assertEqual(run1.n_subjects, 1)
@@ -284,7 +279,6 @@ class TestBasic(LsTestCase):
         self.assertEqual(parameters1.get(kw.N_SUBJECTS), 1)
 
         run2, parameters2 = parse(text, 'myrun2')
-        self.assertEqual(set(run2.world.phase_labels), {'phase1', 'phase2'})
         self.assertEqual(run2.world.nphases, 2)
         self.assertEqual(run2.world.curr_phaseind, 0)
         self.assertEqual(run2.n_subjects, 2)
