@@ -31,6 +31,13 @@ class Runs():
             n_phases_dict[run_label] = len(self.runs[run_label].world.phases)
         return n_phases_dict
 
+    def all_runs_have_length(self, length):
+        n_phases_dict = self.get_n_phases()
+        for _, n_phases in n_phases_dict.items():
+            if n_phases != length:
+                return False
+        return True
+
     def run(self, progress=None):
         out = dict()
         for label in self.run_labels:
@@ -73,8 +80,8 @@ class Run():
                     out.write_v(subject_ind, (element,), behavior, 0, self.mechanism_obj)
 
         # The actual simulation
-        prev_phase_label = None  # For phases progress
         for subject_ind in range(self.n_subjects):
+            prev_phase_label = None  # For phases progress
             if progress:
                 if progress.get_n_runs() > 1:
                     progress.report1(f"{self.run_label}: Simulating subject {subject_ind + 1}")
@@ -93,7 +100,7 @@ class Run():
                 if progress:
                     if phase_label != prev_phase_label:  # Update phases progress
                         progress.increment2(self.run_label)
-                        progress.report2(f"Subject {subject_ind + 1}: Phase {phase_label}")
+                        progress.report2(f"Phase {phase_label}")
                         prev_phase_label = phase_label
 
                 subject_done = (stimulus is None)

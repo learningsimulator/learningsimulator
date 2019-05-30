@@ -164,7 +164,7 @@ class Gui():
             self.handle_exception(ex)
             return
 
-        self.progress = Progress(self.root, self.script_obj)
+        self.progress = Progress(self.script_obj)
         self.progress.start()
         # self.start_progress_job = self.root.after(1000, self.progress.start)
 
@@ -192,7 +192,7 @@ class Gui():
     def simulate(self):
         try:
             self.simulation_data = self.script_obj.run(self.progress)
-            self.script_obj.postproc(self.simulation_data, progress=self.progress)
+            self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
         finally:
@@ -220,12 +220,11 @@ class Gui():
             script = self.scriptField.text_box.get("1.0", "end-1c")
             script_obj = Script(script)
             script_obj.parse()
-            script_obj.postproc(self.simulation_data)
         except Exception as ex:
             self.handle_exception(ex)
             return
 
-        self.progress = Progress(self.root, self.script_obj)
+        self.progress = Progress(self.script_obj)
         self.progress.start()
         # self.start_progress_job = self.root.after(1000, self.progress.start)
 
@@ -236,20 +235,16 @@ class Gui():
 
     def plot(self):
         try:
-            if self.simulation_data is None:
-                raise Exception("No simulation data to plot.")
-            script = self.scriptField.text_box.get("1.0", "end-1c")
-            self.script_obj = Script(script)
-            self.script_obj.parse()
-            self.script_obj.postproc(self.simulation_data)
+            self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
-            self.handle_exception(ex)
+            self.progress.exception = ex
+        finally:
+            self.progress.set_done(True)
 
     def close_figs(self):
         plt.close("all")
 
     def handle_exception(self, ex):
-        print(ex)
         if isinstance(ex, ParseException):
             self._select_line(ex.lineno)
         self.close_figs()
@@ -306,9 +301,9 @@ class Gui():
             initialdir = '.'
 
             # XXX
-            markusdir = '/home/markus/Dropbox/LearningSimulator/Scripts'
-            if os.path.isdir(markusdir):
-                initialdir = markusdir
+            # markusdir = '/home/markus/Dropbox/LearningSimulator/Scripts'
+            # if os.path.isdir(markusdir):
+            #     initialdir = markusdir
 
         else:
             initialdir = self.last_open_folder
@@ -411,25 +406,25 @@ class Gui():
 
 
 class Progress():
-    def __init__(self, tk_obj, script_obj):  # XXX tk_obj?
+    def __init__(self, script_obj):
         self.script_obj = script_obj
 
         # self.run_labels = script_obj.script_parser.runs.run_labels
         # self.run_lengths = script_obj.script_parser.runs.get_n_subjects()
         self.nsteps1 = sum(script_obj.script_parser.runs.get_n_subjects())
-        self.nsteps1_percent = 100 / self.nsteps1
+        self.nsteps1_percent = 100 / self.nsteps1 if self.nsteps1 > 0 else 1
 
         self.nsteps2 = script_obj.script_parser.runs.get_n_phases()
         self.nsteps2_percent = dict()
         for key in self.nsteps2:
-            self.nsteps2_percent[key] = 100 / self.nsteps2[key]
+            self.nsteps2_percent[key] = 100 / self.nsteps2[key] if self.nsteps2[key] > 0 else 1
 
-        self.progress1 = tk.DoubleVar()  # tk_obj? # From 0 to 100
-        self.progress2 = tk.DoubleVar()  # tk_obj? # From 0 to 100
+        self.progress1 = tk.DoubleVar()  # From 0 to 100
+        self.progress2 = tk.DoubleVar()  # From 0 to 100
         self.progress1.set(0)
         self.progress2.set(0)
 
-        self.message1 = tk.StringVar()  # XXX tk_obj?
+        self.message1 = tk.StringVar()
         self.message2 = tk.StringVar()
 
         # The dialog box for the progress bar
@@ -444,6 +439,18 @@ class Progress():
 
     def start(self):
         self.dlg = ProgressDlg(self)
+        if self.script_obj.script_parser.runs.all_runs_have_length(1):
+            self.dlg.set_visibility2(False)
+        self.set_dlg_visibility(False)
+        self.dlg.after(500, self.set_dlg_visibility, True)
+
+    def set_dlg_visibility(self, visibility):
+        if visibility:
+            if not self.done:  # Don't show dlg if progress is done
+                self.dlg.update()
+                self.dlg.deiconify()
+        else:
+            self.dlg.withdraw()
 
     def stop(self):
         self.stop_clicked = True
@@ -463,7 +470,11 @@ class Progress():
         self.progress1.set(self.progress1.get() + self.nsteps1_percent)
 
     def increment2(self, run_label):
-        self.progress2.set(self.progress2.get() + self.nsteps2_percent[run_label])
+        if self.nsteps2[run_label] == 1:
+            self.dlg.set_visibility2(False)
+        else:
+            self.dlg.set_visibility2(True)
+            self.progress2.set(self.progress2.get() + self.nsteps2_percent[run_label])
 
     def reset1(self):
         self.progress1.set(0)

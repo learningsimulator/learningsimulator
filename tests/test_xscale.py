@@ -1,15 +1,6 @@
 import matplotlib.pyplot as plt
 
-from .testutil import LsTestCase, get_plot_data
-from parsing import Script
-
-
-def run(text):
-    script = Script(text)
-    script.parse()
-    simulation_data = script.run()
-    script.postproc(simulation_data, False)
-    return script, simulation_data
+from .testutil import LsTestCase, get_plot_data, run
 
 
 class TestSmall(LsTestCase):

@@ -64,6 +64,10 @@ class Script():
         return self.script_parser.runs.run(progress)
 
     def postproc(self, simulation_data, progress=None):
+        if progress is not None:
+            progress.dlg.set_visibility2(False)
+            progress.dlg.set_title("Plot/Export Progress")
+
         self.script_parser.postcmds.run(simulation_data, progress)
 
     def plot(self, block=True, progress=None):
@@ -141,6 +145,8 @@ class ScriptParser():
         self.unnamed_phase_cnt = 1
 
     def parse(self):
+        if len(self.lines) == 0:
+            raise ParseException(1, "Script is empty.")
         prop = None
         curr_phase_label = None
         in_prop = False
@@ -517,7 +523,7 @@ class PostCmds():
                 raise InterruptedSimulation()
             cmd.run(simulation_data)
             if progress:
-                progress.report1(f"Postprocessing command {cmd.progress_label()}")
+                progress.report1(f"Running {cmd.progress_label()}")
                 progress.progress1.set((i + 1) / n_commands * 100)
 
     def plot(self):
