@@ -12,6 +12,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
       kw.BETA: 1,                        # -"-                                          ,
+      kw.MU: 1,                          # -"-                                          ,
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
       kw.ALPHA_W: 1,                     # -"-                                          ,
@@ -78,23 +79,13 @@ class Parameters():
         elif prop == kw.MECHANISM_NAME:
             return self._parse_mechanism_name(v_str)
 
-        elif prop == kw.START_V:
-            return self._parse_start_v(v_str, variables, to_be_continued, is_appending)
+        elif prop in (kw.START_W, kw.ALPHA_W, kw.U):
+            return self._parse_stimulus_values(prop, v_str, variables, to_be_continued,
+                                               is_appending)
 
-        elif prop == kw.START_W:
-            return self._parse_start_w(v_str, variables, to_be_continued, is_appending)
-
-        elif prop == kw.U:
-            return self._parse_u(v_str, variables, to_be_continued, is_appending)
-
-        elif prop == kw.ALPHA_V:
-            return self._parse_alpha_v(v_str, variables, to_be_continued, is_appending)
-
-        elif prop == kw.ALPHA_W:
-            return self._parse_alpha_w(v_str, variables, to_be_continued, is_appending)
-
-        elif prop == kw.BETA:
-            return self._parse_beta(v_str, variables, to_be_continued, is_appending)
+        elif prop in (kw.BETA, kw.MU, kw.START_V, kw.ALPHA_V):
+            return self._parse_stimulus_response_values(prop, v_str, variables,
+                                                        to_be_continued, is_appending)
 
         elif prop == kw.BEHAVIOR_COST:
             return self._parse_behavior_cost(v_str, variables, to_be_continued, is_appending)
@@ -276,30 +267,6 @@ class Parameters():
                 #         return "Undefined phase label '{}'.".format(phase_label)
             self.val[kw.PHASES] = phase_labels
         return None
-
-    def _parse_start_v(self, start_v_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_response_values(kw.START_V, start_v_str, variables,
-                                                    to_be_continued, is_appending)
-
-    def _parse_alpha_v(self, alpha_v_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_response_values(kw.ALPHA_V, alpha_v_str, variables,
-                                                    to_be_continued, is_appending)
-
-    def _parse_u(self, u_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.U, u_str, variables, to_be_continued,
-                                           is_appending)
-
-    def _parse_start_w(self, start_w_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.START_W, start_w_str, variables, to_be_continued,
-                                           is_appending)
-
-    def _parse_alpha_w(self, alpha_w_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_values(kw.ALPHA_W, alpha_w_str, variables, to_be_continued,
-                                           is_appending)
-
-    def _parse_beta(self, beta_str, variables, to_be_continued, is_appending):
-        return self._parse_stimulus_response_values(kw.BETA, beta_str, variables, to_be_continued,
-                                                    is_appending)
 
     def _parse_behavior_cost(self, behavior_cost_str, variables, to_be_continued, is_appending):
         if not self.val[kw.BEHAVIORS]:
@@ -591,7 +558,7 @@ class Parameters():
         return self.is_csv(prop) or prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
 
     def is_csv(self, prop):
-        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.START_V, kw.START_W,
+        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.MU, kw.START_V, kw.START_W,
                         kw.ALPHA_V, kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS,
                         kw.PHASES)
 
