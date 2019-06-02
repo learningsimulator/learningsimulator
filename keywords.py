@@ -7,6 +7,7 @@ START_W = 'start_w'
 ALPHA_V = 'alpha_v'
 ALPHA_W = 'alpha_w'
 BETA = 'beta'
+MU = 'mu'
 BEHAVIOR_COST = 'behavior_cost'
 U = 'u'
 RESPONSE_REQUIREMENTS = 'response_requirements'
@@ -54,6 +55,7 @@ KEYWORDS = (BEHAVIORS,
             ALPHA_V,
             ALPHA_W,
             BETA,
+            MU,
             BEHAVIOR_COST,
             U,
             RESPONSE_REQUIREMENTS,
