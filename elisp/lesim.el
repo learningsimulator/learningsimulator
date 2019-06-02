@@ -48,22 +48,24 @@
     ;;; title is a keyword when it is not a string:
     ("title[^']" . 'font-lock-keyword-face)
     ;;; stop:
-    ("stop:" . 'font-lock-builtin-face)
+    ("[\s-]stop:" . 'font-lock-builtin-face)
     ;;; stop:
     ("new_trial" . 'font-lock-keyword-face)
     ;;; @ commands:
-    ("@\\<[a-z]*\\> " . 'font-lock-builtin-face)
+    ("@\\<[a-z]*\\>[[:blank:]\n]" . 'font-lock-builtin-face)
     ;;; strings:
     ("'\\<.*?\\>'" . 'font-lock-string-face)
     ;;; LINEs
     ("\\<[A-Z]+[_A-Za-z0-9]*\\>" . 'font-lock-variable-name-face)
     ;;; various recurrent syntax fragments:
-    ("_[[:blank:]\n]" . 'font-lock-constant-face)
+    ("_[[:blank:]\n]" 0 'font-lock-constant-face)
     ("|" . 'font-lock-constant-face)
     ("->" . 'font-lock-constant-face)
-;;    ("[+-]?[0-9]*\\.?[0-9]+" . 'font-lock-constant-face)
+    ("-" . 'font-lock-constant-face)
+    ("[^[:alpha:]][0-9]*\\.?[0-9]+" . 'font-lock-variable-name-face)
     )
   '("\\.ls2$") ; files for which to activate this mode 
-  nil          ; other functions to call
+  nil
   "A mode for lesim2 files" ; doc string
   )
+
