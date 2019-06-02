@@ -60,7 +60,6 @@ class Mechanism():
 
     def _support_vector(self, stimulus):
         behaviors = self.parameters.get(kw.BEHAVIORS)
-        # stimulus_req = self.parameters.get(kw.STIMULUS_REQUIREMENTS)
         beta = self.parameters.get(kw.BETA)
         mu = self.parameters.get(kw.MU)
         return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, mu, self.v)
