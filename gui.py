@@ -1,6 +1,7 @@
 import threading
 import traceback
 import os
+import webbrowser
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -87,6 +88,12 @@ class Gui():
         run_menu.add_command(label="Simulate and Plot", underline=0, command=self.simulate_thread, accelerator="F5")
         run_menu.add_command(label="Plot", underline=0, command=self.plot_thread)
         self.menu_bar.add_cascade(label="Run", underline=0, menu=run_menu)
+
+        # The Help menu
+        help_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
+        help_menu.add_command(label="Documentation", underline=0, command=self.open_documentation,
+                              accelerator="F1")
+        self.menu_bar.add_cascade(label="Help", underline=0, menu=help_menu)
 
         self.root.config(menu=self.menu_bar)
 
@@ -397,12 +404,17 @@ class Gui():
         # self.root.bind_class("Text", ",<Control-Y>", self.redo)
 
         self.root.bind("<F5>", self.simulate_thread)
+        self.root.bind("<F1>", self.open_documentation)
 
     def undo(self):
         self.scriptField.undo()
 
     def redo(self):
         self.scriptField.redo()
+
+    def open_documentation(self, event=None):
+        url = "./docs/_build/html/index.html"
+        webbrowser.open(url, new=True)
 
 
 class Progress():
