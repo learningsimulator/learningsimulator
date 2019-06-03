@@ -408,14 +408,9 @@ class RunOutputSubject():
         out = [None] * nval
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
-<<<<<<< HEAD
             out[i] = probability_of_response(sr[0], sr[1], behaviors, self.stimulus_req,
-                                             parameters.get(kw.BETA), v_local)
-=======
-            out[i] = mechanism.probability_of_response(sr[0], sr[1], behaviors, self.stimulus_req,
-                                                       parameters.get(kw.BETA),
-                                                       parameters.get(kw.MU), v_local)
->>>>>>> master
+                                             parameters.get(kw.BETA),
+                                             parameters.get(kw.MU), v_local)
         return out
 
     @staticmethod
