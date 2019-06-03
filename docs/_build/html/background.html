@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Background &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Learning Simulator Scripting Language" href="scripting-language.html" />
+    <link rel="prev" title="A Small Usage Example" href="usage-example.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="scripting-language.html" title="The Learning Simulator Scripting Language"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="usage-example.html" title="A Small Usage Example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="background">
+<h1>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h1>
+<p>This section outlines the system being simulated as well as
+some theoretical background of learning mechanisms.</p>
+<div class="section" id="the-system">
+<h2>The system<a class="headerlink" href="#the-system" title="Permalink to this headline">¶</a></h2>
+<p>Figure 1 illustrates the system being simulated.</p>
+<div class="figure align-center" id="id1">
+<img alt="The system" src="_images/background-system-fig.png" />
+<p class="caption"><span class="caption-text">Figure 1: The world and the subject.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>The system consists of a <em>subject</em> (or <em>organism</em>) interacting with a
+<em>world</em>.</p>
+<p>The subject has a pre-defined set of behaviors <span class="math notranslate nohighlight">\(\mathscr{B}\)</span> - the <em>behavior repertoire</em>.
+It also has an output function that determines which of these behaviors to respond with.
+In addition, it has state transition functions that update memories and other internal states.</p>
+<p>The world, which often is defined by an experiment, has a pre-defined set of stimulus elements - the <em>stimulus repertoire</em>. It also has an output function that determines which of these stimuli to
+expose to the subject. In addition, it has state transitions functions that update the
+state of the world. A stimulus <span class="math notranslate nohighlight">\(S\)</span> consists either of one single stimulus element <span class="math notranslate nohighlight">\(S=\{E\}\)</span> in the stimulus repertoire, or a set of two or more simultaneous elements <span class="math notranslate nohighlight">\(S=\{E_1,E_2,\dotsc\}\)</span>. In the latter case, the stimulus is called a <em>compound</em> stimulus.</p>
+<p>The behavior of the subject influences both the internal state of the subject and
+the internal state of the world. Also, the stimulus that the world generates depends on the subject’s behavior (being the response to the last
+generated stimulus), and the behavior that the subject responds with depends on the stimulus
+that it responds to.</p>
+<p>The system operates in the discrete time steps
+<span class="math notranslate nohighlight">\(S_{1}\rightarrow B_{1}\rightarrow S_{2}\rightarrow B_{2}\rightarrow S_{3}\rightarrow\dotsc\)</span>,
+in other words, the process starts with the world producing a stimulus <span class="math notranslate nohighlight">\(S_1\)</span> at time step 1,
+and the subject responds with behavior <span class="math notranslate nohighlight">\(B_1\)</span> at time step 2, etc. It is this process that
+is being simulated in <cite>Learning Simulator</cite>.
+The Learning Simulator scripting language specifies all the properties of the
+subject, the world and the simulation.</p>
+<p>Technically, the world is a dynamical system whose state transition function depends on
+the subject’s last behavior, and outputs a stimulus. In the same way, the subject is a dynamical system whose state transition function depends on the last stimulus, and outputs a behavior.
+Thus, the system being simulated consists of two interacting dynamical systems.</p>
+<div class="section" id="the-world">
+<h3>The world<a class="headerlink" href="#the-world" title="Permalink to this headline">¶</a></h3>
+<p>The world receives a behavior <span class="math notranslate nohighlight">\(B\)</span> from the subject and responds with a stimulus
+<span class="math notranslate nohighlight">\(S\)</span> that may or may not depend on <span class="math notranslate nohighlight">\(B\)</span>.
+A description of the world specifies which stimulus is generated in each step and how it
+depends on the behavior and internal state variables of the world.
+In the <cite>Learning Simulator</cite> scripting language, this
+is done the <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> section of the script. It basically consists of a number of labelled
+lines, where each line specifies which stimulus to expose the subject to, and which line
+to go to in the next step.</p>
+</div>
+<div class="section" id="the-subject-and-the-mechanisms-modelling-its-memory">
+<h3>The subject and the mechanisms modelling its memory<a class="headerlink" href="#the-subject-and-the-mechanisms-modelling-its-memory" title="Permalink to this headline">¶</a></h3>
+<p>The subject is assumed to have an initial (genetic) value <span class="math notranslate nohighlight">\(u_E\)</span> for each stimulus element <span class="math notranslate nohighlight">\(E\)</span>. The subject is also assumed to have a <em>cost</em> <span class="math notranslate nohighlight">\(c_B\)</span> associated with each behavior <span class="math notranslate nohighlight">\(B\)</span> in its behavior repertoire. These <span class="math notranslate nohighlight">\(u\)</span>- and <span class="math notranslate nohighlight">\(c\)</span>-values do not change during the simulation.</p>
+<p>When the subject observes a stimulus <span class="math notranslate nohighlight">\(S\)</span> it makes a decision about which behavior <span class="math notranslate nohighlight">\(B\)</span> (in the behavior repertoire) to respond with. This is done by the <em>decision function</em>; see below.</p>
+<p>The possible responses to a given stimulus <span class="math notranslate nohighlight">\(S\)</span> may be restricted to a subset of the subject’s behavior repertoire <span class="math notranslate nohighlight">\(\mathscr{B}\)</span>.
+For example, if a stimulus involves a pressable lever, the subject can respond woth the behavior “press lever”, but for a stimulus that does not involve a lever, the subject cannot respond with “press lever”.
+We use the notation <span class="math notranslate nohighlight">\(\mathscr{B}(E)\)</span>
+for the possible responses to the stimulus element <span class="math notranslate nohighlight">\(E\)</span>, and <span class="math notranslate nohighlight">\(\mathscr{B}(S)=\cup_{E\in S}\mathscr{B}(E)\)</span> for <span class="math notranslate nohighlight">\(S=\{E_1,E_2,\dotsc\}\)</span>.
+In the scripting language, such restrictions are specified in the parameter <code class="docutils literal notranslate"><span class="pre">response_requirements</span></code>.</p>
+<p>After observing the next stimulus <span class="math notranslate nohighlight">\(S'\)</span> (being a consequence of the decision to respond with <span class="math notranslate nohighlight">\(B\)</span>), the subject “learns” by updating an internal state variable
+<span class="math notranslate nohighlight">\(v\)</span> indexed by stimulus-response pairs (so that <span class="math notranslate nohighlight">\(v_{E\rightarrow B}\)</span> is the value associated with the response <span class="math notranslate nohighlight">\(B\)</span> to stimulus element <span class="math notranslate nohighlight">\(E\)</span>). Some mechanisms also use a state variable <span class="math notranslate nohighlight">\(w\)</span> indexed by stimulus elements (so that <span class="math notranslate nohighlight">\(w_E\)</span> is the value associated with stimulus element <span class="math notranslate nohighlight">\(E\)</span>). The table below shows the available learning mechanisms, their memory state variables, and how they are updated after the subject has experienced the steps</p>
+<div class="math notranslate nohighlight">
+\[S \rightarrow B \rightarrow S'\]</div>
+<p>where <span class="math notranslate nohighlight">\(S=\{E_1, E_2, \dotsc\}\)</span> and <span class="math notranslate nohighlight">\(S=\{E'_1, E'_2, \dotsc\}\)</span>. In the table the following notation is used:</p>
+<div class="math notranslate nohighlight">
+\[u_S=\sum_{E\in S}u_E,\quad w_S=\sum_{E\in S}w_E, v_{S\to B}=\sum_{E\in S}v_{E\to B},\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[E(v_{S'\to B'})= \sum_{E'\in S'}E(v_{E'\to B'})=\sum_{E'\in S'}\sum_{B'\in\mathscr{B}(E')}\Pr(E'\to B')v_{E'\to B'}.\]</div>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 5%" />
+<col style="width: 13%" />
+<col style="width: 52%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mechanism</p></th>
+<th class="head"><p>Abbrev.</p></th>
+<th class="head"><p>Memory states</p></th>
+<th class="head"><p>Memory updates</p></th>
+<th class="head"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Stimulus-Response learning</p></td>
+<td><p>SR</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Q-learning</p></td>
+<td><p>QL</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+\max\limits_{B'}v_{S'\to B'})\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Expected SARSA</p></td>
+<td><p>ES</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+E(v_{S'\to B'}))\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Actor-critic</p></td>
+<td><p>AC</p></td>
+<td><div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(w_E\)</span></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+w_{S'}-w_{S}-c_B)\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta w_E=\alpha_E (u_{S'}+w_{S'}-w_{S}-c_B)\)</span></div>
+</div>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Guided associative learning</p></td>
+<td><p>GA</p></td>
+<td><div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(w_E\)</span></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+w_{S'}-v_{S\to B})\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta w_{E}=\alpha_E (u_{S'}+w_{S'}-c_{B}-w_{S})\)</span></div>
+</div>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Rescorla-Wagner</p></td>
+<td><p>RW</p></td>
+<td><p><span class="math notranslate nohighlight">\(v_{E_1\to E_2}\)</span></p></td>
+<td><div class="line-block">
+<div class="line">Only implemented for single-element stimuli <span class="math notranslate nohighlight">\(S=\{E\}\)</span>.</div>
+<div class="line"><br /></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to E'} = \alpha_{E\to E'}(\lambda_{E'}-v_{E\to E'})\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to X} = -\alpha_{E\to X} v_{E\to X} \; \forall X\ne E'\)</span></div>
+</div>
+</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="the-decision-function">
+<h4>The decision function<a class="headerlink" href="#the-decision-function" title="Permalink to this headline">¶</a></h4>
+<p>When the subject is exposed to a stimulus <span class="math notranslate nohighlight">\(S=\{E_1,E_2,\dotsc\}\)</span>, it makes a decision about which behavior in the
+behavior repertoire to respond with. This is done by associating each possible behavior <span class="math notranslate nohighlight">\(B_i\)</span>
+with a probability <span class="math notranslate nohighlight">\(\Pr(S\rightarrow B_i)\)</span> and then choosing a response by sampling from
+this probability distribution. In
+<code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code> a version of the so called <em>soft-max</em> rule is used to compute the probabilities:</p>
+<div class="math notranslate nohighlight">
+\[\Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}\beta_{E\to B} v_{E\to B} + \mu_{E\to B}\Big)}\]</div>
+<p>where the parameters <span class="math notranslate nohighlight">\(\beta_{E\to B}\)</span> control the extent to which the decision is governed by the
+<span class="math notranslate nohighlight">\(v\)</span>-values: Smaller <span class="math notranslate nohighlight">\(\beta\)</span> means more exploration in the reponse decision. The parameter <span class="math notranslate nohighlight">\(\mu\)</span> may be used for genetic predisposition, for example to increase the probability for a particular response to a particular stimulus element.</p>
+</div>
+<div class="section" id="notation">
+<h4>Notation<a class="headerlink" href="#notation" title="Permalink to this headline">¶</a></h4>
+<p>The table below shows the notation used.</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbol</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
+<td><p>A stimulus element</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(S\)</span></p></td>
+<td><p>A stimulus, consisting of one or more stimulus elements <span class="math notranslate nohighlight">\(\{E_1, E_2, \dotsc\}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(B\)</span></p></td>
+<td><p>A behavior</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Background</a><ul>
+<li><a class="reference internal" href="#the-system">The system</a><ul>
+<li><a class="reference internal" href="#the-world">The world</a></li>
+<li><a class="reference internal" href="#the-subject-and-the-mechanisms-modelling-its-memory">The subject and the mechanisms modelling its memory</a><ul>
+<li><a class="reference internal" href="#the-decision-function">The decision function</a></li>
+<li><a class="reference internal" href="#notation">Notation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="usage-example.html"
+                        title="previous chapter">A Small Usage Example</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scripting-language.html"
+                        title="next chapter">The Learning Simulator Scripting Language</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/background.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="scripting-language.html" title="The Learning Simulator Scripting Language"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="usage-example.html" title="A Small Usage Example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+    </div>
+  </body>
+</html>

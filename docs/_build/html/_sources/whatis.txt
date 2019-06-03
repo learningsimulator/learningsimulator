@@ -1,0 +1,37 @@
+###############################
+What is ``Learning Simulator``?
+###############################
+
+Below follows a non-technical introduction to ``Learning Simulator``.
+  
+The system being simulated consists of a *subject* interacting with a *world*.
+In reality, this could be for example a rat (the subject) in a maze (the world)
+choosing which way to go in each intersection.
+The world can produce different stimuli (in a pre-defined set of stimuli which we call
+the world's *stimulus repertoire*) that the subject observes. 
+The simulation starts with the world producing the first stimulus.
+The subject then responds
+to this stimulus with a behavior (among the subject's *behavior repertoire*).
+As a result, the world produces a new stimulus that the subject responds to, and so on.
+The subject associates each stimulus-response pair with a value, which measures how
+"good" it is to respond with a certain behavior to a certain stimulus.
+The subject also associate each stimulus in itself with a value which may or may not
+change. Based on earlier interactions, these values are updated after each response
+choice have been made. These values in turn affect the next response decision.
+  
+For example, if a dove is rewarded (with food, for example) after picking on a lever
+when a blue light comes on,
+but is not rewarded when picking when the light is red, the next time the light comes on,
+the dove is more likely to pick on the lever if the light is blue than if it is red.
+In this case, the value of the stimulus-response pair (blue light, pick) increases
+over time.
+  
+In the above example, the animal has learned to pick when a blue light is on.
+It is this kind of learning processes that can be simulated in ``Learning Simulator``.
+The user of the simulator specifies in a simple text-based scripting language
+how the world produces stimulus, as well as a number of other parameters to the
+simulation. After a completed simulation, using script commands, the user can
+visualize how the value of certain stimuli or certain stimulus-response pairs
+change over time. This script file is the only input to ``Learning Simulator``.
+The output is typically plots of these values, but these values can also be
+exported in csv-format to an external file.
