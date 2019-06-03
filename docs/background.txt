@@ -56,18 +56,42 @@ is done the ``@phase`` section of the script. It basically consists of a number 
 lines, where each line specifies which stimulus to expose the subject to, and which line
 to go to in the next step.
 
-The subject
-===========
-The subject receives a stimulus :math:`S` and makes a decision about which behavior :math:`B` (in the behavior repertoire) to respond with. This is done by the *decision function*; see below.
-After observing the next stimulus :math:`S'`, the subject "learns" by updating an internal state variable
-:math:`v` indexed by stimulus-response pairs (so that :math:`v_{S\rightarrow B}` is the value associated with the response :math:`B` to stimulus :math:`S`). Some mechanisms also use a variable  :math:`w` indexed by stimuli (so that :math:`w_S` is the value associated with stimulus :math:`S`). The table below shows
-the available learning mechanisms and how :math:`v_{S\rightarrow B}` (and :math:`w_S`) are updated after
-the steps :math:`S \rightarrow B \rightarrow S'`.
+The subject and the mechanisms modelling its memory
+===================================================
+The subject is assumed to have an initial (genetic) value :math:`u_E` for each stimulus element :math:`E`. The subject is also assumed to have a *cost* :math:`c_B` associated with each behavior :math:`B` in its behavior repertoire. These :math:`u`- and :math:`c`-values do not change during the simulation.
 
-The mechanisms
---------------
+When the subject observes a stimulus :math:`S` it makes a decision about which behavior :math:`B` (in the behavior repertoire) to respond with. This is done by the *decision function*; see below.
 
+After observing the next stimulus :math:`S'` (being a consequence of the decision to respond with :math:`B`), the subject "learns" by updating an internal state variable
+:math:`v` indexed by stimulus-response pairs (so that :math:`v_{E\rightarrow B}` is the value associated with the response :math:`B` to stimulus element :math:`E`). Some mechanisms also use a state variable :math:`w` indexed by stimulus elements (so that :math:`w_E` is the value associated with stimulus element :math:`E`). The table below shows the available learning mechanisms and how their state variables are updated after
+the subject has experienced the steps
 
+.. math::
+  S \rightarrow B \rightarrow S'
+
+where :math:`S=\{E_1, E_2, \dotsc\}` and :math:`S=\{E'_1, E'_2, \dotsc\}`. In the table the following notation is used:
+
+.. math::
+  u_S=\sum_{E\in S}u_E,\quad w_S=\sum_{E\in S}w_E,\quad \text{and}\quad v_{S\to B}=\sum_{E\in S}v_{E\to B}.
+
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Mechanism                   | Abbrev. | Memory states          | Memory updates                                                                                                   |
++=============================+=========+========================+==================================================================================================================+
+| Stimulus-Response learning  | SR      | :math:`v_{E\to B}`     | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B) \;\forall E\in S`                                |
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Q-learning                  | QL      | :math:`v_{E\to B}`     | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+\max_{B'}v_{S'\to B'}) \;\forall E\in S`          |
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Expected SARSA              | ES      | :math:`v_{E\to B}`     | | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+E(v_{S'\to B'})) \;\forall E\in S`              |
+|                             |         |                        | | where :math:`E(v_{S'\to B'})= \sum_{E'\in S'}E(v_{E'\to B'})=\sum_{E'\in S'}\sum_{B'}\Pr(E'\to B')v_{E'\to B'}`|
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Actor-critic                | AC      | | :math:`v_{E\to B}`   | | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+w_{S'}-w_{S}-c_B) \;\forall E\in S`                            |
+|                             |         | | :math:`w_E`          | | :math:`\Delta w_E=\alpha_E (u_{S'}+w_{S'}-w_{S}-c_B)  \;\forall E\in S`                                        |
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Guided associative learning | GA      | | :math:`v_{E\to B}`   | | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+w_{S'}-v_{S\to B}) \;\forall E\in S`                           |
+|                             |         | | :math:`w_E`          | | :math:`\Delta w_{E}=\alpha_E (u_{S'}+w_{S'}-c_{B}-w_{S}) \;\forall E\in S`                                     |
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
+| Rescorla-Wagner             | RW      | :math:`v_{E_1\to E_2}` |                                                                                                                  |
++-----------------------------+---------+------------------------+------------------------------------------------------------------------------------------------------------------+
 
 The decision function
 ---------------------

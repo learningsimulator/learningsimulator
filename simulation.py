@@ -1,5 +1,5 @@
 import keywords as kw
-from exceptions import ParseException
+from exceptions import ParseException, InterruptedSimulation
 from output import ScriptOutput, RunOutput
 
 
@@ -8,26 +8,56 @@ class Runs():
         # A dict with Run objects. Keys are run labels.
         self.runs = dict()
 
+        # The run labels respecting the order in which they were added
+        self.run_labels = list()
+
     def add(self, run_obj, label, lineno):  # , world, mechanism_obj, n_subjects):
         if label in self.runs:
             raise ParseException(lineno, f"Run label {label} is duplicated.")
+        self.run_labels.append(label)
         self.runs[label] = run_obj  # ScriptRun(label, world, mechanism_obj, n_subjects)
 
     def get(self, label):
         return self.runs[label]
 
-    def run(self):
+    def get_n_subjects(self):
+        """Return a list containing the number of subjects in each run."""
+        return [self.runs[run_label].n_subjects for run_label in self.run_labels]
+
+    def get_n_phases(self):
+        """Return a dict containing the number of phases in each run."""
+        n_phases_dict = dict()
+        for run_label in self.run_labels:
+            n_phases_dict[run_label] = len(self.runs[run_label].world.phases)
+        return n_phases_dict
+
+    def all_runs_have_length(self, length):
+        n_phases_dict = self.get_n_phases()
+        for _, n_phases in n_phases_dict.items():
+            if n_phases != length:
+                return False
+        return True
+
+    def run(self, progress=None):
         out = dict()
-        for label, run in self.runs.items():
-            out[label] = run.run()
+        for label in self.run_labels:
+            run = self.runs[label]
+            if progress:
+                progress.report1(f"Running {label}")
+            out[label] = run.run(progress)
+
+        # for label, run in self.runs.items():
+        #     progress.report(1, f"Running {label}")
+        #     out[label] = run.run(progress)
+
         return ScriptOutput(out)
 
 
 class Run():
     """A class for a script run."""
 
-    def __init__(self, world, mechanism_obj, n_subjects, bind_trials):
-        # self.runlabel = runlabel
+    def __init__(self, run_label, world, mechanism_obj, n_subjects, bind_trials):
+        self.run_label = run_label
         self.world = world
         self.mechanism_obj = mechanism_obj
         self.has_v = mechanism_obj.has_v()
@@ -36,15 +66,14 @@ class Run():
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 
-    def run(self):
+    def run(self, progress=None):
         out = RunOutput(self.n_subjects, self.mechanism_obj.stimulus_req)
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
         behaviors = self.mechanism_obj.parameters.get(kw.BEHAVIORS)
-        is_bind_off = self.bind_trials == "off"
+        is_bind_off = (self.bind_trials == "off")
 
         # Initialize output with start values
-        # first_phase_label = self.world.phases[0].label
         for subject_ind in range(self.n_subjects):
             for element in stimulus_elements:
                 if self.has_w:
@@ -59,11 +88,28 @@ class Run():
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
+            prev_phase_label = None  # For phases progress
+            if progress:
+                if progress.get_n_runs() > 1:
+                    progress.report1(f"{self.run_label}: Simulating subject {subject_ind + 1}")
+                else:
+                    progress.report1(f"Simulating subject {subject_ind + 1}")
+                progress.reset2()
+                progress.report2("")
             step = 1
             subject_done = False
             response = None
             while not subject_done:
+                if progress and progress.stop_clicked:
+                    raise InterruptedSimulation()
                 stimulus, phase_label, phase_line_label, preceeding_help_lines = self.world.next_stimulus(response)
+
+                if progress:
+                    if phase_label != prev_phase_label:  # Update phases progress
+                        progress.increment2(self.run_label)
+                        progress.report2(f"Phase {phase_label}")
+                        prev_phase_label = phase_label
+
                 subject_done = (stimulus is None)
                 if not subject_done:
                     is_new_trial = (phase_line_label.lower() == "new_trial")
@@ -120,5 +166,6 @@ class Run():
                     # Reset mechanism and world for the next subject
                     self.mechanism_obj.subject_reset()
                     self.world.subject_reset()
-
+            if progress:
+                progress.increment1()
         return out

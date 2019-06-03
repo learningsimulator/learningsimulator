@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
 import unittest
-from parsing import Script
 from .testutil import run, get_plot_data
 
 
@@ -41,10 +40,7 @@ class TestPlots(unittest.TestCase):
         @figure
         @wplot S1
         '''
-        script_obj = Script(script)
-        script_obj.parse()
-        simulation_data = script_obj.run()
-        script_obj.postproc(simulation_data, False)
+        script_obj, _ = run(script)
 
         axw = plt.figure(1).axes
         self.assertEqual(len(axw), 1)

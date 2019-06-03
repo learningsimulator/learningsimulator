@@ -60,9 +60,9 @@ class Mechanism():
 
     def _support_vector(self, stimulus):
         behaviors = self.parameters.get(kw.BEHAVIORS)
-        # stimulus_req = self.parameters.get(kw.STIMULUS_REQUIREMENTS)
         beta = self.parameters.get(kw.BETA)
-        return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, self.v)
+        mu = self.parameters.get(kw.MU)
+        return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, mu, self.v)
 
     def has_v(self):
         return True
@@ -92,21 +92,22 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
     return feasible_behaviors
 
 
-def support_vector_static(stimulus, behaviors, stimulus_req, beta, v):
+def support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v):
     feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
     vector = list()
     for behavior in feasible_behaviors:
-        value = 0
+        exponent = 0
         for element in stimulus:
-            value += beta * v[(element, behavior)]
-        value = exp(value)
+            key = (element, behavior)
+            exponent += beta[key] * v[key] + mu[key]
+        value = exp(exponent)
         vector.append(value)
     return vector, feasible_behaviors
 
 
 # For postprocessing only
-def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, v):
-    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, v)
+def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, mu, v):
+    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v)
     if behavior not in feasible_behaviors:
         csse = ','.join(stimulus)  # Comma-separated stimulus elements
         raise Exception(f"Behavior '{behavior}' is not a possible response to '{csse}'.")
@@ -162,10 +163,9 @@ class EXP_SARSA(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
 
-        usum, vsum, vsum_prev = 0, 0, 0
+        usum, vsum_prev = 0, 0, 0
         for element in stimulus:
             usum += u[element]
-            vsum += self.v[(element, self.response)]
         for element in self.prev_stimulus:
             vsum_prev += self.v[(element, self.response)]
 
@@ -197,10 +197,9 @@ class Qlearning(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
 
-        usum, vsum, vsum_prev = 0, 0, 0
+        usum, vsum_prev = 0, 0, 0
         for element in stimulus:
             usum += u[element]
-            vsum += self.v[(element, self.response)]
         for element in self.prev_stimulus:
             vsum_prev += self.v[(element, self.response)]
 

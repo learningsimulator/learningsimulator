@@ -588,7 +588,7 @@ class World():
     """
 
     def __init__(self, phases_dict, phase_labels):
-        self.phase_labels = phase_labels
+        # self.phase_labels = phase_labels
         self.phases = [phases_dict[phase_label].copy() for phase_label in phase_labels]
         # for phase_label in phase_labels:
         #     self.phases[phase_label] = phases_obj.get(phase_label)

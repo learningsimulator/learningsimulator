@@ -15,6 +15,7 @@ Learning Simulator is a GUI-based Python program used for simulating
 associative learning mechanisms. It uses a simple and well-documented
 scripting language to specify the properties of the mechanism and the
 description of the experiment setup being simulated.
+    
 .. If :math:`\sigma_{1}` equals :math:`\sigma_{2}` then etc, etc.
     
 The documentation for ``Learning Simulator`` is hosted on `Read the
