@@ -32,7 +32,7 @@ class TestHExport(LsTestCase):
             self.assertTrue(os.path.isfile(filename))
 
     def test_issue_57(self):
-        filepath = './tests/exported_files/foo.txt'
+        filepath = './tests/exported_files/test_issue_57.txt'
         self.remove_files([filepath])
         self.check_that_files_are_removed([filepath])
 
@@ -48,7 +48,7 @@ class TestHExport(LsTestCase):
 
         @run foo
 
-        @hexport ./tests/exported_files/foo.txt
+        @hexport ./tests/exported_files/test_issue_57.txt
         '''
         successful_attempt = False
         while not successful_attempt:
@@ -59,7 +59,6 @@ class TestHExport(LsTestCase):
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 for row in csv_reader:
                     last_row = row
-            print(f"last row is {last_row}")
             successful_attempt = (' ' in last_row)
         self.assertEqual(last_row.count(' '), 2)
 

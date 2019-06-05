@@ -116,21 +116,21 @@ class TestParseMechanismNameErrors(LsTestCase):
         text = '''
         mechanism: foo
         '''
-        msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: ac, es, ga, ql, sr."
+        msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
         text = '''
         mechanism: 1+1
         '''
-        msg = "Invalid mechanism name '1\+1'. Mechanism name must be one of the following: ac, es, ga, ql, sr."
+        msg = "Invalid mechanism name '1\+1'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
         text = '''
         mechanism: ga, sr, ES, QL, AC
         '''
-        msg = "Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: ac, es, ga, ql, sr."
+        msg = "Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 

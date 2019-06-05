@@ -60,12 +60,14 @@ class Run():
         self.run_label = run_label
         self.world = world
         self.mechanism_obj = mechanism_obj
+        self.has_v = mechanism_obj.has_v()
         self.has_w = mechanism_obj.has_w()
+        self.has_vss = mechanism_obj.has_vss()
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 
     def run(self, progress=None):
-        out = RunOutput(self.n_subjects, self.mechanism_obj.stimulus_req)
+        out = RunOutput(self.n_subjects, self.mechanism_obj)
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
         behaviors = self.mechanism_obj.parameters.get(kw.BEHAVIORS)
@@ -76,8 +78,13 @@ class Run():
             for element in stimulus_elements:
                 if self.has_w:
                     out.write_w(subject_ind, (element,), 0, self.mechanism_obj)
-                for behavior in behaviors:
-                    out.write_v(subject_ind, (element,), behavior, 0, self.mechanism_obj)
+                if self.has_v:
+                    for behavior in behaviors:
+                        out.write_v(subject_ind, (element,), behavior, 0, self.mechanism_obj)
+                if self.has_vss:
+                    for element2 in stimulus_elements:
+                        out.write_vss(subject_ind, (element,), (element2,), 0, self.mechanism_obj)
+            # out.write_step(subject_ind, self.world.phases[0].label, 0)
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
@@ -115,8 +122,16 @@ class Run():
                     if prev_stimulus is not None:
                         if self.has_w:
                             out.write_w(subject_ind, prev_stimulus, step, self.mechanism_obj)
-                        out.write_v(subject_ind, prev_stimulus, prev_response, step,
-                                    self.mechanism_obj)
+                        if self.has_v:
+                            out.write_v(subject_ind, prev_stimulus, prev_response, step,
+                                        self.mechanism_obj)
+                        if self.has_vss:
+                            # Loop since *all* vss[(prev_stimulus,*)] is set in
+                            # OriginalRescorlaWagner.learn_and_respond, not only
+                            # vss[(prev_stimulus,stimulus)]
+                            for e in stimulus_elements:
+                                out.write_vss(subject_ind, prev_stimulus, (e,), step,
+                                              self.mechanism_obj)
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         phase_step = step
                         # if step > 1:
@@ -133,10 +148,18 @@ class Run():
                     if self.has_w:
                         for element in stimulus_elements:
                             out.write_w(subject_ind, (element,), step, self.mechanism_obj)
-                    for element in stimulus_elements:
-                        for behavior in behaviors:
-                            out.write_v(subject_ind, (element,), behavior, step,
-                                        self.mechanism_obj)
+                    if self.has_v:
+                        for element in stimulus_elements:
+                            for behavior in behaviors:
+                                out.write_v(subject_ind, (element,), behavior, step,
+                                            self.mechanism_obj)
+
+                    if self.has_vss:
+                        for element1 in stimulus_elements:
+                            for element2 in stimulus_elements:
+                                out.write_vss(subject_ind, (element1,), (element2,), step,
+                                              self.mechanism_obj)
+
                     out.write_history(subject_ind, last_stimulus, last_response)
                     out.write_step(subject_ind, "last", step + 1)
 
