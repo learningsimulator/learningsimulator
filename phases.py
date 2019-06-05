@@ -24,21 +24,21 @@ class Phases():
     #         self.phases[1].append(phase_obj)
     #         self.phases[2].append(phase_obj.make_world(parameters))
 
-    def add_phase(self, label, stop_condition, lineno):
+    def add_phase(self, label, stop_condition_str, lineno):
         if label in self.phases:
             raise Exception("Internal error.")
-        self.phases[label] = Phase(label, stop_condition, lineno)
+        self.phases[label] = Phase(label, stop_condition_str, lineno)
 
-    def inherit_from(self, inherit_from, label, stop_condition, lineno):
+    def inherit_from(self, inherit_from, label, stop_condition_str, lineno):
         if inherit_from not in self.phases:
             raise Exception("Internal error.")
         inherited_phase = self.phases[inherit_from]
         if label in self.phases:
             raise Exception("Internal error.")
 
-        self.phases[label] = Phase(label, stop_condition, lineno)  # Not inherited_phase.copy()!
+        self.phases[label] = Phase(label, stop_condition_str, lineno)  # Not inherited_phase.copy()!
         self.phases[label].lines = copy.deepcopy(inherited_phase.lines)
-        self.phases[label].stop_condition = stop_condition
+        self.phases[label].stop_condition_str = stop_condition_str
         self.phases[label].lineno = lineno
         self.phases[label].is_inherited = True
 
@@ -93,9 +93,9 @@ class Phases():
 class Phase():
     '''A number of rows of text, and a stop condition (string).'''
 
-    def __init__(self, label, stop_condition, lineno):
+    def __init__(self, label, stop_condition_str, lineno):
         self.label = label
-        self.stop_condition = stop_condition
+        self.stop_condition_str = stop_condition_str
         self.lineno = lineno
         self.lines = list()  # List of tuples (line, lineno)
 
@@ -170,7 +170,7 @@ class Phase():
 
     def subject_reset(self):
         self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
-        self.end_condition = EndPhaseCondition(self.lineno, self.stop_condition)
+        self.stop_condition = EndPhaseCondition(self.lineno, self.stop_condition_str)
         self._make_current_line(self.first_label)
         self.prev_linelabel = None
         self.is_first_line = True
@@ -192,7 +192,7 @@ class Phase():
                 self.event_counter.increment_count(response)
                 self.event_counter.increment_count_line(response)
 
-        if self.end_condition.is_met(variables, self.event_counter):
+        if self.stop_condition.is_met(variables, self.event_counter):
             return None, None, preceeding_help_lines
 
         if self.is_first_line:
@@ -259,7 +259,7 @@ class Phase():
 
     def copy(self):
         cpy = copy.deepcopy(self)
-        cpy.end_condition = copy.deepcopy(self.end_condition)
+        cpy.stop_condition = copy.deepcopy(self.stop_condition)
         return cpy
 
 

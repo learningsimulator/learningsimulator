@@ -479,3 +479,109 @@ class TestExceptions(LsTestCase):
         msg = "Used mechanism does not have variable 'vss'."
         with self.assertRaisesX(Exception, msg):
             run(text.format("@vssplot cs->us"))
+
+    def test_stop_condition_depends_on_behavior(self):
+        text = """
+        mechanism: rw
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:b1=5
+        CS cs     | US
+        US us     | CS
+
+        @phase bar stop:us=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+        """
+        msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
+        with self.assertRaisesX(Exception, msg):
+            run(text)
+
+        text = """
+        mechanism: rw
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:b1=5
+        CS cs     | US
+        US us     | CS
+
+        @phase bar stop:us=5
+        CS cs     | US
+        US us     | CS
+
+        @run bar
+
+        @figure
+        @vssplot cs->us
+        @vssplot us->cs
+        @vssplot us->us
+        @vssplot cs->cs
+        """
+        run(text)
+
+        text = """
+        mechanism: rw
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:b1=5
+        CS cs     | US
+        US us     | CS
+
+        @phase bar stop:us=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo, bar
+        """
+        msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
+        with self.assertRaisesX(Exception, msg):
+            run(text)
+
+    def test_phase_line_logic_depends_on_behavior(self):
+        text = """
+        mechanism: rw
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase bar stop:us=5
+        CS cs     | b1:US | CS
+        US us     | CS
+
+        @run bar
+        """
+        msg = "Phase line logic cannot depend on behavior in mechanism 'rw'."
+        with self.assertRaisesX(Exception, msg):
+            run(text)
+
+        text = """
+        mechanism: sr
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase bar stop:us=5
+        CS cs     | b1:US | CS
+        US us     | CS
+
+        @run bar
+        """
+        run(text)

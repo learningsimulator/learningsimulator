@@ -236,6 +236,9 @@ class ScriptParser():
                     raise ParseException(lineno, err)
                 n_subjects = run_parameters.get(kw.N_SUBJECTS)
                 bind_trials = run_parameters.get(kw.BIND_TRIALS)
+                is_ok, err, err_lineno = mechanism_obj.check_compatibility_with_world(world)
+                if err:
+                    raise ParseException(err_lineno, err)
                 run = Run(run_label, world, mechanism_obj, n_subjects, bind_trials)
                 self.runs.add(run, run_label, lineno)
                 continue

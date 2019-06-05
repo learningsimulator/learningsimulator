@@ -111,6 +111,24 @@ class ParseUtil():
         return v, None
 
     @staticmethod
+    def _single2double_eq(expr0):
+        expr = expr0
+        if expr.find('=') >= 0:
+            if expr.find('==') < 0 and expr.find('<=') < 0 and expr.find('>=') < 0:
+                expr = expr0.replace("=", "==")
+        return expr
+
+    @staticmethod
+    def variables_in_expr(expr):
+        expr = ParseUtil._single2double_eq(expr)
+        tree = ast.parse(expr, mode='eval')
+        out = list()
+        for node in ast.walk(tree):
+            if type(node) is ast.Name:
+                out.append(node.id)
+        return out
+
+    @staticmethod
     def evaluate(expr, variables, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
@@ -121,9 +139,7 @@ class ParseUtil():
         # Remove all spaces
         expr = expr.replace(" ", "")
 
-        if expr.find('=') >= 0:
-            if expr.find('==') < 0 and expr.find('<=') < 0 and expr.find('>=') < 0:
-                expr = expr.replace("=", "==")
+        expr = ParseUtil._single2double_eq(expr)
 
         context = {'rand': rand}
         context.update(variables.values)
