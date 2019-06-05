@@ -67,7 +67,7 @@ class Run():
         self.bind_trials = bind_trials
 
     def run(self, progress=None):
-        out = RunOutput(self.n_subjects, self.mechanism_obj.stimulus_req)
+        out = RunOutput(self.n_subjects, self.mechanism_obj)
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
         behaviors = self.mechanism_obj.parameters.get(kw.BEHAVIORS)
@@ -126,7 +126,7 @@ class Run():
                             out.write_v(subject_ind, prev_stimulus, prev_response, step,
                                         self.mechanism_obj)
                         if self.has_vss:
-                            # Loop since all vss[(prev_stimulus,*)] is set in
+                            # Loop since *all* vss[(prev_stimulus,*)] is set in
                             # OriginalRescorlaWagner.learn_and_respond, not only
                             # vss[(prev_stimulus,stimulus)]
                             for e in stimulus_elements:

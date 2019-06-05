@@ -1,3 +1,4 @@
+import os.path
 import unittest
 import matplotlib.pyplot as plt
 
@@ -40,6 +41,13 @@ def check_run_output_subject_vw(test_obj, output_vw):
     test_obj.assertEqual(all_steps, list(range(1, max_step)))
 
 
+def remove_files(filenames):
+    for filename in filenames:
+        fullpath = "./tests/exported_files/{}".format(filename)
+        if os.path.isfile(fullpath):
+            os.remove(fullpath)
+
+
 def get_plot_data(figure_number=1, axes_number=1):
     """figure_number and axes_number are 1-index based."""
     axes = plt.figure(figure_number).axes
@@ -65,3 +73,18 @@ class LsTestCase(unittest.TestCase):
     def assertRaisesX(self, ex, msg):
         # return super().assertRaisesRegex(ex, "^" + msg + "$")
         return super().assertRaisesRegex(ex, msg + "$")  # XXX
+
+    def assertAlmostEqualList(self, list1, list2, places=7):
+        self.assertEqual(len(list1), len(list2))
+        for val1, val2 in zip(list1, list2):
+            self.assertAlmostEqual(val1, val2, places)
+
+    def assert_files_are_removed(self, filenames):
+        for filename in filenames:
+            fullpath = "./tests/exported_files/{}".format(filename)
+            self.assertFalse(os.path.isfile(fullpath))
+
+    def assert_files_exist(self, filenames):
+        for filename in filenames:
+            fullpath = "./tests/exported_files/{}".format(filename)
+            self.assertTrue(os.path.isfile(fullpath))

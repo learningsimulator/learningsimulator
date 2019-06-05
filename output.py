@@ -106,12 +106,13 @@ class ScriptOutput():
 
 
 class RunOutput():
-    def __init__(self, n_subjects, stimulus_req):
+    def __init__(self, n_subjects, mechanism_obj):
         # A list of RunOutputSubject objects
         self.output_subjects = list()
         self.n_subjects = n_subjects
+        self.mechanism_obj = mechanism_obj
         for _ in range(n_subjects):
-            self.output_subjects.append(RunOutputSubject(stimulus_req))
+            self.output_subjects.append(RunOutputSubject(mechanism_obj.stimulus_req))
 
     def write_v(self, subject_ind, stimulus, response, step, mechanism):
         '''stimulus is a tuple.'''
@@ -136,6 +137,13 @@ class RunOutput():
                                                                  preceeding_help_lines)
 
     def vwpn_eval(self, vwpn, expr, parameters):
+        if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
+            raise EvalException("Used mechanism does not have variable 'v'.")
+        if vwpn == 'w' and not self.mechanism_obj.has_w():
+            raise EvalException("Used mechanism does not have variable 'w'.")
+        if vwpn == 'vss' and not self.mechanism_obj.has_vss():
+            raise EvalException("Used mechanism does not have variable 'vss'.")
+
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
         if subject_ind == kw.EVAL_AVERAGE:
             eval_subjects = list()

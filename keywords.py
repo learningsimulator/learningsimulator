@@ -44,6 +44,7 @@ WEXPORT = '@wexport'
 PEXPORT = '@pexport'
 NEXPORT = '@nexport'
 HEXPORT = '@hexport'
+VSSEXPORT = '@vssexport'
 
 # Other
 DEFAULT = 'default'

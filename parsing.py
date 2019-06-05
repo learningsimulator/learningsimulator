@@ -9,7 +9,7 @@ from parameters import is_parameter_name
 from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
-from exceptions import ParseException, InterruptedSimulation
+from exceptions import ParseException, InterruptedSimulation, EvalException
 from util import ParseUtil
 
 
@@ -116,7 +116,8 @@ class LineParser():
             self.line_type = LineParser.FIGURE
         elif first_word == kw.SUBPLOT:
             self.line_type = LineParser.SUBPLOT
-        elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT, kw.HEXPORT):
+        elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT, kw.HEXPORT,
+                            kw.VSSEXPORT):
             self.line_type = LineParser.EXPORT
         elif first_word == kw.LEGEND:
             self.line_type = LineParser.LEGEND
@@ -363,6 +364,8 @@ class ScriptParser():
         err = None
         if cmd == kw.VEXPORT:
             expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
+        elif cmd == kw.VSSEXPORT:
+            expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PEXPORT:
             expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.NEXPORT:
@@ -625,6 +628,7 @@ class ExportCmd(PostCmd):
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
+        self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
@@ -632,10 +636,14 @@ class ExportCmd(PostCmd):
         #     filename = filename + ".csv"
         file = open(filename, 'w', newline='')
 
-        if self.cmd == kw.HEXPORT:
-            self._h_export(file, simulation_data)
-        else:
-            self._vwpn_export(file, simulation_data)
+        try:
+            if self.cmd == kw.HEXPORT:
+                self._h_export(file, simulation_data)
+            else:
+                self._vwpn_export(file, simulation_data)
+        except EvalException as ex:
+            file.close()
+            raise ex
 
     def _h_export(self, file, simulation_data):
         # evalprops = simulation_data._evalparse(self.parameters)
@@ -694,6 +702,9 @@ class ExportCmd(PostCmd):
         if self.cmd == kw.VEXPORT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
             legend_label = f"v({label_expr})"
+        if self.cmd == kw.VSSEXPORT:
+            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            legend_label = f"vss({label_expr})"
         elif self.cmd == kw.WEXPORT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
             legend_label = f"w({label_expr})"

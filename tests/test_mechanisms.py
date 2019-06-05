@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase
-from .testutil import run, get_plot_data
+from .testutil import run, get_plot_data, remove_files
 
 
 class TestOriginalRescorlaWagner(LsTestCase):
@@ -15,7 +15,7 @@ class TestOriginalRescorlaWagner(LsTestCase):
     def tearDown(self):
         plt.close('all')
 
-    def foo_test_simple(self):
+    def test_simple(self):
         text = '''
         mechanism: rw
         stimulus_elements: cs, us
@@ -29,6 +29,8 @@ class TestOriginalRescorlaWagner(LsTestCase):
         US us     | CS
 
         @run foo
+
+        xscale:cs
 
         @figure
         @vssplot cs->us
@@ -189,70 +191,238 @@ class TestOriginalRescorlaWagner(LsTestCase):
             self.assertAlmostEqual(us_us['y'][i], 1 - expected_increasing_y[i], 6)
             self.assertAlmostEqual(cs_cs['y'][i], 1 - expected_increasing_y[i], 6)
 
-    def test_stuff(self):  # XXX
+    def test_compare_with_analytic(self):
+        alpha = 0.6
+        csus0 = 0.4
+        cscs0 = 0.45
+        usus0 = 0.5
+        uscs0 = 0.55
+
+        text = f'''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda: 1
+        start_vss: cs->us: {csus0},
+                   cs->cs: {cscs0},
+                   us->us: {usus0},
+                   us->cs: {uscs0}
+        alpha_vss: {alpha}
+
+        @phase p stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run p
+        @figure
+
+        @vssplot cs->us
+        @vssplot us->cs
+        @vssplot us->us
+        @vssplot cs->cs
+        @legend
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        csus = plot_data['vss(cs->us)']['y']
+        cscs = plot_data['vss(cs->cs)']['y']
+        usus = plot_data['vss(us->us)']['y']
+        uscs = plot_data['vss(us->cs)']['y']
+
+        csus_exact = list()
+        csus_exact.append(csus0)
+        for i in range(4):
+            n = i + 1
+            csus_exact.extend([1 - (1 - alpha)**n * (1 - csus0)] * 2)
+        self.assertAlmostEqualList(csus, csus_exact)
+
+        cscs_exact = list()
+        cscs_exact.append(cscs0)
+        for i in range(4):
+            n = i + 1
+            cscs_exact.extend([(1 - alpha)**n * cscs0] * 2)
+        self.assertAlmostEqualList(cscs, cscs_exact)
+
+        usus_exact = list()
+        usus_exact.extend([usus0] * 2)
+        for i in range(4):
+            n = i + 1
+            if n < 4:
+                usus_exact.extend([(1 - alpha)**n * usus0] * 2)
+            else:
+                usus_exact.append((1 - alpha)**n * usus0)
+        self.assertAlmostEqualList(usus, usus_exact)
+
+        uscs_exact = list()
+        uscs_exact.extend([uscs0] * 2)
+        for i in range(4):
+            n = i + 1
+            if n < 4:
+                uscs_exact.extend([1 - (1 - alpha)**n * (1 - uscs0)] * 2)
+            else:
+                uscs_exact.append(1 - (1 - alpha)**n * (1 - uscs0))
+        self.assertAlmostEqualList(uscs, uscs_exact)
+
+    def test_error_for_vpw(self):
         text = '''
         mechanism: rw
         stimulus_elements: cs, us
+        behaviors: b1, b2
 
-        n_subjects: 10
         lambda:    us:1, default:0
         start_vss: default:0.5
-        alpha_vss: 0.4
+        alpha_vss: 0.6
 
-        @phase foo1 stop:cs=10
+        @phase foo stop:cs=5
         CS cs     | US
         US us     | CS
-        # NONE none | new_trial
 
-        @phase foo2 stop:cs=5
-        CS cs     | US
-        US us     | CS
-        # NONE none | new_trial
-
-        @run foo1,foo2
+        @run foo
 
         @figure
-        xscale: cs
-        subject: average
-        phases: foo1
 
-        @vssplot cs->us
-        @vssplot us->cs
-        @vssplot us->us
-        @vssplot cs->cs
+        {}
+        '''
+        for cmd in ['@vplot cs->b1', '@pplot us->b2',
+                    '@vexport cs->b1 filename', '@pexport cs->b1 filename']:
+            msg = "Used mechanism does not have variable 'v'."
+            with self.assertRaisesX(Exception, msg):
+                run(text.format(cmd))
+        for cmd in ['@wplot cs', '@wplot us', '@wexport cs filename', '@wexport us filename']:
+            msg = "Used mechanism does not have variable 'w'."
+            with self.assertRaisesX(Exception, msg):
+                run(text.format(cmd))
 
-#####################################
-
+    def test_hexport(self):
+        text = '''
         mechanism: rw
         stimulus_elements: cs, us
+        behaviors: b1, b2
 
-        n_subjects: 10
         lambda:    us:1, default:0
         start_vss: default:0.5
-        alpha_vss: 0.4
+        alpha_vss: 0.6
 
-        @phase foo1 stop:cs=10
+        @phase foo stop:cs=5
         CS cs     | US
         US us     | CS
-        # NONE none | new_trial
 
-        @phase foo2 stop:cs=5
-        CS cs     | US
-        US us     | CS
-        # NONE none | new_trial
+        @run foo
 
-        @run foo1,foo2
-
-        @figure
-        xscale: cs
-        subject: average
-        phases: foo1
-
-        @vssplot cs->us
-        @vssplot us->cs
-        @vssplot us->us
-        @vssplot cs->cs
+        {}
         '''
+        filename = './tests/exported_files/test_rw_hexport.txt'
+        run(text.format(f'@hexport {filename}'))
+
+        data = None
+        with open(filename, 'r') as file:
+            data = file.read()
+
+        self.assertIsNotNone(data)
+
+        expected_file_contents = '''"step","stimulus subject 0","response subject 0"
+0,"cs",""
+1,"us",""
+2,"cs",""
+3,"us",""
+4,"cs",""
+5,"us",""
+6,"cs",""
+7,"us",""
+8,"cs",""
+'''
+        self.assertEqual(data, expected_file_contents)
+        filenames = ['test_rw_hexport.txt']
+        remove_files(filenames)
+        self.assert_files_are_removed(filenames)
+
+    def test_nexport(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        {}
+        '''
+        filename = './tests/exported_files/test_rw_nexport.txt'
+        run(text.format(f'@nexport b1 {filename}'))
+
+        data = None
+        with open(filename, 'r') as file:
+            data = file.read()
+
+        self.assertIsNotNone(data)
+
+        expected_file_contents = '''"x","n(b1)"
+0,0.0
+1,0.0
+2,0.0
+3,0.0
+4,0.0
+5,0.0
+6,0.0
+7,0.0
+8,0.0
+9,0.0
+10,0.0
+11,0.0
+12,0.0
+13,0.0
+14,0.0
+15,0.0
+16,0.0
+17,0.0
+18,0.0
+'''
+        self.assertEqual(data, expected_file_contents)
+        filenames = ['test_rw_hexport.txt']
+        remove_files(filenames)
+        self.assert_files_are_removed(filenames)
+
+        filename = './tests/exported_files/test_rw_nexport.txt'
+        run(text.format(f'@nexport cs {filename}'))
+
+        data = None
+        with open(filename, 'r') as file:
+            data = file.read()
+
+        self.assertIsNotNone(data)
+
+        expected_file_contents = '''"x","n(cs)"
+0,0.0
+1,1.0
+2,1.0
+3,1.0
+4,1.0
+5,2.0
+6,2.0
+7,2.0
+8,2.0
+9,3.0
+10,3.0
+11,3.0
+12,3.0
+13,4.0
+14,4.0
+15,4.0
+16,4.0
+17,5.0
+18,5.0
+'''
+        self.assertEqual(data, expected_file_contents)
+        filenames = ['test_rw_hexport.txt']
+        remove_files(filenames)
+        self.assert_files_are_removed(filenames)
 
 
 class TestExceptions(LsTestCase):
@@ -266,7 +436,7 @@ class TestExceptions(LsTestCase):
     def tearDown(self):
         plt.close('all')
 
-    def foo_test_no_run(self):
+    def test_no_run(self):
         text = """
         mechanism: ga
         stimulus_elements: s1, s2
@@ -279,3 +449,27 @@ class TestExceptions(LsTestCase):
         msg = "There is no @RUN."
         with self.assertRaisesX(Exception, msg):
             run(text)
+
+    def test_error_for_w_vss(self):
+        text = """
+        mechanism: sr
+        stimulus_elements: cs, us
+        behaviors: b1, b2
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+        {}
+        """
+        msg = "Used mechanism does not have variable 'w'."
+        with self.assertRaisesX(Exception, msg):
+            run(text.format("@wplot cs"))
+        msg = "Used mechanism does not have variable 'vss'."
+        with self.assertRaisesX(Exception, msg):
+            run(text.format("@vssplot cs->us"))
