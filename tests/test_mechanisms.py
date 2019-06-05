@@ -284,14 +284,20 @@ class TestOriginalRescorlaWagner(LsTestCase):
         {}
         '''
         for cmd in ['@vplot cs->b1', '@pplot us->b2',
-                    '@vexport cs->b1 filename', '@pexport cs->b1 filename']:
+                    '@vexport cs->b1 ./tests/exported_files/export_filename.txt',
+                    '@pexport cs->b1 ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'v'."
             with self.assertRaisesX(Exception, msg):
                 run(text.format(cmd))
-        for cmd in ['@wplot cs', '@wplot us', '@wexport cs filename', '@wexport us filename']:
+        for cmd in ['@wplot cs', '@wplot us',
+                    '@wexport cs ./tests/exported_files/export_filename.txt',
+                    '@wexport us ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'w'."
             with self.assertRaisesX(Exception, msg):
                 run(text.format(cmd))
+
+        remove_files(['export_filename.txt'])
+        self.assert_files_are_removed(['export_filename.txt'])
 
     def test_hexport(self):
         text = '''
