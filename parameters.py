@@ -12,7 +12,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
       kw.BETA: 1,                        # -"-                                          ,
-      kw.MU: 1,                          # -"-                                          ,
+      kw.MU: 0,                          # -"-                                          ,
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
       kw.ALPHA_W: 1,                     # -"-                                          ,
