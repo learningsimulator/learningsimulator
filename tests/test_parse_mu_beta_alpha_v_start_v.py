@@ -1,6 +1,9 @@
 from .testutil import LsTestCase
-from keywords import START_V, ALPHA_V
+from keywords import START_V, ALPHA_V, BETA, MU
 from parsing import Script
+
+
+PROPS = [START_V, ALPHA_V, BETA, MU]
 
 
 def parse(text, name):
@@ -18,8 +21,8 @@ class TestBasic(LsTestCase):
         pass
 
     def test_simple(self):
-        self._test_simple(START_V)
-        self._test_simple(ALPHA_V)
+        for prop in PROPS:
+            self._test_simple(prop)
 
     def _test_simple(self, name):
         text = '''
@@ -41,8 +44,8 @@ class TestBasic(LsTestCase):
         self.assertEqual(v, expected)
 
     def test_multiline(self):
-        self._test_multiline(START_V)
-        self._test_multiline(ALPHA_V)
+        for prop in PROPS:
+            self._test_multiline(prop)
 
     def _test_multiline(self, name):
         text = '''
@@ -66,8 +69,8 @@ class TestBasic(LsTestCase):
         self.assertEqual(v, expected)
 
     def test_scalar(self):
-        self._test_scalar(START_V)
-        self._test_scalar(ALPHA_V)
+        for prop in PROPS:
+            self._test_scalar(prop)
 
     def _test_scalar(self, name):
         text = '''
@@ -98,8 +101,8 @@ class TestBasic(LsTestCase):
         self.assertEqual(v, expected)
 
     def test_redefinition(self):
-        self._test_redefinition(START_V)
-        self._test_redefinition(ALPHA_V)
+        for prop in PROPS:
+            self._test_redefinition(prop)
 
     def _test_redefinition(self, name):
         text = '''
@@ -135,8 +138,8 @@ class TestBasic(LsTestCase):
         self.assertEqual(v, expected)
 
     def test_default_not_needed(self):
-        self._test_default_not_needed(START_V)
-        self._test_default_not_needed(ALPHA_V)
+        for prop in PROPS:
+            self._test_default_not_needed(prop)
 
     def _test_default_not_needed(self, name):
         text = '''
@@ -152,8 +155,8 @@ class TestBasic(LsTestCase):
         self.assertEqual(v, expected)
 
     def test_unfinished(self):
-        self._test_unfinished(START_V)
-        self._test_unfinished(ALPHA_V)
+        for prop in PROPS:
+            self._test_unfinished(prop)
 
     def _test_unfinished(self, name):
         text = '''stimulus_elements: e1, e2
@@ -172,8 +175,8 @@ class TestWithVariables(LsTestCase):
         pass
 
     def test_simple(self):
-        self._test_simple(START_V)
-        self._test_simple(ALPHA_V)
+        for prop in PROPS:
+            self._test_simple(prop)
 
     def _test_simple(self, name):
         text = '''
@@ -228,8 +231,8 @@ class TestWithExpressions(LsTestCase):
         pass
 
     def test_simple(self):
-        self._test_simple(START_V)
-        self._test_simple(ALPHA_V)
+        for prop in PROPS:
+            self._test_simple(prop)
 
     def _test_simple(self, name):
         text = '''
@@ -259,8 +262,8 @@ class TestWithFunctions(LsTestCase):
         pass
 
     def test_simple(self):
-        self._test_rand(START_V)
-        self._test_rand(ALPHA_V)
+        for prop in PROPS:
+            self._test_rand(prop)
 
     def _test_rand(self, name):
         text = '''
@@ -311,8 +314,8 @@ class TestExceptions(LsTestCase):
         pass
 
     def test_empty_name(self):
-        self._test_empty_name(START_V)
-        self._test_empty_name(ALPHA_V)
+        for prop in PROPS:
+            self._test_empty_name(prop)
 
     def _test_empty_name(self, name):
         text = '''
@@ -328,8 +331,8 @@ class TestExceptions(LsTestCase):
         pass
 
     def test_duplicate(self):
-        self._test_duplicate(START_V)
-        self._test_duplicate(ALPHA_V)
+        for prop in PROPS:
+            self._test_duplicate(prop)
 
     def _test_duplicate(self, name):
         text = '''
@@ -369,8 +372,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_stimulus_element_not_defined(self):
-        self._test_stimulus_element_not_defined(START_V)
-        self._test_stimulus_element_not_defined(ALPHA_V)
+        for prop in PROPS:
+            self._test_stimulus_element_not_defined(prop)
 
     def _test_stimulus_element_not_defined(self, name):
         text = '''
@@ -405,8 +408,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_invalid_value(self):
-        self._test_invalid_value(START_V)
-        self._test_invalid_value(ALPHA_V)
+        for prop in PROPS:
+            self._test_invalid_value(prop)
 
     def _test_invalid_value(self, name):
         text = '''
@@ -444,8 +447,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_invalid_eb_value(self):
-        self._test_invalid_eb_value(START_V)
-        self._test_invalid_eb_value(ALPHA_V)
+        for prop in PROPS:
+            self._test_invalid_eb_value(prop)
 
     def _test_invalid_eb_value(self, name):
         text = '''stimulus_elements: e1, e2
@@ -473,8 +476,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_multiple_single_values(self):
-        self._test_multiple_single_values(START_V)
-        self._test_multiple_single_values(ALPHA_V)
+        for prop in PROPS:
+            self._test_multiple_single_values(prop)
 
     def _test_multiple_single_values(self, name):
         text = '''
@@ -536,8 +539,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_multiple_default(self):
-        self._test_multiple_default(START_V)
-        self._test_multiple_default(ALPHA_V)
+        for prop in PROPS:
+            self._test_multiple_default(prop)
 
     def _test_multiple_default(self, name):
         text = '''
@@ -570,8 +573,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_invalid_stimulus_element(self):
-        self._test_invalid_stimulus_element(START_V)
-        self._test_invalid_stimulus_element(ALPHA_V)
+        for prop in PROPS:
+            self._test_invalid_stimulus_element(prop)
 
     def _test_invalid_stimulus_element(self, name):
         text = '''
@@ -593,8 +596,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_invalid_behavior(self):
-        self._test_invalid_behavior(START_V)
-        self._test_invalid_behavior(ALPHA_V)
+        for prop in PROPS:
+            self._test_invalid_behavior(prop)
 
     def _test_invalid_behavior(self, name):
         text = '''
@@ -616,8 +619,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_invalid_eb(self):
-        self._test_invalid_eb(START_V)
-        self._test_invalid_eb(ALPHA_V)
+        for prop in PROPS:
+            self._test_invalid_eb(prop)
 
     def _test_invalid_eb(self, name):
         text = '''
@@ -649,8 +652,8 @@ class TestExceptions(LsTestCase):
             parse(text, name)
 
     def test_missing_default(self):
-        self._test_missing_default(START_V)
-        self._test_missing_default(ALPHA_V)
+        for prop in PROPS:
+            self._test_missing_default(prop)
 
     def _test_missing_default(self, name):
         text = '''

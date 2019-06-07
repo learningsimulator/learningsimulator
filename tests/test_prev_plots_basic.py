@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-
 import unittest
+
 from parsing import Script
+from .testutil import run
 
 
 class TestPlots(unittest.TestCase):
@@ -56,10 +57,7 @@ class TestPlots(unittest.TestCase):
         @nplot reward
         @nplot S1
         '''
-        script_obj = Script(script)
-        script_obj.parse()
-        simulation_data = script_obj.run()
-        script_obj.postproc(simulation_data, False)
+        script_obj, _ = run(script)
 
         axw = plt.figure(1).axes
         self.assertEqual(len(axw), 1)
@@ -122,10 +120,7 @@ class TestPlots(unittest.TestCase):
         @vplot S1->R1 {'linestyle':'-'}
         @vplot S1->R0 {'linestyle':':'}
         '''
-        script_obj = Script(script)
-        script_obj.parse()
-        simulation_data = script_obj.run()
-        script_obj.postproc(simulation_data, False)
+        script_obj, _ = run(script)
 
         axv = plt.figure(1).axes
         self.assertEqual(len(axv), 1)

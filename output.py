@@ -1,5 +1,5 @@
 import util
-import mechanism
+from mechanism import probability_of_response
 from exceptions import EvalException
 import keywords as kw
 
@@ -12,6 +12,10 @@ class ScriptOutput():
     def write_v(self, run_label, subject_ind, stimulus, response, step, mechanism):
         '''stimulus is a tuple.'''
         self.run_outputs[run_label].write_v(subject_ind, stimulus, response, step, mechanism)
+
+    def write_vss(self, run_label, subject_ind, stimulus1, stimulus2, step, mechanism):
+        '''stimulus is a tuple.'''
+        self.run_outputs[run_label].write_vss(subject_ind, stimulus1, stimulus2, step, mechanism)
 
     def write_w(self, run_label, subject_ind, stimulus, step, mechanism):
         '''stimulus is a tuple.'''
@@ -102,16 +106,21 @@ class ScriptOutput():
 
 
 class RunOutput():
-    def __init__(self, n_subjects, stimulus_req):
+    def __init__(self, n_subjects, mechanism_obj):
         # A list of RunOutputSubject objects
         self.output_subjects = list()
         self.n_subjects = n_subjects
+        self.mechanism_obj = mechanism_obj
         for _ in range(n_subjects):
-            self.output_subjects.append(RunOutputSubject(stimulus_req))
+            self.output_subjects.append(RunOutputSubject(mechanism_obj.stimulus_req))
 
     def write_v(self, subject_ind, stimulus, response, step, mechanism):
         '''stimulus is a tuple.'''
         self.output_subjects[subject_ind].write_v(stimulus, response, step, mechanism)
+
+    def write_vss(self, subject_ind, stimulus1, stimulus2, step, mechanism):
+        '''stimulus is a tuple.'''
+        self.output_subjects[subject_ind].write_vss(stimulus1, stimulus2, step, mechanism)
 
     def write_w(self, subject_ind, stimulus, step, mechanism):
         '''stimulus is a tuple.'''
@@ -128,6 +137,13 @@ class RunOutput():
                                                                  preceeding_help_lines)
 
     def vwpn_eval(self, vwpn, expr, parameters):
+        if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
+            raise EvalException("Used mechanism does not have variable 'v'.")
+        if vwpn == 'w' and not self.mechanism_obj.has_w():
+            raise EvalException("Used mechanism does not have variable 'w'.")
+        if vwpn == 'vss' and not self.mechanism_obj.has_vss():
+            raise EvalException("Used mechanism does not have variable 'vss'.")
+
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
         if subject_ind == kw.EVAL_AVERAGE:
             eval_subjects = list()
@@ -156,6 +172,9 @@ class RunOutputSubject():
 
         # Keys are 2-tuples (stimulus_element,response), values are Val objects
         self.v = dict()
+
+        # Keys are 2-tuples (stimulus_element,stimulus_element), values are Val objects
+        self.vss = dict()
 
         # Keys are stimulus elements (strings), values are Val objects
         self.w = dict()
@@ -195,6 +214,31 @@ class RunOutputSubject():
         self.phase_line_labels.append(phase_line_label)
         self.phase_line_labels_steps.append(step)
 
+    def write_v(self, stimulus, response, step, mechanism):
+        for element in stimulus:
+            key = (element, response)
+            if key not in self.v:
+                self.v[key] = Val()
+            self.v[key].write(mechanism.v[key], step)
+
+    def write_vss(self, stimulus1, stimulus2, step, mechanism):
+        # XXX Handle compound stimuli
+        assert(len(stimulus1) == 1)
+        assert(len(stimulus2) == 1)
+
+        key = (stimulus1[0], stimulus2[0])
+        if key not in self.vss:
+            self.vss[key] = Val()
+
+        self.vss[key].write(mechanism.vss[key], step)
+
+    def write_w(self, stimulus, step, mechanism):
+        for element in stimulus:
+            key = element
+            if key not in self.w:
+                self.w[key] = Val()
+            self.w[key].write(mechanism.w[key], step)
+
     def vwpn_eval(self, vwpn, expr, parameters):
         if vwpn == 'n':
             _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
@@ -202,6 +246,7 @@ class RunOutputSubject():
         else:
             switcher = {
                 'v': self.v_eval,
+                'vss': self.vss_eval,
                 'w': self.w_eval,
                 'p': self.p_eval,
             }
@@ -219,52 +264,84 @@ class RunOutputSubject():
         plot_phases = parameters.get(kw.EVAL_PHASES)
         if plot_phases == kw.EVAL_ALL:
             return evalout, self.history, self.phase_line_labels, self.phase_line_labels_steps
-        else:
-            run_phases = self.first_step_phase[0]  # List of phases in the order they were run
-            assert(len(run_phases) > 0)
 
-            out = list()
-            history_out = list()
-            phase_line_labels_out = list()
-            phase_line_labels_steps_out = list()
-            if type(plot_phases) is not list:
-                plot_phases = (plot_phases,)
-            for phase in plot_phases:
-                if phase not in run_phases:
-                    raise EvalException(f"Invalid phase label {phase}. Must be in {run_phases}.")
+        run_phases = self.first_step_phase[0]  # List of phases in the order they were run
+        assert(len(run_phases) > 0)
 
-            if evalout is not None:
-                if plot_phases[0] == run_phases[0]:
-                    # First value (out[0]) should be inital value (evalout[0]) if the first phase
-                    # in 'phases' is the first run-phase.
-                    out.append(evalout[0])
-                else:
-                    # First value (out[0]) should be last value of previous phase if the first
-                    # phase in 'phases' is NOT the first run-phase.
-                    first_plot_phase_index = run_phases.index(plot_phases[0])
-                    first_plot_phase_startind = self.first_step_phase[1][first_plot_phase_index]
-                    first_value_previous_phase = evalout[first_plot_phase_startind - 1]
-                    out.append(first_value_previous_phase)
+        out = list()
+        history_out = list()
+        phase_line_labels_out = list()
+        phase_line_labels_steps_out = list()
+        if type(plot_phases) is not list:
+            plot_phases = (plot_phases,)
+        for phase in plot_phases:
+            if phase not in run_phases:
+                raise EvalException(f"Invalid phase label {phase}. Must be in {run_phases}.")
 
-            cnt = 1
-            for phase in plot_phases:
-                fsp_index = run_phases.index(phase)
-                phase_startind = self.first_step_phase[1][fsp_index]
-                phase_endind = self.first_step_phase[1][fsp_index + 1]
-                for j in range(phase_startind - 1, phase_endind - 1):
-                    history_out.append(self.history[2 * j])
-                    history_out.append(self.history[2 * j + 1])
+        if evalout is not None:
+            if plot_phases[0] == run_phases[0]:
+                # First value (out[0]) should be inital value (evalout[0]) if the first phase
+                # in 'phases' is the first run-phase.
+                out.append(evalout[0])
+            else:
+                # First value (out[0]) should be last value of previous phase if the first
+                # phase in 'phases' is NOT the first run-phase.
+                first_plot_phase_index = run_phases.index(plot_phases[0])
+                first_plot_phase_startind = self.first_step_phase[1][first_plot_phase_index]
+                first_value_previous_phase = evalout[first_plot_phase_startind - 1]
+                out.append(first_value_previous_phase)
+
+        cnt = 1
+        for phase in plot_phases:
+            fsp_index = run_phases.index(phase)
+            phase_startind = self.first_step_phase[1][fsp_index]
+            phase_endind = self.first_step_phase[1][fsp_index + 1]
+            for j in range(phase_startind - 1, phase_endind - 1):
+                history_out.append(self.history[2 * j])
+                history_out.append(self.history[2 * j + 1])
+
+            if False:
                 for j in range(phase_startind, phase_endind):
                     if evalout is not None:
                         out.append(evalout[j])
-
                     enum_plls = enumerate(self.phase_line_labels_steps)
                     pll_inds = [i for i, pll in enum_plls if pll == j]  # pll 1-based
                     for pll_ind in pll_inds:
                         phase_line_labels_out.append(self.phase_line_labels[pll_ind])
                         phase_line_labels_steps_out.append(cnt)
                     cnt += 1
-            return out, history_out, phase_line_labels_out, phase_line_labels_steps_out
+            else:
+
+                if evalout is not None:
+                    for j in range(phase_startind, phase_endind):
+                        out.append(evalout[j])
+
+                # Index to first occurence of phase_startind in self.phase_line_labels_steps
+                plls_startind = None
+                # Index to last occurence of phase_endind in self.phase_line_labels_steps
+                plls_endind = None
+                for j in range(phase_startind - 1, len(self.phase_line_labels_steps)):
+                    plls_j = self.phase_line_labels_steps[j]
+                    if plls_j == phase_startind:
+                        if plls_startind is None:  # We want the first index to phase_startind
+                            plls_startind = j
+                    elif plls_j == phase_endind - 1:
+                        plls_endind = j  # We want the last index to phase_endind-1
+                    elif plls_j > phase_endind - 1:
+                        break  # We need look no further
+                assert(plls_startind is not None)
+                assert(plls_endind is not None)
+
+                prev_pll = None
+                for j in range(plls_startind, plls_endind + 1):
+                    curr_pll = self.phase_line_labels[j]
+                    phase_line_labels_out.append(curr_pll)
+                    phase_line_labels_steps_out.append(cnt)
+                    if prev_pll != curr_pll:
+                        cnt += 1
+                    prev_pll = curr_pll
+
+        return out, history_out, phase_line_labels_out, phase_line_labels_steps_out
 
     def _xscalefilter(self, evalout, history, phase_line_labels, phase_line_labels_steps,
                       parameters):
@@ -313,15 +390,22 @@ class RunOutputSubject():
     def v_eval(self, er, parameters):
         return self.v[er].evaluate(parameters)
 
+    def vss_eval(self, ss, parameters):
+        return self.vss[ss].evaluate(parameters)
+
     def w_eval(self, element, parameters):
         return self.w[element].evaluate(parameters)
 
     def p_eval(self, sr, parameters):
-        '''sr is a tuple (S,R) where S=(E1,E2,...).'''
-        v_val = dict(self.v)
+        """sr is a tuple (S,R) where S=(E1,E2,...)."""
+        v_val = dict()
+        for er in self.v:
+            if er[0] in sr[0]:  # Only need to evaluate for stimulus elements in sr[0]
+                v_val[er] = self.v[er]
+
         behaviors = list()
         nval = 0
-        for er, _ in v_val.items():
+        for er in v_val:
             v_val[er] = self.v_eval(er, parameters)
             if nval == 0:
                 nval = len(v_val[er])
@@ -332,9 +416,9 @@ class RunOutputSubject():
         out = [None] * nval
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
-            out[i] = mechanism.probability_of_response(sr[0], sr[1], behaviors,
-                                                       self.stimulus_req, parameters.get(kw.BETA),
-                                                       v_local)
+            out[i] = probability_of_response(sr[0], sr[1], behaviors, self.stimulus_req,
+                                             parameters.get(kw.BETA),
+                                             parameters.get(kw.MU), v_local)
         return out
 
     @staticmethod
@@ -393,26 +477,17 @@ class RunOutputSubject():
                 out = util.arrayind(findind_n, findind_steps)
         return out
 
-    def write_v(self, stimulus, response, step, mechanism):
-        for element in stimulus:
-            key = (element, response)
-            if key not in self.v:
-                self.v[key] = Val()
-            self.v[key].write(mechanism.v[key], step)
-
-    def write_w(self, stimulus, step, mechanism):
-        for element in stimulus:
-            key = element
-            if key not in self.w:
-                self.w[key] = Val()
-            self.w[key].write(mechanism.w[key], step)
-
     def printout(self):
         print("\n")
         for key, val in self.v.items():
-            print("v({0}) = {1})".format(key, val))
+            print(f"v({key}):")
+            val.printout()
         for key, val in self.w.items():
-            print("w({0}) = {1})".format(key, val))
+            print(f"w({key}):")
+            val.printout()
+        for key, val in self.vss.items():
+            print(f"vss({key}):")
+            val.printout()
         print(f"history={self.history}")
         print(f"first_step_phase={self.first_step_phase}")
         print(f"phase_line_labels={self.phase_line_labels}")
@@ -461,5 +536,5 @@ class Val():
         # return out
 
     def printout(self):
-        print("values: {} floats".format(len(self.values)))
-        print("steps: {} ints".format(len(self.steps)))
+        print(f"values: {self.values}")
+        print(f"steps: {self.steps}")

@@ -1,8 +1,8 @@
 from .testutil import LsTestCase
-from keywords import U, ALPHA_W, START_W
+from keywords import U, ALPHA_W, START_W, LAMBDA
 from parsing import Script
 
-prop_names = (U, ALPHA_W, START_W)
+prop_names = (U, ALPHA_W, START_W, LAMBDA)
 
 
 def parse(text, name):

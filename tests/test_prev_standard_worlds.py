@@ -94,8 +94,8 @@ class TestClassicalConditioning(LsTestCase):
     def test_props(self):
         phase = self.world.phases[0]
         self.assertEqual(phase.first_label, "CONTEXT")
-        self.assertEqual(phase.end_condition.lineno, 5)
-        self.assertEqual(phase.end_condition.cond, "reward=20")
+        self.assertEqual(phase.stop_condition.lineno, 5)
+        self.assertEqual(phase.stop_condition.cond, "reward=20")
 
         row = phase.phase_lines["CONTEXT"]
         conditions = row.conditions.conditions
@@ -171,8 +171,8 @@ class TestFixedInterval(LsTestCase):
     def test_props(self):
         phase = self.world.phases[0]
         self.assertEqual(phase.first_label, "OFF")
-        self.assertEqual(phase.end_condition.lineno, 5)
-        self.assertEqual(phase.end_condition.cond, "reward=25")
+        self.assertEqual(phase.stop_condition.lineno, 5)
+        self.assertEqual(phase.stop_condition.cond, "reward=25")
 
         self.assertEqual(len(phase.phase_lines), 3)
 
@@ -216,8 +216,8 @@ class TestFixedRatio(LsTestCase):
     def test_props(self):
         phase = self.world.phases[0]
         self.assertEqual(phase.first_label, "OFF")
-        self.assertEqual(phase.end_condition.lineno, 5)
-        self.assertEqual(phase.end_condition.cond, "reward=23")
+        self.assertEqual(phase.stop_condition.lineno, 5)
+        self.assertEqual(phase.stop_condition.cond, "reward=23")
 
         self.assertEqual(len(phase.phase_lines), 3)
 
@@ -292,8 +292,8 @@ class TestProbabilitySchedule(LsTestCase):
     def test_props(self):
         phase = self.world.phases[0]
         self.assertEqual(phase.first_label, "LEVER")
-        self.assertEqual(phase.end_condition.lineno, 5)
-        self.assertEqual(phase.end_condition.cond, "reward=100000")
+        self.assertEqual(phase.stop_condition.lineno, 5)
+        self.assertEqual(phase.stop_condition.cond, "reward=100000")
 
         self.assertEqual(len(phase.phase_lines), 3)
 
@@ -353,8 +353,8 @@ class TestVariableInterval(LsTestCase):
     def test_props(self):
         phase = self.world.phases[0]
         self.assertEqual(phase.first_label, "FI3")
-        self.assertEqual(phase.end_condition.lineno, 5)
-        self.assertEqual(phase.end_condition.cond, "reward =200000")
+        self.assertEqual(phase.stop_condition.lineno, 5)
+        self.assertEqual(phase.stop_condition.cond, "reward =200000")
 
         self.assertEqual(len(phase.phase_lines), 4)
 
