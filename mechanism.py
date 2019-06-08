@@ -166,7 +166,7 @@ class EXP_SARSA(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
 
-        usum, vsum_prev = 0, 0, 0
+        usum, vsum_prev = 0, 0
         for element in stimulus:
             usum += u[element]
         for element in self.prev_stimulus:
@@ -200,7 +200,7 @@ class Qlearning(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
 
-        usum, vsum_prev = 0, 0, 0
+        usum, vsum_prev = 0, 0
         for element in stimulus:
             usum += u[element]
         for element in self.prev_stimulus:
