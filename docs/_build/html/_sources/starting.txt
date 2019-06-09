@@ -32,5 +32,5 @@ or, for short::
 
 If you are using IDLE, you may open ``lesim.py`` and run it in order to launch the GUI.
 
-Once the GUI is launched, run a script by opening it (with **File** > **Open**) or paste the script into
+Once the GUI is launched, run a script by opening it (with **File** > **Open**), write a script, or paste an existing script into
 the script window, then run it (with **Run** > **Simulate and Plot**)

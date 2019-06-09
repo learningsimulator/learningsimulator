@@ -45,15 +45,18 @@
 <h1>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h1>
 <p>This section outlines the system being simulated as well as
 some theoretical background of learning mechanisms.</p>
-<div class="section" id="the-system">
-<h2>The system<a class="headerlink" href="#the-system" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-system-being-simulated">
+<h2>The system being simulated<a class="headerlink" href="#the-system-being-simulated" title="Permalink to this headline">¶</a></h2>
 <p>Figure 1 illustrates the system being simulated.</p>
 <div class="figure align-center" id="id1">
 <img alt="The system" src="_images/background-system-fig.png" />
 <p class="caption"><span class="caption-text">Figure 1: The world and the subject.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
-<p>The system consists of a <em>subject</em> (or <em>organism</em>) interacting with a
-<em>world</em>.</p>
+<p>The system consists of a <em>subject</em> (or <em>organism</em>) interacting with a <em>world</em>.</p>
+<p>The world displays stimuli that the subject responds to. As a consequence of that response, the world
+displays the next stimulus, which the subject responds to. This continues, and the subject learns
+about the world in each step. The learning is modelled with <em>learning mechanism</em> that uses
+a set of memory state variables to representing the memory of the subject.</p>
 <p>The subject has a pre-defined set of behaviors <span class="math notranslate nohighlight">\(\mathscr{B}\)</span> - the <em>behavior repertoire</em>.
 It also has an output function that determines which of these behaviors to respond with.
 In addition, it has state transition functions that update memories and other internal states.</p>
@@ -74,8 +77,9 @@ subject, the world and the simulation.</p>
 <p>Technically, the world is a dynamical system whose state transition function depends on
 the subject’s last behavior, and outputs a stimulus. In the same way, the subject is a dynamical system whose state transition function depends on the last stimulus, and outputs a behavior.
 Thus, the system being simulated consists of two interacting dynamical systems.</p>
+</div>
 <div class="section" id="the-world">
-<h3>The world<a class="headerlink" href="#the-world" title="Permalink to this headline">¶</a></h3>
+<h2>The world<a class="headerlink" href="#the-world" title="Permalink to this headline">¶</a></h2>
 <p>The world receives a behavior <span class="math notranslate nohighlight">\(B\)</span> from the subject and responds with a stimulus
 <span class="math notranslate nohighlight">\(S\)</span> that may or may not depend on <span class="math notranslate nohighlight">\(B\)</span>.
 A description of the world specifies which stimulus is generated in each step and how it
@@ -85,8 +89,13 @@ is done the <code class="docutils literal notranslate"><span class="pre">&#64;ph
 lines, where each line specifies which stimulus to expose the subject to, and which line
 to go to in the next step.</p>
 </div>
-<div class="section" id="the-subject-and-the-mechanisms-modelling-its-memory">
-<h3>The subject and the mechanisms modelling its memory<a class="headerlink" href="#the-subject-and-the-mechanisms-modelling-its-memory" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="the-subject">
+<h2>The subject<a class="headerlink" href="#the-subject" title="Permalink to this headline">¶</a></h2>
+<p>When the subject interacts with the world, it learns about it. This learning is controlled by a <em>learning mechanism</em>.
+The subject’s response to an observed stimulus is controlled by a <em>decision function</em>. This section describes the
+different learning mechanisms as well as the decision function.</p>
+<div class="section" id="the-mechanisms">
+<h3>The mechanisms<a class="headerlink" href="#the-mechanisms" title="Permalink to this headline">¶</a></h3>
 <p>The subject is assumed to have an initial (genetic) value <span class="math notranslate nohighlight">\(u_E\)</span> for each stimulus element <span class="math notranslate nohighlight">\(E\)</span>. The subject is also assumed to have a <em>cost</em> <span class="math notranslate nohighlight">\(c_B\)</span> associated with each behavior <span class="math notranslate nohighlight">\(B\)</span> in its behavior repertoire. These <span class="math notranslate nohighlight">\(u\)</span>- and <span class="math notranslate nohighlight">\(c\)</span>-values do not change during the simulation.</p>
 <p>When the subject observes a stimulus <span class="math notranslate nohighlight">\(S\)</span> it makes a decision about which behavior <span class="math notranslate nohighlight">\(B\)</span> (in the behavior repertoire) to respond with. This is done by the <em>decision function</em>; see below.</p>
 <p>The possible responses to a given stimulus <span class="math notranslate nohighlight">\(S\)</span> may be restricted to a subset of the subject’s behavior repertoire <span class="math notranslate nohighlight">\(\mathscr{B}\)</span>.
@@ -181,8 +190,9 @@ In the scripting language, such restrictions are specified in the parameter <cod
 </tr>
 </tbody>
 </table>
+</div>
 <div class="section" id="the-decision-function">
-<h4>The decision function<a class="headerlink" href="#the-decision-function" title="Permalink to this headline">¶</a></h4>
+<h3>The decision function<a class="headerlink" href="#the-decision-function" title="Permalink to this headline">¶</a></h3>
 <p>When the subject is exposed to a stimulus <span class="math notranslate nohighlight">\(S=\{E_1,E_2,\dotsc\}\)</span>, it makes a decision about which behavior in the
 behavior repertoire to respond with. This is done by associating each possible behavior <span class="math notranslate nohighlight">\(B_i\)</span>
 with a probability <span class="math notranslate nohighlight">\(\Pr(S\rightarrow B_i)\)</span> and then choosing a response by sampling from
@@ -192,33 +202,6 @@ this probability distribution. In
 \[\Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}\beta_{E\to B} v_{E\to B} + \mu_{E\to B}\Big)}\]</div>
 <p>where the parameters <span class="math notranslate nohighlight">\(\beta_{E\to B}\)</span> control the extent to which the decision is governed by the
 <span class="math notranslate nohighlight">\(v\)</span>-values: Smaller <span class="math notranslate nohighlight">\(\beta\)</span> means more exploration in the reponse decision. The parameter <span class="math notranslate nohighlight">\(\mu\)</span> may be used for genetic predisposition, for example to increase the probability for a particular response to a particular stimulus element.</p>
-</div>
-<div class="section" id="notation">
-<h4>Notation<a class="headerlink" href="#notation" title="Permalink to this headline">¶</a></h4>
-<p>The table below shows the notation used.</p>
-<table class="docutils align-center">
-<colgroup>
-<col style="width: 12%" />
-<col style="width: 88%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Symbol</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
-<td><p>A stimulus element</p></td>
-</tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(S\)</span></p></td>
-<td><p>A stimulus, consisting of one or more stimulus elements <span class="math notranslate nohighlight">\(\{E_1, E_2, \dotsc\}\)</span></p></td>
-</tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(B\)</span></p></td>
-<td><p>A behavior</p></td>
-</tr>
-</tbody>
-</table>
-</div>
 </div>
 </div>
 </div>
@@ -232,13 +215,11 @@ this probability distribution. In
   <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Background</a><ul>
-<li><a class="reference internal" href="#the-system">The system</a><ul>
+<li><a class="reference internal" href="#the-system-being-simulated">The system being simulated</a></li>
 <li><a class="reference internal" href="#the-world">The world</a></li>
-<li><a class="reference internal" href="#the-subject-and-the-mechanisms-modelling-its-memory">The subject and the mechanisms modelling its memory</a><ul>
+<li><a class="reference internal" href="#the-subject">The subject</a><ul>
+<li><a class="reference internal" href="#the-mechanisms">The mechanisms</a></li>
 <li><a class="reference internal" href="#the-decision-function">The decision function</a></li>
-<li><a class="reference internal" href="#notation">Notation</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
