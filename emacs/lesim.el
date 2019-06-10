@@ -30,6 +30,7 @@
     "alpha_w"
     "beta"
     "mu"
+    "discount"
     "behavior_cost"
     "u"
     "response_requirements"
