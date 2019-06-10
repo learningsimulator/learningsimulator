@@ -65,8 +65,8 @@ class Script():
 
     def postproc(self, simulation_data, progress=None):
         if progress is not None:
-            progress.dlg.set_visibility2(False)
-            progress.dlg.set_title("Plot/Export Progress")
+            progress.set_visibility2(False)
+            progress.set_title("Plot/Export Progress")
 
         self.script_parser.postcmds.run(simulation_data, progress)
 
@@ -532,7 +532,7 @@ class PostCmds():
             cmd.run(simulation_data)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
-                progress.progress1.set((i + 1) / n_commands * 100)
+                progress.set1((i + 1) / n_commands * 100)
 
     def plot(self):
         for cmd in self.cmds:

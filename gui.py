@@ -1,7 +1,9 @@
+import sys
 import threading
 import traceback
 import os
 import webbrowser
+from abc import ABC, abstractmethod
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -171,7 +173,7 @@ class Gui():
             self.handle_exception(ex)
             return
 
-        self.progress = Progress(self.script_obj)
+        self.progress = ProgressGui(self.script_obj)
         self.progress.start()
         # self.start_progress_job = self.root.after(1000, self.progress.start)
 
@@ -231,7 +233,7 @@ class Gui():
             self.handle_exception(ex)
             return
 
-        self.progress = Progress(self.script_obj)
+        self.progress = ProgressGui(self.script_obj)
         self.progress.start()
         # self.start_progress_job = self.root.after(1000, self.progress.start)
 
@@ -417,12 +419,10 @@ class Gui():
         webbrowser.open(url, new=True)
 
 
-class Progress():
+class Progress(ABC):
     def __init__(self, script_obj):
         self.script_obj = script_obj
 
-        # self.run_labels = script_obj.script_parser.runs.run_labels
-        # self.run_lengths = script_obj.script_parser.runs.get_n_subjects()
         self.nsteps1 = sum(script_obj.script_parser.runs.get_n_subjects())
         self.nsteps1_percent = 100 / self.nsteps1 if self.nsteps1 > 0 else 1
 
@@ -430,6 +430,63 @@ class Progress():
         self.nsteps2_percent = dict()
         for key in self.nsteps2:
             self.nsteps2_percent[key] = 100 / self.nsteps2[key] if self.nsteps2[key] > 0 else 1
+
+        self.done = False
+
+        # Set to True when the Stop button has been clicked
+        self.stop_clicked = False
+
+    def get_n_runs(self):
+        return len(self.nsteps2)
+
+    @abstractmethod
+    def set_done(self, done):
+        pass
+
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def set_title(self, title):
+        pass
+
+    @abstractmethod
+    def increment1(self):
+        pass
+
+    @abstractmethod
+    def increment2(self, run_label):
+        pass
+
+    @abstractmethod
+    def reset1(self):
+        pass
+
+    @abstractmethod
+    def reset2(self):
+        pass
+
+    @abstractmethod
+    def report1(self, message):
+        pass
+
+    @abstractmethod
+    def report2(self, message):
+        pass
+
+    @abstractmethod
+    def set1(self, val):
+        pass
+
+    @abstractmethod
+    def set_visibility2(self, visibility):
+        pass
+
+
+class ProgressGui(Progress):
+    def __init__(self, script_obj):
+        super().__init__(script_obj)
 
         self.progress1 = tk.DoubleVar()  # From 0 to 100
         self.progress2 = tk.DoubleVar()  # From 0 to 100
@@ -442,12 +499,7 @@ class Progress():
         # The dialog box for the progress bar
         self.dlg = None
 
-        # Set to True when the Stop button has been clicked
-        self.stop_clicked = False
-
         self.exception = None
-
-        self.done = False
 
     def start(self):
         self.dlg = ProgressDlg(self)
@@ -455,6 +507,9 @@ class Progress():
             self.dlg.set_visibility2(False)
         self.set_dlg_visibility(False)
         self.dlg.after(500, self.set_dlg_visibility, True)
+
+    def set_done(self, done):
+        self.done = done
 
     def set_dlg_visibility(self, visibility):
         if visibility:
@@ -464,28 +519,28 @@ class Progress():
         else:
             self.dlg.withdraw()
 
+    def set_visibility2(self, visibility):
+        self.dlg.set_visibility2(visibility)
+
+    def set_title(self, title):
+        self.dlg.set_title(title)
+
     def stop(self):
         self.stop_clicked = True
-
-    def set_done(self, done):
-        self.done = done
 
     def close_dlg(self):
         if self.dlg:
             self.dlg.destroy()
             self.dlg = None
 
-    def get_n_runs(self):
-        return len(self.nsteps2)
-
     def increment1(self):
         self.progress1.set(self.progress1.get() + self.nsteps1_percent)
 
     def increment2(self, run_label):
         if self.nsteps2[run_label] == 1:
-            self.dlg.set_visibility2(False)
+            self.set_visibility2(False)
         else:
-            self.dlg.set_visibility2(True)
+            self.set_visibility2(True)
             self.progress2.set(self.progress2.get() + self.nsteps2_percent[run_label])
 
     def reset1(self):
@@ -494,17 +549,95 @@ class Progress():
     def reset2(self):
         self.progress2.set(0)
 
-    # def _update(self, level, fraction_done):
-    #     if level == 1:
-    #         self.progress1.set(100 * fraction_done)
-    #     elif level == 2:
-    #         self.progress2.set(100 * fraction_done)
-
     def report1(self, message):
         self.message1.set(message)
 
     def report2(self, message):
         self.message2.set(message)
+
+    def set1(self, val):
+        self.progress1.set(val)
+
+
+class ProgressConsole(Progress):
+    def __init__(self, script_obj):
+        super().__init__(script_obj)
+        self.N_DECIMALS = 5
+        self.PERC_FORMAT = "{0:." + str(self.N_DECIMALS) + "f}"
+        self.BAR_LENGTH = 50
+
+        self.title = ""
+        self.progress1 = 0
+        self.progress2 = 0
+        self.message1 = ""
+        self.message2 = ""
+
+        self.string = None
+
+        self.progress2_visible = False
+
+    def start(self):
+        # os.system("clear")
+        self._print_progress()
+
+    def set_done(self, done):
+        self.done = done
+        self._print_progress()
+
+    def set_visibility2(self, visibility):
+        self.progress2_visible = visibility
+        self._print_progress()
+
+    def set_title(self, title):
+        self.title = title
+
+    def increment1(self):
+        self.progress1 += self.nsteps1_percent
+        self._print_progress()
+
+    def increment2(self, run_label):
+        if self.nsteps2[run_label] == 1:
+            self.set_visibility2(False)
+        else:
+            self.set_visibility2(True)
+            self.progress2 += self.nsteps2_percent[run_label]
+        self._print_progress()
+
+    def reset1(self):
+        self.progress1 = 0
+        self._print_progress()
+
+    def reset2(self):
+        self.progress2 = 0
+        self._print_progress()
+
+    def report1(self, message):
+        pass
+
+    def report2(self, message):
+        pass
+
+    def set1(self, val):
+        self.progress1 = val
+        self._print_progress()
+
+    def _print_progress(self):  # total, prefix='', suffix=''):
+        # print(f"self.progress1 = {self.progress1}")
+        # filled_length = int(round(self.BAR_LENGTH * self.progress1 / 100))
+        # bar = '█' * filled_length + '-' * (self.BAR_LENGTH - filled_length) + '\n'
+        # print(bar)
+
+        percents = self.PERC_FORMAT.format(self.progress1)
+        filled_length = int(round(self.BAR_LENGTH * self.progress1 / 100))
+        bar = '█' * filled_length + '-' * (self.BAR_LENGTH - filled_length)
+
+        prefix = 'prefix'
+        suffix = 'suffix'
+        sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+
+        if self.done:
+            sys.stdout.write('\n')
+        sys.stdout.flush()
 
 
 if __name__ == "__main__":

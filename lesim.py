@@ -1,9 +1,7 @@
-# import cProfile
+import sys
 
 import gui
 import parsing
-
-import sys
 
 GUI = "gui"
 RUN = "run"
@@ -50,8 +48,11 @@ if __name__ == "__main__":
                 script = file_obj.read()
                 script_obj = parsing.Script(script)
                 script_obj.parse()
-                simulation_data = script_obj.run()
-                script_obj.postproc(simulation_data)
+                progress = gui.ProgressConsole(script_obj)
+                progress.start()
+                simulation_data = script_obj.run(progress)
+                script_obj.postproc(simulation_data, progress)
+                progress.set_done(True)
                 block = (i == nfiles - 1)
                 script_obj.plot(block)
         elif arg1 == HELP:
