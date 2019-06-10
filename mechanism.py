@@ -258,6 +258,7 @@ class ActorCritic(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
         alpha_w = self.parameters.get(kw.ALPHA_W)
+        beta = self.parameters.get(kw.BETA)
         discount = self.parameters.get(kw.DISCOUNT)
 
         vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
@@ -270,9 +271,12 @@ class ActorCritic(Mechanism):
 
         # v
         delta = usum + discount * wsum - c[self.response] - wsum_prev
+        x, feasible_behaviors = self._support_vector(stimulus)
+        p = x[ feasible_behaviors == self.response ] / sum(x);
         for element in self.prev_stimulus:
             alpha_v_er = alpha_v[(element, self.response)]
-            self.v[(element, self.response)] += alpha_v_er * delta
+            beta_er = beta[(element, self.response)]
+            self.v[(element, self.response)] += alpha_v_er * delta * beta_er * ( 1-p )
         # w
         for element in self.prev_stimulus:
             alpha_w_e = alpha_w[element]
