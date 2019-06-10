@@ -6,9 +6,9 @@ This section outlines the system being simulated as well as
 some theoretical background of learning mechanisms.
 
 
-**********
-The system
-**********
+**************************
+The system being simulated
+**************************
 Figure 1 illustrates the system being simulated.
 
 .. figure:: background-system-fig.png
@@ -17,8 +17,12 @@ Figure 1 illustrates the system being simulated.
 
   Figure 1: The world and the subject.
 
-The system consists of a *subject* (or *organism*) interacting with a 
-*world*.
+The system consists of a *subject* (or *organism*) interacting with a *world*.
+
+The world displays stimuli that the subject responds to. As a consequence of that response, the world
+displays the next stimulus, which the subject responds to. This continues, and the subject learns
+about the world in each step. The learning is modelled with *learning mechanism* that uses 
+a set of memory state variables to representing the memory of the subject.
 
 The subject has a pre-defined set of behaviors :math:`\mathscr{B}` - the *behavior repertoire*.
 It also has an output function that determines which of these behaviors to respond with.
@@ -45,8 +49,10 @@ Technically, the world is a dynamical system whose state transition function dep
 the subject's last behavior, and outputs a stimulus. In the same way, the subject is a dynamical system whose state transition function depends on the last stimulus, and outputs a behavior.
 Thus, the system being simulated consists of two interacting dynamical systems.
 
+
+*********
 The world
-=========
+*********
 The world receives a behavior :math:`B` from the subject and responds with a stimulus
 :math:`S` that may or may not depend on :math:`B`.
 A description of the world specifies which stimulus is generated in each step and how it
@@ -56,8 +62,15 @@ is done the ``@phase`` section of the script. It basically consists of a number 
 lines, where each line specifies which stimulus to expose the subject to, and which line
 to go to in the next step.
 
-The subject and the mechanisms modelling its memory
-===================================================
+***********
+The subject
+***********
+When the subject interacts with the world, it learns about it. This learning is controlled by a *learning mechanism*.
+The subject's response to an observed stimulus is controlled by a *decision function*. This section describes the
+different learning mechanisms as well as the decision function.
+
+The mechanisms
+==============
 The subject is assumed to have an initial (genetic) value :math:`u_E` for each stimulus element :math:`E`. The subject is also assumed to have a *cost* :math:`c_B` associated with each behavior :math:`B` in its behavior repertoire. These :math:`u`- and :math:`c`-values do not change during the simulation.
 
 When the subject observes a stimulus :math:`S` it makes a decision about which behavior :math:`B` (in the behavior repertoire) to respond with. This is done by the *decision function*; see below.
@@ -107,7 +120,7 @@ and
 +-----------------------------+---------+------------------------+-----------------------------------------------------------------------------------------------+---------------------------+
 
 The decision function
----------------------
+=====================
 When the subject is exposed to a stimulus :math:`S=\{E_1,E_2,\dotsc\}`, it makes a decision about which behavior in the
 behavior repertoire to respond with. This is done by associating each possible behavior :math:`B_i`
 with a probability :math:`\Pr(S\rightarrow B_i)` and then choosing a response by sampling from
@@ -119,21 +132,3 @@ this probability distribution. In
 
 where the parameters :math:`\beta_{E\to B}` control the extent to which the decision is governed by the
 :math:`v`-values: Smaller :math:`\beta` means more exploration in the reponse decision. The parameter :math:`\mu` may be used for genetic predisposition, for example to increase the probability for a particular response to a particular stimulus element.
-
-Notation
---------
-
-The table below shows the notation used.
-
-+------------+---------------------------------------------------------------------------------------+
-| Symbol     | Description                                                                           |
-+============+=======================================================================================+
-| :math:`E`  | A stimulus element                                                                    |
-+------------+---------------------------------------------------------------------------------------+
-| :math:`S`  | A stimulus, consisting of one or more stimulus elements :math:`\{E_1, E_2, \dotsc\}`  |
-+------------+---------------------------------------------------------------------------------------+
-| :math:`B`  | A behavior                                                                            |
-+------------+---------------------------------------------------------------------------------------+
-
-
-

@@ -1,4 +1,113 @@
-#########################################
-The Learning Simulator Scripting Language
-#########################################
+######################
+The Scripting Language
+######################
 
+This section describes the scripting language used to specify the system to simulate.
+
+Using the scripting language, you can do the following:
+
+- Set the value of parameters and variables
+- Specify the sequence of stimuli to present to the subject
+- Run the simulation to produce simulation data
+- Plot or export the simulation data
+
+
+**********
+Parameters
+**********
+In order to run a simulation, a number of *parameters* must be specified.
+For example, to set the parameter ``beta`` to the value ``0.4``, use::
+
+  beta: 0.4
+
+Below follows a description of each of the available parameters in ``Learning Simulator``·
+
+All parameters can be found in the tables below, one table for parameters that control the
+simulation, and one for the parameters used in the postprocessing.
+The tables also specify the default value of each parameter, or of it is required.
+In the tables, :math:`E` stands for a stimulus element, and :math:`B` for a behavior.
+
+`E1->B1:val1, ..., En->Bn:valn, default:val`
+
+**Simulation parameters**
+
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| Parameter                 | Default/    | Possible values                              | Example                     |
+|                           | *Required*  |                                              |                             |
++===========================+=============+==============================================+=============================+
+| ``alpha_v``               | 1           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``alpha_vss``             | 1           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - element values  | | ``E1->E2:1, default:0``   |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``alpha_w``               | 1           | | Scalar                                     | | ``0.8``                   |
+|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``behaviors``             | *Required*  | List of behavior names                       | ``press, walk_away``        |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``behavior_cost``         | 0           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of behavior values                    | | ``S1:1, S2:2, default:0`` |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``beta``                  | 1           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``bind_trials``           | ``off``     | on or off                                    | ``on``                      |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``lambda``                | 0           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - element values  | | ``S1:1, S2:2, default:0`` |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``mechanism_name``        | *Required*  | One of the available ones                    | ``ga``                      |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``mu``                    | 0           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``n_subjects``            | 1           | Positive integer                             | ``10``                      |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``response_requirements`` |             | List of b:se or b:se1,se2,...                | ``press:lever``             |
++---------------------------+-------------+----------------------------------------------+-----------------------------+                     
+| ``stimulus_elements``     | *Required*  | List of stimulus element names               |  ``cs, us``                 |
++---------------------------+-------------+----------------------------------------------+-----------------------------+                      
+| ``start_v``               | 1           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``start_vss``             | 0           | | Scalar                                     | | ``1.5``                   |
+|                           |             | | List of stimulus element - element values  | | ``E->B:1, default:0``     |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``start_w``               | 1           | | Scalar                                     | | 1.5                       |
+|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
++---------------------------+-------------+----------------------------------------------+-----------------------------+ 
+| ``subject``               | ``average`` | ``average``, ``all`` or zero-based index     |                             |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+| ``u``                     | 1           | | Scalar                                     | | ``0.8``                   |
+|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
++---------------------------+-------------+----------------------------------------------+-----------------------------+
+
+**Postprocessing parameters**
+
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| Parameter                 | Default/     | Possible values                              | Example                 |
+|                           | *Required*   |                                              |                         |
++===========================+==============+==============================================+=========================+
+| ``cumulative``            | ``on``       | ``on`` or ``off``                            | ``on``                  |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``filename``              | *Required*   | | a valid file name with or without path     | | ``/path/to/file.txt`` |
+|                           | in export    | |                                            | |                       |
+|                           | commands     | |                                            | |                       |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``match``                 | ``subset``   | ``subset`` or ``exact``                      | ``subset``              |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``runlabel``              | *Required*   | | string without space                       |                         |
+|                           | in ``@run``  | |                                            |                         |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``subplottitle``          | empty string | string                                       |                         |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``title``                 | empty string | string                                       |                         |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``xscale``                | ``all``      | | ``all``, a phase label or a stimulus       |                         |
+|                           |              | | element                                    |                         |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``xscale_match``          | ``subset``   | ``subset`` or ``exact``                      | ``subset``              |
++---------------------------+--------------+----------------------------------------------+-------------------------+
+| ``phases``                | ``all``      | ``all`` or list of phase labels              | ``phase1, phase2``      |
++---------------------------+--------------+----------------------------------------------+-------------------------+

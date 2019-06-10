@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>The Learning Simulator Scripting Language &#8212; Learning Simulator 1.0 documentation</title>
+    <title>The Scripting Language &#8212; Learning Simulator 1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -41,8 +41,312 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="the-learning-simulator-scripting-language">
-<h1>The Learning Simulator Scripting Language<a class="headerlink" href="#the-learning-simulator-scripting-language" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="the-scripting-language">
+<h1>The Scripting Language<a class="headerlink" href="#the-scripting-language" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the scripting language used to specify the system to simulate.</p>
+<p>Using the scripting language, you can do the following:</p>
+<ul class="simple">
+<li><p>Set the value of parameters and variables</p></li>
+<li><p>Specify the sequence of stimuli to present to the subject</p></li>
+<li><p>Run the simulation to produce simulation data</p></li>
+<li><p>Plot or export the simulation data</p></li>
+</ul>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>In order to run a simulation, a number of <em>parameters</em> must be specified.
+For example, to set the parameter <code class="docutils literal notranslate"><span class="pre">beta</span></code> to the value <code class="docutils literal notranslate"><span class="pre">0.4</span></code>, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">beta</span><span class="p">:</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<p>Below follows a description of each of the available parameters in <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>·</p>
+<p>All parameters can be found in the tables below, one table for parameters that control the
+simulation, and one for the parameters used in the postprocessing.
+The tables also specify the default value of each parameter, or of it is required.
+In the tables, <span class="math notranslate nohighlight">\(E\)</span> stands for a stimulus element, and <span class="math notranslate nohighlight">\(B\)</span> for a behavior.</p>
+<p><cite>E1-&gt;B1:val1, …, En-&gt;Bn:valn, default:val</cite></p>
+<p><strong>Simulation parameters</strong></p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 11%" />
+<col style="width: 40%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Default/
+<em>Required</em></p></th>
+<th class="head"><p>Possible values</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_v</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - behavior values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_vss</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E1-&gt;E2:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_w</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">0.8</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">behaviors</span></code></p></td>
+<td><p><em>Required</em></p></td>
+<td><p>List of behavior names</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">press,</span> <span class="pre">walk_away</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">behavior_cost</span></code></p></td>
+<td><p>0</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of behavior values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">beta</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - behavior values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bind_trials</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">off</span></code></p></td>
+<td><p>on or off</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
+<td><p>0</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mechanism_name</span></code></p></td>
+<td><p><em>Required</em></p></td>
+<td><p>One of the available ones</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mu</span></code></p></td>
+<td><p>0</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - behavior values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">n_subjects</span></code></p></td>
+<td><p>1</p></td>
+<td><p>Positive integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">response_requirements</span></code></p></td>
+<td></td>
+<td><p>List of b:se or b:se1,se2,…</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">press:lever</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code></p></td>
+<td><p><em>Required</em></p></td>
+<td><p>List of stimulus element names</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cs,</span> <span class="pre">us</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_v</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - behavior values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_vss</span></code></p></td>
+<td><p>0</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element - element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_w</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">1.5</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subject</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">average</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">average</span></code>, <code class="docutils literal notranslate"><span class="pre">all</span></code> or zero-based index</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">Scalar</div>
+<div class="line">List of stimulus element values</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">0.8</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Postprocessing parameters</strong></p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 13%" />
+<col style="width: 41%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Default/
+<em>Required</em></p></th>
+<th class="head"><p>Possible values</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cumulative</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code> or <code class="docutils literal notranslate"><span class="pre">off</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filename</span></code></p></td>
+<td><p><em>Required</em>
+in export
+commands</p></td>
+<td><div class="line-block">
+<div class="line">a valid file name with or without path</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">/path/to/file.txt</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code> or <code class="docutils literal notranslate"><span class="pre">exact</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">runlabel</span></code></p></td>
+<td><p><em>Required</em>
+in <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code></p></td>
+<td><div class="line-block">
+<div class="line">string without space</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subplottitle</span></code></p></td>
+<td><p>empty string</p></td>
+<td><p>string</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>empty string</p></td>
+<td><p>string</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">xscale</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">all</span></code>, a phase label or a stimulus</div>
+<div class="line">element</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xscale_match</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code> or <code class="docutils literal notranslate"><span class="pre">exact</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phases</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code> or list of phase labels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">phase1,</span> <span class="pre">phase2</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
@@ -51,6 +355,14 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Scripting Language</a><ul>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="background.html"
                         title="previous chapter">Background</a></p>
