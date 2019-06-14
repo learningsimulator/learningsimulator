@@ -300,46 +300,34 @@ class RunOutputSubject():
                 history_out.append(self.history[2 * j])
                 history_out.append(self.history[2 * j + 1])
 
-            if False:
+            if evalout is not None:
                 for j in range(phase_startind, phase_endind):
-                    if evalout is not None:
-                        out.append(evalout[j])
-                    enum_plls = enumerate(self.phase_line_labels_steps)
-                    pll_inds = [i for i, pll in enum_plls if pll == j]  # pll 1-based
-                    for pll_ind in pll_inds:
-                        phase_line_labels_out.append(self.phase_line_labels[pll_ind])
-                        phase_line_labels_steps_out.append(cnt)
+                    out.append(evalout[j])
+
+            # Index to first occurence of phase_startind in self.phase_line_labels_steps
+            plls_startind = None
+            # Index to last occurence of phase_endind in self.phase_line_labels_steps
+            plls_endind = None
+            for j in range(phase_startind - 1, len(self.phase_line_labels_steps)):
+                plls_j = self.phase_line_labels_steps[j]
+                if plls_j == phase_startind:
+                    if plls_startind is None:  # We want the first index to phase_startind
+                        plls_startind = j
+                elif plls_j == phase_endind - 1:
+                    plls_endind = j  # We want the last index to phase_endind-1
+                elif plls_j > phase_endind - 1:
+                    break  # We need look no further
+            assert(plls_startind is not None)
+            assert(plls_endind is not None)
+
+            prev_plls = None
+            for j in range(plls_startind, plls_endind + 1):
+                curr_plls = self.phase_line_labels_steps[j]
+                phase_line_labels_out.append(self.phase_line_labels[j])
+                phase_line_labels_steps_out.append(cnt)
+                if prev_plls != curr_plls:
                     cnt += 1
-            else:
-
-                if evalout is not None:
-                    for j in range(phase_startind, phase_endind):
-                        out.append(evalout[j])
-
-                # Index to first occurence of phase_startind in self.phase_line_labels_steps
-                plls_startind = None
-                # Index to last occurence of phase_endind in self.phase_line_labels_steps
-                plls_endind = None
-                for j in range(phase_startind - 1, len(self.phase_line_labels_steps)):
-                    plls_j = self.phase_line_labels_steps[j]
-                    if plls_j == phase_startind:
-                        if plls_startind is None:  # We want the first index to phase_startind
-                            plls_startind = j
-                    elif plls_j == phase_endind - 1:
-                        plls_endind = j  # We want the last index to phase_endind-1
-                    elif plls_j > phase_endind - 1:
-                        break  # We need look no further
-                assert(plls_startind is not None)
-                assert(plls_endind is not None)
-
-                prev_pll = None
-                for j in range(plls_startind, plls_endind + 1):
-                    curr_pll = self.phase_line_labels[j]
-                    phase_line_labels_out.append(curr_pll)
-                    phase_line_labels_steps_out.append(cnt)
-                    if prev_pll != curr_pll:
-                        cnt += 1
-                    prev_pll = curr_pll
+                prev_plls = curr_plls
 
         return out, history_out, phase_line_labels_out, phase_line_labels_steps_out
 

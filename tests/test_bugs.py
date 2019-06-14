@@ -162,6 +162,95 @@ class TestFoundBugs(LsTestCase):
         self.assertEqual(plotted_xdata, list(range(0, 101)))
         self.assertEqual(plotted_ydata[0:51], [0] * 51)
 
+    def test_phases_when_xscale_is_help_line_label(self):
+        text = '''
+        # Pavlovian revaluation
+        # Explores acquisition, extinction and reaquisition
+
+        n_subjects             : 50
+        mechanism              : GA
+        behaviors              : cr,other  # ur = cr
+        stimulus_elements      : us,no_us,cs1,cs2,start
+        start_v                : cs1->cr:-1, cs2->cr:-1, default: 1
+        alpha_v                : cs1->other:0, cs2->other:0, default:0.1
+        alpha_w                : 0.1
+        beta                   : 1
+        behavior_cost          : cr:1, default: 0
+        u                      : us:10, default:0
+        bind_trials            : off
+
+        @phase acquisition  stop: new_trial= 100
+        new_trial             | CS2
+        CS2        cs2        | CS1
+        CS1        cs1        | US
+        US         us           | new_trial
+
+        @phase revaluation stop: new_trial=50
+        new_trial             | CS1
+        CS1        cs1        | NO_US
+        NO_US      no_us      | new_trial
+
+        @phase extinction stop: new_trial=40
+        new_trial             | CS2
+        CS2        cs2        | NO_US
+        NO_US      no_us      | new_trial
+
+        @phase reacquisition(acquisition) stop: new_trial=40
+
+        @run acquisition,revaluation,extinction,reacquisition   runlabel:'exp'
+        @run acquisition,extinction,reacquisition   runlabel:'control'
+
+        xscale: new_trial
+        subject: average
+        phases:extinction,reacquisition
+        @figure
+        @subplot 121 - {'xlabel':'Trial','ylabel':'Probability', 'title':'Responding to CS2'  }
+        runlabel:'exp'
+        @pplot cs2->cr {'linewidth':2,'color':'black','label':'Revaluation'}
+        runlabel:'control'
+        @pplot cs2->cr {'linewidth':1,'linestyle':'--','color':'red','label':'Control'}
+        @legend
+
+        @subplot 122 - {'xlabel':'Trial','ylabel':'w', 'title':'w(CS1) '  }
+        runlabel:'exp'
+        @wplot cs1 {'linewidth':2,'color':'black','label':'Revaluation'}
+        runlabel:'control'
+        @wplot cs1 {'linewidth':1,'linestyle':'--','color':'red','label':'Control'}
+        @legend
+        '''
+        script, script_output = run(text)
+
+    def test_phases_when_xscale_is_help_line_label_minimal(self):
+        text = '''
+        # Pavlovian revaluation
+        # Explores acquisition, extinction and reaquisition
+
+        n_subjects             : 1
+        mechanism              : GA
+        behaviors              : cr,other  # ur = cr
+        stimulus_elements      : us,no_us,cs1,cs2,start
+        start_v                : cs1->cr:-1, cs2->cr:-1, default: 1
+        alpha_v                : cs1->other:0, cs2->other:0, default:0.1
+        alpha_w                : 0.1
+        beta                   : 1
+        behavior_cost          : cr:1, default: 0
+        u                      : us:10, default:0
+        bind_trials            : off
+
+        @phase acquisition  stop: new_trial=5
+        new_trial             | CS2
+        CS2        cs2        | CS1
+        CS1        cs1        | US
+        US         us         | new_trial
+
+        @run acquisition
+
+        xscale: new_trial
+        phases:acquisition
+        @vplot cs2->cr
+        '''
+        script, script_output = run(text)
+
 
 class TestErrors(LsTestCase):
     @classmethod
