@@ -15,7 +15,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
-      kw.DISCOUNT: 1,                    # Scalar                                       ,
+      kw.DISCOUNT: 1,                    # Scalar
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.LAMBDA: 0,                      # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
@@ -97,16 +97,11 @@ class Parameters():
 
         # Float
         elif prop == kw.DISCOUNT:
-            # it seems that ParseUtil.is_float does not handle 0, so
-            # we handle it separately:
-            if float(v_str) == 0:
-                self.val[kw.DISCOUNT] = 0
-                return None
-            v, err = ParseUtil.is_float(v_str)
+            v, err = ParseUtil.evaluate(v_str, variables)
             if err:
                 return err
-            if not v or v<0 or v>1:
-                return "Parameter {} must be a number >=0 and <1.".format(kw.DISCOUNT)
+            if (v < 0) or (v > 1):
+                return f"Parameter '{kw.DISCOUNT}' must be a number >=0 and <=1."
             self.val[kw.DISCOUNT] = v
             return None
 
@@ -651,7 +646,7 @@ class Parameters():
         return self.is_csv(prop) or prop in (kw.TITLE, kw.SUBPLOTTITLE, kw.RUNLABEL)
 
     def is_csv(self, prop):
-        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.MU, kw.DISCOUNT, kw.LAMBDA, kw.START_V,
+        return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.MU, kw.LAMBDA, kw.START_V,
                         kw.START_VSS, kw.START_W, kw.ALPHA_V, kw.ALPHA_VSS, kw.ALPHA_W,
                         kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS, kw.PHASES)
 

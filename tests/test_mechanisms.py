@@ -4,7 +4,45 @@ from .testutil import LsTestCase
 from .testutil import run, get_plot_data, remove_files
 
 
-class TestOriginalRescorlaWagner(LsTestCase):
+class TestVMechanisms(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_simple(self):
+        mechanism_names_to_test = ['ga', 'sr', 'es', 'ql', 'ac']
+        for mechanism_name in mechanism_names_to_test:
+            text = f'''
+            mechanism: {mechanism_name}
+            stimulus_elements: s1, s2, rew, norew
+            behaviors: b1, b2, dummy
+            u: rew:1, norew:-1, default:0
+            n_subjects:100
+            response_requirements: b1:[s1, s2],
+                                   b2:[s1, s2],
+                                   dummy:[rew, norew]
+
+            @phase phase stop:s1=50
+            new_trial s1    | b1:S2     | NOREW
+            S2        s2    | b2:REW    | NOREW
+            NOREW     norew | new_trial
+            REW       rew   | new_trial
+
+            @run phase
+
+            xscale:new_trial
+            @vplot s1->b1
+            '''
+            run(text)
+
+
+class TestRescorlaWagner(LsTestCase):
     @classmethod
     def setUpClass(cls):
         pass

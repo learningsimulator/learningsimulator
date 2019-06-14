@@ -166,7 +166,7 @@ class EXP_SARSA(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
         discount = self.parameters.get(kw.DISCOUNT)
-        
+
         usum, vsum_prev = 0, 0
         for element in stimulus:
             usum += u[element]
@@ -186,7 +186,7 @@ class EXP_SARSA(Mechanism):
 
         for element in self.prev_stimulus:
             alpha_v_er = alpha_v[(element, self.response)]
-            delta = alpha_v_er * (usum + discount*E - c[self.response] - vsum_prev)
+            delta = alpha_v_er * (usum + discount * E - c[self.response] - vsum_prev)
             self.v[(element, self.response)] += delta
 
 
@@ -271,12 +271,12 @@ class ActorCritic(Mechanism):
 
         # v
         delta = usum + discount * wsum - c[self.response] - wsum_prev
-        x, feasible_behaviors = self._support_vector(stimulus)
-        p = x[ feasible_behaviors == self.response ] / sum(x);
+        x, feasible_behaviors = self._support_vector(self.prev_stimulus)
+        p = x[feasible_behaviors.index(self.response)] / sum(x)
         for element in self.prev_stimulus:
             alpha_v_er = alpha_v[(element, self.response)]
             beta_er = beta[(element, self.response)]
-            self.v[(element, self.response)] += alpha_v_er * delta * beta_er * ( 1-p )
+            self.v[(element, self.response)] += alpha_v_er * delta * beta_er * (1 - p)
         # w
         for element in self.prev_stimulus:
             alpha_w_e = alpha_w[element]
@@ -296,7 +296,7 @@ class Enquist(Mechanism):
         alpha_w = self.parameters.get(kw.ALPHA_W)
         alpha_v = self.parameters.get(kw.ALPHA_V)
         discount = self.parameters.get(kw.DISCOUNT)
-        
+
         vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
         for element in self.prev_stimulus:
             vsum_prev += self.v[(element, self.response)]
