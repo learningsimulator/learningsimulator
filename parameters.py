@@ -15,6 +15,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
+      kw.DISCOUNT: 1,                    # Scalar
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.LAMBDA: 0,                      # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
@@ -93,6 +94,16 @@ class Parameters():
         elif prop in (kw.BETA, kw.MU, kw.START_V, kw.ALPHA_V):
             return self._parse_stimulus_response_values(prop, v_str, variables,
                                                         to_be_continued, is_appending)
+
+        # Float
+        elif prop == kw.DISCOUNT:
+            v, err = ParseUtil.evaluate(v_str, variables)
+            if err:
+                return err
+            if (v < 0) or (v > 1):
+                return f"Parameter '{kw.DISCOUNT}' must be a number >=0 and <=1."
+            self.val[kw.DISCOUNT] = v
+            return None
 
         elif prop == kw.BEHAVIOR_COST:
             return self._parse_behavior_cost(v_str, variables, to_be_continued, is_appending)

@@ -10,6 +10,7 @@ ALPHA_VSS = 'alpha_vss'
 ALPHA_W = 'alpha_w'
 BETA = 'beta'
 MU = 'mu'
+DISCOUNT = 'discount'
 BEHAVIOR_COST = 'behavior_cost'
 U = 'u'
 LAMBDA = 'lambda'
@@ -63,6 +64,7 @@ KEYWORDS = (BEHAVIORS,
             ALPHA_W,
             BETA,
             MU,
+            DISCOUNT,
             BEHAVIOR_COST,
             U,
             LAMBDA,
