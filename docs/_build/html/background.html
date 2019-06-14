@@ -139,13 +139,13 @@ In the scripting language, such restrictions are specified in the parameter <cod
 <tr class="row-odd"><td><p>Q-learning</p></td>
 <td><p>QL</p></td>
 <td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
-<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+\gamma\max\limits_{B'}v_{S'\to B'})\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\big(u_{S'}-v_{S\to B}-c_B+\gamma\max\limits_{B'}v_{S'\to B'}\big)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
 <tr class="row-even"><td><p>Expected SARSA</p></td>
 <td><p>ES</p></td>
 <td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
-<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B+\gamma E(v_{S'\to B'}))\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\big(u_{S'}-v_{S\to B}-c_B+\gamma E(v_{S'\to B'})\big)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p>Actor-critic</p></td>
@@ -153,11 +153,15 @@ In the scripting language, such restrictions are specified in the parameter <cod
 <td><div class="line-block">
 <div class="line"><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></div>
 <div class="line"><span class="math notranslate nohighlight">\(w_E\)</span></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
 </div>
 </td>
 <td><div class="line-block">
-<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\beta_{E\to B}(u_{S'}+\gamma w_{S'}-w_{S}-c_B)(1-\Pr(S\to B))\)</span></div>
-<div class="line"><span class="math notranslate nohighlight">\(\Delta w_E=\alpha_E (u_{S'}+\gamma w_{S'}-w_{S}-c_B)\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\beta_{E\to B}\big(1-\Pr(S\to B)\big)\delta\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\Delta w_E=\alpha_E \delta\)</span></div>
+<div class="line"><br /></div>
+<div class="line">where <span class="math notranslate nohighlight">\(\delta = u_{S'}+\gamma w_{S'}-w_{S}-c_B\)</span></div>
 </div>
 </td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
