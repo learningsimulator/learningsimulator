@@ -74,7 +74,7 @@ class Script():
         self.script_parser.postcmds.plot()
         if progress is not None:
             progress.close_dlg()
-        plt.show(block)
+        plt.show(block=block)
 
 
 class LineParser():
