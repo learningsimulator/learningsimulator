@@ -130,7 +130,7 @@ this probability distribution. In
 ``Learning Simulator`` a version of the so called *soft-max* rule is used to compute the probabilities:
 
 .. math::
-  \Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}\beta_{E\to B} v_{E\to B} + \mu_{E\to B}\Big)}
+  \Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B} v_{E\to B} + \mu_{E\to B})\Big)}
 
 where the parameters :math:`\beta_{E\to B}` control the extent to which the decision is governed by the
 :math:`v`-values: Smaller :math:`\beta` means more exploration in the reponse decision. The parameter :math:`\mu` may be used for genetic predisposition, for example to increase the probability for a particular response to a particular stimulus element.

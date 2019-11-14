@@ -203,7 +203,7 @@ with a probability <span class="math notranslate nohighlight">\(\Pr(S\rightarrow
 this probability distribution. In
 <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code> a version of the so called <em>soft-max</em> rule is used to compute the probabilities:</p>
 <div class="math notranslate nohighlight">
-\[\Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}\beta_{E\to B} v_{E\to B} + \mu_{E\to B}\Big)}\]</div>
+\[\Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B} v_{E\to B} + \mu_{E\to B})\Big)}\]</div>
 <p>where the parameters <span class="math notranslate nohighlight">\(\beta_{E\to B}\)</span> control the extent to which the decision is governed by the
 <span class="math notranslate nohighlight">\(v\)</span>-values: Smaller <span class="math notranslate nohighlight">\(\beta\)</span> means more exploration in the reponse decision. The parameter <span class="math notranslate nohighlight">\(\mu\)</span> may be used for genetic predisposition, for example to increase the probability for a particular response to a particular stimulus element.</p>
 </div>

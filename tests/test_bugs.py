@@ -1,6 +1,73 @@
 import matplotlib.pyplot as plt
 
-from .testutil import LsTestCase, run
+from .testutil import LsTestCase, run, get_plot_data, unittest
+
+
+class TestGitHubIssues(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    @unittest.skip("Issue 83 not yet fixed")
+    def test_issue83(self):
+        text = '''
+        mechanism             : SR
+        behaviors             : b1, b2
+        stimulus_elements     : s1, s2
+
+        @phase phase_name stop: LINE0=1000
+        LINE0 p:0.5 | LINE1
+        LINE1 s1    | LINE2(p) | LINE0
+        LINE2 s2    | LINE0
+
+        @run phase_name
+        @nplot s2
+        '''
+        script, script_output = run(text)
+        plot_data = get_plot_data()
+        # x = plot_data['x']
+        y = plot_data['y']
+        assert(y[-1] < 550)
+        assert(y[-1] > 450)
+
+        text = '''
+        mechanism             : SR
+        behaviors             : b1, b2
+        stimulus_elements     : s1, s2
+
+        @phase phase_name stop: LINE0=1000
+        LINE0 p:0.5 | LINE1(p) | LINE1
+        LINE1 s1    | LINE2(p) | LINE0
+        LINE2 s2    | LINE0
+
+        @run phase_name
+        @nplot s2
+        '''
+        script, script_output = run(text)
+        plot_data = get_plot_data()
+        # x = plot_data['x']
+        y = plot_data['y']
+        assert(y[-1] < 550)
+        assert(y[-1] > 450)
+
+        # mechanism             : SR
+        # behaviors             : b1, b2
+        # stimulus_elements     : s1, s2
+
+        # @phase phase_name stop: LINE0=p
+        # LINE0 p:5 | LINE1
+        # LINE1 s1    | LINE2(0.5) | LINE0
+        # LINE2 s2    | LINE0
+
+        # @run phase_name
+
+        # @nplot s2
 
 
 class TestFoundBugs(LsTestCase):
