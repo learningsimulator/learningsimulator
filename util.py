@@ -256,6 +256,7 @@ class ParseUtil():
 
     @staticmethod
     def parse_chain(v_str, all_stimulus_elements, all_behaviors):
+        """Parse a chain, for example 's1->b1->s2' and return a list (['s1','b1','s2'])."""
         out = list()
         chain = v_str.replace(' ', '').split('->')
         first_link = chain[0].split(',')
@@ -284,6 +285,28 @@ class ParseUtil():
                 out.append(sb)
             expecting_stimulus = not expecting_stimulus
         return out, None
+
+    @staticmethod
+    def get_ending_dict(string):
+        """
+        Return the rstripped string preceeding the dict at the end of the specified string,
+        and the dict itself if any (otherwise None).
+
+        Example:
+            get_ending_string(" foo  bar    {'a' : 1}")
+            returns " foo  bar", {'a': 1}
+
+            get_ending_string(" foo  bar    {'a' : 1}")
+            returns " foo  bar", None
+        """
+        string_len = len(string)
+        for i in reversed(range(string_len)):
+            candidate = string[i: string_len]
+            is_dict, d = ParseUtil.is_dict(candidate)
+            if is_dict:
+                preceeding_dict = string[0: i].rstrip()  # Strip spaces separating string from dict
+                return preceeding_dict, d
+        return string, None
 
     @staticmethod
     def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors):
@@ -600,9 +623,37 @@ def dict_of_list_ind(d, ind):
 
 
 def find_and_cumsum(seq, pattern, use_exact_match):
-    '''seq is list of strings and tuples.
-       pattern is a string, a tuple of strings or a list of strings and tuples of strings.
-       If use_exact_match is false, count also part of tuples as match.'''
+    '''
+    seq is list of strings and tuples.
+    pattern is a string, a tuple of strings or a list of strings and tuples of strings.
+    If use_exact_match is false, count also part of tuples as match.
+    '''
+    def _is_match(seq, pattern, use_exact_match):
+        for i in range(len(seq)):
+            if not _is_match_local(seq[i], pattern[i], use_exact_match):
+                return False
+        return True
+
+    def _is_match_local(st, pattern, use_exact_match):
+        st_type = type(st)
+        pattern_type = type(pattern)
+        if pattern_type is tuple:
+            if st_type is tuple:
+                if use_exact_match:
+                    return set(st) == set(pattern)
+                else:
+                    return set(pattern).issubset(set(st))
+            else:
+                return False
+        else:
+            if st_type is tuple:
+                if use_exact_match:
+                    return False
+                else:
+                    return pattern in st
+            else:
+                return pattern == st
+
     assert(type(seq) == list)
     for s in seq:
         s_type = type(s)
@@ -620,13 +671,13 @@ def find_and_cumsum(seq, pattern, use_exact_match):
         for p in pattern:
             assert((type(p) is str) or (type(p) is tuple))
         pattern_list = pattern
-    else:
+    else:  # pattern_type is str
         pattern_list = [pattern]
 
     seq_len = len(seq)
 
     findind = [0] * seq_len
-    cumsum = [None] * seq_len
+    cumsum_out = [None] * seq_len
     cumsum_curr = 0
     # pattern_is_tuple = (pattern_type is tuple)
     for i in range(seq_len - pattern_len + 1):
@@ -634,41 +685,43 @@ def find_and_cumsum(seq, pattern, use_exact_match):
         if _is_match(seqpart, pattern_list, use_exact_match):  # , pattern_is_tuple):
             findind[i] = 1
             cumsum_curr += 1
-        cumsum[i] = cumsum_curr
+        cumsum_out[i] = cumsum_curr
     # The last indices for which the pattern is too long will be counted as no match:
     for i in range(seq_len - pattern_len + 1, seq_len):
         findind[i] = 0
-        cumsum[i] = cumsum_curr
+        cumsum_out[i] = cumsum_curr
 
-    return findind, cumsum
-
-
-def _is_match(seq, pattern, use_exact_match):
-    for i in range(len(seq)):
-        if not _is_match_local(seq[i], pattern[i], use_exact_match):
-            return False
-    return True
+    return findind, cumsum_out
 
 
-def _is_match_local(st, pattern, use_exact_match):
-    st_type = type(st)
-    pattern_type = type(pattern)
-    if pattern_type is tuple:
-        if st_type is tuple:
-            if use_exact_match:
-                return set(st) == set(pattern)
-            else:
-                return set(pattern).issubset(set(st))
-        else:
-            return False
-    else:
-        if st_type is tuple:
-            if use_exact_match:
-                return False
-            else:
-                return pattern in st
-        else:
-            return pattern == st
+def find_and_cumsum_interval(seq, pattern, use_exact_match, interval_pattern):
+    """
+    Return the number of occurances of pattern in seq, between every two consecutive
+    occurrences of interval_pattern.
+
+    Example:
+        find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X')
+        returns [2, 1, 0]
+    """
+    ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)
+    ind_int, _ = find_and_cumsum(seq, interval_pattern, True)
+    cnt = 0
+    out = list()
+    for i in range(len(ind_seq)):
+        cnt += ind_seq[i]
+        if ind_int[i] == 1:
+            out.append(cnt)
+            cnt = 0
+    return out, cumsum(out)
+
+
+def cumsum(arr):
+    out = [None] * len(arr)
+    curr = 0
+    for i, x in enumerate(arr):
+        curr += x
+        out[i] = curr
+    return out
 
 
 def arraydivide(num, den):

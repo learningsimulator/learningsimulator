@@ -384,15 +384,12 @@ class ScriptParser():
         cmd = linesplit_space[0]
         if len(linesplit_space) == 1:  # @plot
             raise ParseException(lineno, f"Invalid {cmd} command.")
-        args = linesplit_space[1]
-        expr0, mpl_prop_str = ParseUtil.split1_strip(args)
-        expr = expr0
-        if mpl_prop_str is None:
+
+        expr0, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+        if mpl_prop is None:
             mpl_prop = dict()
-        else:
-            is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
-            if not is_dict:
-                raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
+
+        expr = expr0
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
@@ -406,17 +403,6 @@ class ScriptParser():
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
             raise ParseException(lineno, err)
-            # expr = ParseUtil._arrow2tuple_np(expr0, self.parameters.get(kw.STIMULUS_ELEMENTS))
-
-            # # util.find_and_cumsum takes list
-            # expr = list(expr)
-
-            # # Single-element stimuli are written to history as strings, so ('s',) in expr won't
-            # # match 's' in history, so change ('s',) to 's' in expr
-            # for i, _ in enumerate(expr):
-            #     if type(expr[i]) is tuple and len(expr[i]) == 1:
-            #         expr[i] = expr[i][0]
-
         return expr, mpl_prop, expr0
 
     def _parse_subplot(self, lineno, linesplit_space):
@@ -428,26 +414,20 @@ class ScriptParser():
         @subplot subplotspec title {mpl_prop}
         """
         title_param = self.parameters.get(kw.SUBPLOTTITLE)
+
         if len(linesplit_space) == 1:  # @subplot
             subplotspec = '111'
             title = title_param
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @subplot ...
-            args = linesplit_space[1]
-            subplotspec, title_mplprop = ParseUtil.split1_strip(args)
-            if title_mplprop is None:  # @subplot subplotspec
-                title = title_param
+            args, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+            if mpl_prop is None:
                 mpl_prop = dict()
+            subplotspec, title_line = ParseUtil.split1_strip(args)
+            if title_line is None:  # @subplot subplotspec
+                title = title_param
             else:
-                title, mpl_prop_str = ParseUtil.split1_strip(title_mplprop)
-                if mpl_prop_str is None:
-                    is_dict, mpl_prop = ParseUtil.is_dict(title)
-                    if not is_dict:
-                        mpl_prop = dict()
-                else:
-                    is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
-                    if not is_dict:
-                        raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
+                title = title_line
         return subplotspec, title, mpl_prop
 
     def _parse_figure(self, lineno, linesplit_space):
@@ -461,19 +441,9 @@ class ScriptParser():
         if len(linesplit_space) == 1:  # @figure
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @figure args
-            args = linesplit_space[1].split()
-            nargs = len(args)
-            found_dict = False
-            for i in range(nargs - 1, 0, -1):
-                candidate = ''.join(args[i: nargs])
-                found_dict, d = ParseUtil.is_dict(candidate)
-                if found_dict:
-                    mpl_prop = d
-                    title = ' '.join(args[0: i])
-                    break
-            if not found_dict:
+            title, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+            if mpl_prop is None:
                 mpl_prop = dict()
-                title = ' '.join(linesplit_space[1:])
         return title, mpl_prop
 
     def _parse_run(self, after_run, lineno):
