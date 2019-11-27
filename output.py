@@ -333,16 +333,16 @@ class RunOutputSubject():
 
     def _xscalefilter(self, evalout, history, phase_line_labels, phase_line_labels_steps,
                       parameters):
-        eval_steps = parameters.get(kw.XSCALE)
-        if eval_steps == kw.EVAL_ALL:
+        xscale = parameters.get(kw.XSCALE)
+        if xscale == kw.EVAL_ALL:
             return evalout
         else:
-            if eval_steps in phase_line_labels:  # xscale is a phase line label
+            if xscale in phase_line_labels:  # xscale is a phase line label
                 # Because the first update is done after S->B->S'
                 phase_line_labels = phase_line_labels[2:]
                 phase_line_labels_steps = [x - 1 for x in phase_line_labels_steps[2:]]
 
-                findind, cumsum = util.find_and_cumsum(phase_line_labels, eval_steps, True)
+                findind, cumsum = util.find_and_cumsum(phase_line_labels, xscale, True)
                 out = [evalout[0]]  # evalout[0] must be kept
                 for pll_ind, zero_or_one in enumerate(findind):
                     if zero_or_one == 1:
@@ -350,7 +350,7 @@ class RunOutputSubject():
                         out.append(evalout[evalout_ind])
                 return out
             else:
-                pattern = eval_steps
+                pattern = xscale
                 pattern_len = RunOutputSubject.compute_patternlen(pattern)
                 use_exact_match = (parameters.get(kw.XSCALE_MATCH) == 'exact')
                 # history[2:] because the first update is done after S->B->S'
@@ -410,60 +410,25 @@ class RunOutputSubject():
         return out
 
     @staticmethod
-    def n_eval(seqs, history, phase_line_labels, parameters):
-        seqstype = type(seqs)
-        if seqstype is not tuple:
-            seqs = (seqs, None)
-        seq = seqs[0]
-        seqref = seqs[1]
-        is_exact_n_match = (parameters.get(kw.MATCH) == kw.EVAL_EXACT)
+    def n_eval(seq, history, phase_line_labels, parameters):
+        is_exact = (parameters.get(kw.MATCH) == kw.EVAL_EXACT)
         is_cumulative = (parameters.get(kw.EVAL_CUMULATIVE) == kw.EVAL_ON)
-        findind_seq, cumsum_seq = util.find_and_cumsum(history, seq, is_exact_n_match)
-
         xscale = parameters.get(kw.XSCALE)
-        all_steps = (xscale == kw.EVAL_ALL)
-        findind_steps = list()
-        if not all_steps:
+
+        out = None
+        if (xscale == kw.EVAL_ALL):
+            if is_cumulative:
+                _, out = util.find_and_cumsum(history, seq, is_exact)
+            else:
+                out, _ = util.find_and_cumsum(history, seq, is_exact)
+        else:
             if xscale in phase_line_labels:  # xscale is a phase line label
                 raise Exception("xscale cannot be a phase line label in @nplot/@nexport.")
-                findind_pll, _ = util.find_and_cumsum(phase_line_labels, xscale, True)
-
-                # findind_steps has length (number of visited phase line labels, including help
-                # lines) - change to len(history) by adding zeros in the response positions
-                findind_steps = [0] * len(history)
-                for ind_pll, zero_or_one in enumerate(findind_pll):
-                    if zero_or_one == 1:
-                        steps_ind = 0  # phase_line_labels_steps[ind_pll]
-                        findind_steps[steps_ind] = 1
+            if is_cumulative:
+                _, out = util.find_and_cumsum_interval(history, seq, is_exact, xscale)
             else:
-                is_exact_xscale_match = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
-                findind_steps, _ = util.find_and_cumsum(history, xscale, is_exact_xscale_match)
-
-        out_seq = RunOutputSubject.n_eval_out(findind_seq, cumsum_seq, findind_steps,
-                                              is_cumulative, all_steps)
-        if seqref is None:
-            out = out_seq
-        else:
-            findind_seqref, cumsum_seqref = util.find_and_cumsum(history, seqref, is_exact_n_match)
-            out_seqref = RunOutputSubject.n_eval_out(findind_seqref, cumsum_seqref, findind_steps,
-                                                     is_cumulative, all_steps)
-            out = util.arraydivide(out_seq, out_seqref)
+                out, _ = util.find_and_cumsum_interval(history, seq, is_exact, xscale)
         return [0] + out
-
-    @staticmethod
-    def n_eval_out(findind_n, cumsum, findind_steps, is_cumulative, all_steps):
-        if is_cumulative:
-            if all_steps:
-                out = cumsum
-            else:
-                out = util.arrayind(cumsum, findind_steps)
-        else:
-            if all_steps:
-                out = findind_n
-            else:
-                # out = util.diff(cumsum, findind_steps)
-                out = util.arrayind(findind_n, findind_steps)
-        return out
 
     def printout(self):
         print("\n")

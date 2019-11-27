@@ -524,12 +524,14 @@ class Parameters():
                     self.val[kw.RESPONSE_REQUIREMENTS][b] = set(self.val[kw.STIMULUS_ELEMENTS])
 
             # Check that all stimulus elements has at least one feasible response
-            # if set(self.val[kw.RESPONSE_REQUIREMENTS]) != self.val[kw.STIMULUS_ELEMENTS]:
-            #     elements_without_response = self.val[kw.STIMULUS_ELEMENTS] - set(self.val[kw.RESPONSE_REQUIREMENTS])
-            #     return f"Invalid response_requirements: Stimulus elements
-            # {elements_without_response} has no possible responses."
+            stimulus_elements_in_rr = []
+            for stimulus_list in self.val[kw.RESPONSE_REQUIREMENTS].values():
+                stimulus_elements_in_rr.extend(stimulus_list)
+            if set(stimulus_elements_in_rr) != set(self.val[kw.STIMULUS_ELEMENTS]):
+                elements_without_response = set(self.val[kw.STIMULUS_ELEMENTS]) - set(stimulus_elements_in_rr)
+                return f"Invalid {kw.RESPONSE_REQUIREMENTS}: Stimulus elements {elements_without_response} have no possible responses."
 
-        return None
+        return None  # No error
 
     def _response_requirements_add_element(self, b, e):
         if self.val[kw.RESPONSE_REQUIREMENTS][b] is None:
