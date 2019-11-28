@@ -3,7 +3,7 @@ import os
 import keywords as kw
 import mechanism_names as mn
 import mechanism
-from util import ParseUtil
+from util import ParseUtil, make_readable_list_of_strings
 
 # All parameters and their defaults.
 PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings                  , REQ
@@ -523,13 +523,20 @@ class Parameters():
                 if self.val[kw.RESPONSE_REQUIREMENTS][b] is None:
                     self.val[kw.RESPONSE_REQUIREMENTS][b] = set(self.val[kw.STIMULUS_ELEMENTS])
 
-            # Check that all stimulus elements has at least one feasible response
+            # Check that each stimulus element has at least one feasible response
             stimulus_elements_in_rr = []
             for stimulus_list in self.val[kw.RESPONSE_REQUIREMENTS].values():
                 stimulus_elements_in_rr.extend(stimulus_list)
             if set(stimulus_elements_in_rr) != set(self.val[kw.STIMULUS_ELEMENTS]):
                 elements_without_response = set(self.val[kw.STIMULUS_ELEMENTS]) - set(stimulus_elements_in_rr)
-                return f"Invalid {kw.RESPONSE_REQUIREMENTS}: Stimulus elements {elements_without_response} have no possible responses."
+                elements_without_response = list(elements_without_response)
+                elements_without_response.sort()  # To make error message testable
+                elements_without_response_str = make_readable_list_of_strings(elements_without_response)
+                err = f"Invalid {kw.RESPONSE_REQUIREMENTS}: "
+                if len(elements_without_response) == 1:
+                    return err + f"Stimulus element {elements_without_response_str} has no possible responses."
+                else:
+                    return err + f"Stimulus elements {elements_without_response_str} have no possible responses."
 
         return None  # No error
 

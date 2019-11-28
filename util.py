@@ -539,6 +539,20 @@ def strip_quotes(string):
     return string_out
 
 
+def make_readable_list_of_strings(input_list):
+    """Return the string "'a', 'b' and 'c'" for the input ['a', 'b', 'c']."""
+    out = "'" + input_list[0] + "'"
+    list_length = len(input_list)
+    if list_length > 1:
+        for i in range(1, list_length):
+            s = input_list[i]
+            if i == list_length - 1:
+                out += " and " + "'" + s + "'"
+            else:
+                out += ", " + "'" + s + "'"
+    return out
+
+
 def weighted_choice(prob_cumsum):
     '''
        Returns index into prob_cumsum, chosen at random with probabilities given by prob_cumsum.
