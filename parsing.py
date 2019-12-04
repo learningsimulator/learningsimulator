@@ -538,25 +538,34 @@ class PlotCmd(PostCmd):
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
-            legend_label = f"v({self.expr0})"
+            default_label = f"v({self.expr0})"
         elif self.cmd == kw.VSSPLOT:
             ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
-            legend_label = f"vss({self.expr0})"
+            default_label = f"vss({self.expr0})"
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
-            legend_label = f"w({self.expr0})"
+            default_label = f"w({self.expr0})"
         elif self.cmd == kw.PPLOT:
             ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
-            legend_label = f"p({self.expr0})"
+            default_label = f"p({self.expr0})"
         elif self.cmd == kw.NPLOT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
-            legend_label = f"n({self.expr0})"
+            default_label = f"n({self.expr0})"
+
+        if 'label' in self.mpl_prop:
+            legend_label = self.mpl_prop['label']
+            self.mpl_prop.pop('label')
+        else:
+            legend_label = default_label
 
         if self.parameters.get(kw.SUBJECT) == kw.EVAL_ALL:
             self.ydata_list = ydata
             self.plot_args_list = list()
             for i, _ in enumerate(ydata):
-                subject_legend_label = f"{legend_label}, subject {i}"
+                if len(legend_label) > 0:
+                    subject_legend_label = f"{legend_label}, subject {i + 1}"
+                else:
+                    subject_legend_label = f"subject {i + 1}"
                 plot_args = dict({'label': subject_legend_label}, **self.mpl_prop)
                 # plt.plot(subject_ydata, **plot_args)
                 self.plot_args_list.append(plot_args)
