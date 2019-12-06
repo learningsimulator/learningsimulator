@@ -461,6 +461,7 @@ class Progress():
             if not self.done:  # Don't show dlg if progress is done
                 self.dlg.update()
                 self.dlg.deiconify()
+                self.dlg.grab_set()  # update and/or deiconify seem to "demodularize" self.dlg
         else:
             self.dlg.withdraw()
 
