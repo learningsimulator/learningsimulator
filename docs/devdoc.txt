@@ -1,0 +1,37 @@
+******************
+Install matplotlib
+******************
+
+python -m pip install -U pip
+python -m pip install -U matplotlib
+
+
+*******************
+Run tests like this
+*******************
+
+Ubuntu (med Python 3.6):
+========================
+
+Run a specific test file:
+-------------------------
+markus-laptop:~/lesim/lesim2$ python -m unittest -v tests/test_beta.py
+
+Run all test files
+------------------
+markus-laptop:~/lesim/lesim2$ python -m unittest -v tests/test_*.py
+
+
+Windows (med Python 3.8):
+=========================
+
+Run a specific test file:
+-------------------------
+C:\Users\markj\lesim>C:\Python\Python38\python.exe -m unittest -v tests/test_beta.py
+
+Run all test files (that starts with "test_")
+---------------------------------------------
+Make sure there is an empty file __init__.py in the test folder
+C:\Users\markj\lesim> C:\Python\Python38\python.exe -m unittest
+
+
