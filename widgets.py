@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.font as tkFont
 from tkinter import Canvas  # , Frame
 from tkinter.scrolledtext import ScrolledText
 from tkinter.constants import YES  # , BOTH
@@ -9,9 +10,10 @@ from tkinter.constants import YES  # , BOTH
 
 
 class TextBoxLineNumbers(Canvas):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, font, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_box = None
+        self.font = font
 
     def redraw(self):
         self.delete("all")
@@ -22,9 +24,13 @@ class TextBoxLineNumbers(Canvas):
             if dline is None:
                 break
             y = dline[1]
-            linenum = str(i).split(".")[0]
-            self.create_text(2, y, anchor="nw", text=linenum)
+            line_number = str(i).split(".")[0]
+            self.create_text(2, y, anchor="nw", text=line_number, font=self.font)
             i = self.text_box.index("%s+1line" % i)
+
+    def set_font(self, font):
+        self.font = font
+        self.redraw()
 
 
 class TextBox(ScrolledText):
@@ -49,6 +55,13 @@ class TextBox(ScrolledText):
         # self['yscrollcommand'] = self.yscroll
         # self.vbar.config(command=self.yview)
         super().focus_set()  # Set focus to the TextBox
+
+    def set_font(self, font):
+        super().config(font=font)
+
+    def get_current_font(self):
+        font_obj = tkFont.Font(font=self['font']).actual()
+        return (font_obj['family'], font_obj['size'])
 
     def undo(self, event=None):
         try:
@@ -85,17 +98,35 @@ class LineNumberedTextBox():
     def __init__(self, frame):
         self.text_box = TextBox(frame)
         # self.text_box.vbar.config(command=self.text_box.yview)
-        self.line_numbers = TextBoxLineNumbers(frame, width=30, highlightthickness=1, bd=1)
+        self.font = self.text_box.get_current_font()
+        self.line_numbers = TextBoxLineNumbers(self.font, frame, width=30, highlightthickness=1, bd=1)
+
         self.text_box.attach(self.line_numbers)
 
         self.line_numbers.pack(side="left", fill="y")
         self.text_box.pack(side="right", fill="both", expand=YES)
+
+        self.text_box.bind("<Control-+>", self.increase_fontsize)
+        self.text_box.bind("<Control-minus>", self.decrease_fontsize)
 
     def redraw_line_numbers(self):
         self.text_box.redraw_line_numbers()
 
     def bind(self, acc, fcn):
         self.text_box.bind(acc, fcn)
+
+    def increase_fontsize(self, event=None):
+        self.font = (self.font[0], self.font[1] + 1)
+        self._update_font()
+
+    def decrease_fontsize(self, event=None):
+        self.font = (self.font[0], self.font[1] - 1)
+        self._update_font()
+
+    def _update_font(self):
+        self.text_box.set_font(self.font)
+        self.line_numbers.set_font(self.font)
+        self.redraw_line_numbers()
 
 
 class ErrorDlg(tk.Toplevel):
