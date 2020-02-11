@@ -597,6 +597,7 @@ class PlotData():
         for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
             plt.plot(ydata, **plot_args)
         plt.grid(True)
+        plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem)
 
 
 class ExportCmd(PostCmd):
