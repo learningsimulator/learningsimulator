@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Install matplotlib &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="install-matplotlib">
+<h1>Install matplotlib<a class="headerlink" href="#install-matplotlib" title="Permalink to this headline">¶</a></h1>
+<p>python -m pip install -U pip
+python -m pip install -U matplotlib</p>
+</div>
+<div class="section" id="run-tests-like-this">
+<h1>Run tests like this<a class="headerlink" href="#run-tests-like-this" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ubuntu-med-python-3-6">
+<h2>Ubuntu (med Python 3.6):<a class="headerlink" href="#ubuntu-med-python-3-6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="run-a-specific-test-file">
+<h3>Run a specific test file:<a class="headerlink" href="#run-a-specific-test-file" title="Permalink to this headline">¶</a></h3>
+<p>markus-laptop:~/lesim/lesim2$ python -m unittest -v tests/test_beta.py</p>
+</div>
+<div class="section" id="run-all-test-files">
+<h3>Run all test files<a class="headerlink" href="#run-all-test-files" title="Permalink to this headline">¶</a></h3>
+<p>markus-laptop:~/lesim/lesim2$ python -m unittest -v tests/test_*.py</p>
+</div>
+</div>
+<div class="section" id="windows-med-python-3-8">
+<h2>Windows (med Python 3.8):<a class="headerlink" href="#windows-med-python-3-8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Run a specific test file:<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>C:Usersmarkjlesim&gt;C:Python38python.exe -m unittest -v tests/test_beta.py</p>
+</div>
+<div class="section" id="run-all-test-files-that-starts-with-test">
+<h3>Run all test files (that starts with “<a href="#id2"><span class="problematic" id="id3">test_</span></a>”)<a class="headerlink" href="#run-all-test-files-that-starts-with-test" title="Permalink to this headline">¶</a></h3>
+<p>Make sure there is an empty file __init__.py in the test folder
+C:Usersmarkjlesim&gt; C:Python38python.exe -m unittest</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Install matplotlib</a></li>
+<li><a class="reference internal" href="#run-tests-like-this">Run tests like this</a><ul>
+<li><a class="reference internal" href="#ubuntu-med-python-3-6">Ubuntu (med Python 3.6):</a><ul>
+<li><a class="reference internal" href="#run-a-specific-test-file">Run a specific test file:</a></li>
+<li><a class="reference internal" href="#run-all-test-files">Run all test files</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-med-python-3-8">Windows (med Python 3.8):</a><ul>
+<li><a class="reference internal" href="#id1">Run a specific test file:</a></li>
+<li><a class="reference internal" href="#run-all-test-files-that-starts-with-test">Run all test files (that starts with “test_”)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/devdoc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.2.
+    </div>
+  </body>
+</html>
