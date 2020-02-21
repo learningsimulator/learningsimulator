@@ -1,6 +1,7 @@
 import threading
 import traceback
 import os
+import sys
 import webbrowser
 # import matplotlib
 from matplotlib import pyplot as plt
@@ -13,9 +14,11 @@ from tkinter import messagebox, filedialog
 
 # import matplotlib.pyplot as plt
 
-from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg
+from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg
 from parsing import Script
 from exceptions import ParseException, InterruptedSimulation
+
+import util
 
 # matplotlib.use('Agg')
 
@@ -47,16 +50,19 @@ class Gui():
         self._bind_accelerators()
 
         # Set icon
-        # self.root.iconbitmap('/home/markus/lesim/lesim2/gui/Lemur-icon.gif')
-
-        curr_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_file = curr_dir + '/Lemur-icon.gif'
+        icon_file = util.resource_path('Lemur-icon.gif')
         img = tk.PhotoImage(file=icon_file)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 
         self.root.minsize(width=500, height=800)
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
+
+        # When run in bundle, display licene dialog box
+        is_bundle = getattr(sys, 'frozen', False)
+        if is_bundle:
+            LicenseDlg(self)
+
         self.root.mainloop()
         self.root.quit()
 
@@ -93,6 +99,7 @@ class Gui():
         help_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
         help_menu.add_command(label="Documentation", underline=0, command=self.open_documentation,
                               accelerator="F1")
+        help_menu.add_command(label="License", underline=0, command=self.open_licensedlg)
         self.menu_bar.add_cascade(label="Help", underline=0, menu=help_menu)
 
         self.root.config(menu=self.menu_bar)
@@ -406,15 +413,19 @@ class Gui():
         self.root.bind("<F5>", self.simulate_thread)
         self.root.bind("<F1>", self.open_documentation)
 
-    def undo(self):
+    def undo(self, event=None):
         self.scriptField.undo()
 
-    def redo(self):
+    def redo(self, event=None):
         self.scriptField.redo()
 
     def open_documentation(self, event=None):
-        url = "./docs/_build/html/index.html"
+        SEP = os.path.sep
+        url = f".{SEP}docs{SEP}_build{SEP}html{SEP}index.html"
         webbrowser.open(url, new=True)
+
+    def open_licensedlg(self):
+        LicenseDlg(self, include_agree_buttons=False)
 
 
 class Progress():

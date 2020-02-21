@@ -1,9 +1,8 @@
-# import cProfile
+import sys
 
 import gui
 import parsing
 
-import sys
 
 GUI = "gui"
 RUN = "run"
@@ -30,8 +29,10 @@ if __name__ == "__main__":
     args = sys.argv
     nargs = len(args)
     assert(nargs >= 1)
-    if not getattr(sys, 'frozen', False):
+    is_bundle = getattr(sys, 'frozen', False)
+    if not is_bundle:
         assert(args[0].endswith("lesim.py"))
+
     guiObj = None
     if nargs == 1:
         guiObj = gui.Gui()

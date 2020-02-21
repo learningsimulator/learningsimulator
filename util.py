@@ -1,6 +1,8 @@
 import ast
 import re
 import random
+import os
+import sys
 
 
 def rand(start, stop):
@@ -807,3 +809,13 @@ def dict_inv(d_in):
             if v in val:
                 d_out[v].append(key)
     return d_out
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
