@@ -333,7 +333,12 @@ class LicenseDlg(tk.Toplevel):
 
     @staticmethod
     def _get_text():
-        return """The souce code for this software is hosted on GitHub under the MIT license stated below. It is is built using
+        return """Learning Simulator is developed at Centre for Cultural Evolution at Stockholm University.
+When using this software in research, please cite it as
+    Jonsson, Ghirlanda, Lind, Enquist, Learning Simulator, (2020), GitHub repository,
+    https://github.com/learningsimulator/learningsimulator.
+
+The souce code for this software is hosted on GitHub under the MIT license stated below. It is is built using
 - Python(R) (Copyright © 2001-2020 Python Software Foundation (PSF); All Rights Reserved)
 - Matplotlib (Copyright © 2012-2020 Matplotlib Development Team (MDT); All Rights Reserved)
 
