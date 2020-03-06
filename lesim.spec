@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['lesim.pyw'],
+a = Analysis(['lesim.py'],
              pathex=['C:\\Users\\markj\\lesim\\lesim2'],
              binaries=[],
              datas=[('Lemur-icon.gif', '.')],
