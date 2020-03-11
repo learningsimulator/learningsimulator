@@ -11,6 +11,7 @@ ALPHA_W = 'alpha_w'
 BETA = 'beta'
 MU = 'mu'
 DISCOUNT = 'discount'
+TRACE = 'trace'
 BEHAVIOR_COST = 'behavior_cost'
 U = 'u'
 LAMBDA = 'lambda'
@@ -65,6 +66,7 @@ KEYWORDS = (BEHAVIORS,
             BETA,
             MU,
             DISCOUNT,
+            TRACE,
             BEHAVIOR_COST,
             U,
             LAMBDA,
