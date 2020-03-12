@@ -472,7 +472,6 @@ class Enquist(Mechanism):
             self.w[element] += delta
 
     def learn_i(self, stimulus):
-        print(f"stimulus={stimulus}")
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_w = self.parameters.get(kw.ALPHA_W)
