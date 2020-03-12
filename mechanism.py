@@ -53,7 +53,7 @@ class Mechanism():
         for s in self.stimulus_intensities:
             self.stimulus_intensities[s] *= self.trace
         for s in stimulus:
-            if self.parameters.get(kw.FILENAME) == '+':
+            if self.parameters.get(kw.FILENAME) == '+':  # XXX temporary
                 self.stimulus_intensities[s] += 1
             else:
                 self.stimulus_intensities[s] = 1
@@ -65,6 +65,7 @@ class Mechanism():
         #     if e in self.omit_learning:
         #         element_in_omit = True
         #         break
+
         if self.use_trace:
             self._update_stimulus_intensities(stimulus)
 
@@ -190,8 +191,8 @@ class RescorlaWagner(Mechanism):
 
         usum, vsum = 0, 0
         for element in stimulus:  # self.stimulus_intensities:
-            intensity = self.stimulus_intensities[element]
-            usum += u[element] * intensity
+            # intensity = self.stimulus_intensities[element]
+            usum += u[element]  # * intensity
         for element in self.prev_stimulus:
             intensity = self.prev_stimulus_intensities[element]
             vsum += self.v[(element, self.response)] * intensity
@@ -471,6 +472,7 @@ class Enquist(Mechanism):
             self.w[element] += delta
 
     def learn_i(self, stimulus):
+        print(f"stimulus={stimulus}")
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_w = self.parameters.get(kw.ALPHA_W)
@@ -478,22 +480,22 @@ class Enquist(Mechanism):
         discount = self.parameters.get(kw.DISCOUNT)
 
         vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
-        for element in stimulus:
+        for element in self.prev_stimulus:
             intensity = self.prev_stimulus_intensities[element]
             vsum_prev += self.v[(element, self.response)] * intensity
             wsum_prev += self.w[element] * intensity
         for element in stimulus:
-            intensity = self.stimulus_intensities[element]
-            usum += u[element] * intensity
-            wsum += self.w[element] * intensity
+            # intensity = self.stimulus_intensities[element]
+            usum += u[element]  # * intensity
+            wsum += self.w[element]  # * intensity
         # v
-        for element in self.prev_stimulus_intensities:
+        for element in self.prev_stimulus:
             alpha_v_er = alpha_v[(element, self.response)]
             intensity = self.prev_stimulus_intensities[element]
             delta = alpha_v_er * (usum + discount * wsum - c[self.response] - vsum_prev) * intensity
             self.v[(element, self.response)] += delta
         # w
-        for element in stimulus:
+        for element in self.prev_stimulus:
             intensity = self.prev_stimulus_intensities[element]
             delta = alpha_w[element] * (usum + discount * wsum - c[self.response] - wsum_prev) * intensity
             self.w[element] += delta
