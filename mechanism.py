@@ -44,10 +44,13 @@ class Mechanism():
         self.response = None
 
         if self.use_trace:
-            for s in self.stimulus_intensities:
-                self.stimulus_intensities[s] = 0
-            for s in self.prev_stimulus_intensities:
-                self.prev_stimulus_intensities[s] = 0
+            self._reset_trace()
+
+    def _reset_trace(self):
+        for s in self.stimulus_intensities:
+            self.stimulus_intensities[s] = 0
+        for s in self.prev_stimulus_intensities:
+            self.prev_stimulus_intensities[s] = 0
 
     def _update_stimulus_intensities(self, stimulus):
         for s in self.stimulus_intensities:
@@ -59,17 +62,13 @@ class Mechanism():
                 self.stimulus_intensities[s] = 1
 
     def learn_and_respond(self, stimulus, omit=False):
-        """stimulus is a tuple."""
-        # element_in_omit = False
-        # for e in stimulus:
-        #     if e in self.omit_learning:
-        #         element_in_omit = True
-        #         break
-
         if self.use_trace:
             self._update_stimulus_intensities(stimulus)
 
-        if self.prev_stimulus is not None and not omit:  # Do not update if first time or if omit
+        if self.prev_stimulus is None or omit:  # Do not update if first time or if omit
+            if self.use_trace:
+                self._reset_trace()  # XXX To avoid a "chaining-effect" in e.g. SR-learning
+        else:
             if self.use_trace:
                 self.learn_i(stimulus)
             else:
@@ -188,18 +187,26 @@ class RescorlaWagner(Mechanism):
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
+        stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
-        usum, vsum = 0, 0
-        for element in stimulus:  # self.stimulus_intensities:
+        usum, vsum_i = 0, 0
+        for element in stimulus:
             # intensity = self.stimulus_intensities[element]
             usum += u[element]  # * intensity
         for element in self.prev_stimulus:
-            intensity = self.prev_stimulus_intensities[element]
-            vsum += self.v[(element, self.response)] * intensity
-        for element in self.prev_stimulus:
+            intensity = 1  # self.prev_stimulus_intensities[element]
+            vsum_i += self.v[(element, self.response)] * intensity
+
+        trace = 0
+        for element in stimulus_elements:
+            if element not in stimulus:
+                intensity = self.stimulus_intensities[element]
+                trace += self.v[(element, self.response)] * intensity
+
+        for element in self.prev_stimulus:  # stimulus_elements:
             alpha_v_er = alpha_v[(element, self.response)]
-            intensity = self.prev_stimulus_intensities[element]
-            delta = alpha_v_er * (usum - vsum - c[self.response]) * intensity
+            intensity = 1  # self.stimulus_intensities[element]
+            delta = alpha_v_er * (usum - vsum_i - c[self.response] - trace) * intensity
             self.v[(element, self.response)] += delta
 
 # class SARSA(Mechanism):
@@ -477,26 +484,37 @@ class Enquist(Mechanism):
         alpha_w = self.parameters.get(kw.ALPHA_W)
         alpha_v = self.parameters.get(kw.ALPHA_V)
         discount = self.parameters.get(kw.DISCOUNT)
+        stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
-        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
-        for element in self.prev_stimulus:
-            intensity = self.prev_stimulus_intensities[element]
-            vsum_prev += self.v[(element, self.response)] * intensity
-            wsum_prev += self.w[element] * intensity
+        usum, wsum = 0, 0
         for element in stimulus:
-            # intensity = self.stimulus_intensities[element]
-            usum += u[element]  # * intensity
-            wsum += self.w[element]  # * intensity
-        # v
+            usum += u[element]
+            wsum += self.w[element]
+        wsum *= discount
+
+        vsum_i, wsum_i = 0, 0
         for element in self.prev_stimulus:
+            intensity = 1  # self.prev_stimulus_intensities[element]
+            vsum_i += self.v[(element, self.response)] * intensity
+            wsum_i += self.w[element] * intensity
+
+        trace = 0
+        for element in stimulus_elements:
+            if element not in stimulus:
+                intensity = self.stimulus_intensities[element]
+                trace += self.v[(element, self.response)] * intensity
+
+        # v
+        for element in self.prev_stimulus:  # stimulus_elements:
             alpha_v_er = alpha_v[(element, self.response)]
-            intensity = self.prev_stimulus_intensities[element]
-            delta = alpha_v_er * (usum + discount * wsum - c[self.response] - vsum_prev) * intensity
+            intensity = 1  # self.stimulus_intensities[element]
+            delta = alpha_v_er * (usum + wsum - c[self.response] - vsum_i - trace) * intensity
             self.v[(element, self.response)] += delta
         # w
-        for element in self.prev_stimulus:
-            intensity = self.prev_stimulus_intensities[element]
-            delta = alpha_w[element] * (usum + discount * wsum - c[self.response] - wsum_prev) * intensity
+        for element in self.prev_stimulus:  # stimulus_elements:
+            alpha_w_e = alpha_w[element]
+            intensity = 1  # self.stimulus_intensities[element]  # prev?
+            delta = alpha_w_e * (usum + wsum - c[self.response] - wsum_i) * intensity
             self.w[element] += delta
 
     def has_w(self):
