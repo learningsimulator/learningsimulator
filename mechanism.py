@@ -35,11 +35,6 @@ class Mechanism():
     def subject_reset(self):
         self.v = dict(self.parameters.get(kw.START_V))
         self.w = dict(self.parameters.get(kw.START_W))
-
-        # self.v = dict(parameters.get(kw.START_V))
-        # self.w = dict(parameters.get(kw.START_W))
-        # self._initialize_v()
-        # self._initialize_w()
         self.prev_stimulus = None
         self.response = None
 
@@ -56,18 +51,16 @@ class Mechanism():
         for s in self.stimulus_intensities:
             self.stimulus_intensities[s] *= self.trace
         for s in stimulus:
-            if self.parameters.get(kw.FILENAME) == '+':  # XXX temporary
-                self.stimulus_intensities[s] += 1
-            else:
-                self.stimulus_intensities[s] = 1
+            self.stimulus_intensities[s] += 1
 
     def learn_and_respond(self, stimulus, omit=False):
         if self.use_trace:
             self._update_stimulus_intensities(stimulus)
 
         if self.prev_stimulus is None or omit:  # Do not update if first time or if omit
-            if self.use_trace:
-                self._reset_trace()  # XXX To avoid a "chaining-effect" in e.g. SR-learning
+            # if self.use_trace:
+            #     self._reset_trace()  # XXX To avoid a "chaining-effect" in e.g. SR-learning
+            pass
         else:
             if self.use_trace:
                 self.learn_i(stimulus)
@@ -191,22 +184,14 @@ class RescorlaWagner(Mechanism):
 
         usum, vsum_i = 0, 0
         for element in stimulus:
-            # intensity = self.stimulus_intensities[element]
-            usum += u[element]  # * intensity
-        for element in self.prev_stimulus:
-            intensity = 1  # self.prev_stimulus_intensities[element]
-            vsum_i += self.v[(element, self.response)] * intensity
-
-        trace = 0
+            usum += u[element]
         for element in stimulus_elements:
-            if element not in stimulus:
-                intensity = self.stimulus_intensities[element]
-                trace += self.v[(element, self.response)] * intensity
-
-        for element in self.prev_stimulus:  # stimulus_elements:
+            intensity = self.prev_stimulus_intensities[element]
+            vsum_i += self.v[(element, self.response)] * intensity
+        for element in stimulus_elements:
             alpha_v_er = alpha_v[(element, self.response)]
-            intensity = 1  # self.stimulus_intensities[element]
-            delta = alpha_v_er * (usum - vsum_i - c[self.response] - trace) * intensity
+            intensity = self.prev_stimulus_intensities[element]
+            delta = alpha_v_er * (usum - vsum_i - c[self.response]) * intensity
             self.v[(element, self.response)] += delta
 
 # class SARSA(Mechanism):
