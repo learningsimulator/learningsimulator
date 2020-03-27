@@ -362,6 +362,9 @@ class Gui():
             filepath = filedialog.asksaveasfilename(filetypes=FILETYPES)
             if len(filepath) == 0:  # Empty tuple or empty string is returned if cancelled
                 return  # "cancelled"
+            else:
+                if ('.' not in filepath) and (not filepath.endswith(".txt")):
+                    filepath = filepath + ".txt"
         try:
             with open(filepath, 'wb') as f:
                 text = self.scriptField.text_box.get(1.0, "end-1c")
