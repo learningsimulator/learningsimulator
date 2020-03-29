@@ -414,6 +414,7 @@ class RunOutputSubject():
         is_exact = (parameters.get(kw.MATCH) == kw.EVAL_EXACT)
         is_cumulative = (parameters.get(kw.EVAL_CUMULATIVE) == kw.EVAL_ON)
         xscale = parameters.get(kw.XSCALE)
+        xscale_exact = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
 
         out = None
         if (xscale == kw.EVAL_ALL):
@@ -425,9 +426,9 @@ class RunOutputSubject():
             if xscale in phase_line_labels:  # xscale is a phase line label
                 raise Exception("xscale cannot be a phase line label in @nplot/@nexport.")
             if is_cumulative:
-                _, out = util.find_and_cumsum_interval(history, seq, is_exact, xscale)
+                _, out = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
             else:
-                out, _ = util.find_and_cumsum_interval(history, seq, is_exact, xscale)
+                out, _ = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
         return [0] + out
 
     def printout(self):

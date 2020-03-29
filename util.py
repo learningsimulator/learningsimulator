@@ -710,7 +710,8 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     return findind, cumsum_out
 
 
-def find_and_cumsum_interval(seq, pattern, use_exact_match, interval_pattern):
+def find_and_cumsum_interval(seq, pattern, use_exact_match,
+                             interval_pattern, interval_pattern_exact):
     """
     Return the number of occurances of pattern in seq, between every two consecutive
     occurrences of interval_pattern.
@@ -720,7 +721,7 @@ def find_and_cumsum_interval(seq, pattern, use_exact_match, interval_pattern):
         returns [2, 1, 0]
     """
     ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)
-    ind_int, _ = find_and_cumsum(seq, interval_pattern, True)
+    ind_int, _ = find_and_cumsum(seq, interval_pattern, interval_pattern_exact)
     cnt = 0
     out = list()
     for i in range(len(ind_seq)):
