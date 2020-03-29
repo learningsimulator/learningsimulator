@@ -96,7 +96,9 @@ class Mechanism():
         behaviors = self.parameters.get(kw.BEHAVIORS)
         beta = self.parameters.get(kw.BETA)
         mu = self.parameters.get(kw.MU)
-        return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, mu, self.v)
+        stimulus_with_intensities = tuple([(s, 1) for s in stimulus])
+        return support_vector_static(stimulus_with_intensities, behaviors,
+                                     self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
         return True, None, None  # To be overridden where necessary
@@ -129,14 +131,17 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
     return feasible_behaviors
 
 
-def support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v):
+def support_vector_static(stimulus_with_intensities, behaviors, stimulus_req, beta, mu, v):
+    stimulus = tuple([x[0] for x in stimulus_with_intensities])
     feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
     exponents = list()
     for behavior in feasible_behaviors:
         exponent = 0
-        for element in stimulus:
+        for element_and_intensity in stimulus_with_intensities:
+            element = element_and_intensity[0]
+            intensity = element_and_intensity[1]
             key = (element, behavior)
-            exponent += beta[key] * v[key] + mu[key]
+            exponent += beta[key] * v[key] * intensity + mu[key]
         exponents.append(exponent)
     max_exponent = max(exponents)
     if max_exponent > 500:
@@ -148,9 +153,12 @@ def support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v):
 
 
 # For postprocessing only
-def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, mu, v):
-    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v)
+def probability_of_response(stimulus_with_intensities, behavior, behaviors,
+                            stimulus_req, beta, mu, v):
+    x, feasible_behaviors = support_vector_static(stimulus_with_intensities, behaviors,
+                                                  stimulus_req, beta, mu, v)
     if behavior not in feasible_behaviors:
+        stimulus = (x[0] for x in stimulus_with_intensities)
         csse = ','.join(stimulus)  # Comma-separated stimulus elements
         raise Exception(f"Behavior '{behavior}' is not a possible response to '{csse}'.")
     index = feasible_behaviors.index(behavior)

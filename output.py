@@ -385,10 +385,11 @@ class RunOutputSubject():
         return self.w[element].evaluate(parameters)
 
     def p_eval(self, sr, parameters):
-        """sr is a tuple (S,R) where S=(E1,E2,...)."""
+        """sr is a tuple (S, R) where S = ((E1,I1), (E2,I2), ...)."""
         v_val = dict()
+        elements = [ei[0] for ei in sr[0]]
         for er in self.v:
-            if er[0] in sr[0]:  # Only need to evaluate for stimulus elements in sr[0]
+            if er[0] in elements:  # Only need to evaluate for stimulus elements in sr[0]
                 v_val[er] = self.v[er]
 
         behaviors = list()

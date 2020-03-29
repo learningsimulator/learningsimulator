@@ -312,9 +312,9 @@ class ParseUtil():
 
     @staticmethod
     def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors):
-        # arrow2evalexpr_p
         """
-        From an expression of the form "s1,s2,...->r", return the tuple (('s1','s2',...), 'r').
+        From an expression of the form "s1[i1],s2[i2],...->r", return the
+        tuple t where t[0] = (('s1',i1), ('s2',i2), ...) and t[1] = 'r'.
         """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
@@ -324,13 +324,51 @@ class ParseUtil():
             return None, "Expression must include only one '->'."
 
         stimulus, behavior = expr.split('->')
-        stimulus_elements = tuple([x.strip() for x in stimulus.split(',')])
-        for element in stimulus_elements:
-            if element not in all_stimulus_elements:
-                return None, f"Expected a stimulus element, got {element}."
+        behavior = behavior.strip()
+        stimulus_elements = [x.strip() for x in stimulus.split(',')]
+
+        elements_and_intensities = []
+        for element_and_intensity in stimulus_elements:
+            ei = ParseUtil.parse_element_and_intensity(element_and_intensity)
+            element, intensity = ei[0]
+            err = ei[1]
+            if err:
+                return None, err
+            elements_and_intensities.append((element, intensity))
+
+        for element_and_intensity in elements_and_intensities:
+            if element_and_intensity[0] not in all_stimulus_elements:
+                return None, f"Expected a stimulus element, got {element_and_intensity[0]}."
         if behavior not in all_behaviors:
             return None, f"Expected a behavior name, got {behavior}."
-        return (stimulus_elements, behavior), None
+
+        return (elements_and_intensities, behavior), None
+
+    @staticmethod
+    def parse_element_and_intensity(expr):
+        """Parse an expression of the form 'element[intensity]'. If no brackets, intensity = 1."""
+        err_output = (None, f"Invalid expression {expr}.")
+        expr = expr.strip()
+        if '[' in expr:
+            lb_inds = [m.start() for m in re.finditer('\[', expr)]
+            rb_inds = [m.start() for m in re.finditer('\]', expr)]
+            if len(lb_inds) != 1 or len(rb_inds) != 1:
+                return err_output
+            lb_ind = lb_inds[0]
+            rb_ind = rb_inds[0]
+            if lb_ind == 0:
+                return err_output
+            if rb_ind != len(expr) - 1:  # ']' must be at the end
+                return err_output
+            element = expr[0: lb_ind].strip()
+            intensity_str = expr[lb_ind + 1: -1]
+            intensity, _ = ParseUtil.is_float(intensity_str)
+            if intensity is None:
+                return err_output
+        else:
+            element = expr
+            intensity = 1
+        return ((element, intensity), None)
 
     @staticmethod
     def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
