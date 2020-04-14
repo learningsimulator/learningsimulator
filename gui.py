@@ -54,7 +54,7 @@ class Gui():
         img = tk.PhotoImage(file=icon_file)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 
-        self.root.minsize(width=500, height=800)
+        self.root.minsize(width=500, height=600)
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
 
