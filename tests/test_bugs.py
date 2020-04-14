@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from .testutil import LsTestCase, run, get_plot_data, unittest
+from .testutil import LsTestCase, run, get_plot_data
 
 
 class TestGitHubIssues(LsTestCase):
@@ -14,7 +14,6 @@ class TestGitHubIssues(LsTestCase):
     def tearDown(self):
         plt.close('all')
 
-    @unittest.skip("Issue 83 not yet fixed")
     def test_issue83(self):
         text = '''
         mechanism             : SR
@@ -31,10 +30,11 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         plot_data = get_plot_data()
-        # x = plot_data['x']
         y = plot_data['y']
         assert(y[-1] < 550)
         assert(y[-1] > 450)
+
+        plt.close('all')
 
         text = '''
         mechanism             : SR
@@ -51,7 +51,6 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         plot_data = get_plot_data()
-        # x = plot_data['x']
         y = plot_data['y']
         assert(y[-1] < 550)
         assert(y[-1] > 450)

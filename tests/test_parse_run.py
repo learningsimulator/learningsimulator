@@ -1,6 +1,6 @@
 from .testutil import LsTestCase
 from parsing import Script
-from mechanism import Enquist, RescorlaWagner, ActorCritic, Qlearning, EXP_SARSA
+from mechanism import Enquist, StimulusResponse, ActorCritic, Qlearning, EXP_SARSA
 import keywords as kw
 
 # @RUN  phase1,phase2,... [runlabel:lbl]
@@ -134,7 +134,7 @@ class TestBasic(LsTestCase):
         run, parameters = parse(text, 'run1')
         self.assertEqual(run.world.nphases, 2)
         self.assertEqual(run.world.curr_phaseind, 0)
-        self.assertTrue(isinstance(run.mechanism_obj, RescorlaWagner))
+        self.assertTrue(isinstance(run.mechanism_obj, StimulusResponse))
         self.assertFalse(run.has_w)
         self.assertEqual(run.n_subjects, 1)
 
@@ -207,7 +207,7 @@ class TestBasic(LsTestCase):
         @run phase1
         '''
         run, _ = parse(text, 'run1')
-        self.assertTrue(isinstance(run.mechanism_obj, RescorlaWagner))
+        self.assertTrue(isinstance(run.mechanism_obj, StimulusResponse))
         self.assertFalse(run.has_w)
 
         text = '''

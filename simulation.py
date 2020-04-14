@@ -77,13 +77,13 @@ class Run():
         for subject_ind in range(self.n_subjects):
             for element in stimulus_elements:
                 if self.has_w:
-                    out.write_w(subject_ind, (element,), 0, self.mechanism_obj)
+                    out.write_w(subject_ind, {element: 1}, 0, self.mechanism_obj)
                 if self.has_v:
                     for behavior in behaviors:
-                        out.write_v(subject_ind, (element,), behavior, 0, self.mechanism_obj)
+                        out.write_v(subject_ind, {element: 1}, behavior, 0, self.mechanism_obj)
                 if self.has_vss:
                     for element2 in stimulus_elements:
-                        out.write_vss(subject_ind, (element,), (element2,), 0, self.mechanism_obj)
+                        out.write_vss(subject_ind, {element: 1}, {element2: 1}, 0, self.mechanism_obj)
             # out.write_step(subject_ind, self.world.phases[0].label, 0)
 
         # The actual simulation
@@ -103,7 +103,6 @@ class Run():
                 if progress and progress.stop_clicked:
                     raise InterruptedSimulation()
                 stimulus, phase_label, phase_line_label, preceeding_help_lines = self.world.next_stimulus(response)
-
                 if progress:
                     if phase_label != prev_phase_label:  # Update phases progress
                         progress.increment2(self.run_label)
@@ -130,7 +129,7 @@ class Run():
                             # OriginalRescorlaWagner.learn_and_respond, not only
                             # vss[(prev_stimulus,stimulus)]
                             for e in stimulus_elements:
-                                out.write_vss(subject_ind, prev_stimulus, (e,), step,
+                                out.write_vss(subject_ind, prev_stimulus, {e: 1}, step,
                                               self.mechanism_obj)
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         phase_step = step
@@ -140,7 +139,7 @@ class Run():
                         step += 1
                     out.write_phase_line_label(subject_ind, phase_line_label, step,
                                                preceeding_help_lines)
-                    last_stimulus = stimulus
+                    last_stimulus = dict(stimulus)  # XXX dict ok?
                     last_response = response
                 else:
                     step -= 1
@@ -151,13 +150,13 @@ class Run():
                     if self.has_v:
                         for element in stimulus_elements:
                             for behavior in behaviors:
-                                out.write_v(subject_ind, (element,), behavior, step,
+                                out.write_v(subject_ind, {element: 1}, behavior, step,
                                             self.mechanism_obj)
 
                     if self.has_vss:
                         for element1 in stimulus_elements:
                             for element2 in stimulus_elements:
-                                out.write_vss(subject_ind, (element1,), (element2,), step,
+                                out.write_vss(subject_ind, {element1: 1}, {element2: 1}, step,
                                               self.mechanism_obj)
 
                     out.write_history(subject_ind, last_stimulus, last_response)

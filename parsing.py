@@ -370,7 +370,9 @@ class ScriptParser():
         elif cmd == kw.VSSEXPORT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PEXPORT:
-            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
+                                                                        all_behaviors, self.variables)
+            expr = (stimulus, behavior)
         elif cmd == kw.NEXPORT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
@@ -398,7 +400,9 @@ class ScriptParser():
         elif cmd == kw.VSSPLOT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PPLOT:
-            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
+                                                                        all_behaviors, self.variables)
+            expr = (stimulus, behavior)
         elif cmd == kw.NPLOT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:

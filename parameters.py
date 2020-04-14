@@ -197,7 +197,7 @@ class Parameters():
         self.scalar_expand()
 
         if mechanism_name == mn.SR:
-            mechanism_obj = mechanism.RescorlaWagner(self)
+            mechanism_obj = mechanism.StimulusResponse(self)
         elif mechanism_name == mn.QL:
             mechanism_obj = mechanism.Qlearning(self)
         # elif mechanism_name == SARSA:

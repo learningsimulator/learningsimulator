@@ -10,7 +10,7 @@ class ScriptOutput():
         self.run_outputs = run_outputs
 
     def write_v(self, run_label, subject_ind, stimulus, response, step, mechanism):
-        '''stimulus is a tuple.'''
+        '''stimulus is a dict.'''
         self.run_outputs[run_label].write_v(subject_ind, stimulus, response, step, mechanism)
 
     def write_vss(self, run_label, subject_ind, stimulus1, stimulus2, step, mechanism):
@@ -115,7 +115,7 @@ class RunOutput():
             self.output_subjects.append(RunOutputSubject(mechanism_obj.stimulus_req))
 
     def write_v(self, subject_ind, stimulus, response, step, mechanism):
-        '''stimulus is a tuple.'''
+        '''stimulus is a dict.'''
         self.output_subjects[subject_ind].write_v(stimulus, response, step, mechanism)
 
     def write_vss(self, subject_ind, stimulus1, stimulus2, step, mechanism):
@@ -194,11 +194,11 @@ class RunOutputSubject():
         self.phase_line_labels_steps = list()
 
     def write_history(self, stimulus, response):
-        assert(type(stimulus) is tuple)
-        if len(stimulus) == 1:
-            self.history.append(stimulus[0])
+        stimulus_tuple = tuple([e for e in stimulus if stimulus[e] != 0])
+        if len(stimulus_tuple) == 1:
+            self.history.append(stimulus_tuple[0])
         else:
-            self.history.append(stimulus)
+            self.history.append(stimulus_tuple)
         self.history.append(response)
 
     def write_step(self, phase_label, step):
@@ -215,7 +215,12 @@ class RunOutputSubject():
         self.phase_line_labels_steps.append(step)
 
     def write_v(self, stimulus, response, step, mechanism):
-        for element in stimulus:
+        '''stimulus is a dict.'''
+        if mechanism.use_trace:
+            stimulus_elements = mechanism.parameters.get(kw.STIMULUS_ELEMENTS)
+        else:
+            stimulus_elements = stimulus
+        for element in stimulus_elements:
             key = (element, response)
             if key not in self.v:
                 self.v[key] = Val()
@@ -226,7 +231,7 @@ class RunOutputSubject():
         assert(len(stimulus1) == 1)
         assert(len(stimulus2) == 1)
 
-        key = (stimulus1[0], stimulus2[0])
+        key = (list(stimulus1.keys())[0], list(stimulus2.keys())[0])
         if key not in self.vss:
             self.vss[key] = Val()
 
@@ -244,14 +249,19 @@ class RunOutputSubject():
             _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
             return RunOutputSubject.n_eval(expr, history, phase_line_labels, parameters)
         else:
-            switcher = {
-                'v': self.v_eval,
-                'vss': self.vss_eval,
-                'w': self.w_eval,
-                'p': self.p_eval,
-            }
-            fun = switcher[vwpn]
-            funout = fun(expr, parameters)
+            if vwpn == 'p':
+                # expr is a tuple ({'e1':i1, 'e2':i2, ...}, behavior)
+                stimulus = expr[0]
+                behavior = expr[1]
+                funout = self.p_eval(stimulus, behavior, parameters)
+            else:
+                switcher = {
+                    'v': self.v_eval,
+                    'vss': self.vss_eval,
+                    'w': self.w_eval
+                }
+                fun = switcher[vwpn]
+                funout = fun(expr, parameters)
             funout, history, phase_line_labels, phase_line_labels_steps = self._phasefilter(funout, parameters)
             return self._xscalefilter(funout, history, phase_line_labels, phase_line_labels_steps, parameters)
 
@@ -384,12 +394,17 @@ class RunOutputSubject():
     def w_eval(self, element, parameters):
         return self.w[element].evaluate(parameters)
 
-    def p_eval(self, sr, parameters):
-        """sr is a tuple (S, R) where S = ((E1,I1), (E2,I2), ...)."""
+    def p_eval(self, stimulus, response, parameters):
+        """stimulus is a dict with intensities for stimulus elements. response is a string."""
+        nonzero_intensity_elements = []
+        for element, intensity in stimulus.items():
+            if intensity != 0:
+                nonzero_intensity_elements.append(element)
+
+        # Only evaluate for stimulus elements with nonzero intensity
         v_val = dict()
-        elements = [ei[0] for ei in sr[0]]
         for er in self.v:
-            if er[0] in elements:  # Only need to evaluate for stimulus elements in sr[0]
+            if er[0] in nonzero_intensity_elements:
                 v_val[er] = self.v[er]
 
         behaviors = list()
@@ -405,7 +420,7 @@ class RunOutputSubject():
         out = [None] * nval
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
-            out[i] = probability_of_response(sr[0], sr[1], behaviors, self.stimulus_req,
+            out[i] = probability_of_response(stimulus, response, behaviors, self.stimulus_req,
                                              parameters.get(kw.BETA),
                                              parameters.get(kw.MU), v_local)
         return out
