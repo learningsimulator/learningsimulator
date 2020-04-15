@@ -18,12 +18,39 @@ from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg
 from parsing import Script
 from exceptions import ParseException, InterruptedSimulation
 
+from functools import partial
+
 import util
 
 # matplotlib.use('Agg')
 
 TITLE = "Learning Simulator"
 FILETYPES = (('Text files', '*.txt'), ('All files', '*.*'))
+ROOTDIR = os.path.dirname(os.path.abspath(__file__))
+SEP = os.path.sep
+RECENT_FILES_FILE = ROOTDIR + SEP + "recent_files.txt"
+NUMBER_OF_RECENT_FILES = 10
+
+
+def read_recent_files_file():
+    try:
+        with open(RECENT_FILES_FILE, encoding='utf-8') as f:
+            file_contents = f.read()
+    except Exception:
+        return list()
+    file_list = file_contents.split('\n')
+    nonempty_files = [f for f in file_list if len(f) > 0]
+    return nonempty_files
+
+
+def write_recent_files_file(list_of_files):
+    try:
+        with open(RECENT_FILES_FILE, 'wb') as f:
+            text = '\n'.join(list_of_files)
+            f.write(bytes(text, 'UTF-8'))
+    except IOError:
+        # XXX Maybe add warning if something fails here (e.g. directory write permissions)
+        pass
 
 
 class Gui():
@@ -66,6 +93,39 @@ class Gui():
         self.root.mainloop()
         self.root.quit()
 
+    def _add_recent_file(self, file_to_add):
+        current_list = read_recent_files_file()
+        if file_to_add in current_list:
+            new_list = [file_to_add] + [file for file in current_list if file != file_to_add]
+        else:
+            new_list = [file_to_add] + current_list
+        if len(new_list) > NUMBER_OF_RECENT_FILES:
+            new_list = new_list[0: NUMBER_OF_RECENT_FILES]
+        write_recent_files_file(new_list)
+        self._update_recent_files_menu(new_list)
+
+    def _update_recent_files_menu(self, new_list=None, init=False):
+        if new_list is None:
+            new_list = read_recent_files_file()
+        self._create_recent_files_menu(init)
+        for recent_file in new_list:
+            lbl = recent_file.replace('/', SEP)
+            self.recent_files_menu.add_command(label=lbl, command=partial(self.file_open_recent, recent_file))
+        self.recent_files_menu.add_separator()
+        self.recent_files_menu.add_command(label="Clear Items", command=self.clear_recent_files)
+
+    def clear_recent_files(self):
+        write_recent_files_file(list())
+        self._update_recent_files_menu()
+
+    def _create_recent_files_menu(self, init=False):
+        OPEN_RECENT = "Open Recent"
+        if not init:
+            self.file_menu.delete(OPEN_RECENT)
+        self.recent_files_menu = tk.Menu(self.file_menu, tearoff=0)
+        self.file_menu.insert_cascade(2, label=OPEN_RECENT, menu=self.recent_files_menu,
+                                      underline=0, command=self.file_open_recent)
+
     def _create_widgets(self):
         # The frame containing the widgets
         frame = tk.Frame(self.root)
@@ -74,14 +134,17 @@ class Gui():
         self.menu_bar = tk.Menu(self.root, tearoff=0)
 
         # The File menu
-        file_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
-        file_menu.add_command(label="New", underline=0, command=self.file_new, accelerator="Ctrl+N")
-        file_menu.add_command(label="Open...", underline=0, command=self.file_open, accelerator="Ctrl+O")
-        file_menu.add_command(label="Save", underline=0, command=self.file_save, accelerator="Ctrl+S")
-        file_menu.add_command(label="Save As...", underline=1, command=self.file_save_as)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", underline=1, command=self.file_quit)
-        self.menu_bar.add_cascade(label="File", underline=0, menu=file_menu)
+        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be separated from window
+        self.file_menu.add_command(label="New", underline=0, command=self.file_new, accelerator="Ctrl+N")
+        self.file_menu.add_command(label="Open...", underline=0, command=self.file_open, accelerator="Ctrl+O")
+
+        self._update_recent_files_menu(new_list=None, init=True)
+
+        self.file_menu.add_command(label="Save", underline=0, command=self.file_save, accelerator="Ctrl+S")
+        self.file_menu.add_command(label="Save As...", underline=1, command=self.file_save_as)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Exit", underline=1, command=self.file_quit)
+        self.menu_bar.add_cascade(label="File", underline=0, menu=self.file_menu)
 
         # The Edit menu
         edit_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
@@ -264,6 +327,9 @@ class Gui():
         self.close_figs()
 
         err_msg = str(ex)
+        if err_msg.startswith("[Errno "):
+            rindex = err_msg.index("] ")
+            err_msg = err_msg[(rindex + 2):]
         # messagebox.showerror("Error", err_msg)
         st = traceback.format_exc()
         ErrorDlg("Error", err_msg, st)
@@ -306,46 +372,46 @@ class Gui():
         self.file_path = None
         self.set_title()
 
-    def file_open(self, event=None):  # , filepath=None):
+    def file_open_recent(self, recent_file):
+        self._fill_textbox(recent_file)
+        self._add_recent_file(recent_file)
+
+    def file_open(self, event=None):
         save_changes = self.save_changes()
         if not save_changes:
             return
 
         if self.last_open_folder is None:
             initialdir = '.'
-
-            # XXX
-            # markusdir = '/home/markus/Dropbox/LearningSimulator/Scripts'
-            # if os.path.isdir(markusdir):
-            #     initialdir = markusdir
-
         else:
             initialdir = self.last_open_folder
 
         filepath = filedialog.askopenfilename(filetypes=FILETYPES, initialdir=initialdir)
         if filepath is not None and len(filepath) != 0:
-            try:
-                with open(filepath, encoding='utf-8') as f:
-                    file_contents = f.read()
-            except UnicodeDecodeError:
-                # with open(filepath, encoding='utf-8', errors='ignore') as f:
-                with open(filepath, encoding='utf-16') as f:
-                    file_contents = f.read()
-            # Set current text to file contents
-            self.scriptField.text_box.delete(1.0, "end")
-            self.scriptField.text_box.insert(1.0, file_contents)
-            self.scriptField.text_box.edit_modified(False)
-            self.scriptField.text_box.mark_set("insert", "1.0")
-            self.scriptField.text_box.redraw_line_numbers()
-            self.file_path = filepath
-            self.last_open_folder = os.path.dirname(filepath)
-            self.set_title()
+            self._fill_textbox(filepath)
+            self._add_recent_file(filepath)
 
-        # if event is not None:
-        #     try:
-        #         self.scriptField.text_box.edit_undo()
-        #     except tk.TclError: # Exception:  # as e:
-        #         pass  # self.handle_exception(e)
+    def _fill_textbox(self, filepath):
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                file_contents = f.read()
+        except UnicodeDecodeError:
+            # with open(filepath, encoding='utf-8', errors='ignore') as f:
+            with open(filepath, encoding='utf-16') as f:
+                file_contents = f.read()
+        except FileNotFoundError as ex:
+            self.handle_exception(ex)
+            return
+
+        # Set current text to file contents
+        self.scriptField.text_box.delete(1.0, "end")
+        self.scriptField.text_box.insert(1.0, file_contents)
+        self.scriptField.text_box.edit_modified(False)
+        self.scriptField.text_box.mark_set("insert", "1.0")
+        self.scriptField.text_box.redraw_line_numbers()
+        self.file_path = filepath
+        self.last_open_folder = os.path.dirname(filepath)
+        self.set_title()
 
     def file_open_textbox(self, event=None):
         """
@@ -423,7 +489,6 @@ class Gui():
         self.scriptField.redo()
 
     def open_documentation(self, event=None):
-        SEP = os.path.sep
         url = f".{SEP}docs{SEP}_build{SEP}html{SEP}index.html"
         webbrowser.open(url, new=True)
 
