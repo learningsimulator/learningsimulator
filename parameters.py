@@ -616,21 +616,17 @@ class Parameters():
             return f"The parameter 'stimulus_elements' must be assigned before the parameter '{kw.XSCALE}'."
         if not self.val[kw.BEHAVIORS] and self.val[kw.MECHANISM_NAME] != mn.RW:
             return f"The parameter 'behaviors' must be assigned before the parameter '{kw.XSCALE}'."
-        if '->' in xscale:
-            xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
-                                                self.val[kw.BEHAVIORS])
-            if err:
-                return err
-        elif xscale in self.val[kw.STIMULUS_ELEMENTS]:
-            pass
-        elif xscale in self.val[kw.BEHAVIORS]:
-            pass
-        elif phases.is_phase_label(xscale):
+
+        if phases.is_phase_label(xscale):
             pass
         elif xscale == 'all':
             pass
         else:
-            return f"Invalid value '{xscale}' for parameter '{kw.XSCALE}'."
+            xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
+                                                self.val[kw.BEHAVIORS])
+            if err:
+                return err
+
         self.val[kw.XSCALE] = xscale
         return None
 

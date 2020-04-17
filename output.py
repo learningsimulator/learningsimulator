@@ -265,8 +265,12 @@ class RunOutputSubject():
         if plot_phases == kw.EVAL_ALL:
             return evalout, self.history, self.phase_line_labels, self.phase_line_labels_steps
 
-        run_phases = self.first_step_phase[0]  # List of phases in the order they were run
+        # List of phases in the order they were run (don't include "last")
+        run_phases = self.first_step_phase[0][0:-1]
         assert(len(run_phases) > 0)
+
+        if plot_phases == run_phases:
+            return evalout, self.history, self.phase_line_labels, self.phase_line_labels_steps
 
         out = list()
         history_out = list()
@@ -278,11 +282,13 @@ class RunOutputSubject():
             if phase not in run_phases:
                 raise EvalException(f"Invalid phase label {phase}. Must be in {run_phases}.")
 
+        wrote_inital_value = False
         if evalout is not None:
             if plot_phases[0] == run_phases[0]:
                 # First value (out[0]) should be inital value (evalout[0]) if the first phase
                 # in 'phases' is the first run-phase.
                 out.append(evalout[0])
+                wrote_inital_value = True
             else:
                 # First value (out[0]) should be last value of previous phase if the first
                 # phase in 'phases' is NOT the first run-phase.
@@ -295,14 +301,18 @@ class RunOutputSubject():
         for phase in plot_phases:
             fsp_index = run_phases.index(phase)
             phase_startind = self.first_step_phase[1][fsp_index]
-            phase_endind = self.first_step_phase[1][fsp_index + 1]
-            for j in range(phase_startind - 1, phase_endind - 1):
+            nextphase_startind = self.first_step_phase[1][fsp_index + 1]
+            phase_endind = nextphase_startind - 1
+            for j in range(phase_startind - 1, phase_endind):  # phase_startind is one-based
                 history_out.append(self.history[2 * j])
                 history_out.append(self.history[2 * j + 1])
 
             if evalout is not None:
-                for j in range(phase_startind, phase_endind):
-                    out.append(evalout[j])
+                for j in range(phase_startind - 1, phase_endind):
+                    if j == 0 and wrote_inital_value:
+                        pass
+                    else:
+                        out.append(evalout[j])
 
             # Index to first occurence of phase_startind in self.phase_line_labels_steps
             plls_startind = None
@@ -313,9 +323,9 @@ class RunOutputSubject():
                 if plls_j == phase_startind:
                     if plls_startind is None:  # We want the first index to phase_startind
                         plls_startind = j
-                elif plls_j == phase_endind - 1:
+                elif plls_j == phase_endind:
                     plls_endind = j  # We want the last index to phase_endind-1
-                elif plls_j > phase_endind - 1:
+                elif plls_j > phase_endind:
                     break  # We need look no further
             assert(plls_startind is not None)
             assert(plls_endind is not None)

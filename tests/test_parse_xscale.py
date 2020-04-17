@@ -35,6 +35,16 @@ class TestBasic(LsTestCase):
         expected = ['s1', 'b']
         self.assertEqual(c, expected)
 
+    def test_compound_stimulus(self):
+        text = '''
+        behaviors         : b1, b2, b3
+        stimulus_elements : s1, s2, s3
+        xscale: s1,s2
+        '''
+        c = parse(text)
+        expected = [('s1', 's2')]
+        self.assertEqual(c, expected)
+
     def test_long_chain(self):
         text = '''
         behaviors         : b1, b2, b3
@@ -186,6 +196,6 @@ class TestExceptions(LsTestCase):
         @figure
         xscale: XfooSTIMULUS
         '''
-        msg = "Invalid value 'XfooSTIMULUS' for parameter 'xscale'."
+        msg = "Expected stimulus element\(s\) or a behavior, got XfooSTIMULUS."
         with self.assertRaisesX(Exception, msg):
             parse(text)
