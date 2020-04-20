@@ -97,6 +97,46 @@ class TestRescorlaWagner(LsTestCase):
             self.assertAlmostEqual(us_us['y'][i], 1 - expected_increasing_y[i], 6)
             self.assertAlmostEqual(cs_cs['y'][i], 1 - expected_increasing_y[i], 6)
 
+    def test_default_alpha_vss(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+
+        @figure
+        @vssplot cs->us
+        @vssplot us->cs
+        @vssplot us->us
+        @vssplot cs->cs
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        cs_us = plot_data['vss(cs->us)']
+        us_cs = plot_data['vss(us->cs)']
+        us_us = plot_data['vss(us->us)']
+        cs_cs = plot_data['vss(cs->cs)']
+
+        expected_x = list(range(0, 5))
+        self.assertEqual(cs_us['x'], expected_x)
+        self.assertEqual(us_cs['x'], expected_x)
+        self.assertEqual(us_us['x'], expected_x)
+        self.assertEqual(cs_cs['x'], expected_x)
+
+        self.assertEqual(cs_cs['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(cs_us['y'], [0.5, 1.0, 1.0, 1.0, 1.0])
+        self.assertEqual(us_cs['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(us_us['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
+
     def test_xscale_stimulus(self):
         text = '''
         mechanism: rw

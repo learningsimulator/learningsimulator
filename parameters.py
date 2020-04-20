@@ -663,23 +663,25 @@ class Parameters():
         behaviors = self.val[kw.BEHAVIORS]
         stimulus_elements = self.val[kw.STIMULUS_ELEMENTS]
 
-        # Check START_VSS
+        # Check START_VSS and ALPHA_VSS
         expected_ss_keys = set()
         for stimulus_element1 in stimulus_elements:
             for stimulus_element2 in stimulus_elements:
                 key = (stimulus_element1, stimulus_element2)
                 expected_ss_keys.add(key)
-        start_vss = self.val[kw.START_VSS]
-        if type(start_vss) is dict:
-            if set(start_vss.keys()) != expected_ss_keys:
-                self._raise_match_err(kw.START_SS, kw.STIMULUS_ELEMENTS)
-        else:  # scalar expand
-            self.val[kw.START_VSS] = dict()
-            scalar = start_vss
-            for stimulus_element1 in stimulus_elements:
-                for stimulus_element2 in stimulus_elements:
-                    key = (stimulus_element1, stimulus_element2)
-                    self.val[kw.START_VSS][key] = scalar
+
+        for param_name in [kw.START_VSS, kw.ALPHA_VSS]:
+            start_vss = self.val[param_name]
+            if type(start_vss) is dict:
+                if set(start_vss.keys()) != expected_ss_keys:
+                    self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS)
+            else:  # scalar expand
+                self.val[param_name] = dict()
+                scalar = start_vss
+                for stimulus_element1 in stimulus_elements:
+                    for stimulus_element2 in stimulus_elements:
+                        key = (stimulus_element1, stimulus_element2)
+                        self.val[param_name][key] = scalar
 
         expected_sb_keys = set()
         for stimulus_element in stimulus_elements:
