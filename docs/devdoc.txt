@@ -46,3 +46,13 @@ Make sure lesim.spec contains "datas=[('Lemur-icon.gif', '.')]"
 C:\Users\markj\lesim\lesim2>pyinstaller -F -w --add-data Lemur-icon.gif;. lesim.py
 (The option -w makes sure that the created exe-file will not open a console window (stdin/out for Python))
 This creates C:\Users\markj\lesim\dist\lesim.exe
+
+
+Debug
+=====
+python -m pdb my_program.py
+python -m winpdb my_program.py (Graphical debugger on Windows)
+
+Winpdb no install mode
+----------------------
+python /the/path/to/winpdb.py my_program.py

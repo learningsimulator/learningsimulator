@@ -133,8 +133,8 @@ class Run():
                                               self.mechanism_obj)
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         phase_step = step
-                        # if step > 1:
-                        #     phase_step = step + 1
+                        if step > 1:
+                            phase_step = step + 1
                         out.write_step(subject_ind, phase_label, phase_step)
                         step += 1
                     out.write_phase_line_label(subject_ind, phase_line_label, step,
@@ -160,7 +160,7 @@ class Run():
                                               self.mechanism_obj)
 
                     out.write_history(subject_ind, last_stimulus, last_response)
-                    out.write_step(subject_ind, "last", step + 1)
+                    out.write_step(subject_ind, "last", step + 2)
 
                     # Reset mechanism and world for the next subject
                     self.mechanism_obj.subject_reset()
