@@ -11,7 +11,7 @@ class TestBasic(LsTestCase):
     def tearDown(self):
         plt.close('all')
 
-    def test_sr(self):
+    def test_plant_approach_berry(self):
         script = '''
 n_subjects           : 10
 mechanism            : SR
@@ -123,22 +123,204 @@ runlabel:0.75
             self.assertLess(y, 9.4)
         self.assertLess(max(y25_last) - min(y25_last), 0.01)
 
-        # Check that "0.50" converges to a value between 6.9 and 7.1
+        # Check that "0.50" converges to a value between 6.9 and 7.2
         y50 = plot_data['0.5']['y']
         for y in y50:
-            self.assertLess(y, 7.1)
+            self.assertLess(y, 7.2)
         y50_last = y50[-50:-2]  # The last 50 items (except the last two, because of issue #64)
         for y in y50_last:
             self.assertGreater(y, 6.9)
         self.assertLess(max(y50_last) - min(y50_last), 0.1)
 
-        # Check that "0.75" converges to a value between 3.5 and 3.7
+        # Check that "0.75" converges to a value between 3.4 and 3.7
         y75 = plot_data['0.75']['y']
         for y in y75:
             self.assertLess(y, 4)
         y75_last = y75[-50:-2]  # The last 50 items (except the last two, because of issue #64)
         for y in y75_last:
-            self.assertGreater(y, 3.5)
+            self.assertGreater(y, 3.4)
             self.assertLess(y, 3.7)
         self.assertLess(max(y75_last) - min(y75_last), 0.1)
 
+    def test_overshadowing(self):
+        script = '''
+n_subjects             : 10
+mechanism              : SR
+
+behaviors              : response,other
+stimulus_elements      : a,b,empty,reward
+start_v                : a->response:-2, b->response:-2, default:1
+alpha_v                : 0.1
+beta                   : 1
+u                      : reward:1, default: 0
+
+@phase Overshadowing  stop:STIMULUS=250
+STIMULUS    a[0.5],b[0.5]    |response: REWARD  | STIMULUS
+REWARD      reward           | STIMULUS
+
+@phase Overshadowing_ll(Overshadowing)  stop:STIMULUS=250
+STIMULUS    a[0.9],b[0.1]      |response: REWARD  | STIMULUS
+
+@phase Overshadowing_l(Overshadowing)  stop:STIMULUS=250
+STIMULUS    a[0.7],b[0.3]      |response: REWARD  | STIMULUS
+
+@phase Overshadowing_s(Overshadowing)  stop:STIMULUS=250
+STIMULUS    a[0.3],b[0.7]      |response: REWARD  | STIMULUS
+
+@phase Overshadowing_ss(Overshadowing)  stop:STIMULUS=250
+STIMULUS    a[0.1],b[0.9]      |response: REWARD  | STIMULUS
+
+@run Overshadowing_ll  runlabel: Overshadowing_ll
+@run Overshadowing_l   runlabel: Overshadowing_l
+@run Overshadowing     runlabel: Overshadowing
+@run Overshadowing_s   runlabel: Overshadowing_s
+@run Overshadowing_ss  runlabel: Overshadowing_ss
+
+xscale: STIMULUS
+subject: average
+@figure v(a->response)
+
+@subplot 111 {'xlabel':'Trial','ylabel':'v'}
+
+runlabel: Overshadowing_ll
+@vplot a->response  {'linewidth':2,'label':'A=0.9'}
+
+runlabel: Overshadowing_l
+@vplot a->response  {'linewidth':2,'label':'A=0.7'}
+
+runlabel: Overshadowing
+@vplot a->response  {'linewidth':2,'label':'A=0.5'}
+
+runlabel: Overshadowing_s
+@vplot a->response  {'linewidth':2,'label':'A=0.3'}
+
+runlabel: Overshadowing_ss
+@vplot a->response  {'linewidth':2,'label':'A=0.1'}
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        for lbl in ['A=0.1', 'A=0.3', 'A=0.5', 'A=0.7', 'A=0.9']:
+            y = plot_data[lbl]['y']
+            self.assertEqual(y[0], -2)
+
+        self.assertLess(plot_data['A=0.1']['y'][-1], plot_data['A=0.3']['y'][-1])
+        self.assertLess(plot_data['A=0.3']['y'][-1], plot_data['A=0.5']['y'][-1])
+        self.assertLess(plot_data['A=0.5']['y'][-1], plot_data['A=0.9']['y'][-1])
+
+        # The overshadowing effect
+        self.assertLess(plot_data['A=0.9']['y'][-1], plot_data['A=0.7']['y'][-1])
+
+    def test_manually_extinguish_trace(self):
+        script = '''
+n_subjects        : 10
+mechanism         : sr
+behaviors         : response, no_response
+stimulus_elements : background, stimulus, reward
+start_v           : default:-1
+alpha_v           : 0.1
+u                 : reward:10, default:0
+
+@PHASE training stop: stimulus=100
+new_trial  stimulus   | response: REWARD | NO_REWARD
+REWARD     reward     | new_trial
+NO_REWARD  background | new_trial
+
+@run training runlabel:no_trace
+
+trace:0.5
+@run training runlabel:trace
+
+xscale: stimulus
+subject: average
+runlabel: no_trace
+@figure
+@vplot stimulus->response {'label':'no trace'}
+
+runlabel: trace
+@vplot stimulus->response {'label':'trace'}
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        self.assertIncreasing(plot_data['no trace']['y'])
+        self.assertIncreasing(plot_data['trace']['y'])
+
+        self.assertGreater(plot_data['trace']['y'][-1], 6.5)
+        self.assertLess(plot_data['trace']['y'][-1], 6.7)
+
+        self.assertGreater(plot_data['no trace']['y'][-1], 9.9)
+        self.assertLess(plot_data['no trace']['y'][-1], 10)
+
+        self.tearDown()
+
+        script = '''
+n_subjects        : 10
+mechanism         : sr
+behaviors         : response, no_response, bg_response
+stimulus_elements : background, stimulus, reward
+response_requirements: bg_response:background
+start_v           : default:-1
+alpha_v           : 0.1
+u                 : reward:10, default:0
+
+@PHASE training stop: stimulus=100
+EXTINGUISH  background | count_line()<100:EXTINGUISH | NEW
+NEW         stimulus   | response: REWARD | NO_REWARD
+REWARD      reward     | NEW
+NO_REWARD   background | NEW
+
+@run training runlabel:no_trace
+
+trace:0.1
+@run training runlabel:trace=0.1
+
+trace:0.25
+@run training runlabel:trace=0.25
+
+trace:0.5
+@run training runlabel:trace=0.5
+
+xscale: stimulus
+subject: average
+runlabel: no_trace
+
+@figure
+@vplot stimulus->response {'label':'no trace'}
+
+runlabel: trace=0.1
+@vplot stimulus->response {'label':'trace=0.1'}
+
+runlabel: trace=0.25
+@vplot stimulus->response {'label':'trace=0.25'}
+
+runlabel: trace=0.5
+@vplot stimulus->response {'label':'trace=0.5'}
+
+@legend'''
+
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        # Check forst and last values for all vplots
+        for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
+            self.assertEqual(plot_data[lbl]['y'][0], -1)
+
+            # The first time stimulus is encountered, we still haven't
+            # updated v(stimulus->response) for the first time yet
+            self.assertEqual(plot_data[lbl]['y'][1], -1)
+
+            self.assertLess(plot_data[lbl]['y'][-1], 10)
+            self.assertGreater(plot_data[lbl]['y'][-1], 9.8)
+
+        # check that the smaller the trace-value, the closer to "no trace" the vplot is
+        sum_of_sqares = dict()
+        for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
+            ss = 0
+            for i in range(len(plot_data[lbl]['y'])):
+                ss += (plot_data['no trace']['y'][i] - plot_data[lbl]['y'][i])**2
+            sum_of_sqares[lbl] = ss
+        self.assertLess(sum_of_sqares['trace=0.1'], sum_of_sqares['trace=0.25'])
+        self.assertLess(sum_of_sqares['trace=0.25'], sum_of_sqares['trace=0.5'])
