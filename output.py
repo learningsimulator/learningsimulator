@@ -406,15 +406,12 @@ class RunOutputSubject():
 
     def p_eval(self, stimulus, response, parameters):
         """stimulus is a dict with intensities for stimulus elements. response is a string."""
-        nonzero_intensity_elements = []
-        for element, intensity in stimulus.items():
-            if intensity != 0:
-                nonzero_intensity_elements.append(element)
+        nonzero_intensity_stimulus = {e: i for e, i in stimulus.items() if i != 0}
 
         # Only evaluate for stimulus elements with nonzero intensity
         v_val = dict()
         for er in self.v:
-            if er[0] in nonzero_intensity_elements:
+            if er[0] in nonzero_intensity_stimulus:
                 v_val[er] = self.v[er]
 
         behaviors = list()
@@ -430,8 +427,8 @@ class RunOutputSubject():
         out = [None] * nval
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
-            out[i] = probability_of_response(stimulus, response, behaviors, self.stimulus_req,
-                                             parameters.get(kw.BETA),
+            out[i] = probability_of_response(nonzero_intensity_stimulus, response, behaviors,
+                                             self.stimulus_req, parameters.get(kw.BETA),
                                              parameters.get(kw.MU), v_local)
         return out
 

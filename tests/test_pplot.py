@@ -94,6 +94,7 @@ subject: average
 
 @pplot background,stimulus[0.5]->response {'label':'bg'}
 @pplot reward[1.5],stimulus[0.1]->response {'label':'bg1.5'}
+@pplot reward[1.5],stimulus[0]->response {'label':'just_testing_[0]'}
 @legend
         '''
         script_obj, script_output = run(text)
