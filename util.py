@@ -65,7 +65,7 @@ class ParseUtil():
             return False, None
         else:
             if val < 0 or val > 1:
-                return False, None
+                return False, val
         return True, val
 
     @staticmethod
@@ -131,10 +131,12 @@ class ParseUtil():
         return out
 
     @staticmethod
-    def evaluate(expr, variables, phase_event_counter=None, phase_event_counter_type=None):
+    def evaluate(expr, variables=None, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
         objects.
+
+        Returns evaluated_value, error
         """
         expr_orig = expr
 
@@ -144,7 +146,8 @@ class ParseUtil():
         expr = ParseUtil._single2double_eq(expr)
 
         context = {'rand': rand}
-        context.update(variables.values)
+        if variables is not None:
+            context.update(variables.values)
 
         if phase_event_counter:
             if phase_event_counter_type == ParseUtil.STOP_COND:
@@ -183,9 +186,9 @@ class ParseUtil():
                 name = node.id
                 if name in context:
                     continue
-                if variables.contains(name):
+                if (variables is not None) and variables.contains(name):
                     continue
-                if phase_event_counter and name in phase_event_counter.count:
+                if (phase_event_counter is not None) and (name in phase_event_counter.count):
                     continue
                 return None, f"Unknown variable '{name}'."
 
@@ -311,26 +314,81 @@ class ParseUtil():
         return string, None
 
     @staticmethod
-    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors):
-        # arrow2evalexpr_p
+    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables):
         """
-        From an expression of the form "s1,s2,...->r", return the tuple (('s1','s2',...), 'r').
+        From an expression of the form "s1[i1],s2[i2],...->r", return the
+        tuple t where t[0] = (('s1',i1), ('s2',i2), ...) and t[1] = 'r'.
         """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, "Expression must include a '->'."
+            return None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
+            return None, None, "Expression must include only one '->'."
 
-        stimulus, behavior = expr.split('->')
-        stimulus_elements = tuple([x.strip() for x in stimulus.split(',')])
-        for element in stimulus_elements:
+        elements, behavior = expr.split('->')
+        stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
+        if err:
+            return None, None, err
+
+        for element in stimulus:
             if element not in all_stimulus_elements:
-                return None, f"Expected a stimulus element, got {element}."
+                return None, None, f"Expected a stimulus element, got {element}."
+
+        behavior = behavior.strip()
         if behavior not in all_behaviors:
-            return None, f"Expected a behavior name, got {behavior}."
-        return (stimulus_elements, behavior), None
+            return None, None, f"Expected a behavior name, got {behavior}."
+
+        return stimulus, behavior, None
+
+    @staticmethod
+    def parse_elements_and_intensities(stimulus, variables, safe_intensity_eval=False):
+        """Parse an expression of the form 'e1[i1],e2[i2],...'. If no brackets, i = 1."""
+        stimulus_elements = [x.strip() for x in stimulus.split(',')]
+        elements_and_intensities = dict()
+        for element_and_intensity in stimulus_elements:
+            element, intensity, err = ParseUtil.parse_element_and_intensity(element_and_intensity, variables,
+                                                                            safe_intensity_eval)
+            if err:
+                return None, err
+            elements_and_intensities[element] = intensity
+        return elements_and_intensities, None
+
+    @staticmethod
+    def parse_element_and_intensity(expr, variables=None, safe_intensity_eval=False):
+        """
+        Parse an expression of the form 'element[intensity]'. If no brackets, intensity = 1.
+        Return element (str), intensity (float), and error (str).
+
+        If safe_intensity_eval is True and intensity cannot be evaluated, return
+        the expression for the intensity (str) instead of the evaluated value (float).
+        """
+        err_output = (None, None, f"Invalid expression {expr}.")
+        expr = expr.strip()
+        if '[' in expr:
+            lb_inds = [m.start() for m in re.finditer('\[', expr)]
+            rb_inds = [m.start() for m in re.finditer('\]', expr)]
+            if len(lb_inds) != 1 or len(rb_inds) != 1:
+                return err_output
+            lb_ind = lb_inds[0]
+            rb_ind = rb_inds[0]
+            if lb_ind == 0:
+                return err_output
+            if rb_ind != len(expr) - 1:  # ']' must be at the end
+                return err_output
+            element = expr[0: lb_ind].strip()
+            intensity_str = expr[lb_ind + 1: -1]
+
+            intensity, _ = ParseUtil.evaluate(intensity_str, variables)
+            if intensity is None:
+                if safe_intensity_eval:
+                    intensity = intensity_str
+                else:
+                    return err_output
+        else:
+            element = expr
+            intensity = 1
+        return element, intensity, None
 
     @staticmethod
     def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):

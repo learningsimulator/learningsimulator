@@ -81,7 +81,7 @@ class Gui():
         img = tk.PhotoImage(file=icon_file)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 
-        self.root.minsize(width=500, height=800)
+        self.root.minsize(width=500, height=600)
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
 
@@ -258,10 +258,14 @@ class Gui():
             if self.progress.exception is not None:
                 if not isinstance(self.progress.exception, InterruptedSimulation):
                     self.progress.close_dlg()
-                    self.handle_exception(self.progress.exception)
+                    self.handle_exception(self.progress.exception, self.progress.exception_traceback)
             elif self.progress.done:
                 # This will also close the progress dialog box
-                self.script_obj.plot(progress=self.progress)
+                try:
+                    self.script_obj.plot(progress=self.progress)
+                except AttributeError as ex:
+                    self.progress.close_dlg()
+                    self.handle_exception(ex, traceback.format_exc())
         else:
             assert(self.simulation_thread.is_alive())
             self.check_job = self.root.after(100, self.handle_simulation_end)
@@ -272,6 +276,7 @@ class Gui():
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
+            self.progress.exception_traceback = traceback.format_exc()
         finally:
             self.progress.set_done(True)
         # return None  # XXX perhaps not needed? for threading
@@ -315,13 +320,14 @@ class Gui():
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
+            self.progress.exception_traceback = traceback.format_exc()
         finally:
             self.progress.set_done(True)
 
     def close_figs(self):
         plt.close("all")
 
-    def handle_exception(self, ex):
+    def handle_exception(self, ex, stack_trace=None):
         if isinstance(ex, ParseException):
             self._select_line(ex.lineno)
         self.close_figs()
@@ -330,9 +336,12 @@ class Gui():
         if err_msg.startswith("[Errno "):
             rindex = err_msg.index("] ")
             err_msg = err_msg[(rindex + 2):]
-        # messagebox.showerror("Error", err_msg)
-        st = traceback.format_exc()
-        ErrorDlg("Error", err_msg, st)
+        elif not isinstance(ex, ParseException):
+            err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
+
+        if stack_trace is None:
+            stack_trace = traceback.format_exc()
+        ErrorDlg("Error", err_msg, stack_trace)
 
     def handle_exception_old(self, ex):
         # err_msg = ex.args[0]
@@ -341,7 +350,6 @@ class Gui():
         #     err_msg = "{0} {1}".format(err_msg, ex.args[1])
         #     # err_msg = err_msg + ex.args[1]
         messagebox.showerror("Error", err_msg)
-        print(traceback.format_exc())
 
     # def file_open(self):
     #     filename = filedialog.askopenfilename()
@@ -525,6 +533,7 @@ class Progress():
         self.stop_clicked = False
 
         self.exception = None
+        self.exception_traceback = None
 
         self.done = False
 

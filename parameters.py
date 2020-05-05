@@ -16,6 +16,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
       kw.DISCOUNT: 1,                    # Scalar
+      kw.TRACE: 0,                       # Scalar (number between 0 and 1)
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.LAMBDA: 0,                      # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
@@ -96,13 +97,13 @@ class Parameters():
                                                         to_be_continued, is_appending)
 
         # Float
-        elif prop == kw.DISCOUNT:
+        elif prop in (kw.DISCOUNT, kw.TRACE):
             v, err = ParseUtil.evaluate(v_str, variables)
             if err:
                 return err
             if (v < 0) or (v > 1):
-                return f"Parameter '{kw.DISCOUNT}' must be a number >=0 and <=1."
-            self.val[kw.DISCOUNT] = v
+                return f"Parameter '{prop}' must be a number >=0 and <=1."
+            self.val[prop] = v
             return None
 
         elif prop == kw.BEHAVIOR_COST:
@@ -196,7 +197,7 @@ class Parameters():
         self.scalar_expand()
 
         if mechanism_name == mn.SR:
-            mechanism_obj = mechanism.RescorlaWagner(self)
+            mechanism_obj = mechanism.StimulusResponse(self)
         elif mechanism_name == mn.QL:
             mechanism_obj = mechanism.Qlearning(self)
         # elif mechanism_name == SARSA:

@@ -139,7 +139,7 @@ class ErrorDlg(tk.Toplevel):
     def __init__(self, title, message, detail):
         # tk.Toplevel.__init__(self)
         super().__init__()
-        self.details_expanded = True
+        self.details_expanded = False
         self.title(title)
         self.geometry("500x100")
         self.minsize(500, 100)

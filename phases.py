@@ -10,20 +10,6 @@ class Phases():
     def __init__(self):
         self.phases = dict()  # Keys are phase labels, values are Phase objects
 
-    # def add(self, newblock, parameters):
-    #     label = newblock.pvdict[LABEL]
-    #     rows = newblock.content.splitlines()
-    #     if label in self.phases[0]:
-    #         ind = self.phases[0].index(label)
-    #         self.phases[1][ind].add_rows(rows)
-    #         self.phases[1][ind].pvdict.update(newblock.pvdict)
-    #         self.phases[2][ind] = self.phases[1][ind].make_world(parameters)
-    #     else:
-    #         self.phases[0].append(label)
-    #         phase_obj = Phase(newblock.pvdict, rows)
-    #         self.phases[1].append(phase_obj)
-    #         self.phases[2].append(phase_obj.make_world(parameters))
-
     def add_phase(self, label, stop_condition_str, lineno):
         if label in self.phases:
             raise Exception("Internal error.")
@@ -47,10 +33,6 @@ class Phases():
             raise Exception("Internal error.")
         self.phases[label].append_line(line, lineno)
 
-    # def labels_set(self):
-    #     """Return all phase labels as a set."""
-    #     return set(self.phases.keys())
-
     def parse_phase(self, label, parameters, variables):
         if label not in self.phases:
             raise Exception("Internal error.")
@@ -73,21 +55,6 @@ class Phases():
             if phase.is_phase_label(name):
                 return True
         return False
-
-    # def make_world(self, phases_to_use):
-    #     if len(phases_to_use) == 0:  # Empty tuple means all phases
-    #         phases_to_use = self.phases[0]  # list(self.phases.keys())
-    #     phase_worlds = list()
-    #     for lbl in phases_to_use:
-    #         if lbl not in self.phases[0]:
-    #             raise Exception("Invalid phase label '{}'.".format(lbl))
-    #         ind = self.phases[0].index(lbl)
-
-    #         # Copy needed if phases_to_use is for example ('phase1','phase1')
-    #         phase_obj = copy.deepcopy(self.phases[2][ind])
-
-    #         phase_worlds.append(phase_obj)
-    #     return LsWorld.World(phase_worlds)
 
 
 class Phase():
@@ -205,6 +172,12 @@ class Phase():
             self._make_current_line(rowlbl)
 
         stimulus = self.phase_lines[rowlbl].stimulus
+        if stimulus is not None:
+            for element, intensity in stimulus.items():
+                if type(intensity) is str:  # element[var] where var is a (local) variable
+                    stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables)
+                    if err:
+                        raise ParseException(self.phase_lines[rowlbl].lineno, err)
 
         if rowlbl != self.prev_linelabel:
             self.event_counter.reset_count_line()
@@ -391,29 +364,32 @@ class PhaseLine():
         self.all_linelabels = all_linelabels
 
         self.is_help_line = False
-        self.stimulus = None
+        self.stimulus = None  # A dict with an intensity for each element in stimulus_elememts
         self.action = None
-
-        # self.consec_linecnt = 1
-        # self.consec_respcnt = 1
-        # self.prev_response = None
-
         self.action_lhs_var = None
 
         self.action, logic = ParseUtil.split1_strip(after_label, sep=PHASEDIV)
         if logic is None:
             raise ParseException(lineno, f"Missing separator '{PHASEDIV}' on phase line.")
         action_list = ParseUtil.comma_split_strip(self.action)
-        self.is_help_line = len(action_list) == 1 and action_list[0] not in parameters.get(STIMULUS_ELEMENTS)
+
+        first_element, _, _ = ParseUtil.parse_element_and_intensity(action_list[0], variables=None,
+                                                                    safe_intensity_eval=True)
+        self.is_help_line = (len(action_list) == 1) and (first_element not in parameters.get(STIMULUS_ELEMENTS))
         if self.is_help_line:
             self.stimulus = None
             if action_list[0] != '':
                 self._check_action(action_list[0])
         else:
-            for element in action_list:
+            self.stimulus, err = ParseUtil.parse_elements_and_intensities(self.action, variables,
+                                                                          safe_intensity_eval=True)
+            if err:
+                raise ParseException(lineno, err)
+
+            for element in self.stimulus:
                 if element not in parameters.get(STIMULUS_ELEMENTS):
                     raise ParseException(lineno, f"Expected a stimulus element, got '{element}'.")
-            self.stimulus = tuple(action_list)
+
             self.action = None
 
         if len(logic) == 0:
@@ -476,7 +452,7 @@ class PhaseLineCondition():
         self.cond_is_behavior = False
 
         # After colon
-        self.goto = list()  # List of 2-tuples (probability, row_label)
+        self.goto = list()  # List of 2-lists [probability, row_label]
 
         self._parse(lineno, is_help_line, cond_goto, parameters, all_linelabels, global_variables)
 
@@ -510,22 +486,34 @@ class PhaseLineCondition():
             if type(ismet) is not bool:
                 raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
         if ismet:
-            label = self._goto_if_met()
+            label = self._goto_if_met(variables)
             if label is None:  # In "ROW1(0.1),ROW2(0.3)", goto_if_met returns None with prob. 0.6
                 ismet = False
         else:
             label = None
         return ismet, label
 
-    def _goto_if_met(self):
-        tuple_ind = ParseUtil.weighted_choice(self.goto_prob_cumsum)
-        if tuple_ind is None:
+    def _goto_if_met(self, variables):
+        goto_prob_cumsum = list()
+        cumsum = 0
+        for i in range(len(self.goto)):
+            prob = self.goto[i][0]
+            if type(prob) is str:
+                self.goto[i][0], err = ParseUtil.evaluate(prob, variables=variables)
+                if err:
+                    raise ParseException(self.lineno, err)
+            cumsum += self.goto[i][0]
+            goto_prob_cumsum.append(cumsum)
+        if cumsum > 1:
+            raise ParseException(self.lineno, f"Sum of probabilities is {cumsum}>1.")
+
+        ind = ParseUtil.weighted_choice(goto_prob_cumsum)
+        if ind is None:
             return None
         else:
-            return self.goto[tuple_ind][1]
+            return self.goto[ind][1]
 
     def _parse_goto(self, goto, lineno, all_linelabels, global_variables):
-        # lbls_and_probs = ParseUtil.split1_strip(goto, sep=',')
         err = f"Invalid condition '{goto}'. "
         lbls_and_probs = goto.split(',')
         lbls_and_probs = [lbl_and_prob.strip() for lbl_and_prob in lbls_and_probs]
@@ -533,7 +521,7 @@ class PhaseLineCondition():
             if lbl_and_prob in all_linelabels:
                 if len(lbls_and_probs) > 1:
                     raise ParseException(lineno, f"Invalid condition '{goto}'.")
-                self.goto.append((1, lbl_and_prob))
+                self.goto.append([1, lbl_and_prob])
             else:
                 if '(' and ')' in lbl_and_prob:
                     if lbl_and_prob.count('(') > 1 or lbl_and_prob.count(')') > 1:
@@ -550,21 +538,15 @@ class PhaseLineCondition():
                     isprob, prob = ParseUtil.is_prob(prob_str, global_variables)
 
                     if not isprob:
-                        raise ParseException(lineno, err + f"Expected a probability, got '{prob_str}'.")
+                        if prob is not None:
+                            raise ParseException(lineno, err + f"Expected a probability, got '{prob_str}'.")
+                        prob = prob_str
                     for prob_lbl in self.goto:
                         if prob_lbl[1] == lbl:
                             raise ParseException(lineno, err + f"Label '{lbl}' duplicated.")
-                    self.goto.append((prob, lbl))
+                    self.goto.append([prob, lbl])
                 else:
                     raise ParseException(lineno, err + f"Invalid line label '{goto}'.")
-
-        self.goto_prob_cumsum = list()
-        cumsum = 0
-        for prob_lbl in self.goto:
-            cumsum += prob_lbl[0]
-            self.goto_prob_cumsum.append(cumsum)
-        if cumsum > 1:
-            raise ParseException(lineno, err + f"Sum of probabilities is {cumsum}>1.")
 
 
 class EndPhaseCondition():

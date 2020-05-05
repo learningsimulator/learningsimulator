@@ -88,3 +88,14 @@ class LsTestCase(unittest.TestCase):
         for filename in filenames:
             fullpath = "./tests/exported_files/{}".format(filename)
             self.assertTrue(os.path.isfile(fullpath))
+
+    def assertIncreasing(self, list1):
+        is_increasing = True
+        if len(list1) > 0:
+            prev = list1[0]
+            for x in list1[1:]:
+                is_increasing = (x >= prev)
+                if not is_increasing:
+                    break
+                prev = x
+        self.assertTrue(is_increasing)
