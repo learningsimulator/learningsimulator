@@ -35,6 +35,47 @@
 \begin{document}
 \maketitle
 
+\section{What is the Learning Simulator?}
+The Learning Simulator is a software for simulating a system consisting of
+two interacting dynamical systems -- an \emph{environment} and an \emph{individual}.
+It can be used to simulate associative learning processes in animals.
+
+The system operates in discrete time. In each time step,
+the environment presents a stimulus $S$ to the individual that responds
+to this stimulus with a behavior $B$ and as a result the environment
+presents $S'$:
+\[
+S \to B \to S'.
+\]
+The set of possible respones that the individual may present is called the
+individual's \emph{behavior repertoire}.
+The presented stimulus $S'$ may or may not
+depend on the response $B$ to the previous stimulus $S$.
+The individual is assumed to have a pre-defined (genetic) value for each stimulus. It also has values for associations (associative strengths) between each stimulus in the
+environment and each response in the behavior repertoire. These values are updated in each time step.
+After $S \to B \to S'$ has occured, the associative value between $S$ and $B$ is
+updated, based on the pre-defined value of $S'$. If the individual's pre-defined
+value of the stimulus $S'$ is high, the associative value between $S$ and $B$
+increases more than if the pre-defined value of $S'$ is low.
+
+For example, if a mouse gets a reward after turning left in a T-maze (because there
+is food in the left arm of the maze), the associative value
+between the stimulus "intersection" and the response "turn left" increases.
+This in turn increases the probability that the mouse will turn left the next time
+it is presented with with the same stimulus "intersection".
+
+The individual's response is determined by a decision function.
+This function computes a probabilitiy for each possible response to the
+presented stimulus and then picks a response from the distribution defined by
+these probabilities. The probability of responding with the behavior $B$ to the stimulus 
+$S$ increases with the associative value between $S$ and $B$.
+
+A typical example is an animal interacting in an experiment set up, for example
+a mouse that learns to press a lever to get a reward. In that case, the individual
+(the mouse) can be assumed to have two behaviors: \emph{press lever} and \emph{don't press lever}. The environment (the experiment set up) can present the stimuli \emph{lever}, \emph{reward} (presented to the mouse when lever is pressed), and \emph{no reward} (presented when lever is not pressed).
+
+In this case the Learning Simulator simulates how the mouse
+
 \section{Installation instructions}
 
 \section{How to run the program}

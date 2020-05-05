@@ -4,7 +4,6 @@ from .testutil import LsTestCase, run, get_plot_data
 
 
 class TestBasic(LsTestCase):
-
     def setUp(self):
         pass
 
@@ -13,7 +12,7 @@ class TestBasic(LsTestCase):
 
     def test_plant_approach_berry(self):
         script = '''
-n_subjects           : 10
+n_subjects           : 20
 mechanism            : SR
 behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
@@ -234,7 +233,7 @@ runlabel: trace=0.5
         script_obj, script_output = run(script)
         plot_data = get_plot_data()
 
-        # Check forst and last values for all vplots
+        # Check first and last values for all vplots
         for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
             self.assertEqual(plot_data[lbl]['y'][0], -1)
 
@@ -254,3 +253,167 @@ runlabel: trace=0.5
             sum_of_sqares[lbl] = ss
         self.assertLess(sum_of_sqares['trace=0.1'], sum_of_sqares['trace=0.25'])
         self.assertLess(sum_of_sqares['trace=0.25'], sum_of_sqares['trace=0.5'])
+
+
+class TestMechanisms(LsTestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_ga(self):
+        script = '''
+n_subjects           : 100
+mechanism            : ga
+behaviors            : approach, eat, other
+stimulus_elements    : plant, berry, sugar, no_reward
+response_requirements: approach:plant, eat:berry
+start_v              : plant->other:0, berry->other:0, default:-1
+alpha_v              : 0.1
+alpha_w              : 0.1
+beta                 : 1
+behavior_cost        : approach:1, default: 0
+u                    : sugar:10, default:0
+bind_trials          : off
+
+@phase acquisition stop: plant=300
+new_trial              | PLANT
+PLANT       plant     | approach: BERRY | new_trial
+BERRY       berry     | eat: REWARD     | NO_REWARD
+REWARD      sugar     | new_trial
+NO_REWARD   no_reward | new_trial
+
+@figure
+
+trace: 0
+@run acquisition runlabel:0
+
+trace: 0.25
+@run acquisition runlabel:0.25
+
+trace: 0.5
+@run acquisition runlabel:0.5
+
+xscale: plant
+subject: average
+
+runlabel:0
+@vplot berry->eat {'label':'0'}
+@vplot plant->approach {'label':'0: plant->approach'}
+
+runlabel:0.25
+@vplot berry->eat {'label':'0.25'}
+
+runlabel:0.5
+@vplot berry->eat {'label':'0.5'}
+@vplot plant->approach {'label':'0.5: plant->approach'}
+
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+# XXX add this test
+
+
+
+
+
+
+
+
+
+    def test_sr_same_as_ga_when_alphaw_is_0(self):
+        script = '''
+n_subjects           : 300
+behaviors            : approach, eat, other
+stimulus_elements    : plant, berry, sugar, no_reward
+response_requirements: approach:plant, eat:berry
+start_v              : plant->other:0, berry->other:0, default:-1
+alpha_v              : 0.1
+beta                 : 0.5
+behavior_cost        : approach:1, default: 0
+u                    : sugar:10, default:0
+bind_trials          : off
+
+@phase acquisition stop: plant=200
+new_trial              | PLANT
+PLANT       plant     | approach: BERRY | new_trial
+BERRY       berry     | eat: REWARD     | NO_REWARD
+REWARD      sugar     | new_trial
+NO_REWARD   no_reward | new_trial
+
+# SR
+mechanism: sr
+
+trace: 0
+@run acquisition runlabel:sr0
+
+trace: 0.25
+@run acquisition runlabel:sr0.25
+
+trace: 0.5
+@run acquisition runlabel:sr0.5
+
+xscale: plant
+subject: average
+@figure
+
+runlabel:sr0
+@vplot berry->eat {'label':'sr0'}
+@vplot plant->approach {'label':'sr0: plant->approach'}
+
+runlabel:sr0.25
+@vplot berry->eat {'label':'sr0.25'}
+
+runlabel:sr0.5
+@vplot berry->eat {'label':'sr0.5'}
+@vplot plant->approach {'label':'sr0.5: plant->approach'}
+
+
+# GA with alpha_w=0
+mechanism: ga
+alpha_w: 0
+
+trace: 0
+@run acquisition runlabel:ga0
+
+trace: 0.25
+@run acquisition runlabel:ga0.25
+
+trace: 0.5
+@run acquisition runlabel:ga0.5
+
+
+runlabel:ga0
+@vplot berry->eat {'label':'ga0'}
+@vplot plant->approach {'label':'ga0: plant->approach'}
+
+runlabel:ga0.25
+@vplot berry->eat {'label':'ga0.25'}
+
+runlabel:ga0.5
+@vplot berry->eat {'label':'ga0.5'}
+@vplot plant->approach {'label':'ga0.5: plant->approach'}
+
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        for lbl in ['0', '0: plant->approach', '0.25', '0.5', '0.5: plant->approach']:
+            sr_lbl = 'sr' + lbl
+            ga_lbl = 'ga' + lbl
+            self.assertEqual(len(plot_data[sr_lbl]['y']), len(plot_data[ga_lbl]['y']))
+            for i in range(len(plot_data[sr_lbl]['y'])):
+                sr_y = plot_data[sr_lbl]['y'][i]
+                ga_y = plot_data[ga_lbl]['y'][i]
+                self.assertLess(abs(sr_y - ga_y), 0.5)
+
+            sr_y_last = plot_data[sr_lbl]['y'][-1]
+            ga_y_last = plot_data[ga_lbl]['y'][-1]
+            if lbl == '0.5':
+                self.assertLess(abs(sr_y_last - ga_y_last), 0.1)
+            else:
+                self.assertLess(abs(sr_y_last - ga_y_last), 0.01)
