@@ -96,8 +96,8 @@ class Mechanism():
         raise NotImplementedError
 
     def learn_i(self, stimulus):
-        # Must be overridden
-        raise NotImplementedError
+        mechanism_name = self.parameters.get(kw.MECHANISM_NAME)
+        raise NotImplementedError(f"Trace not implemented in mechanism '{mechanism_name}'.")
 
     def _get_response(self, stimulus):
         x, feasible_behaviors = self._support_vector(stimulus)

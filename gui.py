@@ -446,6 +446,7 @@ class Gui():
                 self.scriptField.text_box.edit_modified(False)
                 self.file_path = filepath
                 self.set_title()
+                self._add_recent_file(filepath)
                 return  # "saved"
         except IOError as e:
             self.handle_exception(e)
