@@ -21,11 +21,10 @@ class Variables():
                 var, val_str = varval.split(':')
                 var = var.strip()
                 val_str = val_str.strip()
-                if var in self.values:
-                    return "Duplicate of variable '{}' found.".format(var)
-                var_err = self._is_valid_name(var, pv)
-                if var_err:
-                    return var_err
+                if var not in self.values:  # Otherwise overwrite previous value
+                    var_err = self._is_valid_name(var, pv)
+                    if var_err:
+                        return var_err
                 val, val_err = self._is_valid_value(val_str)
                 if val_err:
                     return val_err

@@ -68,6 +68,153 @@ class TestGitHubIssues(LsTestCase):
 
         # @nplot s2
 
+    def test_issue112_big(self):
+        text = '''
+        n_subjects        : 10
+        mechanism         : sr
+        behaviors         : response, no_response
+        stimulus_elements : background, stimulus, reward
+        start_v           : default:-1
+        alpha_v           : 0.1
+        u                 : reward:10, default:0
+
+        @PHASE training stop: stimulus=100
+        new_trial  stimulus   | response=n: REWARD | NO_REWARD
+        REWARD     reward     | new_trial
+        NO_REWARD  background | new_trial
+
+        @variables n:1
+        @run training runlabel:1
+
+        @variables n:2
+        @run training runlabel:2
+
+        @figure n=1
+        runlabel:1
+        @nplot background
+        @nplot reward
+        @legend
+
+        @figure n=2
+        runlabel:2
+        @nplot background
+        @nplot reward
+        @legend
+
+        xscale: stimulus
+        @figure
+        runlabel:1
+        @vplot stimulus->response {'label':'n=1'}
+
+        runlabel:2
+        @vplot stimulus->response {'label':'n=2'}
+
+        @legend
+        '''
+        script, script_output = run(text)
+
+        # Figure 1
+        plot_data = get_plot_data(figure_number=1)
+        for y in plot_data['n(background)']['y'][-100:]:
+            self.assertLess(y, 4)
+            self.assertGreater(y, 0)
+        for y in plot_data['n(reward)']['y'][-100:]:
+            self.assertLess(y, 100)
+            self.assertGreater(y, 60)
+
+        # Figure 2
+        plot_data = get_plot_data(figure_number=2)
+        expected_value = 0
+        for x, y in zip(plot_data['n(background)']['x'], plot_data['n(background)']['y']):
+            if x <= 2:
+                expected_value = 0
+            else:
+                expected_value = (x + 1) // 4
+            self.assertEqual(y, expected_value)
+        for y in plot_data['n(reward)']['y']:
+            self.assertEqual(y, 0)
+
+        # Figure 3
+        plot_data = get_plot_data(figure_number=3)
+        for x, y1, y2 in zip(plot_data['n=1']['x'], plot_data['n=1']['y'], plot_data['n=2']['y']):
+            if x > 40:
+                self.assertGreater(y1 - y2, 9)
+                self.assertGreater(y2, -0.2)
+                self.assertLess(y2, 0)
+                self.assertGreater(y1, 9.6)
+                self.assertLess(y1, 10)
+        for val in plot_data['n=2']['y']:
+            self.assertLess(val, 0)
+            self.assertGreaterEqual(val, -1)
+
+    def test_issue112_small(self):
+        text = '''
+        n_subjects        : 1
+        mechanism         : sr
+        behaviors         : b
+        stimulus_elements : e1, e2
+        start_v           : 0
+        alpha_v           : 0.1
+        u                 : e1:10, e2:0
+
+        @PHASE foo stop:e1=10
+        A e1   | e1=n: B | A
+        B e2   | A
+
+        @variables x:0, n:1
+        @run foo runlabel:n=1
+
+        @variables x:1, n:2, y:3
+        @run foo runlabel:n=2
+
+        @figure
+        @nplot e1
+        @nplot e2
+        '''
+        script, script_output = run(text)
+        history = script_output.run_outputs["n=1"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+
+        history = script_output.run_outputs["n=2"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+
+        # Test that e1=n is the same as count_line(e1)=n
+        text = '''
+        n_subjects        : 1
+        mechanism         : sr
+        behaviors         : b
+        stimulus_elements : e1, e2
+        start_v           : 0
+        alpha_v           : 0.1
+        u                 : e1:10, e2:0
+
+        @PHASE foo stop:e1=10
+        A e1   | count_line(e1)=n: B | A
+        B e2   | A
+
+        @variables x:0, n:1
+        @run foo runlabel:n=1
+
+        @variables x:1, n:2, y:3
+        @run foo runlabel:n=2
+
+        @variables x:1, n:20, y:3
+        @run foo runlabel:n=20
+
+        @figure
+        @nplot e1
+        @nplot e2
+        '''
+        script, script_output = run(text)
+        history = script_output.run_outputs["n=1"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+
+        history = script_output.run_outputs["n=2"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+
+        history = script_output.run_outputs["n=20"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1'] * 10)
+
 
 class TestFoundBugs(LsTestCase):
     @classmethod

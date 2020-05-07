@@ -91,14 +91,6 @@ class TestExceptions(LsTestCase):
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
-    def test_duplicate(self):
-        text = '''
-        @variables x:1, y:2, x:3
-        '''
-        msg = "Error on line 2: Duplicate of variable 'x' found."
-        with self.assertRaisesX(Exception, msg):
-            parse(text)
-
     def test_variable_name_is_stimulus(self):
         pass
 
