@@ -299,14 +299,15 @@ class TestFoundBugs(LsTestCase):
         behavior_cost     : ignore:0, default: 1
         u                 : reward:5, default:0
 
-        @phase experiment stop: new_trial=100
-        new_trial  s_start    | FOO
+        @phase experiment stop: START=100
+        INIT_FOO   foo:0      | START
+        START      s_start    | FOO
         FOO        foo:foo+1  | STEP1
-        STEP1      s1         | b1: STEP2   |  new_trial
-        STEP2      s2         | b2: OUTCOME |  new_trial
+        STEP1      s1         | b1: STEP2       | START
+        STEP2      s2         | b2: OUTCOME     | START
         OUTCOME               | foo<=50: REWARD | NO_REWARD
-        REWARD     reward     | new_trial
-        NO_REWARD  no_reward  | new_trial
+        REWARD     reward     | START
+        NO_REWARD  no_reward  | START
 
         @run experiment
 

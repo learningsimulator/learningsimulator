@@ -52,6 +52,7 @@ class TestMisc(LsTestCase):
         """
         world, _ = parse(script)
         msg = "Unknown variable 'E00'."
+        world.next_stimulus(None)
         with self.assertRaisesX(Exception, msg):
             world.next_stimulus('R0')
 

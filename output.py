@@ -440,6 +440,7 @@ class RunOutputSubject():
         xscale_exact = (parameters.get(kw.XSCALE_MATCH) == kw.EVAL_EXACT)
 
         out = None
+        # prepend_zero = (xscale == kw.EVAL_ALL)
         if (xscale == kw.EVAL_ALL):
             if is_cumulative:
                 _, out = util.find_and_cumsum(history, seq, is_exact)
@@ -452,6 +453,10 @@ class RunOutputSubject():
                 _, out = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
             else:
                 out, _ = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
+        # if prepend_zero:
+        #     out = [0] + out
+        # else:  # XXX
+        #     out = out[1:]
         return [0] + out
 
     def printout(self):

@@ -141,7 +141,7 @@ class ParseUtil():
         expr_orig = expr
 
         # Remove all spaces
-        expr = expr.replace(" ", "")
+        #expr = expr.replace(" ", "")
 
         expr = ParseUtil._single2double_eq(expr)
 
@@ -592,6 +592,21 @@ def is_prob(string):
     return True, val
 
 
+def is_valid_name(name, parameters, kw):
+    """Checks if name is a valid script variable name. Returns the error."""
+    if not name.isidentifier():
+        return "Variable name '{}' is not a valid identifier.".format(name)
+    if name in kw.KEYWORDS:
+        return "Variable name '{}' is a keyword.".format(name)
+    behaviors = parameters.get(kw.BEHAVIORS)
+    if behaviors is not None and name in behaviors:
+        return "Variable name '{}' equals a behavior name.".format(name)
+    stimulus_elements = parameters.get(kw.STIMULUS_ELEMENTS)
+    if stimulus_elements is not None and name in stimulus_elements:
+        return "Variable name '{}' equals a stimulus element name.".format(name)
+    return None
+
+
 def strip_quotes(string):
     string_out = string
     string_out = string_out.replace('"', '')
@@ -775,7 +790,7 @@ def find_and_cumsum_interval(seq, pattern, use_exact_match,
     occurrences of interval_pattern.
 
     Example:
-        find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X')
+        find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X', True)
         returns [2, 1, 0]
     """
     ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)

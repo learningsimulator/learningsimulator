@@ -249,7 +249,7 @@ runlabel: trace=0.5
         for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
             ss = 0
             for i in range(len(plot_data[lbl]['y'])):
-                ss += (plot_data['no trace']['y'][i] - plot_data[lbl]['y'][i])**2
+                ss += abs(plot_data['no trace']['y'][i] - plot_data[lbl]['y'][i])
             sum_of_sqares[lbl] = ss
         self.assertLess(sum_of_sqares['trace=0.1'], sum_of_sqares['trace=0.25'])
         self.assertLess(sum_of_sqares['trace=0.25'], sum_of_sqares['trace=0.5'])
