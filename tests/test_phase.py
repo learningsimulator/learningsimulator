@@ -993,6 +993,27 @@ class TestMultipleActions(LsTestCase):
 
         text = params + '''
         @PHASE phase_label stop:e1=10
+        S          | x:0, A
+        A          | b1+cos(x)==2 and x==0:B | A
+        B e2       | A
+        '''
+        msg = "Error on line 9: Condition on help line cannot depend on response."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:e1=10
+        S          | x:0, A
+        A          | count(b1)==2 or x==0:B | A  # Is actually ok, but we should
+                                                 # phase out count(), so never mind
+        B e2       | A
+        '''
+        msg = "Error on line 9: Condition on help line cannot depend on response."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:e1=10
         A          | x1:1, x2:2, B, x3:3 | A
         B e2       | A
         '''
@@ -1011,7 +1032,7 @@ class TestMultipleActions(LsTestCase):
 
         text = params + '''
         @PHASE phase_label stop:e1=10
-        A          | b1=6: x1:1, x2:2, x3:3
+        A e1       | b1=6: x1:1, x2:2, x3:3
         B e2       | A
         '''
         msg = "Error on line 8: Row label not found in 'b1=6: x1:1, x2:2, x3:3'."
@@ -1020,10 +1041,19 @@ class TestMultipleActions(LsTestCase):
 
         text = params + '''
         @PHASE phase_label stop:e1=10
-        A          | 1x:1, B
+        A          | e1=1: 1x:1, B
         B e2       | A
         '''
         msg = "Error on line 8: Variable name '1x' is not a valid identifier."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:e1=10
+        A          | x==2:1, B
+        B e2       | A
+        '''
+        msg = "Unknown action '1'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'phase_label')
 
@@ -1650,15 +1680,19 @@ class TestExceptions(LsTestCase):
 
     def test_condition_not_boolean(self):
         text = '''
+        mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
         @PHASE thelabel stop : e1==4
         L1  e1  | 42:L2 | L1
         L2  e2  | L1
+
+        @run thelabel
         '''
-        msg = "Variable name '42' is not a valid identifier."
+        msg = "Condition '42' is not a boolean expression."
         with self.assertRaisesX(Exception, msg):
-            phase = parse(text, 'thelabel')
+            run(text)
+            # phase = parse(text, 'thelabel')
 
         text = '''
         stimulus_elements: e1, e2
