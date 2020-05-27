@@ -168,7 +168,7 @@ class Phase():
             self.is_first_line = False
         else:
             rowlbl = self.curr_lineobj.next_line(response, self.global_variables, self.local_variables,
-                                                self.event_counter)
+                                                 self.event_counter)
             self.prev_linelabel = self.curr_lineobj.label
             self._make_current_line(rowlbl)
 
@@ -250,8 +250,7 @@ class PhaseEventCounter():
         event_names = list(stimulus_elements) + list(behaviors) + linelabels
         # event_names = set(linelabels).union(stimulus_elements).union(behaviors)
 
-        # self.count_line counts events on current line, start at 1 since it is  incremented only
-        # when previous line is the same as current
+        # self.count_line counts events on current line
         self.count_line = {key: 0 for key in event_names}
 
         # The name of the current line
@@ -516,7 +515,10 @@ class PhaseLineCondition():
 
         if has_condition:
             self.cond_is_behavior = (self.cond in parameters.get(BEHAVIORS))
-            if self.cond_is_behavior and is_help_line:
+            cond_depends_on_behavior, err = ParseUtil.depends_on(self.cond, parameters.get(BEHAVIORS))
+            if err is not None:
+                raise ParseException(lineno, err)
+            if cond_depends_on_behavior and is_help_line:
                 raise ParseException(lineno, "Condition on help line cannot depend on response.")
 
         # Parse each action
@@ -574,7 +576,7 @@ class PhaseLineCondition():
     def _is_condition(self, condition, parameters):
         if condition in parameters.get(BEHAVIORS):
             return True
-        return condition.count("=") == 1 or condition.count("<") == 1 or condition.count(">") == 1
+        return not condition.isidentifier()
 
     def is_met(self, response, global_variables, local_variables, event_counter):
         variables_both = Variables.join(global_variables, local_variables)
@@ -589,6 +591,7 @@ class PhaseLineCondition():
                 raise ParseException(self.lineno, err)
             if type(ismet) is not bool:
                 raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
+
         if ismet:
             label = self._goto_if_met(variables_both)
             if label is None:  # In "ROW1(0.1),ROW2(0.3)", goto_if_met returns None with prob. 0.6

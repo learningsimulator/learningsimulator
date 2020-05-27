@@ -131,6 +131,29 @@ class ParseUtil():
         return out
 
     @staticmethod
+    def depends_on(expr_orig, var_list):
+        expr = ParseUtil._single2double_eq(expr_orig)
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
+            return None, err
+        for node in ast.walk(tree):
+            if type(node) is ast.Name:
+                name = node.id
+                if name in var_list:
+                    return True, err
+        return False, None
+
+    @staticmethod
+    def ast_parse(expr):
+        try:
+            tree = ast.parse(expr, mode='eval')
+        except Exception as ex:
+            err = f"Error in expression '{expr}': {ex}."
+            err = err.replace(" (<unknown>, line 1)", "")
+            return None, err
+        return tree, None
+
+    @staticmethod
     def evaluate(expr, variables=None, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
@@ -139,9 +162,6 @@ class ParseUtil():
         Returns evaluated_value, error
         """
         expr_orig = expr
-
-        # Remove all spaces
-        #expr = expr.replace(" ", "")
 
         expr = ParseUtil._single2double_eq(expr)
 
@@ -169,11 +189,8 @@ class ParseUtil():
             # expr = expr.replace("count_line(", f"count_line({PEC},")
 
         # Make sure that the expression is valid
-        try:
-            tree = ast.parse(expr, mode='eval')
-        except Exception as ex:
-            err = f"Error in expression '{expr}': {ex}."
-            err = err.replace(" (<unknown>, line 1)", "")
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
             return None, err
 
         # if phase_event_counter:
@@ -181,6 +198,7 @@ class ParseUtil():
         #                     'count_line': phase_event_counter.get_count_line})
 
         # Check that all contained variables are in variables
+        has_boolean_operator = False
         for node in ast.walk(tree):
             if type(node) is ast.Name:
                 name = node.id
@@ -191,6 +209,8 @@ class ParseUtil():
                 if (phase_event_counter is not None) and (name in phase_event_counter.count):
                     continue
                 return None, f"Unknown variable '{name}'."
+            if type(node) is ast.BoolOp:
+                has_boolean_operator = True
 
         # Now it is safe to evaluate using eval
         # if phase_event_counter is not None:
@@ -204,6 +224,11 @@ class ParseUtil():
             if not err.endswith("."):  # Some errors {ex} ends with period, some don't
                 err = err + "."
             return None, err
+
+        # Due to short-circuiting, "0 and False" is 0 (int), but "1 and False" is False (bool)
+        if has_boolean_operator:
+            out = bool(out)
+
         type_out = type(out)
         if type_out is not int and type_out is not float and type_out is not bool:
             return None, f"Error in expression '{expr_orig}'."
