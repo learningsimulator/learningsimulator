@@ -90,19 +90,32 @@ class LineParser():
     PLOT = 9
     EXPORT = 10
     LEGEND = 11
+    PREV_DEFINED_VARIABLE = 12
 
-    def __init__(self, line):
+    def __init__(self, line, global_variables):
         self.line = line
+        self.global_variables = global_variables
         self.linesplit_colon = line.split(':', 1)  # Has length 1 or 2
+        self.linesplit_equal = line.split('=', 1)  # Has length 1 or 2
         self.linesplit_space = line.split(' ', 1)  # Has length 1 or 2
         self.param = None  # The parameter when line is "param: value"
         self.line_type = None
 
     def parse(self):
-        possible_param = self.linesplit_colon[0].strip().lower()
-        if is_parameter_name(possible_param):
-            self.param = possible_param
+        possible_param_colon = self.linesplit_colon[0].strip().lower()
+        possible_param_equal = self.linesplit_equal[0].strip().lower()
+        is_parameter_name_colon = is_parameter_name(possible_param_colon)
+        is_parameter_name_equal = is_parameter_name(possible_param_equal)
+        if is_parameter_name_colon or is_parameter_name_equal:
+            if is_parameter_name_colon:
+                self.param = possible_param_colon
+            else:
+                self.param = possible_param_equal
             self.line_type = LineParser.PARAMETER
+
+        if self.global_variables.contains(possible_param_equal):
+            self.line_type = LineParser.PREV_DEFINED_VARIABLE
+
         first_word = self.linesplit_space[0].lower()
         if first_word == kw.VARIABLES:
             self.line_type = LineParser.VARIABLES
@@ -166,9 +179,10 @@ class ScriptParser():
             if line_endswith_comma:
                 line = line[:-1]
 
-            line_parser = LineParser(line)
+            line_parser = LineParser(line, self.variables)
             line_parser.parse()
             linesplit_colon = line_parser.linesplit_colon
+            linesplit_equal = line_parser.linesplit_equal
             linesplit_space = line_parser.linesplit_space
 
             if in_prop or in_variables or in_phase:
@@ -198,9 +212,19 @@ class ScriptParser():
             if line_parser.line_type == LineParser.PARAMETER:
                 # Handle line that sets a parameter (e.g. "prop   :    val")
                 prop = line_parser.param
-                if len(linesplit_colon) == 1:
+                if len(linesplit_colon) == 1 and len(linesplit_equal) == 1:
                     raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
-                possible_val = linesplit_colon[1].strip()
+                first_colon_index = line_orig.find(':')
+                first_equal_index = line_orig.find('=')
+                if first_equal_index > 0 and first_colon_index > 0:
+                    if first_colon_index < first_equal_index:          # u : a=1, b=2
+                        possible_val = linesplit_colon[1].strip()
+                    else:                                              # u = a:1, b:2
+                        possible_val = linesplit_equal[1].strip()
+                elif first_equal_index > 0 and first_colon_index < 0:  # u = 2
+                    possible_val = linesplit_equal[1].strip()
+                elif first_colon_index > 0 and first_equal_index < 0:  # u : 2
+                    possible_val = linesplit_colon[1].strip()
                 if len(possible_val) == 0:
                     raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
                 if line_endswith_comma:
@@ -219,6 +243,13 @@ class ScriptParser():
                 in_variables = line_endswith_comma
                 cs_varvals = linesplit_space[1].strip()
                 err = self.variables.add_cs_varvals(cs_varvals, self.parameters)
+                if err:
+                    raise ParseException(lineno, err)
+                else:
+                    continue
+
+            elif line_parser.line_type == LineParser.PREV_DEFINED_VARIABLE:
+                err = self.variables.add_cs_varvals(line.strip(), self.parameters)
                 if err:
                     raise ParseException(lineno, err)
                 else:

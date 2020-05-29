@@ -218,8 +218,12 @@ class Phase():
         if len(action) == 0:  # No action to perform
             return
 
-        if action.count(':') == 1:
-            var_name, value_str = ParseUtil.split1_strip(action, sep=':')
+        if action.count(':') == 1 or action.count('=') == 1:
+            if action.count('=') == 1:
+                sep = '='
+            else:
+                sep = ':'
+            var_name, value_str = ParseUtil.split1_strip(action, sep=sep)
             variables_join = Variables.join(self.global_variables, self.local_variables)
             value, err = ParseUtil.evaluate(value_str, variables_join)
             if err:
@@ -362,8 +366,12 @@ class PhaseEventCounter():
 
 
 def check_action(action, parameters, global_variables, lineno, all_linelabels):
-    if action.count(':') == 1:
-        var_name, _ = ParseUtil.split1_strip(action, sep=':')
+    if action.count(':') == 1 or action.count('=') == 1:
+        if action.count('=') == 1:
+            sep = '='
+        else:
+            sep = ':'
+        var_name, _ = ParseUtil.split1_strip(action, sep=sep)
         var_err = is_valid_name(var_name, parameters, kw)
         if var_err is not None:
             raise ParseException(lineno, var_err)

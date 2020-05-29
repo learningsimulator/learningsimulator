@@ -743,7 +743,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | b1: x1:1, x2:2, B | A
+        A e1       | b1: x1=1, x2=2, B | A
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
@@ -761,7 +761,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | count(e2)=3: x1:1, x2:2, A | B
+        A e1       | count(e2)==3: x1=1, x2=2, A | B
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
@@ -797,7 +797,7 @@ class TestMultipleActions(LsTestCase):
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 2})
 
-    def test_split_with_comma(self):
+    def test_split_with_function_comma1(self):
         text = '''
         behaviors         : b1, b2
         stimulus_elements : e1, e2
@@ -836,6 +836,52 @@ class TestMultipleActions(LsTestCase):
         stimulus, _, _ = phase.next_stimulus('b2')
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 42})
+
+    def test_split_with_function_comma2(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
+        mechanism         : sr
+
+        @PHASE phase_label stop:e1=10
+        A e1   | x1:1, x2:choice(11,12) | count(b1)=5: x2:choice([5,6],[1,2]), B | C
+        B e2   | A
+        C e3   | x3:choice(20,22,24), A
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, dict())
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertTrue('x1' in phase.local_variables.values)
+        self.assertTrue('x2' in phase.local_variables.values)
+        self.assertTrue('x3' not in phase.local_variables.values)
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values['x1'], 1)
+        self.assertTrue(phase.local_variables.values['x2'] in (11, 12))
+        self.assertTrue(phase.local_variables.values['x3'] in (20, 22, 24))
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e3': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e3': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e2': 1})
+        self.assertEqual(phase.local_variables.values['x1'], 1)
+        self.assertTrue(phase.local_variables.values['x2'] in (5, 6))
+        self.assertTrue(phase.local_variables.values['x3'] in (20, 22, 24))
 
     def test_prob_goto_without_else(self):
         text = '''
@@ -947,11 +993,11 @@ class TestMultipleActions(LsTestCase):
 
         text = params + '''
         @PHASE phase_label stop:e1=10
-        A e1       | x1:1, b1=5: x2:2, B | C
+        A e1       | x1:1, b1&5: x2:2, B | C
         B e2       | A
         C e1       | A
         '''
-        msg = "Error on line 8: Unknown action 'b1=5: x2:2'."
+        msg = "Error on line 8: Unknown action 'b1&5: x2:2'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'phase_label')
 
