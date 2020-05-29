@@ -15,6 +15,34 @@ def rand(start, stop):
     return random.randint(start, stop)
 
 
+def choice(*args):
+    def _is_numeric_iter(vec):
+        return all(isinstance(x, (int, float)) for x in vec)
+
+    def _choice_float(population, weights=None):
+        ERRMSG = "Found non-number in 'choice'."
+        if not _is_numeric_iter(population):
+            raise Exception(ERRMSG)
+        if weights is None:
+            return random.choice(population)
+        if not _is_numeric_iter(weights):
+            raise Exception(ERRMSG)
+        return random.choices(population=population, weights=weights, k=1)[0]
+
+    nargs = len(args)
+    if nargs == 0:
+        raise Exception("The function 'choice' must have at least one argument.")
+    elif nargs == 1:
+        if type(args[0]) is list:
+            return _choice_float(args[0])
+        else:
+            raise Exception("Single input to 'choice' must be a list.")
+    elif nargs == 2 and all(isinstance(x, list) for x in args):
+        return _choice_float(args[0], args[1])
+    else:
+        return _choice_float(args)
+
+
 def count(event_counter, event):
     return event_counter.count[event]
 
@@ -165,7 +193,7 @@ class ParseUtil():
 
         expr = ParseUtil._single2double_eq(expr)
 
-        context = {'rand': rand}
+        context = {'rand': rand, 'choice': choice}
         if variables is not None:
             context.update(variables.values)
 
