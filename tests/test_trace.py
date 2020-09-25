@@ -416,4 +416,4 @@ runlabel:ga0.5
             if lbl == '0.5':
                 self.assertLess(abs(sr_y_last - ga_y_last), 0.1)
             else:
-                self.assertLess(abs(sr_y_last - ga_y_last), 0.01)
+                self.assertLess(abs(sr_y_last - ga_y_last), 0.015)

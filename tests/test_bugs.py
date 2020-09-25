@@ -74,9 +74,9 @@ class TestGitHubIssues(LsTestCase):
         mechanism         : sr
         behaviors         : response, no_response
         stimulus_elements : background, stimulus, reward
-        start_v           : default:-1
-        alpha_v           : 0.1
-        u                 : reward:10, default:0
+        start_v           = default:-1
+        alpha_v           = 0.1
+        u                 = reward:10, default:0
 
         @PHASE training stop: stimulus=100
         new_trial  stimulus   | response=n: REWARD | NO_REWARD
@@ -149,13 +149,13 @@ class TestGitHubIssues(LsTestCase):
 
     def test_issue112_small(self):
         text = '''
-        n_subjects        : 1
-        mechanism         : sr
-        behaviors         : b
-        stimulus_elements : e1, e2
-        start_v           : 0
-        alpha_v           : 0.1
-        u                 : e1:10, e2:0
+        n_subjects        = 1
+        mechanism         = sr
+        behaviors         = b
+        stimulus_elements = e1, e2
+        start_v           = 0
+        alpha_v           = 0.1
+        u                 = e1:10, e2:0
 
         @PHASE foo stop:e1=10
         A e1   | e1=n: B | A
@@ -240,7 +240,7 @@ class TestFoundBugs(LsTestCase):
         alpha_w               : 0.1
         beta                  : 1
         behavior_cost         : ignore:0, default:1
-        response_requirements : b1:[s1,s2], b2:[s1,s2]
+        response_requirements = b1:[s1,s2], b2:[s1,s2]
         u                     : reward:5, default:0
 
         @phase acquisition stop: new_trial=50

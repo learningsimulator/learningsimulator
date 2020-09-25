@@ -17,8 +17,12 @@ class Variables():
         err = "A @VARIABLES line should have the form '@VARIABLES var1:val1, var2:val2, ...'."
         varvals = ParseUtil.comma_split(cs_varvals)
         for varval in varvals:
-            if varval.count(':') == 1:
-                var, val_str = varval.split(':')
+            if varval.count(':') == 1 or varval.count('=') == 1:
+                if varval.count('=') == 1:
+                    sep = '='
+                else:
+                    sep = ':'
+                var, val_str = varval.split(sep)
                 var = var.strip()
                 val_str = val_str.strip()
                 if var not in self.values:  # Otherwise overwrite previous value

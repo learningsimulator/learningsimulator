@@ -71,7 +71,8 @@ class Phase():
         # Set in parse
         self.stimulus_elements = None
         self.behaviors = None
-        self.variables = None
+        self.global_variables = None
+        self.local_variables = None
         self.linelabels = list()
         self.end_condition = None
         self.phase_lines = dict()  # Keys are phase line labels, values are PhaseLine objects
@@ -88,9 +89,9 @@ class Phase():
     def append_line(self, line, lineno):
         self.lines.append((line, lineno))
 
-    def parse(self, parameters, variables):
+    def parse(self, parameters, global_variables):
         self.parameters = parameters
-        self.variables = variables
+        self.global_variables = global_variables
 
         stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
         behaviors = parameters.get(BEHAVIORS)
@@ -120,7 +121,7 @@ class Phase():
         # Second iteration: Create PhaseLine objects and put in the dict self.phase_lines
         for label, after_label, lineno in zip(self.linelabels, phase_lines_afterlabel, linenos):
             self.phase_lines[label] = PhaseLine(self, lineno, label, after_label, self.linelabels,
-                                                self.parameters, self.variables)
+                                                self.parameters, self.global_variables)
             if label == "new_trial":  # Change self.first_label to the new_trial line
                 self.first_label = label
 
@@ -150,8 +151,6 @@ class Phase():
         if not preceeding_help_lines:
             preceeding_help_lines = list()
 
-        variables = Variables.join(self.variables, self.local_variables)
-
         if not ignore_response_increment:
             # if not self.is_first_line:
             if response is not None:
@@ -159,7 +158,8 @@ class Phase():
                 self.event_counter.increment_count_line(response)
 
         if self.first_stimulus_presented:
-            if self.stop_condition.is_met(variables, self.event_counter):
+            variables_both = Variables.join(self.global_variables, self.local_variables)
+            if self.stop_condition.is_met(variables_both, self.event_counter):
                 return None, None, preceeding_help_lines
 
         if self.is_first_line:
@@ -167,7 +167,8 @@ class Phase():
             rowlbl = self.first_label
             self.is_first_line = False
         else:
-            rowlbl = self.curr_lineobj.next_line(response, variables, self.event_counter)
+            rowlbl = self.curr_lineobj.next_line(response, self.global_variables, self.local_variables,
+                                                 self.event_counter)
             self.prev_linelabel = self.curr_lineobj.label
             self._make_current_line(rowlbl)
 
@@ -175,7 +176,8 @@ class Phase():
         if stimulus is not None:
             for element, intensity in stimulus.items():
                 if type(intensity) is str:  # element[var] where var is a (local) variable
-                    stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables)
+                    variables_both = Variables.join(self.global_variables, self.local_variables)
+                    stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables_both)
                     if err:
                         raise ParseException(self.phase_lines[rowlbl].lineno, err)
 
@@ -216,9 +218,13 @@ class Phase():
         if len(action) == 0:  # No action to perform
             return
 
-        if action.count(':') == 1:
-            var_name, value_str = ParseUtil.split1_strip(action, sep=':')
-            variables_join = Variables.join(self.variables, self.local_variables)
+        if action.count(':') == 1 or action.count('=') == 1:
+            if action.count('=') == 1:
+                sep = '='
+            else:
+                sep = ':'
+            var_name, value_str = ParseUtil.split1_strip(action, sep=sep)
+            variables_join = Variables.join(self.global_variables, self.local_variables)
             value, err = ParseUtil.evaluate(value_str, variables_join)
             if err:
                 raise Exception(err)
@@ -248,8 +254,7 @@ class PhaseEventCounter():
         event_names = list(stimulus_elements) + list(behaviors) + linelabels
         # event_names = set(linelabels).union(stimulus_elements).union(behaviors)
 
-        # self.count_line counts events on current line, start at 1 since it is  incremented only
-        # when previous line is the same as current
+        # self.count_line counts events on current line
         self.count_line = {key: 0 for key in event_names}
 
         # The name of the current line
@@ -361,8 +366,12 @@ class PhaseEventCounter():
 
 
 def check_action(action, parameters, global_variables, lineno, all_linelabels):
-    if action.count(':') == 1:
-        var_name, _ = ParseUtil.split1_strip(action, sep=':')
+    if action.count(':') == 1 or action.count('=') == 1:
+        if action.count('=') == 1:
+            sep = '='
+        else:
+            sep = ':'
+        var_name, _ = ParseUtil.split1_strip(action, sep=sep)
         var_err = is_valid_name(var_name, parameters, kw)
         if var_err is not None:
             raise ParseException(lineno, var_err)
@@ -379,11 +388,10 @@ def check_action(action, parameters, global_variables, lineno, all_linelabels):
 
 
 class PhaseLine():
-    def __init__(self, phase_obj, lineno, label, after_label, all_linelabels, parameters, variables):
+    def __init__(self, phase_obj, lineno, label, after_label, all_linelabels, parameters, global_variables):
         self.lineno = lineno
         self.label = label
         self.parameters = parameters
-        self.variables = variables
         self.all_linelabels = all_linelabels
 
         self.is_help_line = False
@@ -401,9 +409,9 @@ class PhaseLine():
         if self.is_help_line:
             self.stimulus = None
             if action_list[0] != '':
-                check_action(action_list[0], parameters, variables, lineno, all_linelabels)
+                check_action(action_list[0], parameters, global_variables, lineno, all_linelabels)
         else:
-            self.stimulus, err = ParseUtil.parse_elements_and_intensities(self.action, variables,
+            self.stimulus, err = ParseUtil.parse_elements_and_intensities(self.action, global_variables,
                                                                           safe_intensity_eval=True)
             if err:
                 raise ParseException(lineno, err)
@@ -417,10 +425,10 @@ class PhaseLine():
         if len(logic) == 0:
             raise ParseException(lineno, f"Line with label '{label}' has no conditions.")
         self.conditions = PhaseLineConditions(phase_obj, lineno, self.is_help_line, logic, parameters,
-                                              all_linelabels, variables)
+                                              all_linelabels, global_variables)
 
-    def next_line(self, response, variables, event_counter):
-        label = self.conditions.next_line(response, variables, event_counter)
+    def next_line(self, response, global_variables, local_variables, event_counter):
+        label = self.conditions.next_line(response, global_variables, local_variables, event_counter)
         return label
 
 
@@ -441,14 +449,15 @@ class PhaseLineConditions():
                                                n_logicparts, parameters, all_linelabels, global_variables)
             self.conditions.append(condition_obj)
 
-    def next_line(self, response, variables, event_counter):
+    def next_line(self, response, global_variables, local_variables, event_counter):
         for i, condition in enumerate(self.conditions):
             # If goto is missing, it must be the first logic part, and condition must also be missing
             if condition.goto is None:
                 assert(i == 0 and condition.cond is None)
                 self.phase_obj.perform_actions(condition.actions)
                 continue
-            condition_met, label = condition.is_met(response, variables, event_counter)
+            condition_met, label = condition.is_met(response, global_variables, local_variables,
+                                                    event_counter)
             if condition_met:
                 self.phase_obj.perform_actions(condition.actions)
                 return label
@@ -514,7 +523,10 @@ class PhaseLineCondition():
 
         if has_condition:
             self.cond_is_behavior = (self.cond in parameters.get(BEHAVIORS))
-            if self.cond_is_behavior and is_help_line:
+            cond_depends_on_behavior, err = ParseUtil.depends_on(self.cond, parameters.get(BEHAVIORS))
+            if err is not None:
+                raise ParseException(lineno, err)
+            if cond_depends_on_behavior and is_help_line:
                 raise ParseException(lineno, "Condition on help line cannot depend on response.")
 
         # Parse each action
@@ -532,7 +544,7 @@ class PhaseLineCondition():
                     err = f"Row label(s) must be the last action(s). Found '{action}' after row-label."
                     raise ParseException(lineno, err)
             else:
-                found_rowlbl = is_rowlbl
+                found_rowlbl = True  # is_rowlbl
             if is_rowlbl:
                 goto_list.append(action)
             else:
@@ -542,9 +554,10 @@ class PhaseLineCondition():
                 if (logicpart_index > 0):
                     raise ParseException(lineno, f"Last action must be a row label, found '{action}'.")
 
-        # Missing ROWLBL only allowed in first logic part IF there are more (>1) logic parts.
+        # Missing ROWLBL only allowed in first logic part IF there are more (>1) logic parts, AND
+        # there is no condition
         if not found_rowlbl:
-            if not ((logicpart_index == 0) and n_logicparts > 1):
+            if not ((logicpart_index == 0) and (n_logicparts > 1) and (self.cond is None)):
                 raise ParseException(lineno, f"Row label not found in '{condition_and_actions}'.")
 
         goto_str = ','.join(goto_list)
@@ -571,22 +584,24 @@ class PhaseLineCondition():
     def _is_condition(self, condition, parameters):
         if condition in parameters.get(BEHAVIORS):
             return True
-        return condition.count("=") == 1 or condition.count("<") == 1 or condition.count(">") == 1
+        return not condition.isidentifier()
 
-    def is_met(self, response, variables, event_counter):
+    def is_met(self, response, global_variables, local_variables, event_counter):
+        variables_both = Variables.join(global_variables, local_variables)
         if self.cond is None:
             ismet = True
         elif self.cond_is_behavior:
             ismet = (self.cond == response)
         else:
-            ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter,
+            ismet, err = ParseUtil.evaluate(self.cond, variables_both, event_counter,
                                             ParseUtil.PHASE_LINE)
             if err:
                 raise ParseException(self.lineno, err)
             if type(ismet) is not bool:
                 raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
+
         if ismet:
-            label = self._goto_if_met(variables)
+            label = self._goto_if_met(variables_both)
             if label is None:  # In "ROW1(0.1),ROW2(0.3)", goto_if_met returns None with prob. 0.6
                 ismet = False
         else:

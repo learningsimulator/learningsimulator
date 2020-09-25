@@ -21,8 +21,14 @@ class TestBasic(LsTestCase):
         self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
 
         text = '''
-               behaviors   :    B1,b1,  B2,   b2          
-                '''
+               behaviors   :    B1,b1,  B2,   b2
+               '''
+        behaviors = parse(text)
+        self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
+
+        text = '''
+               behaviors   =    B1,b1,  B2,   b2
+               '''
         behaviors = parse(text)
         self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
 

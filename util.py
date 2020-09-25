@@ -15,6 +15,34 @@ def rand(start, stop):
     return random.randint(start, stop)
 
 
+def choice(*args):
+    def _is_numeric_iter(vec):
+        return all(isinstance(x, (int, float)) for x in vec)
+
+    def _choice_float(population, weights=None):
+        ERRMSG = "Found non-number in 'choice'."
+        if not _is_numeric_iter(population):
+            raise Exception(ERRMSG)
+        if weights is None:
+            return random.choice(population)
+        if not _is_numeric_iter(weights):
+            raise Exception(ERRMSG)
+        return random.choices(population=population, weights=weights, k=1)[0]
+
+    nargs = len(args)
+    if nargs == 0:
+        raise Exception("The function 'choice' must have at least one argument.")
+    elif nargs == 1:
+        if type(args[0]) is list:
+            return _choice_float(args[0])
+        else:
+            raise Exception("Single input to 'choice' must be a list.")
+    elif nargs == 2 and all(isinstance(x, list) for x in args):
+        return _choice_float(args[0], args[1])
+    else:
+        return _choice_float(args)
+
+
 def count(event_counter, event):
     return event_counter.count[event]
 
@@ -131,6 +159,29 @@ class ParseUtil():
         return out
 
     @staticmethod
+    def depends_on(expr_orig, var_list):
+        expr = ParseUtil._single2double_eq(expr_orig)
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
+            return None, err
+        for node in ast.walk(tree):
+            if type(node) is ast.Name:
+                name = node.id
+                if name in var_list:
+                    return True, err
+        return False, None
+
+    @staticmethod
+    def ast_parse(expr):
+        try:
+            tree = ast.parse(expr, mode='eval')
+        except Exception as ex:
+            err = f"Error in expression '{expr}': {ex}."
+            err = err.replace(" (<unknown>, line 1)", "")
+            return None, err
+        return tree, None
+
+    @staticmethod
     def evaluate(expr, variables=None, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
@@ -140,12 +191,9 @@ class ParseUtil():
         """
         expr_orig = expr
 
-        # Remove all spaces
-        expr = expr.replace(" ", "")
-
         expr = ParseUtil._single2double_eq(expr)
 
-        context = {'rand': rand}
+        context = {'rand': rand, 'choice': choice}
         if variables is not None:
             context.update(variables.values)
 
@@ -169,11 +217,8 @@ class ParseUtil():
             # expr = expr.replace("count_line(", f"count_line({PEC},")
 
         # Make sure that the expression is valid
-        try:
-            tree = ast.parse(expr, mode='eval')
-        except Exception as ex:
-            err = f"Error in expression '{expr}': {ex}."
-            err = err.replace(" (<unknown>, line 1)", "")
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
             return None, err
 
         # if phase_event_counter:
@@ -181,6 +226,7 @@ class ParseUtil():
         #                     'count_line': phase_event_counter.get_count_line})
 
         # Check that all contained variables are in variables
+        has_boolean_operator = False
         for node in ast.walk(tree):
             if type(node) is ast.Name:
                 name = node.id
@@ -191,6 +237,8 @@ class ParseUtil():
                 if (phase_event_counter is not None) and (name in phase_event_counter.count):
                     continue
                 return None, f"Unknown variable '{name}'."
+            if type(node) is ast.BoolOp:
+                has_boolean_operator = True
 
         # Now it is safe to evaluate using eval
         # if phase_event_counter is not None:
@@ -204,6 +252,11 @@ class ParseUtil():
             if not err.endswith("."):  # Some errors {ex} ends with period, some don't
                 err = err + "."
             return None, err
+
+        # Due to short-circuiting, "0 and False" is 0 (int), but "1 and False" is False (bool)
+        if has_boolean_operator:
+            out = bool(out)
+
         type_out = type(out)
         if type_out is not int and type_out is not float and type_out is not bool:
             return None, f"Error in expression '{expr_orig}'."
