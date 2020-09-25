@@ -128,38 +128,6 @@ class TestBasic(LsTestCase):
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
 
-        # Default 0 for local_var
-        text = '''
-        stimulus_elements: e1, e2, par1, par2
-        behaviors: b1, b2
-
-        # Squeeze in a little test of inheritance
-        @PHASE parent stop:local_var2=5
-        L0 local_var2:9            | L2
-        L1 par1                    | L1
-        L2 par2,par1               | L1
-        H1 local_var2:local_var2+1 | H1
-
-        @PHASE phase_label(parent) stop:local_var=5
-        L0                       | L1
-        L1 e1                    | L2
-        L2 e2                    | H1
-        H1 local_var:local_var+1 | L1
-
-        beta: 1
-        '''
-        phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
-        for i in range(1, 10):
-            stimulus, _, _ = phase.next_stimulus('b2')
-            if i % 2 == 0:
-                self.assertEqual(stimulus, {'e1': 1})
-            else:
-                self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
-        self.assertIsNone(stimulus)
-        self.assertEqual(phase.local_variables.values['local_var'], 5)
-
     def test_line_label_in_stop(self):
         text = '''
         stimulus_elements: e1, e2
@@ -363,6 +331,34 @@ class TestInheritance(LsTestCase):
         msg = "Phase label 'barbazfoo\)' is not a valid identifier."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'bar')
+
+    def test_reference_to_undefined_local_variable(self):
+        text = '''
+        stimulus_elements: e1, e2, par1, par2
+        behaviors: b1, b2
+
+        # Squeeze in a little test of inheritance
+        @PHASE parent stop:local_var2=5
+        L0 local_var2:9            | L2
+        L1 par1                    | L1
+        L2 par2,par1               | L1
+        H1 local_var2:local_var2+1 | H1
+
+        @PHASE phase_label(parent) stop:local_var=5
+        L0                       | L1
+        L1 e1                    | L2
+        L2 e2                    | H1
+        H1 local_var:local_var+1 | L1
+
+        beta: 1
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+
+        msg = "Unknown variable 'local_var'."
+        with self.assertRaisesX(Exception, msg):
+            stimulus, _, _ = phase.next_stimulus('b2')
 
 
 class TestHelpLine(LsTestCase):
@@ -714,6 +710,44 @@ class TestHelpLine(LsTestCase):
         stimulus, _, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
+    def test_multiple_actions(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2
+
+        @PHASE phase_label stop:e1=10
+        A e1       | p1:1, p2:2, B
+        B e2       | A
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e2': 1})
+        self.assertEqual(phase.local_variables.values, {'p1': 1, 'p2': 2})
+
+
+        # @PHASE phase_label stop:e1=10
+
+        # A e1       | p1:1, p2:2, B,A(1.1)  # fel
+        # A e1       | p1:1, p2:2, B(1.1),A(1.1)  # samma fel
+
+        # A e1       | b1: x1:1, x2:2, B  # Should give error
+        # A e1       | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B  # Should give error
+
+        # A e1       | b1: x1:1, x2:2, B | C
+
+        # A e1       | b1=5: x1:1, x2:2, B | C
+
+        # A e1       | x1:1, b1=5: x2:2, B | C
+
+        # A e1       | x1:1, x2=rand(1,3), b1=5: x2:2, B | C  # to test split with comma
+        # A e1       | x1:1, x2=rand(1,3) | b1=5: x2:2, B | C  # should be same as above
+
+        # A e1       | x1:1, x2=rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
+
+        # A e1       | B | C  # Fel
 
 class TestWithPlots(LsTestCase):
     def setUp(self):
@@ -844,8 +878,9 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
         msg = "Unknown variable 'e11'."
+        phase.next_stimulus(None)
         with self.assertRaisesX(Exception, msg):
-            phase.next_stimulus(None)
+            phase.next_stimulus('b1')
 
         text = '''
         stimulus_elements: e1, e2
@@ -856,9 +891,11 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
         msg = "Condition 'e1' is not a boolean expression."
+        phase.next_stimulus(None)
         with self.assertRaisesX(Exception, msg):
-            phase.next_stimulus(None)
+            phase.next_stimulus('b1')
 
+        # count is only for line actions. For stop conditions, use b1=5 instead.
         text = '''
         stimulus_elements: e1, e2
         behaviors: b1, b2
@@ -869,8 +906,9 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
         msg = "Unknown variable 'count'."
+        phase.next_stimulus(None)
         with self.assertRaisesX(Exception, msg):
-            phase.next_stimulus(None)
+            phase.next_stimulus('b1')
 
     def test_no_stopcond(self):
         text = '''
@@ -1028,7 +1066,7 @@ class TestExceptions(LsTestCase):
         XH  count_reset(b1) | L3
         XL3 e2              | L1
         '''
-        msg = "Invalid line label 'H'."
+        msg = "Unknown action 'H'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'phase_label')
 
@@ -1125,7 +1163,7 @@ class TestExceptions(LsTestCase):
         L1  e11 | L2
         L2  e2  | L1
         '''
-        msg = "Unknown stimulus element or action 'e11'."
+        msg = "Unknown action 'e11'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1136,7 +1174,7 @@ class TestExceptions(LsTestCase):
         L1  coun_reset(e1) | L2
         L2  e2             | L1
         '''
-        msg = "Unknown stimulus element or action 'coun_reset\(e1\)'."
+        msg = "Unknown action 'coun_reset\(e1\)'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1237,7 +1275,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | b3=1 :: L2 | L1
         L2  e2  | L1
         '''
-        msg = "Error on line 5: Condition b3=1 :: L2 has more than one colon."
+        msg = "Error on line 5: Invalid statement 'b3=1 :: L2'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1249,11 +1287,9 @@ class TestExceptions(LsTestCase):
         L1  e1  | 42:L2 | L1
         L2  e2  | L1
         '''
-        phase = parse(text, 'thelabel')
-        phase.next_stimulus(None)
-        msg = "Condition '42' is not a boolean expression."
+        msg = "Variable name '42' is not a valid identifier."
         with self.assertRaisesX(Exception, msg):
-            phase.next_stimulus('b3')
+            phase = parse(text, 'thelabel')
 
         text = '''
         stimulus_elements: e1, e2
@@ -1262,11 +1298,9 @@ class TestExceptions(LsTestCase):
         L1  e1  | e1:L2 | L1
         L2  e2  | L1
         '''
-        phase = parse(text, 'thelabel')
-        phase.next_stimulus(None)
-        msg = "Condition 'e1' is not a boolean expression."
+        msg = "Variable name 'e1' equals a stimulus element name."
         with self.assertRaisesX(Exception, msg):
-            phase.next_stimulus('b3')
+            phase = parse(text, 'thelabel')
 
         text = '''
         stimulus_elements: e1, e2
@@ -1300,7 +1334,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2,L1 | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2,L1'."
+        msg = "Error on line 5: The unconditional goto row label 'L2,L1' cannot be continued."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1322,7 +1356,8 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2((0.5)),L1(0.1) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2\(\(0.5\)\),L1\(0.1\)'. Too many parentheses."
+        # msg = "Unknown action 'L2\(\(0.5\)\),L1\(0.1\)'."
+        msg = "Unknown action 'L2\(\(0.5\)\)'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1333,7 +1368,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2)0.5(,L1(0.1) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2\)0.5\(,L1\(0.1\)'. Mismatched parentheses."
+        msg = "Unknown action 'L2\)0.5\('."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1344,7 +1379,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.5), LL1(0.1) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2\(0.5\), LL1\(0.1\)'. Unknown line label 'LL1'."
+        msg = "Unknown action 'LL1\(0.1\)'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1355,7 +1390,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.5), L1(1.1) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2\(0.5\), L1\(1.1\)'. Expected a probability, got '1.1'."
+        msg = "Invalid condition 'L2\(0.5\),L1\(1.1\)'. Expected a probability, got '1.1'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 
@@ -1389,7 +1424,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L22 | L1
         L2  e2  | L1
         '''
-        msg = "Invalid line label 'L22'."
+        msg = "Unknown action 'L22'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'thelabel')
 

@@ -101,7 +101,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @variables v1:1.2, 1v2:2.3, v3:3.4
         '''
-        msg = "Error on line 2: Variable name must be a valid identifier. '1v2'' is not."
+        msg = "Error on line 2: Variable name '1v2' is not a valid identifier."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
@@ -109,7 +109,7 @@ class TestExceptions(LsTestCase):
         @variables v1:1.2,
                    1v2:2.3, v3:3.4
         '''
-        msg = "Error on line 3: Variable name must be a valid identifier. '1v2'' is not."
+        msg = "Error on line 3: Variable name '1v2' is not a valid identifier."
         with self.assertRaisesX(Exception, msg):
             parse(text)
 
@@ -132,6 +132,6 @@ class TestExceptions(LsTestCase):
                            w : -1.2,
                 mechanism: dkjfldskj
                 '''
-        msg = "Error on line 6: Variable name must not be a keyword. 'mechanism' is."
+        msg = "Error on line 6: Variable name 'mechanism' is a keyword."
         with self.assertRaisesX(Exception, msg):
             parse(text)

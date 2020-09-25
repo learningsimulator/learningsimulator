@@ -336,10 +336,10 @@ class TestInitialValues(LsTestCase):
         subject: average
         cumulative: off
 
+        # @subplot 111 {'xlim':[1,100]}
         @pplot s1->b1
         @nplot b1
-        @legend
-        '''
+        @legend'''
         script_obj, script_output = run(text)
         self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 3)
         plot_data = get_plot_data()
@@ -347,12 +347,12 @@ class TestInitialValues(LsTestCase):
         nplot = plot_data['n(b1)']
         self.assertEqual(pplot['x'], list(range(119)))
         self.assertEqual(nplot['x'], list(range(120)))
-        pploty = pplot['y'][2:118]
-        nploty = nplot['y'][2:118]
+        pploty = pplot['y'][2:]
+        nploty = nplot['y'][2:]
         sum_of_squares = 0
         for py, ny in zip(pploty, nploty):
             sum_of_squares += (py - ny)**2
-        self.assertLess(sum_of_squares, 0.3)
+        self.assertLess(sum_of_squares, 0.35)
 
     def test_p_vs_n2(self):
         text = '''

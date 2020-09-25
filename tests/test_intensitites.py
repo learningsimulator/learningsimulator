@@ -168,6 +168,170 @@ runlabel: A_01
             self.assertLess(plot_data['A=0.3']['y'][i], plot_data['A=0.5']['y'][i])
             self.assertLess(plot_data['A=0.5']['y'][i], plot_data['A=1.0']['y'][i])
 
+    def test_overshadowing2_with_intensity_variables(self):
+        script = '''
+n_subjects             : 100
+mechanism              : SR
+
+behaviors              : response,other
+stimulus_elements      : a,b,empty,reward
+start_v                : a->response:-2, b->response:-2, default:1
+alpha_v                : 0.1
+beta                   : 1
+u                      : reward:1, default: 0
+
+@variables n:155, a5:0.5, a1:0.1, a3:0.3, a10:1.0, b5:0.5
+
+@phase A_05  stop:STIMULUS=n
+STIMULUS    a[a5],b[b5]    |response: REWARD  | STIMULUS
+REWARD      reward           | STIMULUS
+
+@phase A_01(A_05)  stop:STIMULUS=n
+STIMULUS    a[a1],b[b5]      |response: REWARD  | STIMULUS
+
+@phase A_03(A_05)  stop:STIMULUS=n
+STIMULUS    a[a3],b[b5]      |response: REWARD  | STIMULUS
+
+@phase A_1(A_05)  stop:STIMULUS=n
+STIMULUS    a[a10],b[b5]      |response: REWARD  | STIMULUS
+
+
+@run A_01  runlabel: A_01
+@run A_03  runlabel: A_03
+@run A_05  runlabel: A_05
+@run A_1  runlabel: A_1
+
+xscale: STIMULUS
+subject: average
+@figure v(a->response)
+
+@subplot 111 {'xlabel':'Trial','ylabel':'v'}
+
+runlabel: A_1
+@vplot a->response  {'linewidth':2,'label':'A=1.0'}
+
+runlabel: A_05
+@vplot a->response  {'linewidth':2,'label':'A=0.5'}
+
+runlabel: A_03
+@vplot a->response  {'linewidth':2,'label':'A=0.3'}
+
+runlabel: A_01
+@vplot a->response  {'linewidth':2,'label':'A=0.1'}
+
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        ind = 150
+
+        for lbl in ['A=0.1', 'A=0.3', 'A=0.5', 'A=1.0']:
+            y = plot_data[lbl]['y']
+            self.assertEqual(y[0], -2)
+            self.assertIncreasing(y[20: ind])  # Flucuations in the beginning
+
+        self.assertLess(plot_data['A=0.1']['y'][ind], -1)
+        self.assertGreater(plot_data['A=0.1']['y'][ind], -1.5)
+
+        self.assertLess(plot_data['A=0.3']['y'][ind], 0)
+        self.assertGreater(plot_data['A=0.3']['y'][ind], -0.5)
+
+        self.assertLess(plot_data['A=0.5']['y'][ind], 1)
+        self.assertGreater(plot_data['A=0.5']['y'][ind], 0.5)
+
+        self.assertLess(plot_data['A=1.0']['y'][ind], 1.2)
+        self.assertGreater(plot_data['A=1.0']['y'][ind], 1.1)
+
+        # Check that the order is consistent throughout step 50 onwards
+        for i in range(50, ind):
+            self.assertLess(plot_data['A=0.1']['y'][i], plot_data['A=0.3']['y'][i])
+            self.assertLess(plot_data['A=0.3']['y'][i], plot_data['A=0.5']['y'][i])
+            self.assertLess(plot_data['A=0.5']['y'][i], plot_data['A=1.0']['y'][i])
+
+    def test_overshadowing2_with_intensity_phase_variables(self):
+        script = '''
+n_subjects             : 100
+mechanism              : SR
+
+behaviors              : response,other
+stimulus_elements      : a,b,empty,reward
+start_v                : a->response:-2, b->response:-2, default:1
+alpha_v                : 0.1
+beta                   : 1
+u                      : reward:1, default: 0
+
+@variables n:155, a1:0.1, a3:0.3, a10:1.0
+
+@phase A_05  stop:STIMULUS=n
+H1          a5:0.5          | H2
+H2          b5:0.5         | STIMULUS
+STIMULUS    a[a5],b[b5]    |response: REWARD  | STIMULUS
+REWARD      reward           | STIMULUS
+
+@phase A_01(A_05)  stop:STIMULUS=n
+STIMULUS    a[a1],b[b5]      |response: REWARD  | STIMULUS
+
+@phase A_03(A_05)  stop:STIMULUS=n
+STIMULUS    a[a3],b[b5]      |response: REWARD  | STIMULUS
+
+@phase A_1(A_05)  stop:STIMULUS=n
+STIMULUS    a[a10],b[b5]      |response: REWARD  | STIMULUS
+
+
+@run A_01  runlabel: A_01
+@run A_03  runlabel: A_03
+@run A_05  runlabel: A_05
+@run A_1  runlabel: A_1
+
+xscale: STIMULUS
+subject: average
+@figure v(a->response)
+
+@subplot 111 {'xlabel':'Trial','ylabel':'v'}
+
+runlabel: A_1
+@vplot a->response  {'linewidth':2,'label':'A=1.0'}
+
+runlabel: A_05
+@vplot a->response  {'linewidth':2,'label':'A=0.5'}
+
+runlabel: A_03
+@vplot a->response  {'linewidth':2,'label':'A=0.3'}
+
+runlabel: A_01
+@vplot a->response  {'linewidth':2,'label':'A=0.1'}
+
+@legend
+'''
+        script_obj, script_output = run(script)
+        plot_data = get_plot_data()
+
+        ind = 150
+
+        for lbl in ['A=0.1', 'A=0.3', 'A=0.5', 'A=1.0']:
+            y = plot_data[lbl]['y']
+            self.assertEqual(y[0], -2)
+            self.assertIncreasing(y[20: ind])  # Flucuations in the beginning
+
+        self.assertLess(plot_data['A=0.1']['y'][ind], -1)
+        self.assertGreater(plot_data['A=0.1']['y'][ind], -1.5)
+
+        self.assertLess(plot_data['A=0.3']['y'][ind], 0)
+        self.assertGreater(plot_data['A=0.3']['y'][ind], -0.5)
+
+        self.assertLess(plot_data['A=0.5']['y'][ind], 1)
+        self.assertGreater(plot_data['A=0.5']['y'][ind], 0.5)
+
+        self.assertLess(plot_data['A=1.0']['y'][ind], 1.2)
+        self.assertGreater(plot_data['A=1.0']['y'][ind], 1.1)
+
+        # Check that the order is consistent throughout step 50 onwards
+        for i in range(50, ind):
+            self.assertLess(plot_data['A=0.1']['y'][i], plot_data['A=0.3']['y'][i])
+            self.assertLess(plot_data['A=0.3']['y'][i], plot_data['A=0.5']['y'][i])
+            self.assertLess(plot_data['A=0.5']['y'][i], plot_data['A=1.0']['y'][i])
+
     def test_compare_external_intensity_with_u(self):
         script = '''
 n_subjects        : 100
