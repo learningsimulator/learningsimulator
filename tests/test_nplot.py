@@ -433,5 +433,5 @@ class TestExceptions(LsTestCase):
         @nplot b
         '''
         msg = "xscale cannot be a phase line label in @nplot/@nexport."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)

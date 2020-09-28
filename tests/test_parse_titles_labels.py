@@ -88,7 +88,7 @@ class TestExceptions(LsTestCase):
         {}:
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_empty_name_no_colon(self):
@@ -100,5 +100,5 @@ class TestExceptions(LsTestCase):
         {}
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)

@@ -134,7 +134,7 @@ class TestExceptions(LsTestCase):
         @vplot s1->b
         """
         msg = "There is no @RUN."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     @staticmethod
@@ -167,12 +167,12 @@ trace: 0.25
 '''
 
     def test_pplot_errors(self):
-        pplot_exprs = [("plant[[0.25],berry -> eat", "Invalid expression plant\[\[0.25]."),
+        pplot_exprs = [("plant[[0.25],berry -> eat", "Invalid expression plant[[0.25]."),
                        ("plant0.25],berry -> eat", "Expected a stimulus element, got plant0.25]."),
-                       ("plant[0.25,berry -> eat", "Invalid expression plant\[0.25."),
-                       ("plant[0.25]],berry -> eat", "Invalid expression plant\[0.25\]\]."),
-                       ("plant[x],berry -> eat", "Invalid expression plant\[x\]."),
-                       ("plant(0.25),berry -> eat", "Expected a stimulus element, got plant\(0.25\)."),
+                       ("plant[0.25,berry -> eat", "Invalid expression plant[0.25."),
+                       ("plant[0.25]],berry -> eat", "Invalid expression plant[0.25]]."),
+                       ("plant[x],berry -> eat", "Invalid expression plant[x]."),
+                       ("plant(0.25),berry -> eat", "Expected a stimulus element, got plant(0.25)."),
                        ("plant(0.25),berry eat", "Expression must include a '->'."),
                        ("plant(0.25),berry -> eat -> approach", "Expression must include only one '->'."),
                        ("-> eat -> approach", "Expression must include only one '->'."),
@@ -181,5 +181,5 @@ trace: 0.25
         for pplot_expr in pplot_exprs:
             script = self.get_pplot_errors_script(pplot_expr[0])
             err_msg = pplot_expr[1]
-            with self.assertRaisesX(Exception, err_msg):
+            with self.assertRaisesMsg(err_msg):
                 run(script)

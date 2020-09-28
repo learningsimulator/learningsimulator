@@ -304,7 +304,7 @@ class TestExceptions(LsTestCase):
         {}:
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def _test_empty_name_no_colon(self, name):
@@ -314,7 +314,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_duplicate(self):
@@ -327,7 +327,7 @@ class TestExceptions(LsTestCase):
         {}: e1:0.123, e2:4.56, e3:99, e1:-22, e18:knas
         '''.format(name)
         msg = "Duplicate of e1 in '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -335,7 +335,7 @@ class TestExceptions(LsTestCase):
         {}: ee1:0.123, e2:4.56, ee1:99, foo->bar:1, default:Blaps
         '''.format(name)
         msg = "Duplicate of ee1 in '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -343,7 +343,7 @@ class TestExceptions(LsTestCase):
         {}: e1:0.123, e2:4.56, foo:1, e1:99, default:-22
         '''.format(name)
         msg = "'foo' is an invalid stimulus element.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_stimulus_element_not_defined(self):
@@ -356,7 +356,7 @@ class TestExceptions(LsTestCase):
         {}: Blaps mortisaga
         '''.format(name)
         msg = "The parameter 'stimulus_elements' must be assigned before the parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''  # XXX borde bli fel på saknad stimulus elöement?
@@ -364,14 +364,14 @@ class TestExceptions(LsTestCase):
         {}:
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
         {}: foo
         '''.format(name)
         msg = "The parameter 'stimulus_elements' must be assigned before the parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_invalid_value(self):
@@ -385,7 +385,7 @@ class TestExceptions(LsTestCase):
         {}: foo,>>>>////
         '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got 'foo'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -394,7 +394,7 @@ class TestExceptions(LsTestCase):
         {}: foo>>>>////
         '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got 'foo>>>>////'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''stimulus_elements: e1, e2
@@ -402,7 +402,7 @@ class TestExceptions(LsTestCase):
                   {}: default::111
                '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got 'default::111'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''stimulus_elements: e1, e2
@@ -410,7 +410,7 @@ class TestExceptions(LsTestCase):
                   {}: e1->b1:1, blabla
                '''.format(name)
         msg = "Error in parameter '{}': 'e1->b1' is an invalid stimulus element.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_invalid_e_value(self):
@@ -423,7 +423,7 @@ class TestExceptions(LsTestCase):
                   {}: foo->bar:foobar, blabla
                '''.format(name)
         msg = ""  # XXX
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''stimulus_elements: e1, e2
@@ -431,7 +431,7 @@ class TestExceptions(LsTestCase):
                   {}: fo o ->bar:foobar, blabla
                '''.format(name)
         msg = "Invalid value 'foobar' for 'fo o ->bar' in parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''stimulus_elements: e1, e2
@@ -439,7 +439,7 @@ class TestExceptions(LsTestCase):
                   {}: blaps:foobar, blabla
                '''.format(name)
         msg = "Invalid value 'foobar' for 'blaps' in parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_multiple_single_values(self):
@@ -453,7 +453,7 @@ class TestExceptions(LsTestCase):
         {}: 1, 2
         '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got '1'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -463,7 +463,7 @@ class TestExceptions(LsTestCase):
                  42
         '''.format(name)
         msg = "A single value for '{}' cannot be followed by other values.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -474,7 +474,7 @@ class TestExceptions(LsTestCase):
                  dfldfjlkdj
         '''.format(name)
         msg = "A single value for '{}' cannot be followed by other values.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -483,7 +483,7 @@ class TestExceptions(LsTestCase):
         {}: e1:3.22, 42
         '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -492,7 +492,7 @@ class TestExceptions(LsTestCase):
         {}: e1:3.22, 42, 8.3
         '''.format(name)
         msg = "Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -502,7 +502,7 @@ class TestExceptions(LsTestCase):
                  42
         '''.format(name)
         msg = "A single value for '{}' cannot follow other values.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_multiple_default(self):
@@ -516,7 +516,7 @@ class TestExceptions(LsTestCase):
         {}: e1:3.22, default:12, e2:18, default:42
         '''.format(name)
         msg = "Default value for '{}' can only be stated once.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -526,7 +526,7 @@ class TestExceptions(LsTestCase):
                  e2:18, default:42
         '''.format(name)
         msg = "Default value for '{}' can only be stated once.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -536,7 +536,7 @@ class TestExceptions(LsTestCase):
                  default:42
         '''.format(name)
         msg = "Default value for '{}' can only be stated once.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_invalid_stimulus_element(self):
@@ -550,7 +550,7 @@ class TestExceptions(LsTestCase):
         {}: E1:3.22, default:12, e2->b2:18
         '''.format(name)
         msg = "'E1' is an invalid stimulus element."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -559,7 +559,7 @@ class TestExceptions(LsTestCase):
         {}: E1:3.22, default:12
         '''.format(name)
         msg = "'E1' is an invalid stimulus element."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_invalid_eb(self):
@@ -573,7 +573,7 @@ class TestExceptions(LsTestCase):
         {}: default:12, e1:22, kajsa:13, Klklklk***
         '''.format(name)
         msg = "Error in parameter '{}': 'kajsa' is an invalid stimulus element.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -582,7 +582,7 @@ class TestExceptions(LsTestCase):
         {}: default:12, e1:22, kajsa:freja
         '''.format(name)
         msg = "Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -592,7 +592,7 @@ class TestExceptions(LsTestCase):
                  kajsa:freja
         '''.format(name)
         msg = "Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_missing_default(self):
@@ -606,7 +606,7 @@ class TestExceptions(LsTestCase):
         {}: e1:22
         '''.format(name)
         msg = "Missing default value for parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -615,7 +615,7 @@ class TestExceptions(LsTestCase):
         {}: e1:22, e2:1.32
         '''.format(name)
         msg = "Missing default value for parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
@@ -626,5 +626,5 @@ class TestExceptions(LsTestCase):
             e4: 444
         '''.format(name)
         msg = "Missing default value for parameter '{}'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)

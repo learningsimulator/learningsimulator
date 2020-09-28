@@ -158,7 +158,7 @@ class TestGitHubIssues(LsTestCase):
         u                 = e1:10, e2:0
 
         @PHASE foo stop:e1=10
-        A e1   | e1=n: B | A
+        A e1   | count_line(e1)=n: B | A
         B e2   | A
 
         @variables x:0, n:1
@@ -178,6 +178,80 @@ class TestGitHubIssues(LsTestCase):
         history = script_output.run_outputs["n=2"].output_subjects[0].history
         self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
 
+        # Test that count_line(e1)=n is the same as count_line(A)=n
+        text = '''
+        n_subjects        : 1
+        mechanism         : sr
+        behaviors         : b
+        stimulus_elements : e1, e2
+        start_v           : 0
+        alpha_v           : 0.1
+        u                 : e1:10, e2:0
+
+        @PHASE foo stop:e1=10
+        A e1   | count_line(A)=n: B | A
+        B e2   | A
+
+        @variables x:0, n:1
+        @run foo runlabel:n=1
+
+        @variables x:1, n:2, y:3
+        @run foo runlabel:n=2
+
+        @variables x:1, n:20, y:3
+        @run foo runlabel:n=20
+
+        @figure
+        @nplot e1
+        @nplot e2
+        '''
+        script, script_output = run(text)
+        history = script_output.run_outputs["n=1"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+
+        history = script_output.run_outputs["n=2"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+
+        history = script_output.run_outputs["n=20"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1'] * 10)
+
+        # Test that count_line(A)=n is the same as A=n
+        text = '''
+        n_subjects        : 1
+        mechanism         : sr
+        behaviors         : b
+        stimulus_elements : e1, e2
+        start_v           : 0
+        alpha_v           : 0.1
+        u                 : e1:10, e2:0
+
+        @PHASE foo stop:e1=10
+        A e1   | A=n: B | A
+        B e2   | A
+
+        @variables x:0, n:1
+        @run foo runlabel:n=1
+
+        @variables x:1, n:2, y:3
+        @run foo runlabel:n=2
+
+        @variables x:1, n:20, y:3
+        @run foo runlabel:n=20
+
+        @figure
+        @nplot e1
+        @nplot e2
+        '''
+        script, script_output = run(text)
+        history = script_output.run_outputs["n=1"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+
+        history = script_output.run_outputs["n=2"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+
+        history = script_output.run_outputs["n=20"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1'] * 10)
+
         # Test that e1=n is the same as count_line(e1)=n
         text = '''
         n_subjects        : 1
@@ -189,7 +263,44 @@ class TestGitHubIssues(LsTestCase):
         u                 : e1:10, e2:0
 
         @PHASE foo stop:e1=10
-        A e1   | count_line(e1)=n: B | A
+        A e1   | count_line(A)=n: B | A
+        B e2   | A
+
+        @variables x:0, n:1
+        @run foo runlabel:n=1
+
+        @variables x:1, n:2, y:3
+        @run foo runlabel:n=2
+
+        @variables x:1, n:20, y:3
+        @run foo runlabel:n=20
+
+        @figure
+        @nplot e1
+        @nplot e2
+        '''
+        script, script_output = run(text)
+        history = script_output.run_outputs["n=1"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+
+        history = script_output.run_outputs["n=2"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+
+        history = script_output.run_outputs["n=20"].output_subjects[0].history
+        self.assertEqual(history[0::2], ['e1'] * 10)
+
+        # Test that count_line(b)=n works
+        text = '''
+        n_subjects        : 1
+        mechanism         : sr
+        behaviors         : b
+        stimulus_elements : e1, e2
+        start_v           : 0
+        alpha_v           : 0.1
+        u                 : e1:10, e2:0
+
+        @PHASE foo stop:e1=10
+        A e1   | count_line(b)=n: B | A
         B e2   | A
 
         @variables x:0, n:1
@@ -515,5 +626,5 @@ class TestErrors(LsTestCase):
         @pplot s1->b1
         '''
         msg = "Behavior 'b1' is not a possible response to 's1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)

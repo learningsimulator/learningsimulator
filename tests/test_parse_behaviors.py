@@ -92,7 +92,7 @@ class TestParseBehaviorsErrors(LsTestCase):
         behaviors: b1, , b2, b3
         '''
         msg = "Found empty behavior name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_duplicate(self):
@@ -100,7 +100,7 @@ class TestParseBehaviorsErrors(LsTestCase):
         behaviors: b1, b2, b3, b4, b2, b1
         '''
         msg = "The behavior name 'b2' occurs more than once."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -108,7 +108,7 @@ class TestParseBehaviorsErrors(LsTestCase):
                    b4, b2, b1
         '''
         msg = "The behavior name 'b2' occurs more than once."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_behavior_is_stimulus(self):
@@ -117,7 +117,7 @@ class TestParseBehaviorsErrors(LsTestCase):
         behaviors: b1, b2, b3, b4, e2
         '''
         msg = "The behavior name 'e2' is invalid, since it is a stimulus element."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -126,7 +126,7 @@ class TestParseBehaviorsErrors(LsTestCase):
                    e2, b1
         '''
         msg = "The behavior name 'e2' is invalid, since it is a stimulus element."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_behavior_is_variable(self):
@@ -135,7 +135,7 @@ class TestParseBehaviorsErrors(LsTestCase):
         behaviors: b1, b2, b3, b4, v2, v3, v1
         '''
         msg = "The behavior name 'v2' is invalid, since it is a variable name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -144,7 +144,7 @@ class TestParseBehaviorsErrors(LsTestCase):
                    v2
         '''
         msg = "The behavior name 'v2' is invalid, since it is a variable name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_identifier(self):
@@ -153,5 +153,5 @@ class TestParseBehaviorsErrors(LsTestCase):
         behaviors: b1, b2, b3, b4, v2. v3, v1
         '''
         msg = "Behavior name 'v2. v3' is not a valid identifier."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)

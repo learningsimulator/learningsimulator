@@ -365,13 +365,13 @@ class TestRescorlaWagner(LsTestCase):
                     '@vexport cs->b1 ./tests/exported_files/export_filename.txt',
                     '@pexport cs->b1 ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'v'."
-            with self.assertRaisesX(Exception, msg):
+            with self.assertRaisesMsg(msg):
                 run(text.format(cmd))
         for cmd in ['@wplot cs', '@wplot us',
                     '@wexport cs ./tests/exported_files/export_filename.txt',
                     '@wexport us ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'w'."
-            with self.assertRaisesX(Exception, msg):
+            with self.assertRaisesMsg(msg):
                 run(text.format(cmd))
 
         remove_files(['export_filename.txt'])
@@ -531,7 +531,7 @@ class TestExceptions(LsTestCase):
         @vplot s1->b
         """
         msg = "There is no @RUN."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     def test_error_for_w_vss(self):
@@ -552,10 +552,10 @@ class TestExceptions(LsTestCase):
         {}
         """
         msg = "Used mechanism does not have variable 'w'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text.format("@wplot cs"))
         msg = "Used mechanism does not have variable 'vss'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text.format("@vssplot cs->us"))
 
     def test_stop_condition_depends_on_behavior(self):
@@ -578,7 +578,7 @@ class TestExceptions(LsTestCase):
         @run foo
         """
         msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
         text = """
@@ -626,7 +626,7 @@ class TestExceptions(LsTestCase):
         @run foo, bar
         """
         msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     def test_phase_line_logic_depends_on_behavior(self):
@@ -645,7 +645,7 @@ class TestExceptions(LsTestCase):
         @run bar
         """
         msg = "Phase line logic cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
         text = """

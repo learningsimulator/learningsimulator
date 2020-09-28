@@ -53,7 +53,7 @@ class TestMisc(LsTestCase):
         world, _ = parse(script)
         msg = "Unknown variable 'E00'."
         world.next_stimulus(None)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             world.next_stimulus('R0')
 
     def test_repeat_phase(self):
@@ -208,7 +208,7 @@ class TestFixedRatio(LsTestCase):
         behaviors : R, R0
 
         @phase fixed_ratio stop:reward=23
-        OFF lever       | R=4: ON   | OFF
+        OFF lever       | count_line(R)=4: ON   | OFF
         ON  lever       | R: REWARD | ON
         REWARD  reward  | OFF
         """
@@ -226,7 +226,7 @@ class TestFixedRatio(LsTestCase):
         conditions = row.conditions.conditions
         self.assertEqual(row.stimulus, {'lever': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, 'R=4', False, [[1, "ON"]])
+        check_logic(self, conditions[0], 6, 'count_line(R)=4', False, [[1, "ON"]])
         check_logic(self, conditions[1], 6, None, False, [[1, "OFF"]])
 
         row = phase.phase_lines["ON"]
@@ -431,8 +431,8 @@ class TestVariableRatio(LsTestCase):
         behaviors : R, R1, bar
 
         @phase variable_ratio stop:reward = 250000
-        FR3 lever      | R=2 : ON  | FR3
-        FR2 lever      | R=1 : ON  | FR2
+        FR3 lever      | count_line(R)=2 : ON  | FR3
+        FR2 lever      | R : ON  | FR2
         ON  leveron    | R:REWARD    | R1:ON
         REWARD  reward | ON(1/3),FR2(1/3),FR3(1/3)
         """

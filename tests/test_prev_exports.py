@@ -180,7 +180,7 @@ class TestPlots(LsTestCase):
             @{vwnp}export
             '''
             msg = f"Invalid @{vwnp}export command."
-            with self.assertRaisesX(Exception, msg):
+            with self.assertRaisesMsg(msg):
                 run(script)
 
     def test_vssexport(self):

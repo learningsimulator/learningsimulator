@@ -90,7 +90,7 @@ class TestExceptions(LsTestCase):
         mechanism: foo
         '''
         msg = "Parameter 'n_subjects' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_empty_name_no_colon(self):
@@ -101,7 +101,7 @@ class TestExceptions(LsTestCase):
         mechanism: foo
         '''
         msg = "Parameter 'n_subjects' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_value(self):
@@ -111,7 +111,7 @@ class TestExceptions(LsTestCase):
         n_subjects: foo,>>>>////
         '''
         msg = "Error in expression 'foo,>>>>////': invalid syntax."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -120,7 +120,7 @@ class TestExceptions(LsTestCase):
         n_subjects: 2*rand(4,Blaps)
         '''
         msg = "Unknown variable 'Blaps'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_erroneous_rand(self):
@@ -128,19 +128,19 @@ class TestExceptions(LsTestCase):
         n_subjects: rand(1.2, 3)
         '''
         msg = "First argument to 'rand' must be integer."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         n_subjects: rand(1, 3.3)
         '''
         msg = "Second argument to 'rand' must be integer."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         n_subjects: rand(3, 1)
         '''
         msg = "The first argument to 'rand' must be less than or equal to the second argument."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
