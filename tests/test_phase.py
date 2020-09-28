@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from random import choice
 
 from .testutil import LsTestCase, run, get_plot_data
 from parsing import Script
@@ -710,7 +711,7 @@ class TestHelpLine(LsTestCase):
         stimulus, _, _ = phase.next_stimulus('b1')
         self.assertIsNone(stimulus)
 
-    def test_multiple_actions(self):
+    def test_multiple_actions1(self):
         text = '''
         behaviors         : b1, b2
         stimulus_elements : e1, e2
@@ -727,8 +728,152 @@ class TestHelpLine(LsTestCase):
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'p1': 1, 'p2': 2})
 
+    def test_multiple_actions2(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # @PHASE phase_label stop:e1=10
+        @PHASE phase_label stop:e1=10
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | b1: x1:x1+1, x2:2, B | C
+        B e2              | A
+        C e3              | A
+        '''
+        phase = parse(text, 'phase_label')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e2': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 2})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        for i in range(7):
+            stimulus, _, _ = phase.next_stimulus('b1')
+            self.assertEqual(stimulus, {'e2': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': i + 2, 'x2': 2})
+
+            stimulus, _, _ = phase.next_stimulus('b1')
+            self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertIsNone(stimulus)
+
+    def test_multiple_actions3(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
+
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | count_line(b1)=5: x1=10, x2=10, B | A
+        B e2              | A
+        '''
+        phase = parse(text, 'phase_label')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e2': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 10, 'x2': 10})
+
+    def test_multiple_actions4(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
+
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | x1=x1+1, count(b1)=6: x1=42, x2=2.5, B | C
+        B e2              | A
+        C e3              | A
+        '''
+        phase = parse(text, 'phase_label')
+
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 3, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 3, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b2')
+        self.assertEqual(stimulus, {'e3': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 5, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e1': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 5, 'x2': 0})
+
+        stimulus, _, _ = phase.next_stimulus('b1')
+        self.assertEqual(stimulus, {'e2': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 42, 'x2': 2.5})
 
         # A e1       | p1:1, p2:2, B,A(1.1)  # fel
         # A e1       | p1:1, p2:2, B(1.1),A(1.1)  # samma fel
@@ -736,14 +881,10 @@ class TestHelpLine(LsTestCase):
         # A e1       | b1: x1:1, x2:2, B  # Should give error
         # A e1       | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B  # Should give error
 
-        # A e1       | b1: x1:1, x2:2, B | C
+        # A e1       | b1=5: x1:1, x2:2, B | C  # Should give error
 
-        # A e1       | b1=5: x1:1, x2:2, B | C
-
-        # A e1       | x1:1, b1=5: x2:2, B | C
-
-        # A e1       | x1:1, x2=rand(1,3), b1=5: x2:2, B | C  # to test split with comma
-        # A e1       | x1:1, x2=rand(1,3) | b1=5: x2:2, B | C  # should be same as above
+        # A e1       | x1=1, x2=rand(1,3),  b1=5: x2:2, B | C  # to test split with comma
+        # A e1       | x1=1, x2=rand(1,3) | b1=5: x2:2, B | C  # should be same as above
 
         # A e1       | x1:1, x2=rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
 
@@ -842,7 +983,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3) | count(b1)=5: x2:42, B | C
+        A e1       | x1:1, x2:rand(1,3), count(b1)=5: x2:42, B | C
         B e2       | A
         C e1       | A
         '''
@@ -882,7 +1023,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1   | x1:1, x2:choice(11,12) | count(b1)=5: x2:choice([5,6],[1,2]), B | C
+        A e1   | x1:1, x2:choice(11,12), count(b1)=5: x2:choice([5,6],[1,2]), B | C
         B e2   | A
         C e3   | x3:choice(20,22,24), A
         '''
@@ -929,7 +1070,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3) | b1=5: x:10, B(0.5),C(0.1) | C
+        A e1       | x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.1) | C
         B e2       | A
         C e1       | A
 
@@ -945,7 +1086,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | p1:1, p2:2 | p1=42: A | B
+        A e1       | p1:1, p2:2, p1=42: A | B
         B e2       | A
 
         @run phase_label runlabel:foo
@@ -962,7 +1103,7 @@ class TestMultipleActions(LsTestCase):
         mechanism         : sr
 
         @PHASE phase_label stop:e1=10
-        A e1       | p1:142, p2:2 | p1=142: A | B
+        A e1       | p1:142, p2:2, p1=142: A | B
         B e2       | A
 
         @run phase_label runlabel:foo
@@ -970,6 +1111,206 @@ class TestMultipleActions(LsTestCase):
         script_obj, script_output = run(text)
         history = script_output.run_outputs['foo'].output_subjects[0].history
         self.assertEqual(history[::2], ['e1'] * 10)
+
+    def test_conditional_and_unconditional_actions(self):
+        params = '''
+        behaviors         : b1, b2, b3
+        stimulus_elements : e0, e1, e2, e3
+        mechanism         : sr
+
+        '''
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=1, x2=2, b1: x1=x1+1, x2=x2+1, E1 | x1 = x1+2, x2=x2+2, b2: x1=x1+1, E2 | x1=33, E3
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        phase = parse(text, 'phase_label')
+        stimulus, _, _ = phase.next_stimulus(None)
+        self.assertEqual(stimulus, {'e0': 1})
+        self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
+
+        for _ in range(42):
+            stimulus, _, _ = phase.next_stimulus('b1')
+            self.assertEqual(stimulus, {'e1': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 3})
+
+            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            self.assertEqual(stimulus, {'e0': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 3})
+
+        for _ in range(42):
+            stimulus, _, _ = phase.next_stimulus('b2')
+            self.assertEqual(stimulus, {'e2': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 4})
+
+            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            self.assertEqual(stimulus, {'e0': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 4})
+
+        for _ in range(42):
+            stimulus, _, _ = phase.next_stimulus('b3')
+            self.assertEqual(stimulus, {'e3': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 33, 'x2': 4})
+
+            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            self.assertEqual(stimulus, {'e0': 1})
+            self.assertEqual(phase.local_variables.values, {'x1': 33, 'x2': 4})
+
+    def test_conditional_and_unconditional_actions_exceptions(self):
+        params = '''
+        behaviors         : b1, b2, b3
+        stimulus_elements : e0, e1, e2, e3
+        mechanism         : sr
+
+        '''
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1==0: x2=0, b1: x1=x1+1, x2=x2+1, E1 | x1 = x1+2, x2=x2+2, b2: x1=x1+1, E2 | x1=33, E3
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Multiple conditions \('x1\=\=0' and 'b1'\) found in 'x1\=\=0\: x2\=0, b1\: x1\=x1\+1, x2\=x2\+1, E1'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1==0: x2:0, b1: x1=x1+1, x2:x2+1, E1 | x1 = x1+2, x2=x2+2, b2: x1=x1+1, E2 | x1=33, E3
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Multiple conditions \('x1\=\=0' and 'b1'\) found in 'x1\=\=0\: x2\:0, b1\: x1\=x1\+1, x2\:x2\+1, E1'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1==0: x2:0, b1: x1:x1+1, x2:x2+1, E1 | x1 = x1+2, x2=x2+2, b2: x1=x1+1, E2 | x1=33, E3
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Multiple conditions \('x1\=\=0' and 'b1'\) found in 'x1\=\=0\: x2\:0, b1\: x1\:x1\+1, x2\:x2\+1, E1'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1, x1=x1+1 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Row label\(s\) must be the last action\(s\). Found 'x1\=x1\+1' after row-label."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1, x1=x1+1, E2 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Row label\(s\) must be the last action\(s\). Found 'x1\=x1\+1' after row-label."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | b1: x1=0, x2=0, E1, x1=x1+1, E2 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Row label\(s\) must be the last action\(s\). Found 'x1\=x1\+1' after row-label."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: The unconditional goto row label 'E1' cannot be continued."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1, E2, E3 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: The unconditional goto row label 'E1,E2,E3' cannot be continued."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1, E2, E3
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Invalid condition 'E1,E2,E3'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, x1=x1+1 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9: Last action must be a row label, found 'x1\=x1\+1'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1, x1==5: E2 | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9\: Found condition 'x1\=\=5' after row label 'E1'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
+
+        text = params + '''
+        @PHASE phase_label stop:False
+        S          | x1 = 0, x2 = 0, E0
+        E0 e0      | x1=0, x2=0, E1(0.1), x1==5: E2(0.9) | E0
+        E1 e1      | E0
+        E2 e2      | E0
+        E3 e3      | E0
+        '''
+        msg = "Error on line 9\: Found condition 'x1\=\=5' after row label 'E1\(0.1\)'."
+        with self.assertRaisesX(Exception, msg):
+            parse(text, 'phase_label')
 
     def test_exceptions(self):
         params = '''
@@ -1034,10 +1375,13 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, b1&5: x2:2, B | C
         B e2       | A
         C e1       | A
+
+        @run phase_label
         '''
-        msg = "Error on line 8: Unknown action 'b1&5: x2:2'."
+        msg = "Error on line 8: Condition 'b1&5' is not a boolean expression."
         with self.assertRaisesX(Exception, msg):
-            parse(text, 'phase_label')
+            # parse(text, 'phase_label')
+            run(text)
 
         text = params + '''
         @PHASE phase_label stop:e1=10
@@ -1107,7 +1451,7 @@ class TestMultipleActions(LsTestCase):
 
         text = params + '''
         @PHASE phase_label stop:e1=10
-        A          | x0:0 | x1:1, x2:2, x3:3 | A
+        A          | x0:0, x1:1, x2:2, x3:3 | A
         B e2       | A
         '''
         msg = "Error on line 8: Last action must be a row label, found 'x3:3'."
@@ -1119,7 +1463,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | b1=6: x1:1, x2:2, x3:3
         B e2       | A
         '''
-        msg = "Error on line 8: Row label not found in 'b1=6: x1:1, x2:2, x3:3'."
+        msg = "Last action must be a row label, found 'x3:3'."
         with self.assertRaisesX(Exception, msg):
             parse(text, 'phase_label')
 
@@ -1220,6 +1564,19 @@ class TestMultipleActions(LsTestCase):
             parse(text, 'phase_label')
 
         text = params + '''
+        behaviors: b1
+        @PHASE phase_label stop:e1=10
+        A e1       | x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)
+        B e2       | A
+        C e1       | A
+
+        @run phase_label
+        '''
+        msg = "No condition in 'x1:1, x2:rand\(1,3\) | b1=5: x:10, B\(0.5\),C\(0.5\)' was met for response 'b1'."
+        with self.assertRaisesX(Exception, msg):
+            run(text)
+
+        text = params + '''
         @PHASE phase_label stop:e1=10
         A e1       | x1:1, x2:rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
         B e2       | A
@@ -1227,7 +1584,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand\(1,3\) | b1=5: x:10, B\(0.5\),C\(0.5\)' was met for response 'b1'."
+        msg = "Error on line 8: Last action must be a row label, found 'x2:rand\(1,3\)'."
         with self.assertRaisesX(Exception, msg):
             run(text)
 

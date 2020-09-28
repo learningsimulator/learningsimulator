@@ -446,7 +446,7 @@ class OriginalRescorlaWagner(Mechanism):
         for phase in world.phases:
             for _, phase_line in phase.phase_lines.items():
                 for condition_obj in phase_line.conditions.conditions:
-                    if condition_obj.cond_is_behavior:
+                    if condition_obj.condition_is_behavior:
                         mech_name = self.parameters.get(kw.MECHANISM_NAME)
                         err = f"Phase line logic cannot depend on behavior in mechanism '{mech_name}'."
                         lineno = condition_obj.lineno
