@@ -904,6 +904,10 @@ def find_and_cumsum_interval(seq, pattern, use_exact_match,
         if ind_int[i] == 1:
             out.append(cnt)
             cnt = 0
+    #print(f"seq={seq}")
+    #print(f"out={out}")
+    #print(f"cumsum(out) = {cumsum(out)}")
+    #input()
     return out, cumsum(out)
 
 

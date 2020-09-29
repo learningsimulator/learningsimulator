@@ -380,15 +380,15 @@ class PhaseLine():
 
 
 class PhaseLineConditions():
-    def __init__(self, phase_obj, lineno, is_help_line, conditions_str, parameters, all_linelabels,
+    def __init__(self, phase_obj, lineno, is_help_line, logic_str, parameters, all_linelabels,
                  global_variables):
         self.phase_obj = phase_obj
 
         # list of PhaseLineCondition objects
         self.conditions = list()
 
-        self.conditions_str = conditions_str
-        cond_gotos = conditions_str.split(PHASEDIV)
+        self.logic_str = logic_str
+        cond_gotos = logic_str.split(PHASEDIV)
         cond_gotos = [c.strip() for c in cond_gotos]
         n_logicparts = len(cond_gotos)
         for i, cond_goto in enumerate(cond_gotos):
@@ -398,17 +398,13 @@ class PhaseLineConditions():
 
     def next_line(self, response, global_variables, local_variables, event_counter):
         for i, condition in enumerate(self.conditions):
-            # If goto is missing, it must be the first logic part, and condition must also be missing
-            if condition.goto is None:
-                assert(i == 0 and condition.cond is None)
-                self.phase_obj.perform_actions(condition.actions)
-                continue
+            self.phase_obj.perform_actions(condition.unconditional_actions)
             condition_met, label = condition.is_met(response, global_variables, local_variables,
                                                     event_counter)
             if condition_met:
-                self.phase_obj.perform_actions(condition.actions)
+                self.phase_obj.perform_actions(condition.conditional_actions)
                 return label
-        raise Exception(f"No condition in '{self.conditions_str}' was met for response '{response}'.")
+        raise Exception(f"No condition in '{self.logic_str}' was met for response '{response}'.")
 
 
 class PhaseLineCondition():
@@ -416,12 +412,19 @@ class PhaseLineCondition():
                  all_linelabels, global_variables):
         self.lineno = lineno
 
-        # Before colon
-        self.cond = None
-        self.cond_is_behavior = False
+        # Unconditional actions
+        self.unconditional_actions = list()
 
-        # After colon
-        self.actions = list()
+        # The condition
+        self.condition = None
+
+        # Whether or not the condition is a behavior
+        self.condition_is_behavior = False
+
+        # Conditional actions
+        self.conditional_actions = list()
+
+        # Row label to go to
         self.goto = None  # List of 2-lists [probability, row_label]
 
         self._parse(lineno, is_help_line, cond_goto, logicpart_index, n_logicparts, parameters,
@@ -439,78 +442,82 @@ class PhaseLineCondition():
                 "x:1"
                 "@break, x:1"
         '''
-        self.cond = None
+        self.condition = None
 
         ca_list = ParseUtil.comma_split_strip(condition_and_actions)
 
-        has_condition = False
-        first_action = ca_list[0]
-        err = f"Invalid statement '{first_action}'."
-        n_colons = first_action.count(':')
-        if n_colons == 0:
-            has_condition = False
-        elif n_colons == 1:
-            before_colon, after_colon = ParseUtil.split1_strip(first_action, ':')
-            has_condition = self._is_condition(before_colon, parameters)
-            if has_condition:
-                self.cond = before_colon
-                first_action = after_colon
-        elif n_colons == 2:
-            colon_inds = [m.start() for m in re.finditer(':', first_action)]
-            if colon_inds[1] - colon_inds[0] == 1:
+        found_condition = False
+        any_rowlbl_prob = False
+        found_rowlbl = False
+        goto_list = list()
+        goto_list_index = list()
+        for i, ca in enumerate(ca_list):
+            err = f"Invalid statement '{ca}'."
+            n_colons = ca.count(':')
+            if n_colons == 0:
+                contains_condition = False
+                action = ca
+            elif n_colons == 1:
+                before_colon, after_colon = ParseUtil.split1_strip(ca, ':')
+                contains_condition = self._is_condition(before_colon, parameters)
+                if contains_condition:
+                    if self.condition is not None:  # Cannot have multiple conditions
+                        raise ParseException(lineno, f"Multiple conditions ('{self.condition}' and '{before_colon}') found in '{condition_and_actions}'.")
+                    self.condition = before_colon
+                    action = after_colon
+                else:
+                    action = ca
+            elif n_colons == 2:
+                colon_inds = [m.start() for m in re.finditer(':', ca)]
+                if colon_inds[1] - colon_inds[0] == 1:
+                    raise ParseException(lineno, err)
+                before_first_colon, after_first_colon = ParseUtil.split1_strip(ca, ':')
+                if not self._is_condition(before_first_colon, parameters):
+                    raise ParseException(lineno, err)
+                if self.condition is not None:  # Cannot have multiple conditions
+                    raise ParseException(lineno, f"Multiple conditions ('{self.condition}' and '{before_first_colon}') found in '{condition_and_actions}'.")
+                contains_condition = True
+                self.condition = before_first_colon
+                action = after_first_colon
+            else:
                 raise ParseException(lineno, err)
-            before_first_colon, after_first_colon = ParseUtil.split1_strip(first_action, ':')
-            if not self._is_condition(before_first_colon, parameters):
-                raise ParseException(lineno, err)
-            has_condition = True
-            self.cond = before_first_colon
-            first_action = after_first_colon
-        else:
-            raise ParseException(lineno, f"Invalid statement '{first_action}' (>2 colons).")
 
-        if has_condition:
-            self.cond_is_behavior = (self.cond in parameters.get(BEHAVIORS))
-            cond_depends_on_behavior, err = ParseUtil.depends_on(self.cond, parameters.get(BEHAVIORS))
+            if contains_condition and found_rowlbl:
+                raise ParseException(lineno, f"Found condition '{self.condition}' after row label '{','.join(goto_list)}'.")
+
+            found_condition = found_condition or contains_condition
+            is_rowlbl, is_rowlbl_prob = self._is_rowlbl(action, all_linelabels)
+            any_rowlbl_prob = (any_rowlbl_prob or is_rowlbl_prob)
+            if is_rowlbl:
+                found_rowlbl = True
+                goto_list.append(action)
+                goto_list_index.append(i)
+            else:
+                check_action(action, parameters, global_variables, lineno, all_linelabels)
+                if found_rowlbl:
+                    err = f"Row label(s) must be the last action(s). Found '{action}' after row-label."
+                    raise ParseException(lineno, err)
+                if found_condition:  # self.condition is not None:
+                    self.conditional_actions.append(action)
+                else:
+                    self.unconditional_actions.append(action)
+
+            is_last_action = (i == len(ca_list) - 1)
+            if is_last_action and not is_rowlbl:
+                raise ParseException(lineno, f"Last action must be a row label, found '{action}'.")
+
+        if found_condition:
+            self.condition_is_behavior = (self.condition in parameters.get(BEHAVIORS))
+            cond_depends_on_behavior, err = ParseUtil.depends_on(self.condition, parameters.get(BEHAVIORS))
             if err is not None:
                 raise ParseException(lineno, err)
             if cond_depends_on_behavior and is_help_line:
                 raise ParseException(lineno, "Condition on help line cannot depend on response.")
 
-        # Parse each action
-        a_list = [first_action] + ca_list[1:]
-        goto_list = list()
-        self.actions = list()
-        found_rowlbl = False
-        any_rowlbl_prob = False
-        for i, action in enumerate(a_list):
-            is_rowlbl, is_rowlbl_prob = self._is_rowlbl(action, all_linelabels)
-            any_rowlbl_prob = (any_rowlbl_prob or is_rowlbl_prob)
-            if not is_rowlbl:
-                check_action(action, parameters, global_variables, lineno, all_linelabels)
-                if found_rowlbl:
-                    err = f"Row label(s) must be the last action(s). Found '{action}' after row-label."
-                    raise ParseException(lineno, err)
-            else:
-                found_rowlbl = True  # is_rowlbl
-            if is_rowlbl:
-                goto_list.append(action)
-            else:
-                self.actions.append(action)
-            is_last_action = (i == len(a_list) - 1)
-            if is_last_action and not is_rowlbl:
-                if (logicpart_index > 0):
-                    raise ParseException(lineno, f"Last action must be a row label, found '{action}'.")
-
-        # Missing ROWLBL only allowed in first logic part IF there are more (>1) logic parts, AND
-        # there is no condition
-        if not found_rowlbl:
-            if not ((logicpart_index == 0) and (n_logicparts > 1) and (self.cond is None)):
-                raise ParseException(lineno, f"Row label not found in '{condition_and_actions}'.")
-
         goto_str = ','.join(goto_list)
 
         # A deterministic ROWLBL cannot have elif/else continuation
-        if (not has_condition) and found_rowlbl and not any_rowlbl_prob:
+        if (not found_condition) and found_rowlbl and not any_rowlbl_prob:
             if logicpart_index < n_logicparts - 1:
                 err = f"The unconditional goto row label '{goto_str}' cannot be continued."
                 raise ParseException(lineno, err)
@@ -535,17 +542,17 @@ class PhaseLineCondition():
 
     def is_met(self, response, global_variables, local_variables, event_counter):
         variables_both = Variables.join(global_variables, local_variables)
-        if self.cond is None:
+        if self.condition is None:
             ismet = True
-        elif self.cond_is_behavior:
-            ismet = (self.cond == response)
+        elif self.condition_is_behavior:
+            ismet = (self.condition == response)
         else:
-            ismet, err = ParseUtil.evaluate(self.cond, variables_both, event_counter,
+            ismet, err = ParseUtil.evaluate(self.condition, variables_both, event_counter,
                                             ParseUtil.PHASE_LINE)
             if err:
                 raise ParseException(self.lineno, err)
             if type(ismet) is not bool:
-                raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
+                raise ParseException(self.lineno, f"Condition '{self.condition}' is not a boolean expression.")
 
         if ismet:
             label = self._goto_if_met(variables_both)
@@ -575,15 +582,15 @@ class PhaseLineCondition():
         else:
             return self.goto[ind][1]
 
-    def _parse_goto(self, goto, lineno, all_linelabels, global_variables):
+    def _parse_goto(self, goto_str, lineno, all_linelabels, global_variables):
         self.goto = list()
-        err = f"Invalid condition '{goto}'. "
-        lbls_and_probs = goto.split(',')
+        err = f"Invalid condition '{goto_str}'. "
+        lbls_and_probs = goto_str.split(',')
         lbls_and_probs = [lbl_and_prob.strip() for lbl_and_prob in lbls_and_probs]
         for lbl_and_prob in lbls_and_probs:
             if lbl_and_prob in all_linelabels:
                 if len(lbls_and_probs) > 1:
-                    raise ParseException(lineno, f"Invalid condition '{goto}'.")
+                    raise ParseException(lineno, f"Invalid condition '{goto_str}'.")
                 self.goto.append([1, lbl_and_prob])
             else:
                 if '(' and ')' in lbl_and_prob:
@@ -609,7 +616,7 @@ class PhaseLineCondition():
                             raise ParseException(lineno, err + f"Label '{lbl}' duplicated.")
                     self.goto.append([prob, lbl])
                 else:
-                    raise ParseException(lineno, err + f"Invalid line label '{goto}'.")
+                    raise ParseException(lineno, err + f"Invalid line label '{goto_str}'.")
 
 
 class EndPhaseCondition():

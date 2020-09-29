@@ -27,8 +27,8 @@ def parse(text):
 
 def check_logic(self, condition, lineno, cond, cond_is_behavior, goto):
     self.assertEqual(condition.lineno, lineno)
-    self.assertEqual(condition.cond, cond)
-    self.assertEqual(condition.cond_is_behavior, cond_is_behavior)
+    self.assertEqual(condition.condition, cond)
+    self.assertEqual(condition.condition_is_behavior, cond_is_behavior)
     self.assertEqual(condition.goto, goto)
 
 
