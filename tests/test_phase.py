@@ -1344,7 +1344,7 @@ class TestMultipleActions(LsTestCase):
         A e1   | ( b1 or (b2 or {'a':1}=={'a':1}) ) : A | B
         B e2   | A
         '''
-        msg = "Error on line 7: Invalid statement '( b1 or (b2 or {'a':1}=={'a':1}) ) : A' (>2 colons)."
+        msg = "Error on line 7: Invalid statement '( b1 or (b2 or {'a':1}=={'a':1}) ) : A'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1641,7 +1641,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | foo:bar:baz:1, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid statement 'foo:bar:baz:1' (>2 colons)."
+        msg = "Error on line 8: Invalid statement 'foo:bar:baz:1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1807,45 +1807,33 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3) | b1=5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
+        msg = "No condition in 'x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = params + '''
         behaviors = b1
         @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3) | b1 = 5: x:10, B(0.5),C(0.5)
+        A e1       | x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)
         B e2       | A
         C e1       | A
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3) | b1 = 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
+        msg = "No condition in 'x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = params + '''
         behaviors = b1
         @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3) | b1 == 5: x:10, B(0.5),C(0.5)
+        A e1       | x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)
         B e2       | A
         C e1       | A
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3) | b1 == 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
-        with self.assertRaisesMsg(msg):
-            run(text)
-
-        text = params + '''
-        @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
-        B e2       | A
-        C e1       | A
-
-        @run phase_label
-        '''
-        msg = "Error on line 8: Last action must be a row label, found 'x2:rand(1,3)'."
+        msg = "No condition in 'x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
