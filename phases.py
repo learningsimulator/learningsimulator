@@ -156,6 +156,7 @@ class Phase():
             if response is not None:
                 self.event_counter.increment_count(response)
                 self.event_counter.increment_count_line(response)
+                self.event_counter.set_last_response(response)
 
         if self.first_stimulus_presented:
             variables_both = Variables.join(self.global_variables, self.local_variables)
@@ -252,6 +253,8 @@ class PhaseEventCounter():
         stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
         behaviors = parameters.get(BEHAVIORS)
         event_names = list(stimulus_elements) + list(behaviors) + linelabels
+        self.behaviors = behaviors
+        self.last_response = None
         # event_names = set(linelabels).union(stimulus_elements).union(behaviors)
 
         # self.count_line counts events on current line
@@ -260,7 +263,7 @@ class PhaseEventCounter():
         # The name of the current line
         self.line_label = None
 
-        # self.event_counter counts all events, reset by count_reset()
+        # self.count counts all events, reset by count_reset()
         self.count = {key: 0 for key in event_names}
 
         # List of all possible count() and count_line() calls, used in replace_count_functions()
@@ -269,6 +272,9 @@ class PhaseEventCounter():
         for event in event_names:
             self.count_calls[event] = f"count({event})"
             self.count_line_calls[event] = f"count_line({event})"
+
+    def set_last_response(self, response):
+        self.last_response = response
 
     def increment_count(self, event):
         self.count[event] += 1
@@ -298,71 +304,12 @@ class PhaseEventCounter():
             expr = expr.replace("count_line()", str(self.count_line[self.line_label]))
         return expr
 
-    # def eval(self, expr, variables):
-    #     comps = ["==", "<=", ">=", "<", ">"]
-    #     comp_count_fcns = [self.count_eq, self.count_leq, self.count_geq,
-    #                        self.count_less, self.count_gr]
-    #     n_comps = len(comps)
-    #     comp_counts = [expr.count(comp) for comp in comps]
-    #     matches0 = [i for i, x in enumerate(comp_counts) if x == 0]
-    #     matches1 = [i for i, x in enumerate(comp_counts) if x == 1]
-    #     if len(matches0) != (n_comps - 1) or len(matches1) != 1:
-    #         return None
-
-    #     comp_ind = matches1[0]
-    #     comp = comps[comp_ind]
-    #     comp_count_fcn = comp_count_fcns[comp_ind]
-    #     lhs, rhs = ParseUtil.split1_strip(expr, sep=comp)
-
-    #     # Check that rhs is an int
-    #     rhs, err = ParseUtil.parse_int(rhs, variables)
-    #     if err:
-    #         return None
-
-    #     # Check that lhs is event, count(event) or count_line(event)
-    #     if lhs in self.event_names:
-    #         event = lhs
-    #         return comp_count_fcn(event, rhs)
-    #     elif lhs.startswith("count(") and lhs.endswith(")"):
-    #         event = lhs[6:-1].strip()
-    #         if event in self.event_names:
-    #             return comp_count_fcn(event, rhs)
-    #     elif lhs.startswith("count_line(") and lhs.endswith(")"):
-    #         event = lhs[11:-1].strip()
-    #         if event in self.event_names:
-    #             return comp_count_fcn(event, rhs, is_line=True)
-    #     else:
-    #         return None
-
-    # def count_eq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] == val
-    #     else:
-    #         return self.count[event] == val
-
-    # def count_leq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] <= val
-    #     else:
-    #         return self.count[event] <= val
-
-    # def count_geq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] >= val
-    #     else:
-    #         return self.count[event] >= val
-
-    # def count_less(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] < val
-    #     else:
-    #         return self.count[event] < val
-
-    # def count_gr(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] > val
-    #     else:
-    #         return self.count[event] > val
+    def get_count_line_without_behaviors(self):
+        out = dict()
+        for key in self.count_line:
+            if key not in self.behaviors:
+                out[key] = self.count_line[key]
+        return out
 
 
 def check_action(action, parameters, global_variables, lineno, all_linelabels):

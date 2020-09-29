@@ -86,7 +86,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, , b2, b3
         '''
         msg = "Found empty stimulus element name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_duplicate(self):
@@ -94,7 +94,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4, b2, b1
         '''
         msg = "The stimulus element name 'b2' occurs more than once."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -102,7 +102,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
                    b4, b2, b1
         '''
         msg = "The stimulus element name 'b2' occurs more than once."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_stimulus_element_is_behavior(self):
@@ -111,7 +111,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4, e2
         '''
         msg = "The stimulus element name 'e2' is invalid, since it is a behavior name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -120,7 +120,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
                    e2, b1
         '''
         msg = "The stimulus element name 'e2' is invalid, since it is a behavior name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_behavior_is_variable(self):
@@ -129,7 +129,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4, v2, v3, v1
         '''
         msg = "The stimulus element name 'v2' is invalid, since it is a variable name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -138,7 +138,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
                    v2
         '''
         msg = "The stimulus element name 'v2' is invalid, since it is a variable name."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_identifier(self):
@@ -147,5 +147,5 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4, v2. v3, v1
         '''
         msg = "Stimulus element name 'v2. v3' is not a valid identifier."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)

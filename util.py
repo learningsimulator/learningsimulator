@@ -181,6 +181,53 @@ class ParseUtil():
             return None, err
         return tree, None
 
+    # def replace_initial_behaviors(expr, behaviors, last_response):
+    #     """
+    #     Replace any intial occurence of "b1 or b2 or ... or bn" in expr (where each b is in behaviors)
+    #     with "False or True or ... or False" where True is for the behavior matching last_response.
+    #     """
+    #     def _is_behavior(b):
+    #         # Ignore any parenthesis adjacent to behavior: "(b1 or b2) and ..."
+    #         b_noparenthesis = re.sub(r'[()]*', '', b)
+    #         return b_noparenthesis in behaviors, b_noparenthesis
+
+    #     replaced_expr = ''
+    #     words = expr.split()
+    #     initial_behaviors_done = False
+    #     expecting_behavior = True
+    #     the_rest = ''
+    #     for i, word in enumerate(words):
+    #         if set(word).issubset({'(', ')'}):  # Ignore any parenthesis as own words: "( b1 or b2 ) and ..."
+    #             replaced_expr += word
+    #             continue
+    #         if expecting_behavior:
+    #             is_behavior, behavior = _is_behavior(word)
+    #             if is_behavior:
+    #                 # replaced_expr += f"{behavior == last_response} "  # "True"/"False"
+    #                 replaced_expr += word.replace(behavior, f"{behavior == last_response} ")
+    #             else:
+    #                 initial_behaviors_done = True
+    #         else:  # expecting "or"
+    #             if word == "or":
+    #                 replaced_expr += "or "
+    #             else:
+    #                 if i == 1 and word in ("=", "==", "<=", ">=", "<", ">"):
+    #                     return expr  # A behavior followed by comparison, e.g. "b1 == 5"
+    #                 initial_behaviors_done = True
+    #         if initial_behaviors_done:
+    #             the_rest = " ".join(words[i:])
+    #             break
+    #         expecting_behavior = not expecting_behavior
+    #     replaced_expr += the_rest
+    #     return replaced_expr.strip()
+
+    @staticmethod
+    def _make_bool_behavior_context(behaviors, true_behavior):
+        assert(true_behavior in behaviors), f"{true_behavior} not in {behaviors}."
+        behavior_context = {b: False for b in behaviors}
+        behavior_context[true_behavior] = True
+        return behavior_context
+
     @staticmethod
     def evaluate(expr, variables=None, phase_event_counter=None, phase_event_counter_type=None):
         """
@@ -197,12 +244,18 @@ class ParseUtil():
         if variables is not None:
             context.update(variables.values)
 
-        if phase_event_counter:
+        if phase_event_counter is not None:
             if phase_event_counter_type == ParseUtil.STOP_COND:
                 context.update(phase_event_counter.count)
             elif phase_event_counter_type == ParseUtil.PHASE_LINE:
+                # expr = ParseUtil.replace_initial_behaviors(expr, phase_event_counter.behaviors,
+                #                                            phase_event_counter.last_response)
                 expr = phase_event_counter.replace_count_functions(expr)
-                context.update(phase_event_counter.count_line)
+                behavior_context = ParseUtil._make_bool_behavior_context(phase_event_counter.behaviors,
+                                                                         phase_event_counter.last_response)
+                context.update(behavior_context)
+                # context.update(phase_event_counter.count_line)
+                context.update(phase_event_counter.get_count_line_without_behaviors())
             else:
                 return None, "Internal error."
 
@@ -241,10 +294,6 @@ class ParseUtil():
                 has_boolean_operator = True
 
         # Now it is safe to evaluate using eval
-        # if phase_event_counter is not None:
-            # ParseUtil.pec = phase_event_counter
-            # context.update(phase_event_counter.event_names_dict)
-            # context.update({PEC: phase_event_counter})
         try:
             out = eval(expr, {"__builtins__": None}, context)
         except Exception as ex:

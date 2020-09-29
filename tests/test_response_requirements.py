@@ -100,7 +100,7 @@ class TestExceptions(LsTestCase):
         response_requirements:
         '''
         msg = "Parameter 'response_requirements' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def _test_empty_name_no_colon(self):
@@ -110,7 +110,7 @@ class TestExceptions(LsTestCase):
         response_requirements
         '''
         msg = "Parameter '{}' not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_duplicate(self):
@@ -120,7 +120,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:e1, b1:e2
         '''
         msg = "Duplication of behavior 'b1' in response_requirements."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -130,7 +130,7 @@ class TestExceptions(LsTestCase):
                                b1:e2, fgjfkjglgj
         '''
         msg = "Duplication of behavior 'b1' in response_requirements."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -140,7 +140,7 @@ class TestExceptions(LsTestCase):
                                b2:e2
         '''
         msg = "Duplication of behavior 'b2' in response_requirements."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_stimulus_element_not_defined(self):
@@ -149,7 +149,7 @@ class TestExceptions(LsTestCase):
         response_requirements: Blaps mortisaga
         '''
         msg = "The parameter 'stimulus_elements' must be assigned before the parameter 'response_requirements'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -157,7 +157,7 @@ class TestExceptions(LsTestCase):
         response_requirements: Blaps mortisaga
         '''
         msg = "The parameter 'behaviors' must be assigned before the parameter 'response_requirements'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -165,14 +165,14 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:s1, b2:s2
         '''
         msg = "The parameter 'behaviors' must be assigned before the parameter 'response_requirements'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         response_requirements: foo
         '''
         msg = "The parameter 'stimulus_elements' must be assigned before the parameter 'response_requirements'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_value(self):
@@ -182,7 +182,7 @@ class TestExceptions(LsTestCase):
         response_requirements: foo,>>>>////
         '''
         msg = "Expected 'behavior:stimulus_element', got 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -191,7 +191,7 @@ class TestExceptions(LsTestCase):
         response_requirements: foo>>>>////
         '''
         msg = "Expected 'behavior:stimulus_element', got 'foo>>>>////'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -200,7 +200,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1::e1
         '''
         msg = "Expected 'behavior:stimulus_element', got 'b1::e1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -209,7 +209,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:
         '''
         msg = "Expected 'behavior:stimulus_element', got 'b1:'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -218,7 +218,7 @@ class TestExceptions(LsTestCase):
         response_requirements: :e1
         '''
         msg = "Expected 'behavior:stimulus_element', got ':e1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_behavior_name(self):
@@ -227,7 +227,7 @@ class TestExceptions(LsTestCase):
                   response_requirements: b1:e1, B2:e2
                   '''
         msg = "Unknown behavior name 'B2'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''stimulus_elements: e1, e2
@@ -235,7 +235,7 @@ class TestExceptions(LsTestCase):
                   response_requirements: foo:bar, blabla
                '''
         msg = "Unknown behavior name 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''stimulus_elements: e1, e2
@@ -243,7 +243,7 @@ class TestExceptions(LsTestCase):
                   response_requirements: e2:b1, foo:bar
                '''
         msg = "Unknown behavior name 'e2'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''stimulus_elements: e1, e2
@@ -251,7 +251,7 @@ class TestExceptions(LsTestCase):
                   response_requirements: b2:e1, foo:bar
                '''
         msg = "Unknown behavior name 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_stimulus_element(self):
@@ -261,7 +261,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:E1, b2:[e1,e2]
         '''
         msg = "Unknown stimulus element 'E1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -271,7 +271,7 @@ class TestExceptions(LsTestCase):
                                b2:[e1,e2]
         '''
         msg = "Unknown stimulus element 'E1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -281,7 +281,7 @@ class TestExceptions(LsTestCase):
                                b1:E1
         '''
         msg = "Unknown stimulus element 'E1'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -290,7 +290,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:e1, b2:[e1,foo]
         '''
         msg = "Unknown stimulus element 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -300,7 +300,7 @@ class TestExceptions(LsTestCase):
                                b2:[e1,foo]
         '''
         msg = "Unknown stimulus element 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -309,7 +309,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b1:e1, b2:[e1,foo,e2]
         '''
         msg = "Unknown stimulus element 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -318,7 +318,7 @@ class TestExceptions(LsTestCase):
         response_requirements: b2:[e1,foo,e2], b1:e1
         '''
         msg = "Unknown stimulus element 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -328,7 +328,7 @@ class TestExceptions(LsTestCase):
                                b2:[e1,foo]
         '''
         msg = "Unknown stimulus element 'foo'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_malformed_expression(self):
@@ -337,8 +337,8 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements: b1:e1, b2:[e1,e]2
         '''
-        msg = "Malformed expression '\[e1,e\]2'."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Malformed expression '[e1,e]2'."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -346,8 +346,8 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements: b1:e1, b2:[e1,e]2
         '''
-        msg = "Malformed expression '\[e1,e\]2'."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Malformed expression '[e1,e]2'."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -355,8 +355,8 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements: b1:e1, b2:[[[e1,e]2
         '''
-        msg = "Malformed expression '\[\[\[e1,e\]2'."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Malformed expression '[[[e1,e]2'."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -364,8 +364,8 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements: b1:e1, b2:wewew[e1,e2]
         '''
-        msg = "Malformed expression 'wewew\[e1,e2\]'."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Malformed expression 'wewew[e1,e2]'."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -373,8 +373,8 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         response_requirements: b1:e1, b2:[[e1,e2]]
         '''
-        msg = "Malformed expression '\[\[e1,e2\]\]'."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Malformed expression '[[e1,e2]]'."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     # def test_no_possible_respone(self):
@@ -384,7 +384,7 @@ class TestExceptions(LsTestCase):
     #     response_requirements: b1:e1, b2:[e1,e2]
     #     '''
     #     msg = "Invalid response_requirements: Stimulus elements [foo] has no possible responses."
-    #     with self.assertRaisesX(Exception, msg):
+    #     with self.assertRaisesMsg(msg):
     #         parse(text)
 
 
@@ -433,7 +433,7 @@ xscale: NEW_TRIAL
 @legend
 '''
         msg = "Invalid response_requirements: Stimulus element 'food' has no possible responses."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     def test_exception_no_possible_response_plural(self):
@@ -473,5 +473,5 @@ xscale: NEW_TRIAL
 @legend
 '''
         msg = "Invalid response_requirements: Stimulus elements 'black_screen' and 'food' have no possible responses."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)

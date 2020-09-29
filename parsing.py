@@ -10,7 +10,7 @@ from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
-from util import ParseUtil
+from util import ParseUtil, eval_average
 
 
 def clean_script(text):
@@ -542,6 +542,26 @@ class PostCmds():
     def plot(self):
         for cmd in self.cmds:
             cmd.plot()
+
+        # # XXX Add average plots in all subplots
+        # fig_average = plt.figure()
+        # ax_average = fig_average.add_subplot(1, 1, 1)
+        # for i in plt.get_fignums():
+        #     fig = plt.figure(i)
+        #     if fig == fig_average:
+        #         continue
+        #     axes = fig.get_axes()
+        #     for axis in axes:
+        #         lines = axis.get_lines()
+        #         all_y = list()
+        #         for line in lines:
+        #             all_y.append(line.get_ydata())
+        #             # line.set_visible(False)
+        #         if len(lines) > 0:
+        #             average = eval_average(all_y)
+        #             ax_average.plot(lines[0].get_xdata(), average, label=axis.get_title())
+        #         ax_average.legend()
+        #     ax_average.grid()
 
 
 class PostCmd():

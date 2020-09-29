@@ -3,6 +3,7 @@ import traceback
 import os
 import sys
 import webbrowser
+import pathlib
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -26,9 +27,10 @@ import util
 
 TITLE = "Learning Simulator"
 FILETYPES = (('Text files', '*.txt'), ('All files', '*.*'))
-ROOTDIR = os.path.dirname(os.path.abspath(__file__))
+
+ROOTDIR = str(pathlib.Path.home())
 SEP = os.path.sep
-RECENT_FILES_FILE = ROOTDIR + SEP + "recent_files.txt"
+RECENT_FILES_FILE = ROOTDIR + SEP + ".lesimrf.txt"
 NUMBER_OF_RECENT_FILES = 10
 
 

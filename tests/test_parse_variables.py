@@ -140,7 +140,7 @@ class TestExceptions(LsTestCase):
         @variables
         '''
         msg = "@VARIABLES not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_valvar(self):
@@ -148,7 +148,7 @@ class TestExceptions(LsTestCase):
         @variables foo bar
         '''
         msg = ""
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_value(self):
@@ -156,21 +156,21 @@ class TestExceptions(LsTestCase):
         @variables foo:bar, x:1, y:2
         '''
         msg = ""
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         @variables foo:bar:foobar, x:1, y:2
         '''
         msg = ""
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         @variables x:1:2, y:2
         '''
         msg = ""
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_variable_name_is_stimulus(self):
@@ -184,7 +184,7 @@ class TestExceptions(LsTestCase):
         @variables v1:1.2, 1v2:2.3, v3:3.4
         '''
         msg = "Error on line 2: Variable name '1v2' is not a valid identifier."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
@@ -192,7 +192,7 @@ class TestExceptions(LsTestCase):
                    1v2:2.3, v3:3.4
         '''
         msg = "Error on line 3: Variable name '1v2' is not a valid identifier."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_forgot_comma(self):
@@ -203,7 +203,7 @@ class TestExceptions(LsTestCase):
                     w : -1.2
         '''
         msg = "Error on line 5: Invalid expression 'w : -1.2'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_end_by_comma(self):
@@ -215,7 +215,7 @@ class TestExceptions(LsTestCase):
                 mechanism: dkjfldskj
                 '''
         msg = "Error on line 6: Variable name 'mechanism' is a keyword."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_reset_previously_undefined(self):
@@ -228,5 +228,5 @@ class TestExceptions(LsTestCase):
         w = 4
         '''
         msg = "Error on line 7: Invalid expression 'w = 4'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)

@@ -99,8 +99,8 @@ class TestParseMechanismNameErrors(LsTestCase):
         A a | A
         @run foo
         '''
-        msg = "Parameter 'mechanism' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Error on line 5: Parameter 'mechanism' is not specified."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_empty_name(self):
@@ -108,8 +108,8 @@ class TestParseMechanismNameErrors(LsTestCase):
         mechanism:
         stimulus_elements: a, b
         '''
-        msg = "Parameter 'mechanism' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Error on line 2: Parameter 'mechanism' is not specified."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_invalid_name(self):
@@ -117,27 +117,27 @@ class TestParseMechanismNameErrors(LsTestCase):
         mechanism: foo
         '''
         msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         mechanism: 1+1
         '''
-        msg = "Invalid mechanism name '1\+1'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Error on line 2: Invalid mechanism name '1+1'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         mechanism: ga, sr, ES, QL, AC
         '''
-        msg = "Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Error on line 2: Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
+        with self.assertRaisesMsg(msg):
             parse(text)
 
     def test_comma(self):
         text = '''
         mechanism: ga,
         '''
-        msg = "Value for mechanism may not end by comma."
-        with self.assertRaisesX(Exception, msg):
+        msg = "Error on line 2: Value for mechanism may not end by comma."
+        with self.assertRaisesMsg(msg):
             parse(text)
