@@ -502,30 +502,30 @@ class TestFoundBugs(LsTestCase):
         beta                   : 1
         behavior_cost          : cr:1, default: 0
         u                      : us:10, default:0
-        bind_trials            : off
+        # bind_trials            : off
 
-        @phase acquisition  stop: new_trial= 100
-        new_trial             | CS2
+        @phase acquisition  stop: nju_trial= 100
+        nju_trial             | CS2
         CS2        cs2        | CS1
         CS1        cs1        | US
-        US         us           | new_trial
+        US         us           | @omit_learn, nju_trial
 
-        @phase revaluation stop: new_trial=50
-        new_trial             | CS1
+        @phase revaluation stop: nju_trial=50
+        nju_trial             | CS1
         CS1        cs1        | NO_US
-        NO_US      no_us      | new_trial
+        NO_US      no_us      | @omit_learn, nju_trial
 
-        @phase extinction stop: new_trial=40
-        new_trial             | CS2
+        @phase extinction stop: nju_trial=40
+        nju_trial             | CS2
         CS2        cs2        | NO_US
-        NO_US      no_us      | new_trial
+        NO_US      no_us      | @omit_learn, nju_trial
 
-        @phase reacquisition(acquisition) stop: new_trial=40
+        @phase reacquisition(acquisition) stop: nju_trial=40
 
         @run acquisition,revaluation,extinction,reacquisition   runlabel:'exp'
         @run acquisition,extinction,reacquisition   runlabel:'control'
 
-        xscale: new_trial
+        xscale: nju_trial
         subject: average
         phases:extinction,reacquisition
         @figure
@@ -560,17 +560,17 @@ class TestFoundBugs(LsTestCase):
         beta                   : 1
         behavior_cost          : cr:1, default: 0
         u                      : us:10, default:0
-        bind_trials            : off
+        # bind_trials            : off
 
-        @phase acquisition  stop: new_trial=5
-        new_trial             | CS2
+        @phase acquisition  stop: nju_trial=5
+        nju_trial             | CS2
         CS2        cs2        | CS1
         CS1        cs1        | US
-        US         us         | new_trial
+        US         us         | @omit_learn, nju_trial
 
         @run acquisition
 
-        xscale: new_trial
+        xscale: nju_trial
         phases:acquisition
         @vplot cs2->cr
         '''
@@ -604,17 +604,17 @@ class TestErrors(LsTestCase):
         response_requirements : b1:m1, b2:m2
         u                     : reward:5, default:0
 
-        @phase acquisition stop: new_trial=50
-        new_trial   s_start  | STEP1
-        STEP1       s1,m1,m2 | b1: STEP2   |  new_trial
-        STEP2       s2,m1,m2 | b2: REWARD  |  new_trial
-        REWARD      reward   | new_trial
+        @phase acquisition stop: nju_trial=50
+        nju_trial   s_start  | STEP1
+        STEP1       s1,m1,m2 | b1: STEP2   |  nju_trial
+        STEP2       s2,m1,m2 | b2: REWARD  |  nju_trial
+        REWARD      reward   | nju_trial
 
-        @phase extinction stop: new_trial=500
-        new_trial   s_start  | STEP1
+        @phase extinction stop: nju_trial=500
+        nju_trial   s_start  | STEP1
         STEP1       s1       | b1: STEP2   | NEXT
         STEP2       s2       | NEXT
-        NEXT                 | new_trial
+        NEXT                 | nju_trial
 
         bind_trials: on
         @run acquisition, extinction

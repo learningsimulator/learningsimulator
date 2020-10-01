@@ -143,12 +143,12 @@ class Phase():
         self.initialize_local_variables()
         self.first_stimulus_presented = False
 
-    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None):
+    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None, omit_learn=None):
         # if not self.is_parsed:
         #     raise Exception("Internal error: Cannot call Phase.next_stimulus" +
         #                     " before Phase.parse().")
 
-        if not preceeding_help_lines:
+        if preceeding_help_lines is None:
             preceeding_help_lines = list()
 
         if not ignore_response_increment:
@@ -161,15 +161,16 @@ class Phase():
         if self.first_stimulus_presented:
             variables_both = Variables.join(self.global_variables, self.local_variables)
             if self.stop_condition.is_met(variables_both, self.event_counter):
-                return None, None, preceeding_help_lines
+                return None, None, preceeding_help_lines, None
 
         if self.is_first_line:
-            assert(response is None)
+            # assert(response is None)
             rowlbl = self.first_label
             self.is_first_line = False
+            omit_learn = True  # Since response is None, there is no learning (updating of v-values) to do
         else:
-            rowlbl = self.curr_lineobj.next_line(response, self.global_variables, self.local_variables,
-                                                 self.event_counter)
+            rowlbl, omit_learn = self.curr_lineobj.next_line(response, self.global_variables, self.local_variables,
+                                                             self.event_counter)
             self.prev_linelabel = self.curr_lineobj.label
             self._make_current_line(rowlbl)
 
@@ -193,15 +194,17 @@ class Phase():
             action = self.phase_lines[rowlbl].action
             self._perform_action(action)
             preceeding_help_lines.append(rowlbl)
-            stimulus, rowlbl, preceeding_help_lines = self.next_stimulus(response, ignore_response_increment=True,
-                                                                         preceeding_help_lines=preceeding_help_lines)
+            stimulus, rowlbl, preceeding_help_lines, omit_learn_help = self.next_stimulus(response, ignore_response_increment=True,
+                                                                                          preceeding_help_lines=preceeding_help_lines,
+                                                                                          omit_learn=omit_learn)
+            omit_learn = (omit_learn or omit_learn_help)
         else:
             for stimulus_element in stimulus:
                 self.event_counter.increment_count(stimulus_element)
                 self.event_counter.increment_count_line(stimulus_element)
             self.first_stimulus_presented = True
 
-        return stimulus, rowlbl, preceeding_help_lines
+        return stimulus, rowlbl, preceeding_help_lines, omit_learn
 
     def _make_current_line(self, label):
         # self.curr_linelabel = label
@@ -209,17 +212,24 @@ class Phase():
         # self.endphase_obj.update_itemfreq(label)
 
     def perform_actions(self, actions):
+        any_omit_learn = False
         for action in actions:
-            self._perform_action(action)
+            omit_learn = self._perform_action(action)
+            any_omit_learn = (any_omit_learn or omit_learn)
+        return any_omit_learn
 
     def _perform_action(self, action):
         """
         Sets a variable (x:3) or count_reset(event).
         """
-        if len(action) == 0:  # No action to perform
-            return
+        omit_learn = False
 
-        if action.count(':') == 1 or action.count('=') == 1:
+        # No action to perform
+        if len(action) == 0:
+            pass
+
+        # Setting a variable
+        elif action.count(':') == 1 or action.count('=') == 1:
             if action.count('=') == 1:
                 sep = '='
             else:
@@ -233,11 +243,19 @@ class Phase():
             if err:
                 raise Exception(err)
 
+        # count_reset
         elif action.startswith("count_reset(") and action.endswith(")"):
             event = action[12:-1]
             self.event_counter.reset_count(event)
+
+        # omit_learn
+        elif action == "@omit_learn":
+            omit_learn = True
+
         else:
             raise Exception("Internal error.")
+
+        return omit_learn
 
     def is_phase_label(self, label):
         return label in self.linelabels
@@ -330,6 +348,8 @@ def check_action(action, parameters, global_variables, lineno, all_linelabels):
         event = action[12:-1]
         if event not in stimulus_elements and event not in behaviors and event not in all_linelabels:
             raise ParseException(lineno, f"Unknown event '{event}' in count_reset.")
+    elif action == "@omit_learn":
+        pass
     else:
         raise ParseException(lineno, f"Unknown action '{action}'.")
 
@@ -375,8 +395,8 @@ class PhaseLine():
                                               all_linelabels, global_variables)
 
     def next_line(self, response, global_variables, local_variables, event_counter):
-        label = self.conditions.next_line(response, global_variables, local_variables, event_counter)
-        return label
+        label, omit_learn = self.conditions.next_line(response, global_variables, local_variables, event_counter)
+        return label, omit_learn
 
 
 class PhaseLineConditions():
@@ -398,12 +418,12 @@ class PhaseLineConditions():
 
     def next_line(self, response, global_variables, local_variables, event_counter):
         for i, condition in enumerate(self.conditions):
-            self.phase_obj.perform_actions(condition.unconditional_actions)
+            omit_learn1 = self.phase_obj.perform_actions(condition.unconditional_actions)
             condition_met, label = condition.is_met(response, global_variables, local_variables,
                                                     event_counter)
             if condition_met:
-                self.phase_obj.perform_actions(condition.conditional_actions)
-                return label
+                omit_learn2 = self.phase_obj.perform_actions(condition.conditional_actions)
+                return label, (omit_learn1 or omit_learn2)
         raise Exception(f"No condition in '{self.logic_str}' was met for response '{response}'.")
 
 
@@ -640,25 +660,23 @@ class World():
     """
 
     def __init__(self, phases_dict, phase_labels):
-        # self.phase_labels = phase_labels
         self.phases = [phases_dict[phase_label].copy() for phase_label in phase_labels]
-        # for phase_label in phase_labels:
-        #     self.phases[phase_label] = phases_obj.get(phase_label)
         self.nphases = len(phase_labels)
         self.curr_phaseind = 0  # Index into phase_labels
 
     def next_stimulus(self, response):
         """Returns a stimulus-tuple and current phase label."""
         curr_phase = self.phases[self.curr_phaseind]
-        stimulus, row_lbl, preceeding_help_lines = curr_phase.next_stimulus(response)
+        stimulus, row_lbl, preceeding_help_lines, omit_learn = curr_phase.next_stimulus(response)
         if stimulus is None:  # Phase done
             if self.curr_phaseind + 1 >= self.nphases:  # No more phases
-                return None, curr_phase.label, row_lbl, preceeding_help_lines
+                return None, curr_phase.label, row_lbl, preceeding_help_lines, None
             else:  # Go to next phase
                 self.curr_phaseind += 1
-                return self.next_stimulus(None)
+                # return self.next_stimulus(None)
+                return self.next_stimulus(response)
         else:
-            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines
+            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines, omit_learn
 
     # def get_phase_labels(self):
     #     phase_labels = [phase.label for phase in self.phases]

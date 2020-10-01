@@ -44,12 +44,12 @@ class TestInitialValues(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b1, b2
         u: s2:1, default:0
-        bind_trials: off
+        # bind_trials: off
         start_v: s1->b1:0.5, default:0
 
         @phase foo stop:s1=10
-        new_trial s1 | b1:S2 | new_trial
-        S2        s2 | new_trial
+        nju_trial s1 | b1:S2 | @omit_learn, nju_trial
+        S2        s2 | @omit_learn, nju_trial
 
         @run foo
 
@@ -72,25 +72,75 @@ class TestInitialValues(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b1, b2
         u: s2:1, default:0
-        bind_trials: off
+        # bind_trials: off
         start_v: default:0
 
         @phase foo stop:s1=10
-        new_trial s1 | b1:S2 | new_trial
-        S2        s2 | new_trial
+        nju_trial s1 | b1:S2 | @omit_learn, nju_trial
+        S2        s2 | @omit_learn, nju_trial
 
         @run foo
 
         @figure
-        @subplot 111 - {'ylim':[-0.1, 1.1]}
+        xscale:s1
         @vplot s1->b1
         @pplot s1->b1
         '''
         script_obj, script_output = run(text)
-        self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 4)
+        self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 3)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['v(s1->b1)']['y'][0], 0)
         self.assertEqual(plot_data['p(s1->b1)']['y'][0], 0.5)
+
+        print("Med omit")
+        # print(plot_data['p(s1->b1)']['x'])
+        print(len(plot_data['p(s1->b1)']['x']))
+        history = script_output.run_outputs["run1"].output_subjects[0].history
+        print(history)
+        # self.assertEqual(len(plot_data['p(s1->b1)']['x']), 9)
+        # self.assertEqual(len(plot_data['p(s1->b1)']['y']), 9)
+
+        # self.assertLess(plot_data['v(s1->b1)']['y'][99], 1.001)
+        # self.assertGreater(plot_data['v(s1->b1)']['y'][99], 0.999)
+        # self.assertLess(plot_data['p(s1->b1)']['y'][99], 0.8)
+        # self.assertGreater(plot_data['p(s1->b1)']['y'][99], 0.6)
+
+        # Same as above but without @omit_learn
+        self.tearDown()
+        text = '''
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b1, b2
+        u: s2:1, default:0
+        bind_trials: off
+        start_v: default:0
+
+        @phase foo stop:s1=10
+        nju_trial s1 | b1:S2 | nju_trial
+        S2        s2 | nju_trial
+
+        @run foo
+
+        @figure
+        xscale = s1
+        @vplot s1->b1
+        @pplot s1->b1
+        '''
+        script_obj, script_output = run(text)
+        self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 3)
+        plot_data = get_plot_data()
+        self.assertEqual(plot_data['v(s1->b1)']['y'][0], 0)
+        self.assertEqual(plot_data['p(s1->b1)']['y'][0], 0.5)
+
+        print("Utan omit")
+        print(len(plot_data['p(s1->b1)']['x']))
+        # self.assertEqual(len(plot_data['p(s1->b1)']['x']), 10)
+        # self.assertEqual(len(plot_data['p(s1->b1)']['y']), 10)
+
+        # self.assertLess(plot_data['v(s1->b1)']['y'][99], 0.74)
+        # self.assertGreater(plot_data['v(s1->b1)']['y'][99], 0.72)
+        # self.assertLess(plot_data['p(s1->b1)']['y'][99], 0.74)
+        # self.assertGreater(plot_data['p(s1->b1)']['y'][99], 0.72)
 
     def test_initial_w(self):
         text = '''

@@ -241,7 +241,7 @@ runlabel: A_01
         self.assertGreater(plot_data['A=0.5']['y'][ind], 0.5)
 
         self.assertLess(plot_data['A=1.0']['y'][ind], 1.2)
-        self.assertGreater(plot_data['A=1.0']['y'][ind], 1.1)
+        self.assertGreater(plot_data['A=1.0']['y'][ind], 1.05)
 
         # Check that the order is consistent throughout step 50 onwards
         for i in range(50, ind):

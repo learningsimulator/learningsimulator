@@ -67,6 +67,14 @@ class Run():
         self.bind_trials = bind_trials
 
     def run(self, progress=None):
+
+        # Remove when omit_learn using new_trial is no longer suppoerted
+        def _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines, is_bind_off):
+            is_new_trial = (phase_line_label.lower() == "new_trial")
+            lower_phh = [x.lower() for x in preceeding_help_lines]
+            omit_learn_using_new_trial = (is_bind_off and (is_new_trial or ("new_trial" in lower_phh)))
+            return omit_learn_using_new_trial
+
         out = RunOutput(self.n_subjects, self.mechanism_obj)
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
@@ -102,7 +110,7 @@ class Run():
             while not subject_done:
                 if progress and progress.stop_clicked:
                     raise InterruptedSimulation()
-                stimulus, phase_label, phase_line_label, preceeding_help_lines = self.world.next_stimulus(response)
+                stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = self.world.next_stimulus(response)
                 if progress:
                     if phase_label != prev_phase_label:  # Update phases progress
                         progress.increment2(self.run_label)
@@ -111,9 +119,12 @@ class Run():
 
                 subject_done = (stimulus is None)
                 if not subject_done:
-                    is_new_trial = (phase_line_label.lower() == "new_trial")
-                    lower_phh = [x.lower() for x in preceeding_help_lines]
-                    omit_learn = is_bind_off and (is_new_trial or ("new_trial" in lower_phh))
+
+                    # Remove when omit_learn using new_trial is no longer suppoerted
+                    omit_learn_using_new_trial = _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines,
+                                                                             is_bind_off)
+                    omit_learn = (omit_learn or omit_learn_using_new_trial)
+
                     prev_stimulus = self.mechanism_obj.prev_stimulus
                     prev_response = self.mechanism_obj.response
                     response = self.mechanism_obj.learn_and_respond(stimulus, omit_learn)
