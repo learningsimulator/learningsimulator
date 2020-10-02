@@ -876,20 +876,79 @@ class TestHelpLine(LsTestCase):
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 42, 'x2': 2.5})
 
-        # A e1       | p1:1, p2:2, B,A(1.1)  # fel
-        # A e1       | p1:1, p2:2, B(1.1),A(1.1)  # samma fel
+    def test_multiple_actions_error1(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | b1: x1:1, x2:2, B  # Should give error
-        # A e1       | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B  # Should give error
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | x1=1, x2=2, B,A(1.1)
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Invalid condition 'B,A(1.1)'."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
 
-        # A e1       | b1=5: x1:1, x2:2, B | C  # Should give error
+    def test_multiple_actions_error2(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | x1=1, x2=rand(1,3),  b1=5: x2:2, B | C  # to test split with comma
-        # A e1       | x1=1, x2=rand(1,3) | b1=5: x2:2, B | C  # should be same as above
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | p1:1, p2:2, B(1.1),A(1.1)
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Invalid condition 'B(1.1),A(1.1)'. Expected a probability, got '1.1'."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
 
-        # A e1       | x1:1, x2=rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
+    def test_multiple_actions_error3(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | B | C  # Fel
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Error in expression 'blaj1 blaj2 == blaj3 blaj4': invalid syntax."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
+
+    def test_multiple_actions_error4(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
+
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | B | C
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: The unconditional goto row label 'B' cannot be continued."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
+
+    # b1==5 should raise error
+    # def test_multiple_actions_error5(self):
+    #     text = '''
+    #     behaviors         : b1, b2
+    #     stimulus_elements : e1, e2, e3
+
+    #     @PHASE phase_label stop:e1=100
+    #     S                 | x1 = 0, x2 = 0, A
+    #     A e1              | b1=5: x1:1, x2:2, B | C  # Should give error
+    #     B e2              | A
+    #     C e3              | A
+    #     '''
+    #     phase = parse(text, 'phase_label')
 
 
 class TestMultipleActions(LsTestCase):

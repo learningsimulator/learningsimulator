@@ -151,7 +151,6 @@ alpha_w              : 0.1
 beta                 : 1
 behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
-bind_trials          : off
 
 @phase acquisition stop: plant=30
 new_trial             | PLANT

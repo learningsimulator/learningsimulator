@@ -110,7 +110,8 @@ class Run():
             while not subject_done:
                 if progress and progress.stop_clicked:
                     raise InterruptedSimulation()
-                stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = self.world.next_stimulus(response)
+                next_stimulus_out = self.world.next_stimulus(response)
+                stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
                 if progress:
                     if phase_label != prev_phase_label:  # Update phases progress
                         progress.increment2(self.run_label)

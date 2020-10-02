@@ -58,6 +58,13 @@ class Phases():
                 return True
         return False
 
+    def check_deprecated_syntax(self):
+        for _, phase in self.phases.items():
+            msg = phase.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
+
 
 class Phase():
     '''A number of rows of text, and a stop condition (string).'''
@@ -194,9 +201,11 @@ class Phase():
             action = self.phase_lines[rowlbl].action
             self._perform_action(action)
             preceeding_help_lines.append(rowlbl)
-            stimulus, rowlbl, preceeding_help_lines, omit_learn_help = self.next_stimulus(response, ignore_response_increment=True,
-                                                                                          preceeding_help_lines=preceeding_help_lines,
-                                                                                          omit_learn=omit_learn)
+            next_stimulus_out = self.next_stimulus(response, ignore_response_increment=True,
+                                                   preceeding_help_lines=preceeding_help_lines,
+                                                   omit_learn=omit_learn)
+            stimulus, rowlbl, preceeding_help_lines, omit_learn_help = next_stimulus_out
+
             omit_learn = (omit_learn or omit_learn_help)
         else:
             for stimulus_element in stimulus:
@@ -259,6 +268,13 @@ class Phase():
 
     def is_phase_label(self, label):
         return label in self.linelabels
+
+    def check_deprecated_syntax(self):
+        for _, phase_line in self.phase_lines.items():
+            msg = phase_line.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
 
     def copy(self):
         cpy = copy.deepcopy(self)
@@ -398,6 +414,14 @@ class PhaseLine():
         label, omit_learn = self.conditions.next_line(response, global_variables, local_variables, event_counter)
         return label, omit_learn
 
+    def check_deprecated_syntax(self):
+        msg = None
+        if self.label.lower() == "new_trial" and self.parameters.get(kw.BIND_TRIALS) == 'off':
+            msg = f"To omit learning, use '@omit_learn' instead of 'bind_trials=off' together with '{self.label}'."
+        else:
+            msg = self.conditions.check_deprecated_syntax()
+        return msg
+
 
 class PhaseLineConditions():
     def __init__(self, phase_obj, lineno, is_help_line, logic_str, parameters, all_linelabels,
@@ -426,11 +450,19 @@ class PhaseLineConditions():
                 return label, (omit_learn1 or omit_learn2)
         raise Exception(f"No condition in '{self.logic_str}' was met for response '{response}'.")
 
+    def check_deprecated_syntax(self):
+        for condition in self.conditions:
+            msg = condition.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
+
 
 class PhaseLineCondition():
     def __init__(self, lineno, is_help_line, cond_goto, logicpart_index, n_logicparts, parameters,
                  all_linelabels, global_variables):
         self.lineno = lineno
+        self.parameters = parameters
 
         # Unconditional actions
         self.unconditional_actions = list()
@@ -637,6 +669,21 @@ class PhaseLineCondition():
                     self.goto.append([prob, lbl])
                 else:
                     raise ParseException(lineno, err + f"Invalid line label '{goto_str}'.")
+
+    def check_deprecated_syntax(self):
+        if self.condition is not None:
+            relations = ("=", "==", ">", "<", "<=", ">=")
+            for behavior in self.parameters.get(kw.BEHAVIORS):
+                for rel in relations:
+                    lookfor1 = f'^[ ]*{behavior}[ ]*{rel}'
+                    lookfor2 = f'[ ]*{behavior}[ ]*{rel}'
+                    for lookfor in [lookfor1, lookfor2]:
+                        ind = [m.start() for m in re.finditer(lookfor, self.condition)]
+                        if len(ind) > 0:
+                            ind = ind[0]
+                            comp = self.condition[ind: ind + len(lookfor)]
+                            return f"The condition '{comp}' on line {self.lineno} will not work as expected, as '{behavior}' is evaluated to a boolean."
+        return None
 
 
 class EndPhaseCondition():

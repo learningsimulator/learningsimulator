@@ -51,6 +51,11 @@ if __name__ == "__main__":
                 script = file_obj.read()
                 script_obj = parsing.Script(script)
                 script_obj.parse()
+
+                msg = script_obj.check_deprecated_syntax()
+                if msg is not None:
+                    print(msg)
+
                 simulation_data = script_obj.run()
                 script_obj.postproc(simulation_data)
                 block = (i == nfiles - 1)

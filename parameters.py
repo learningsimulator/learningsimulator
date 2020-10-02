@@ -607,9 +607,9 @@ class Parameters():
             v, interr = ParseUtil.parse_posint(v_str, variables)
             if interr:  # Parsing error
                 return err + " " + interr
-            if not v:  # Parsing worked, but negative integer
+            if v is None:  # Parsing worked, but negative integer
                 return err
-            self.val[kw.SUBJECT] = v
+            self.val[kw.SUBJECT] = v - 1  # Zero-based index internally
         return None
 
     def _parse_xscale(self, xscale, phases):

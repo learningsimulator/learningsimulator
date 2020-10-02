@@ -127,7 +127,7 @@ class ParseUtil():
             return None, parse_err
         if type(v) is not int:
             return None, None
-        if v < 0:
+        if v <= 0:
             return None, None
         return v, None
 

@@ -23,7 +23,6 @@ alpha_w              : 0.1
 beta                 : 1
 behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
-bind_trials          : on
 
 @phase acquisition stop: plant=3000
 ew_trial              | PLANT
@@ -277,12 +276,19 @@ behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
 bind_trials          : off
 
+# @phase acquisition stop: plant=300
+# new_trial              | PLANT
+# PLANT       plant     | approach: BERRY | new_trial
+# BERRY       berry     | eat: REWARD     | NO_REWARD
+# REWARD      sugar     | new_trial
+# NO_REWARD   no_reward | new_trial
+
 @phase acquisition stop: plant=300
 new_trial              | PLANT
-PLANT       plant     | approach: BERRY | new_trial
+PLANT       plant     | approach: BERRY | @omit_learn, new_trial
 BERRY       berry     | eat: REWARD     | NO_REWARD
-REWARD      sugar     | new_trial
-NO_REWARD   no_reward | new_trial
+REWARD      sugar     | @omit_learn, new_trial
+NO_REWARD   no_reward | @omit_learn, new_trial
 
 @figure
 

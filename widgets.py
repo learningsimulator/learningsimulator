@@ -4,6 +4,7 @@ import tkinter.font as tkFont
 from tkinter import Canvas  # , Frame
 from tkinter.scrolledtext import ScrolledText
 from tkinter.constants import YES  # , BOTH
+from tkinter import messagebox
 # import threading
 
 # import time
@@ -106,7 +107,7 @@ class LineNumberedTextBox():
         self.line_numbers.pack(side="left", fill="y")
         self.text_box.pack(side="right", fill="both", expand=YES)
 
-        self.text_box.bind("<Control-+>", self.increase_fontsize)
+        self.text_box.bind("<Control-plus>", self.increase_fontsize)
         self.text_box.bind("<Control-minus>", self.decrease_fontsize)
 
     def redraw_line_numbers(self):
@@ -275,6 +276,11 @@ class ProgressDlg(tk.Toplevel):
 
     def report2(self, message):
         self.label2.config(text=message)
+
+
+class WarningDlg():
+    def __init__(self, msg):
+        messagebox.showwarning(title="Warning", message=msg)
 
 
 class LicenseDlg(tk.Toplevel):

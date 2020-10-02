@@ -1,6 +1,6 @@
 import util
 from mechanism import probability_of_response
-from exceptions import EvalException
+from exceptions import EvalException, ParseException
 import keywords as kw
 
 
@@ -156,6 +156,8 @@ class RunOutput():
                 eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters))
             return eval_subjects
         else:
+            if subject_ind >= len(self.output_subjects):
+                raise EvalException(f"The value ({subject_ind + 1}) for the parameter '{kw.EVAL_SUBJECT}' exceeds the number of subjects ({len(self.output_subjects)}).")
             return self.output_subjects[subject_ind].vwpn_eval(vwpn, expr, parameters)
 
     def printout(self):
@@ -358,33 +360,30 @@ class RunOutputSubject():
             return evalout
         else:
             if xscale in phase_line_labels:  # xscale is a phase line label
-                # Because the first update is done after S->B->S'
-                phase_line_labels = phase_line_labels[2:]
-                phase_line_labels_steps = [x - 1 for x in phase_line_labels_steps[2:]]
-
-                findind, cumsum = util.find_and_cumsum(phase_line_labels, xscale, True)
+                findind, _ = util.find_and_cumsum(phase_line_labels, xscale, True)
                 out = [evalout[0]]  # evalout[0] must be kept
                 for pll_ind, zero_or_one in enumerate(findind):
-                    if zero_or_one == 1:
-                        evalout_ind = phase_line_labels_steps[pll_ind]  # Zero-based index
+                    # pll_ind >= 1 because the first update is done after S->B->S'
+                    if zero_or_one == 1 and pll_ind >= 1:  # 1 because pll_ind is index to phase_line_labels that contains only phase line labels
+                        evalout_ind = phase_line_labels_steps[pll_ind] - 1  # Zero-based index
                         out.append(evalout[evalout_ind])
                 return out
             else:
                 pattern = xscale
                 pattern_len = RunOutputSubject.compute_patternlen(pattern)
                 use_exact_match = (parameters.get(kw.XSCALE_MATCH) == 'exact')
-                # history[2:] because the first update is done after S->B->S'
-                findind, cumsum = util.find_and_cumsum(history[2:], pattern, use_exact_match)
+                findind, _ = util.find_and_cumsum(history, pattern, use_exact_match)
                 out = [evalout[0]]  # evalout[0] must be kept
                 for history_ind, zero_or_one in enumerate(findind):
-                    if zero_or_one == 1 and history_ind >= 2:
+                    # history_ind >= 2 because the first update is done after S->B->S'
+                    if zero_or_one == 1 and history_ind >= 2:  # 2 because history_ind is index to history that contains S,B,S,B,S,B,...
                         evalout_ind = RunOutputSubject.historyind2stepind(history_ind, pattern_len)
                         out.append(evalout[evalout_ind])
                 return out
 
     @staticmethod
     def historyind2stepind(history_ind, pattern_len):
-        step_ind = (history_ind + pattern_len - 1) // 2 + 1
+        step_ind = (history_ind + pattern_len - 1) // 2
         return step_ind
 
     @staticmethod

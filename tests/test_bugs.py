@@ -502,7 +502,6 @@ class TestFoundBugs(LsTestCase):
         beta                   : 1
         behavior_cost          : cr:1, default: 0
         u                      : us:10, default:0
-        # bind_trials            : off
 
         @phase acquisition  stop: nju_trial= 100
         nju_trial             | CS2
@@ -560,7 +559,6 @@ class TestFoundBugs(LsTestCase):
         beta                   : 1
         behavior_cost          : cr:1, default: 0
         u                      : us:10, default:0
-        # bind_trials            : off
 
         @phase acquisition  stop: nju_trial=5
         nju_trial             | CS2

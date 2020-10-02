@@ -345,7 +345,7 @@ class TestInitialValues(LsTestCase):
         plot_data = get_plot_data()
         pplot = plot_data['p(s1->b1)']
         nplot = plot_data['n(b1)']
-        self.assertEqual(pplot['x'], list(range(119)))
+        self.assertEqual(pplot['x'], list(range(120)))
         self.assertEqual(nplot['x'], list(range(120)))
         pploty = pplot['y'][2:]
         nploty = nplot['y'][2:]
