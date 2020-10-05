@@ -199,7 +199,8 @@ class Phase():
 
         if stimulus is None:  # Help line
             action = self.phase_lines[rowlbl].action
-            self._perform_action(action)
+            lineno = self.phase_lines[rowlbl].lineno
+            self._perform_action(lineno, action)
             preceeding_help_lines.append(rowlbl)
             next_stimulus_out = self.next_stimulus(response, ignore_response_increment=True,
                                                    preceeding_help_lines=preceeding_help_lines,
@@ -220,14 +221,14 @@ class Phase():
         self.curr_lineobj = self.phase_lines[label]
         # self.endphase_obj.update_itemfreq(label)
 
-    def perform_actions(self, actions):
+    def perform_actions(self, lineno, actions):
         any_omit_learn = False
         for action in actions:
-            omit_learn = self._perform_action(action)
+            omit_learn = self._perform_action(lineno, action)
             any_omit_learn = (any_omit_learn or omit_learn)
         return any_omit_learn
 
-    def _perform_action(self, action):
+    def _perform_action(self, lineno, action):
         """
         Sets a variable (x:3) or count_reset(event).
         """
@@ -247,10 +248,10 @@ class Phase():
             variables_join = Variables.join(self.global_variables, self.local_variables)
             value, err = ParseUtil.evaluate(value_str, variables_join)
             if err:
-                raise Exception(err)
+                raise ParseException(lineno, err)
             err = self.local_variables.set(var_name, value, self.parameters)
             if err:
-                raise Exception(err)
+                raise ParseException(lineno, err)
 
         # count_reset
         elif action.startswith("count_reset(") and action.endswith(")"):
@@ -262,7 +263,7 @@ class Phase():
             omit_learn = True
 
         else:
-            raise Exception("Internal error.")
+            raise ParseException(lineno, "Internal error.")  # Should have been caught during Pase.parse()
 
         return omit_learn
 
@@ -426,6 +427,7 @@ class PhaseLine():
 class PhaseLineConditions():
     def __init__(self, phase_obj, lineno, is_help_line, logic_str, parameters, all_linelabels,
                  global_variables):
+        self.lineno = lineno
         self.phase_obj = phase_obj
 
         # list of PhaseLineCondition objects
@@ -442,13 +444,13 @@ class PhaseLineConditions():
 
     def next_line(self, response, global_variables, local_variables, event_counter):
         for i, condition in enumerate(self.conditions):
-            omit_learn1 = self.phase_obj.perform_actions(condition.unconditional_actions)
+            omit_learn1 = self.phase_obj.perform_actions(self.lineno, condition.unconditional_actions)
             condition_met, label = condition.is_met(response, global_variables, local_variables,
                                                     event_counter)
             if condition_met:
-                omit_learn2 = self.phase_obj.perform_actions(condition.conditional_actions)
+                omit_learn2 = self.phase_obj.perform_actions(self.lineno, condition.conditional_actions)
                 return label, (omit_learn1 or omit_learn2)
-        raise Exception(f"No condition in '{self.logic_str}' was met for response '{response}'.")
+        raise ParseException(self.lineno, f"No condition in '{self.logic_str}' was met for response '{response}'.")
 
     def check_deprecated_syntax(self):
         for condition in self.conditions:
