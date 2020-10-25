@@ -7,13 +7,11 @@ Learning Simulator runs with Python 3 and uses the packages ``tkinter`` and ``ma
 Python Dependencies
 ===================
 
-Learning Simulator has the following dependencies (note that the version numbers
-below indicate the versions with which Learning SImulator is tested):
+*Learning Simulator* has the following dependencies (note that the version numbers
+below indicate the versions with which *Learning Simulator* is tested):
 
 - Python >= 3.6
-
 - ``tkinter`` >= 8.6
-
 - ``matplotlib``: >= 2.1.1
 
 You can use ``pip`` or ``conda`` to install ``tkinter`` and ``matplotlib``.

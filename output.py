@@ -453,11 +453,9 @@ class RunOutputSubject():
                 _, out = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
             else:
                 out, _ = util.find_and_cumsum_interval(history, seq, is_exact, xscale, xscale_exact)
-        # if prepend_zero:
-        #     out = [0] + out
-        # else:  # XXX
-        #     out = out[1:]
-        return [0] + out
+        if is_cumulative:
+            out = [0] + out
+        return out
 
     def printout(self):
         print("\n")

@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The command @run &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">The command &#64;run</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-command-run">
+<h1>The command &#64;run<a class="headerlink" href="#the-command-run" title="Permalink to this headline">¶</a></h1>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> starts a simulation. It takes as input the name(s) of the phase(s) that should
+be used, in that order:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@run phase_name
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@run phase_name1, phase_name2, ...
+</pre></div>
+</div>
+<p>With <a class="reference internal" href="#multiple-runs"><span class="std std-ref">multiple runs</span></a>, one may label the different <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> commands to be able to
+refer to them in postprocessing:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@run phase_name runlabel:run1
+...
+@run phase_name runlabel:run2
+</pre></div>
+</div>
+<div class="section" id="multiple-runs">
+<span id="id1"></span><h2>Multiple runs<a class="headerlink" href="#multiple-runs" title="Permalink to this headline">¶</a></h2>
+<p>The simulation depends on the value of a number of parameters, such as
+<code class="docutils literal notranslate"><span class="pre">n_subjects</span></code>, <code class="docutils literal notranslate"><span class="pre">mechanism</span></code>, etc. It will use the values that are set at the point of the <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> command.</p>
+<p>In other words, it is possible to re-set the value of a parameter and perform a <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> again. In a script
+with several <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> commands, use the label <code class="docutils literal notranslate"><span class="pre">runlabel</span></code> to label a <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects = 10
+@run phase_name runlabel:ten_agents
+
+n_subjects = 100
+@run phase_name runlabel:hundred_agents
+</pre></div>
+</div>
+<p>These labels (<code class="docutils literal notranslate"><span class="pre">ten_agents</span></code> and <code class="docutils literal notranslate"><span class="pre">hundred_agents</span></code>) can then be used in the postprocessing stage in order to, for example,
+plot the data from the simulation with ten agents, or from the simulation with 100 agents:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>runlabel = ten_agents
+@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 10 agents
+
+runlabel = hundred_agents
+@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 100 agents
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The command &#64;run</a><ul>
+<li><a class="reference internal" href="#multiple-runs">Multiple runs</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/run.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">The command &#64;run</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

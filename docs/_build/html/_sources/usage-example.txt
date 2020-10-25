@@ -1,40 +1,36 @@
-#####################
+*********************
 A Small Usage Example
-#####################
+*********************
 
 Below follows a script for simulating simple instrumental training, where the subject learns to respond to a single stimulus.
 
 ::
 
-  n_subjects        : 10
-  mechanism         : sr
-  behaviors         : response, no_response
-  stimulus_elements : background, stimulus, reward
-  start_v           : default:-1
-  alpha_v           : 0.1
-  u                 : reward:10, default:0
+  n_subjects        = 10
+  mechanism         = sr
+  behaviors         = response, no_response
+  stimulus_elements = background, stimulus, reward
+  start_v           = default:-1
+  alpha_v           = 0.1
+  u                 = reward:10, default:0
 
-  @PHASE training stop: stimulus=50
-  @new_trial  stimulus   | response: REWARD | NO_REWARD
-  REWARD      reward     | @new_trial
-  NO_REWARD   background | @new_trial
+  @PHASE training stop: stimulus==50
+  NEW_TRIAL  stimulus   | response: REWARD | NO_REWARD
+  REWARD     reward     | NEW_TRIAL
+  NO_REWARD  background | NEW_TRIAL
 
   @run training
 
-  title: v(stimulus->response)
   xscale: stimulus
-  subject: average
-  @figure
+  @figure v(stimulus->response)
   @vplot stimulus->response
 
 Running this script should result in a figure similar to the one below, where we see that the value of
 responding to the stimulus starts at -1 (as specified in the parameter ``start_v``) and tends to 10 (the u-value for the reward, as specified in the parameter ``u``).
-
-For more examples, see the :doc:`examples` section.
 
 .. image:: usage-example-fig.png
   :scale: 90
 ..   :height: 500
    :width: 1000
    
-   :alt: alternate text
+   :alt: @vplot stimulus->response

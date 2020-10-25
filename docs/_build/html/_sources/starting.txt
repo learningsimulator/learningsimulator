@@ -1,15 +1,14 @@
-#############################
+*****************************
 How to Run Learning Simulator
-#############################
+*****************************
 
-Learning Simulator can run a script either from the command line or using the 
+Learning Simulator can run a simulation script either from the command line or using the 
 graphical user interface (GUI). Pass ``lesim.py`` to the ``python`` command with 
 the relevant arguments. To see the available arguments, use::
 
   > python lesim.py help
 
 
-**************************************
 Running a script from the command line
 **************************************
 
@@ -18,7 +17,6 @@ To run a script from the command line, use the argument ``run`` to ``lesim``::
   > python lesim.py run file1 [file2, file3, ...]
 
 
-******************************
 Running a script using the GUI
 ******************************
 

@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>The Scripting Language &#8212; Learning Simulator 1.0 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scripting Language Reference Manual &#8212; Learning Simulator 1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -13,12 +14,10 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
-    <link rel="prev" title="Background" href="background.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,13 +25,8 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="examples.html" title="Examples"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="background.html" title="Background"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scripting Language Reference Manual</a></li> 
       </ul>
     </div>  
 
@@ -41,315 +35,254 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="the-scripting-language">
-<h1>The Scripting Language<a class="headerlink" href="#the-scripting-language" title="Permalink to this headline">¶</a></h1>
-<p>This section describes the scripting language used to specify the system to simulate.</p>
-<p>Using the scripting language, you can do the following:</p>
+  <div class="section" id="scripting-language-reference-manual">
+<h1>Scripting Language Reference Manual<a class="headerlink" href="#scripting-language-reference-manual" title="Permalink to this headline">¶</a></h1>
+<p>This section describes the structure of a simulation script and the
+scripting language that is used to specify the system to simulate.</p>
+<div class="section" id="structure-of-a-script">
+<span id="id1"></span><h2>Structure of a script<a class="headerlink" href="#structure-of-a-script" title="Permalink to this headline">¶</a></h2>
+<p>The main components of a script are the following:</p>
 <ul class="simple">
-<li><p>Set the value of parameters and variables</p></li>
-<li><p>Specify the sequence of stimuli to present to the subject</p></li>
-<li><p>Run the simulation to produce simulation data</p></li>
-<li><p>Plot or export the simulation data</p></li>
+<li><p>Assigning values to <a class="reference internal" href="parameters.html"><span class="doc">parameters</span></a> and <a class="reference internal" href="variables.html"><span class="doc">global variables</span></a>.</p></li>
+<li><p>One or more <a class="reference internal" href="phase.html"><span class="doc">phase blocks</span></a> which specifies the environment with which the agent interacts, in particular the sequence of stimuli to present to the agent, and how it depends on the agent’s behavior.</p></li>
+<li><p>Run the simulation using one or several <a class="reference internal" href="run.html"><span class="doc">The command &#64;run</span></a> commands.</p></li>
+<li><p><a class="reference internal" href="postprocessing.html"><span class="doc">Postprocessing</span></a>: Plotting and/or exporting the simulation data.</p></li>
 </ul>
-<div class="section" id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
-<p>In order to run a simulation, a number of <em>parameters</em> must be specified.
-For example, to set the parameter <code class="docutils literal notranslate"><span class="pre">beta</span></code> to the value <code class="docutils literal notranslate"><span class="pre">0.4</span></code>, use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">beta</span><span class="p">:</span> <span class="mf">0.4</span>
+<p>The below example script highlights the typical structure.</p>
+<img alt="_images/script-structure.png" src="_images/script-structure.png" />
+</div>
+<div class="section" id="basic-script-language-syntax">
+<h2>Basic script language syntax<a class="headerlink" href="#basic-script-language-syntax" title="Permalink to this headline">¶</a></h2>
+<p>The specification of a simulation consists of the components described in <a class="reference internal" href="#structure-of-a-script"><span class="std std-ref">Structure of a script</span></a>.
+This section describes the basic syntax in the scripting language used in these components.</p>
+<div class="section" id="stimulus-specification">
+<span id="id2"></span><h3>Stimulus specification<a class="headerlink" href="#stimulus-specification" title="Permalink to this headline">¶</a></h3>
+<p>Stimuli are specified in various parts of the script, mainly on a <a class="reference internal" href="phase.html#phase-line"><span class="std std-ref">phase line</span></a> in a <a class="reference internal" href="phase.html"><span class="doc">phase block</span></a>,
+where it tells the simulator which stimulus to present to the agent.</p>
+<p>A stimulus consists of one or several stimulus elements. (The stimulus elements are specified with the parameter <a class="reference internal" href="stimulus_elements.html"><span class="doc">stimulus_elements</span></a>.)
+A stimulus that consists of more than one element is called a <em>compound stimulus</em>.
+In a stimulus specification, each stimulus element has an <em>intensity</em> (which is any number).
+If no intensity is specified, the intensity 1 is assumed.</p>
+<p>A stimulus is specified as a comma-separated list of stimulus elements, optionally with the intensity in brackets after the stimulus element name,
+for example <code class="docutils literal notranslate"><span class="pre">e1,e2</span></code>, or <code class="docutils literal notranslate"><span class="pre">e1[0.3],e2,e3[0.9]</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The order of the elements in a compound stimulus has no effect on the stimulus representation, so:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>e1[0.3],e2,e3[0.9]
 </pre></div>
 </div>
-<p>Below follows a description of each of the available parameters in <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>·</p>
-<p>All parameters can be found in the tables below, one table for parameters that control the
-simulation, and one for the parameters used in the postprocessing.
-The tables also specify the default value of each parameter, or of it is required.
-In the tables, <span class="math notranslate nohighlight">\(E\)</span> stands for a stimulus element, and <span class="math notranslate nohighlight">\(B\)</span> for a behavior.</p>
-<p><cite>E1-&gt;B1:val1, …, En-&gt;Bn:valn, default:val</cite></p>
-<p><strong>Simulation parameters</strong></p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 23%" />
-<col style="width: 11%" />
-<col style="width: 40%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Default/
-<em>Required</em></p></th>
-<th class="head"><p>Possible values</p></th>
-<th class="head"><p>Example</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_v</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - behavior values</div>
+<p>represents the same stimulus as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>e3[0.9],e2,e1[0.3]
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
 </div>
-</td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_vss</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - element values</div>
+<p>A stimulus is often a single stimulus element, so a phase line
+that exposes the agent to a stimulus may look like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L1 e | L2
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E1-&gt;E2:1,</span> <span class="pre">default:0</span></code></div>
+<p>If the stimulus to present to the agent is a compound stimulus of the elements <code class="docutils literal notranslate"><span class="pre">e1</span></code>, <code class="docutils literal notranslate"><span class="pre">e2</span></code>, and <code class="docutils literal notranslate"><span class="pre">e3</span></code>, it looks like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L1 e1,e2,e3 | L2
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">alpha_w</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element values</div>
+<p>but in general the syntax is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L1 e1[i1],e2[i2],...en[in] | L2
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">0.8</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+<p>where <code class="docutils literal notranslate"><span class="pre">e1</span></code>, <code class="docutils literal notranslate"><span class="pre">e2</span></code>, etc. are stimulus elements, and <code class="docutils literal notranslate"><span class="pre">i1</span></code>, <code class="docutils literal notranslate"><span class="pre">i2</span></code>, etc. are <a class="reference internal" href="#scalar-expressions"><span class="std std-ref">scalar expressions</span></a>.</p>
 </div>
-</td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">behaviors</span></code></p></td>
-<td><p><em>Required</em></p></td>
-<td><p>List of behavior names</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">press,</span> <span class="pre">walk_away</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">behavior_cost</span></code></p></td>
-<td><p>0</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of behavior values</div>
+<div class="section" id="spaces">
+<h3>Spaces<a class="headerlink" href="#spaces" title="Permalink to this headline">¶</a></h3>
+<p>Leading and trailing spaces of a line are ignored. Also, spaces before and after assignment operators
+(<code class="docutils literal notranslate"><span class="pre">=</span></code> and <code class="docutils literal notranslate"><span class="pre">:</span></code>) are ignored:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@variables x  =   0
+n_subjects   =   10
+start_v      =   e1-&gt;b1 : 1,   e1-&gt;b2 : 2,  default: 0
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+<p>Spaces before and after <code class="docutils literal notranslate"><span class="pre">,</span></code> and <code class="docutils literal notranslate"><span class="pre">|</span></code> in a <a class="reference internal" href="phase.html#phase-line"><span class="std std-ref">phase line</span></a> are also ignored:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LABEL1  e1, e2,  e3      | x = 1, y=2,  pull_lever : LABEL2
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">beta</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - behavior values</div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+<div class="section" id="valid-names">
+<span id="id3"></span><h3>Valid names<a class="headerlink" href="#valid-names" title="Permalink to this headline">¶</a></h3>
+<p>Global and local variables, stimulus elements and behaviors can
+have a short name (like <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>) or a more descriptive name (<code class="docutils literal notranslate"><span class="pre">number_of_trials</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lever</span></code>, <code class="docutils literal notranslate"><span class="pre">pull_lever</span></code>, <code class="docutils literal notranslate"><span class="pre">food</span></code>, etc.). The rules for these names are the following:</p>
+<p>A valid name</p>
+<ul class="simple">
+<li><p>must start with a letter or the underscore character</p></li>
+<li><p>cannot start with a number</p></li>
+<li><p>can only contain alpha-numeric characters and underscores (A-z, 0-9, and _ )</p></li>
+<li><p>is case-sensitive (<code class="docutils literal notranslate"><span class="pre">lever</span></code>, <code class="docutils literal notranslate"><span class="pre">LEVER</span></code> and <code class="docutils literal notranslate"><span class="pre">Lever</span></code> are three different names)</p></li>
+<li><p>cannot be a <a class="reference internal" href="parameters.html"><span class="doc">parameter</span></a></p></li>
+<li><p>cannot be a <a class="reference internal" href="#functions"><span class="std std-ref">function</span></a> or a local phase function (<a class="reference internal" href="phase.html#the-function-count"><span class="std std-ref">count</span></a> or <a class="reference internal" href="phase.html#the-function-count-line"><span class="std std-ref">count_line</span></a>)</p></li>
+<li><p>cannot be <code class="docutils literal notranslate"><span class="pre">default</span></code></p></li>
+</ul>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bind_trials</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">off</span></code></p></td>
-<td><p>on or off</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
-<td><p>0</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - element values</div>
+<div class="section" id="scalar-expressions">
+<span id="id4"></span><h3>Scalar expressions<a class="headerlink" href="#scalar-expressions" title="Permalink to this headline">¶</a></h3>
+<p>Numbers are specified in various parts of a simulation script, for example:</p>
+<ul>
+<li><p>The value of a <a class="reference internal" href="parameters.html"><span class="doc">parameter</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>beta = number
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+</li>
+<li><p>The value of a <a class="reference internal" href="variables.html"><span class="doc">global variable</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@variables x = number
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mechanism_name</span></code></p></td>
-<td><p><em>Required</em></p></td>
-<td><p>One of the available ones</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mu</span></code></p></td>
-<td><p>0</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - behavior values</div>
+</li>
+<li><p>The value of a <a class="reference internal" href="phase.html#local-phase-variables"><span class="std std-ref">local phase variable</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase ...
+L1     | p=number, L2
+L2 ...
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</li>
+<li><p>A number in a <a class="reference internal" href="phase.html#the-stop-condition"><span class="std std-ref">phase stop condition</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase phase_name stop: s=number
+L1 s    | L2
+L2 ...
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">n_subjects</span></code></p></td>
-<td><p>1</p></td>
-<td><p>Positive integer</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">response_requirements</span></code></p></td>
-<td></td>
-<td><p>List of b:se or b:se1,se2,…</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">press:lever</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code></p></td>
-<td><p><em>Required</em></p></td>
-<td><p>List of stimulus element names</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cs,</span> <span class="pre">us</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_v</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - behavior values</div>
+</li>
+<li><p>A number in a <a class="reference internal" href="phase.html#phase-line-conditions"><span class="std std-ref">phase line condition</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase ...
+L1 s    | b=number: L2 | L3
+L2 ...
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</li>
+<li><p>A <a class="reference internal" href="#stimulus-specification"><span class="std std-ref">stimulus intensity</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase ...
+L1 s[number] | L2
+L2 ...
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_vss</span></code></p></td>
-<td><p>0</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element - element values</div>
+</li>
+<li><p>In <a class="reference internal" href="phase.html#probabilistic-go-tos"><span class="std std-ref">probabilistic go-tos</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase ...
+L1 s | L2(number1),L3(number2)
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">1.5</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">E-&gt;B:1,</span> <span class="pre">default:0</span></code></div>
+</li>
+<li><p>As input argument to <a class="reference internal" href="#functions"><span class="std std-ref">functions</span></a>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x = rand(number1, number2)
+y = choice(number1, number2, [number1, number2])
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_w</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element values</div>
+</li>
+</ul>
+<p>These numbers must be <em>scalar expressions</em>, that is, an expression of numbers and variables that evaluates to a single (scalar) number.</p>
+<p>For example, number literals are scalar expressions:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1, 2, 42, 1.42, -110.33
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line">1.5</div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+<p>With a number of global variables defined:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@variables x=1, y=5, z=6.78
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subject</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">average</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">average</span></code>, <code class="docutils literal notranslate"><span class="pre">all</span></code> or zero-based index</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">u</span></code></p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">Scalar</div>
-<div class="line">List of stimulus element values</div>
+<p>the following are also scalar expressions:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x+y,  -3*x+5.65*y, 3.2*10**x-1
+</pre></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">0.8</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">S1:1,</span> <span class="pre">S2:2,</span> <span class="pre">default:0</span></code></div>
+<p>The output of <a class="reference internal" href="#functions"><span class="std std-ref">functions</span></a> are also single numbers, so the following are also scalar expressions:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>rand(x,y),  rand(x, y+1),  3*choice(x, y, z, [3, x, y+1])
+</pre></div>
 </div>
-</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Postprocessing parameters</strong></p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 24%" />
-<col style="width: 13%" />
-<col style="width: 41%" />
-<col style="width: 22%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Default/
-<em>Required</em></p></th>
-<th class="head"><p>Possible values</p></th>
-<th class="head"><p>Example</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cumulative</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code> or <code class="docutils literal notranslate"><span class="pre">off</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">on</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filename</span></code></p></td>
-<td><p><em>Required</em>
-in export
-commands</p></td>
-<td><div class="line-block">
-<div class="line">a valid file name with or without path</div>
-<div class="line"><br /></div>
-<div class="line"><br /></div>
 </div>
-</td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">/path/to/file.txt</span></code></div>
-<div class="line"><br /></div>
-<div class="line"><br /></div>
+<div class="section" id="functions">
+<span id="id5"></span><h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<p>The below builtin functions are available in <em>Learning Simulator</em>.
+They can be used in <a class="reference internal" href="#scalar-expressions"><span class="std std-ref">scalar expressions</span></a>, and in conditions (<a class="reference internal" href="phase.html#the-stop-condition"><span class="std std-ref">phase stop conditions</span></a> and <a class="reference internal" href="phase.html#phase-line-conditions"><span class="std std-ref">phase line conditions</span></a>).</p>
+<div class="section" id="choice">
+<span id="choice-function"></span><h4>choice<a class="headerlink" href="#choice" title="Permalink to this headline">¶</a></h4>
+<p>The function <code class="docutils literal notranslate"><span class="pre">choice</span></code> returns any of the specified values, each with a specified probability. For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x = choice(4, 6, 2, [0.3,0.5,0.2])
+</pre></div>
 </div>
-</td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code> or <code class="docutils literal notranslate"><span class="pre">exact</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">runlabel</span></code></p></td>
-<td><p><em>Required</em>
-in <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code></p></td>
-<td><div class="line-block">
-<div class="line">string without space</div>
-<div class="line"><br /></div>
+<p>returns 4 with probability 0.3, 6 with probability 0.5, and 2 with probability 0.2.</p>
 </div>
-</td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subplottitle</span></code></p></td>
-<td><p>empty string</p></td>
-<td><p>string</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
-<td><p>empty string</p></td>
-<td><p>string</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">xscale</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code></p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">all</span></code>, a phase label or a stimulus</div>
-<div class="line">element</div>
+<div class="section" id="rand">
+<span id="rand-function"></span><h4>rand<a class="headerlink" href="#rand" title="Permalink to this headline">¶</a></h4>
+<p>The function <code class="docutils literal notranslate"><span class="pre">rand</span></code> returns a random integer in a specified interval, for example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x = rand(2, 6)
+</pre></div>
 </div>
-</td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xscale_match</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code> or <code class="docutils literal notranslate"><span class="pre">exact</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">subset</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phases</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">all</span></code> or list of phase labels</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">phase1,</span> <span class="pre">phase2</span></code></p></td>
-</tr>
-</tbody>
-</table>
+<p>returns a random integer in the interval [2,6], in other words any of the numbers 2, 3, 4, 5, and 6 with
+equal probability (0.2) each.</p>
+</div>
+</div>
+<div class="section" id="case-sensitivity">
+<h3>Case-sensitivity<a class="headerlink" href="#case-sensitivity" title="Permalink to this headline">¶</a></h3>
+<p>Parameter names are not case-sensitive: <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.5</span></code> is the same as <code class="docutils literal notranslate"><span class="pre">Beta</span> <span class="pre">=</span> <span class="pre">0.5</span></code> or <code class="docutils literal notranslate"><span class="pre">BETA</span> <span class="pre">=</span> <span class="pre">0.5</span></code>.
+Parameter values that are not user-defined, such as <code class="docutils literal notranslate"><span class="pre">on</span></code> and <code class="docutils literal notranslate"><span class="pre">off</span></code>, <code class="docutils literal notranslate"><span class="pre">exact</span></code> and <code class="docutils literal notranslate"><span class="pre">subset</span></code>,
+and the mechanism names (<code class="docutils literal notranslate"><span class="pre">sr</span></code>, <code class="docutils literal notranslate"><span class="pre">ac</span></code>, etc.) are also not case-sensitive.</p>
+<p>User-defined names, such as global variables, local phase variables, names of stimulus elements and behaviors,
+and phase line labels, <em>are</em> case-sensitive: <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">X</span></code> are different variables (or element names or behaviors or phase line labels).</p>
+</div>
+<div class="section" id="comments">
+<h3>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>Comments can be used in the scripting language to make custom comments to the simulation script,
+and to temporarily “comment out” parts of the script. Comments are ignored by the script parser
+and therefore not considered in the simulation.</p>
+<p>The <em>Learning Simulator</em> scripting language has two kinds of comments: <em>end-of-line comments</em> and <em>block comments</em>.</p>
+<p>End-of-line comments starts with <cite>#</cite> and extend to the end of the current line, for example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>alpha_v = 0.4  # This is a learning rate
+# This whole line is also an end-of-line comment
+</pre></div>
+</div>
+<p>Block comments starts with a line that only contains <code class="docutils literal notranslate"><span class="pre">###</span></code> (disregaring leadning and trailing spaces),
+and ends with another line that only contains <code class="docutils literal notranslate"><span class="pre">###</span></code> (disregaring leadning and trailing spaces). For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>###
+This is
+
+a block
+comment
+
+###
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<p>A simulation uses a number of <em>parameters</em>, for example how many subjects that
+should be simulated. Therefore, in order
+to run a simulation, a number of parameter values must be set.</p>
+<p>See <a class="reference internal" href="parameters.html"><span class="doc">Parameters</span></a> for the documentation of the parameters.</p>
+</div>
+<div class="section" id="global-variables">
+<h2>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h2>
+<p>A simulation may use custom variables using the <code class="docutils literal notranslate"><span class="pre">&#64;variables</span></code> keyword.
+We call these <em>global variables</em> to distinguish them from
+<a class="reference internal" href="phase.html#local-phase-variables"><span class="std std-ref">local phase variables</span></a>.</p>
+<p>See <a class="reference internal" href="variables.html"><span class="doc">Global variables</span></a> for the documentation of global variables.</p>
+</div>
+<div class="section" id="phases">
+<h2>Phases<a class="headerlink" href="#phases" title="Permalink to this headline">¶</a></h2>
+<p>The environment that the agent interacts with is specified using one or more <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> blocks.
+A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+in the sequence depends on the response to the previous stimulus.</p>
+<p>See <a class="reference internal" href="phase.html"><span class="doc">A &#64;phase block</span></a> for the documentation of a <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block.</p>
+</div>
+<div class="section" id="the-command-run">
+<h2>The command <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code><a class="headerlink" href="#the-command-run" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> starts a simulation.</p>
+<p>See <a class="reference internal" href="run.html"><span class="doc">The command &#64;run</span></a> for the documentation of the <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> command.</p>
+</div>
+<div class="section" id="postprocessing">
+<h2>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
+<p>The postprocessing stage of a script processes the data from a finished simulation.</p>
+<p>See <a class="reference internal" href="postprocessing.html"><span class="doc">Postprocessing</span></a> for the documentation of posprocessing functions.</p>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -357,18 +290,31 @@ in <code class="docutils literal notranslate"><span class="pre">&#64;run</span><
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">The Scripting Language</a><ul>
+<li><a class="reference internal" href="#">Scripting Language Reference Manual</a><ul>
+<li><a class="reference internal" href="#structure-of-a-script">Structure of a script</a></li>
+<li><a class="reference internal" href="#basic-script-language-syntax">Basic script language syntax</a><ul>
+<li><a class="reference internal" href="#stimulus-specification">Stimulus specification</a></li>
+<li><a class="reference internal" href="#spaces">Spaces</a></li>
+<li><a class="reference internal" href="#valid-names">Valid names</a></li>
+<li><a class="reference internal" href="#scalar-expressions">Scalar expressions</a></li>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#choice">choice</a></li>
+<li><a class="reference internal" href="#rand">rand</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#case-sensitivity">Case-sensitivity</a></li>
+<li><a class="reference internal" href="#comments">Comments</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#parameters">Parameters</a></li>
+<li><a class="reference internal" href="#global-variables">Global variables</a></li>
+<li><a class="reference internal" href="#phases">Phases</a></li>
+<li><a class="reference internal" href="#the-command-run">The command <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code></a></li>
+<li><a class="reference internal" href="#postprocessing">Postprocessing</a></li>
 </ul>
 </li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="background.html"
-                        title="previous chapter">Background</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="examples.html"
-                        title="next chapter">Examples</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -396,18 +342,13 @@ in <code class="docutils literal notranslate"><span class="pre">&#64;run</span><
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="examples.html" title="Examples"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="background.html" title="Background"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scripting Language Reference Manual</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Markus Jonsson.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

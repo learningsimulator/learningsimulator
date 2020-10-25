@@ -1,0 +1,86 @@
+:orphan:
+
+beta
+****
+
+Specifies the degree to which previous experiences (v-values) are considered in the decision function,
+in other words, how much weight is placed on the v-values in the decision function.
+A low value for ``beta`` means high exploration.
+
+The value of the parameter ``beta`` is used in :ref:`the decision function<the-decision-function>`. See also :doc:`mu`.
+
+The parameter ``beta`` can be either a single value, in which case the same weight is placed on all v-values, or
+specified per element-behavior pair.
+
+Syntax
+------
+
+::
+
+  beta = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d
+  beta = v1
+
+where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+
+Description
+-----------
+
+``beta = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d`` sets the individual weight on
+
+- v(e1->b1) to v1,
+- v(e1->b2) to v2, ...,
+- v(en->bn) to v2,
+
+and the weight for all other v-values to d.
+
+- The specification is independent of the list order:
+
+  ``beta = e1->b1:v1, e1->b2:v2, default:d``
+
+  is the same as
+
+  ``beta = e1->b2:v2, default:d, e1->b1:v1``.
+
+- ``default`` need not be specified if all possible combinations ``element->behavior`` are present in the list. For example,
+
+  ::
+
+    stimulus_elements = e1, e2
+    behaviors = b1, b2
+    beta = e1->b1:v11, e1->b2:v12, e2->b1:v21, e2->b2:v22
+
+----
+
+``beta = v1`` sets the weight for all v-values to v1.
+
+- ``beta = v1`` is the same as ``beta = default: v1``.
+
+Dependencies
+------------
+
+- The properties ``stimulus_elements`` and  ``behaviors`` must be specified before ``beta``.
+- Each stimulus element used in the specification of ``beta`` must be present in the parameter ``stimulus_elements``.
+- Each behavior used in the specification of ``beta`` must be present in the parameter ``behaviors``.
+
+Examples
+--------
+
+::
+
+  @variables x = 1
+  beta = element1->behavior1: x, element1->behavior2: x+1, default:x+2
+
+sets the weight for v(element1->behavior1) to 1 and for v(element1->behavior1) to 2, and
+for the remaining possible element-behavior pairs to 3.
+
+::
+
+  beta = element1->behavior1: 0.5, default:0
+
+sets the weight for v(element1->behavior1) to 0.5, and for the remaining possible element-behavior pairs to 3.
+
+::
+
+  beta = 0.1
+
+sets the weight for all v-values to 0.1.

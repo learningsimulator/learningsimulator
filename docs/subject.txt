@@ -1,0 +1,61 @@
+:orphan:
+
+subject
+*******
+
+Specifies the subject to study in the postprocessing commands, such as plotting and exporting.
+
+Syntax
+------
+
+::
+
+  subject = index
+  subject = all
+  subject = average
+
+where index is a scalar expression evaluating to a positive integer (1-based index into the simulated subjects).
+
+Description
+-----------
+
+``subject = index`` uses only the subject with index ``index`` in the subsequent postprocessing commands.
+
+----
+
+``subject = all`` uses all subjects in the subsequent postprocessing commands. In plotting commands,
+this will produce one line per subject.
+
+----
+
+``subject = average`` will compute the average value of all subjects in the subsequent postprocessing commands. In plotting commands, this will produce one single line, representing the average of all subjects.
+
+Dependencies
+------------
+
+- When specified as an index, this index must be :math:`\ge 1` and :math:`\le n` where :math:`n` is the value of ``n_subjects``.
+
+Examples
+--------
+
+::
+
+  n_subjects = 10
+  subject = all
+
+will make the plotting commands render 10 lines, one per subject.
+
+::
+
+  n_subjects = 10
+  subject = all
+
+will make the plotting commands render one line showing the average of all subjects.
+
+::
+
+  @variables p = 5
+  n_subjects = 10
+  subject = p + 1
+
+will make the plotting commands render one line showing the values for subject number 6.

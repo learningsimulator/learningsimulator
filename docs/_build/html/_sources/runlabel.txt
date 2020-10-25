@@ -1,0 +1,50 @@
+:orphan:
+
+runlabel
+********
+
+In a script with several ``@run`` commands, ``runlabel`` specifies which of the ``@run`` commands to use in postprocessing.
+
+Syntax
+------
+
+::
+
+  runlabel = name
+
+Default
+-------
+
+If not specified, the postprocessing commands will use the output from the last ``@run`` command.
+
+Description
+-----------
+
+``runlabel = name`` will make the postprocessing commands use the output from the ``@run`` command with label ``name``.
+
+To put the label ``name`` on a ``@run`` command, use 
+
+::
+
+  @run phase_name runlabel:name
+
+Example
+-------
+
+::
+
+  @run phase_name runlabel:run_label1
+  ...
+  @run phase_name runlabel:run_label2
+  @vplot ...
+
+will make ``@vplot`` use the output from the last ``@run`` command (``@run phase_name runlabel:run_label2``). To use
+the output from the first ``@run`` command (``@run phase_name runlabel:run_label1``), use
+
+::
+
+  @run phase_name runlabel:run_label1
+  ...
+  @run phase_name runlabel:run_label2
+  runlabel: run_label1
+  @vplot ...  

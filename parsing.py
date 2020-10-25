@@ -589,6 +589,7 @@ class PlotCmd(PostCmd):
 
     def run(self, simulation_data):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
+        start_at_1 = False
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
@@ -606,6 +607,8 @@ class PlotCmd(PostCmd):
         elif self.cmd == kw.NPLOT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
             default_label = f"n({self.expr0})"
+            start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
+                          (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
 
         if 'label' in self.mpl_prop:
             legend_label = self.mpl_prop['label']
@@ -628,9 +631,8 @@ class PlotCmd(PostCmd):
             self.ydata_list = [ydata]
             plot_args = dict({'label': legend_label}, **self.mpl_prop)
             self.plot_args_list = [plot_args]
-            # plt.plot(ydata, **plot_args)
-        # plt.grid(True)
-        self.plot_data = PlotData(self.ydata_list, self.plot_args_list)
+
+        self.plot_data = PlotData(self.ydata_list, self.plot_args_list, start_at_1)
 
     def plot(self):
         self.plot_data.plot()
@@ -644,13 +646,18 @@ class PlotData():
     Encapsulates the data required to produce a PlotCmd plot.
     """
 
-    def __init__(self, ydata_list, plot_args_list):
+    def __init__(self, ydata_list, plot_args_list, start_at_1):
         self.ydata_list = ydata_list
         self.plot_args_list = plot_args_list
+        self.start_at_1 = start_at_1
 
     def plot(self):
         for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
-            plt.plot(ydata, **plot_args)
+            if self.start_at_1:
+                xdata = list(range(len(ydata)))
+                plt.plot(xdata[1:], ydata[1:], **plot_args)
+            else:
+                plt.plot(ydata, **plot_args)
         plt.grid(True)
         plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem)
 

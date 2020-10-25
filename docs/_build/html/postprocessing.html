@@ -1,0 +1,618 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Postprocessing &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Postprocessing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="postprocessing">
+<h1>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h1>
+<p>The postprocessing stage of a script processes the data from a finished simulation, for example
+plotting or exporting the value of the agents’ state variables (v-values or w-values).</p>
+<p>The postprocessing commands are the following:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 40%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Affected by parameters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#figure"><span class="std std-ref">&#64;figure</span></a></p></td>
+<td><p>Creates a figure window</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#subplot"><span class="std std-ref">&#64;subplot</span></a></p></td>
+<td><p>Creates a subplot within the current
+figure window</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#legend"><span class="std std-ref">&#64;legend</span></a></p></td>
+<td><p>Creates a legend for all plotted lines in
+the current subplot</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#vplot"><span class="std std-ref">&#64;vplot</span></a></p></td>
+<td><p>Plots a v-value</p></td>
+<td><p><a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a>, <a class="reference internal" href="xscale.html"><span class="doc">xscale</span></a>, <a class="reference internal" href="xscale_match.html"><span class="doc">xscale_match</span></a>,
+<a class="reference internal" href="phases.html"><span class="doc">phases</span></a>, <a class="reference internal" href="subject.html"><span class="doc">subject</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#vssplot"><span class="std std-ref">&#64;vssplot</span></a></p></td>
+<td><div class="line-block">
+<div class="line">Plots a vss-value (only in the</div>
+<div class="line">Rescorla-Wagner mechanism</div>
+</div>
+</td>
+<td><p><a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a>, <a class="reference internal" href="xscale.html"><span class="doc">xscale</span></a>, <a class="reference internal" href="xscale_match.html"><span class="doc">xscale_match</span></a>,
+<a class="reference internal" href="phases.html"><span class="doc">phases</span></a>, <a class="reference internal" href="subject.html"><span class="doc">subject</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pplot"><span class="std std-ref">&#64;pplot</span></a></p></td>
+<td><div class="line-block">
+<div class="line">Plots the probabilitiy to respond with a</div>
+<div class="line">certain behavior to a certain stimulus</div>
+</div>
+</td>
+<td><p><a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a>, <a class="reference internal" href="xscale.html"><span class="doc">xscale</span></a>, <a class="reference internal" href="xscale_match.html"><span class="doc">xscale_match</span></a>,
+<a class="reference internal" href="phases.html"><span class="doc">phases</span></a>, <a class="reference internal" href="subject.html"><span class="doc">subject</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wplot"><span class="std std-ref">&#64;wplot</span></a></p></td>
+<td><p>Plots a w-value</p></td>
+<td><p><a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a>, <a class="reference internal" href="xscale.html"><span class="doc">xscale</span></a>, <a class="reference internal" href="xscale_match.html"><span class="doc">xscale_match</span></a>,
+<a class="reference internal" href="phases.html"><span class="doc">phases</span></a>, <a class="reference internal" href="subject.html"><span class="doc">subject</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nplot"><span class="std std-ref">&#64;nplot</span></a></p></td>
+<td><div class="line-block">
+<div class="line">Plots the number of occurrences of a certain</div>
+<div class="line">stimulus/behavior or a chain</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">stimulus-&gt;behavior-&gt;stimulus-&gt;...</span></code> or</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">behavior-&gt;stimulus-&gt;behavior-&gt;...</span></code></div>
+</div>
+</td>
+<td><p><a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a>, <a class="reference internal" href="xscale.html"><span class="doc">xscale</span></a>, <a class="reference internal" href="xscale_match.html"><span class="doc">xscale_match</span></a>,
+<a class="reference internal" href="phases.html"><span class="doc">phases</span></a>, <a class="reference internal" href="subject.html"><span class="doc">subject</span></a>,
+<a class="reference internal" href="cumulative.html"><span class="doc">cumulative</span></a>, <a class="reference internal" href="match.html"><span class="doc">match</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#vexport"><span class="std std-ref">&#64;vexport</span></a></p></td>
+<td><p>Exports the values of a <a class="reference internal" href="#vplot"><span class="std std-ref">&#64;vplot</span></a></p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#vplot"><span class="std std-ref">&#64;vplot</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#vssexport"><span class="std std-ref">&#64;vssexport</span></a></p></td>
+<td><p>Exports the values of a <a class="reference internal" href="#vssplot"><span class="std std-ref">&#64;vssplot</span></a></p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#vssplot"><span class="std std-ref">&#64;vssplot</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pexport"><span class="std std-ref">&#64;pexport</span></a></p></td>
+<td><p>Exports the values of a <a class="reference internal" href="#pplot"><span class="std std-ref">&#64;pplot</span></a></p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#pplot"><span class="std std-ref">&#64;pplot</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wexport"><span class="std std-ref">&#64;wexport</span></a></p></td>
+<td><p>Exports the values of a <a class="reference internal" href="#wplot"><span class="std std-ref">&#64;wplot</span></a></p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#wplot"><span class="std std-ref">&#64;wplot</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nexport"><span class="std std-ref">&#64;nexport</span></a></p></td>
+<td><p>Exports the values of a <a class="reference internal" href="#nplot"><span class="std std-ref">&#64;nplot</span></a></p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#nplot"><span class="std std-ref">&#64;nplot</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a></p></td>
+<td><p>Exports the history of stimuli and responses</p></td>
+<td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a>, <a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<p>The below plots show the components of a plot window:</p>
+<img alt="_images/postprocessing-components.png" src="_images/postprocessing-components.png" />
+<div class="section" id="figure">
+<span id="id1"></span><h2>&#64;figure<a class="headerlink" href="#figure" title="Permalink to this headline">¶</a></h2>
+<p>Creates a new figure window.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure
+@figure figure_title
+@figure figure_title figure_parameters
+@figure figure_parameters
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">figure_title</span></code> is an optional title of the figure (any string),</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">figure_parameters</span></code> is an optional specification of <a class="reference external" href="https://matplotlib.org">Matplotlib</a> <code class="docutils literal notranslate"><span class="pre">Figure</span></code> parameters controlling figure size, colors, etc. of the format <code class="docutils literal notranslate"><span class="pre">{param1:value1,</span> <span class="pre">param2:value2,</span> <span class="pre">...}</span></code>. See <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html">figure_parameters</a> for the supported figure parameters.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a plot command or a <code class="docutils literal notranslate"><span class="pre">&#64;subplot</span></code> command is issued without a preceding <code class="docutils literal notranslate"><span class="pre">&#64;figure</span></code> command, a default figure window will automatically be created.</p>
+</div>
+<div class="section" id="example-1">
+<h3>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure
+</pre></div>
+</div>
+<p>creates a default figure without title and with the default Matplotlib <code class="docutils literal notranslate"><span class="pre">Figure</span></code> parameters.</p>
+</div>
+<div class="section" id="example-2">
+<h3>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure This is the title
+</pre></div>
+</div>
+<p>creates a figure with the title “This is the title” and with the default Matplotlib <code class="docutils literal notranslate"><span class="pre">Figure</span></code> parameters:</p>
+<a class="reference internal image-reference" href="_images/postprocessing-figure1.png"><img alt="_images/postprocessing-figure1.png" src="_images/postprocessing-figure1.png" style="width: 385.2px; height: 327.59999999999997px;" /></a>
+</div>
+<div class="section" id="example-3">
+<h3>Example 3<a class="headerlink" href="#example-3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure This is the title {&#39;edgecolor&#39;:&#39;blue&#39;,&#39;linewidth&#39;:10,&#39;facecolor&#39;:&#39;red&#39;}
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/postprocessing-figure2.png"><img alt="_images/postprocessing-figure2.png" src="_images/postprocessing-figure2.png" style="width: 385.2px; height: 327.59999999999997px;" /></a>
+<p>creates a figure with the title “This is the title” with a blue edge (width 10) and red background:</p>
+</div>
+<div class="section" id="example-4">
+<h3>Example 4<a class="headerlink" href="#example-4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure {&#39;edgecolor&#39;:&#39;green&#39;,&#39;linewidth&#39;:20,&#39;facecolor&#39;:&#39;magenta&#39;}
+</pre></div>
+</div>
+<p>creates a figure without title and with a green edge (width 5) and magenta background:</p>
+<a class="reference internal image-reference" href="_images/postprocessing-figure3.png"><img alt="_images/postprocessing-figure3.png" src="_images/postprocessing-figure3.png" style="width: 385.2px; height: 327.59999999999997px;" /></a>
+</div>
+</div>
+<div class="section" id="subplot">
+<span id="id2"></span><h2>&#64;subplot<a class="headerlink" href="#subplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;subplot</span></code> creates an axis within a figure in which to make plots using any of the plotting commands (<code class="docutils literal notranslate"><span class="pre">&#64;vplot</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;wplot</span></code>, etc.)</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@subplot pos
+@subplot pos subplot_title
+@subplot pos subplot_title subplot_parameters
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pos</span></code> describes the position of the subplot within the figure. It is a 3-digit integer: (<em>nrows</em>)(<em>ncols</em>)(<em>index</em>). The subplot will take the position <em>index</em> on a grid with <em>nrows</em> rows and <em>ncols</em> columns. <em>index</em> starts at 1 in the upper left corner and increases to the right.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subplot_parameters</span></code> is an optional specification of <a class="reference external" href="https://matplotlib.org">Matplotlib</a> <code class="docutils literal notranslate"><span class="pre">Subplot</span></code> parameters controlling for example the background color, in the format <code class="docutils literal notranslate"><span class="pre">{param1:value1,</span> <span class="pre">param2:value2,</span> <span class="pre">...}</span></code>. See <a class="reference external" href="https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.subplot">subplot parameters</a> for the supported subplot parameters.</p></li>
+</ul>
+<p>Useful Subplot parameters to control the appearance of the subplot include</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">xlim</span></code> (The min- and max value of the x-axis)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ylim</span></code> (The min- and max value of the y-axis)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xlabel</span></code> (The label of the x-axis)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ylabel</span></code> (The label of the y-axis)</p></li>
+</ul>
+<p>stated as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;xlim&#39;:[xmin,xmax], &#39;ylim&#39;:[ymin,ymax], &#39;xlabel&#39;:&#39;x-axis label&#39;, &#39;ylabel&#39;:&#39;y-axis label&#39;}
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">xmin</span></code>, <code class="docutils literal notranslate"><span class="pre">xmax</span></code>, <code class="docutils literal notranslate"><span class="pre">ymin</span></code>, and <code class="docutils literal notranslate"><span class="pre">ymax</span></code> are numbers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a plot command is issued without a preceding <code class="docutils literal notranslate"><span class="pre">&#64;subplot</span></code> command, a default subplot axis will automatically be created (corresponding to <code class="docutils literal notranslate"><span class="pre">&#64;subplot</span> <span class="pre">111</span></code>).</p>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@figure {&#39;edgecolor&#39;:&#39;black&#39;,&#39;linewidth&#39;:20,&#39;facecolor&#39;:&#39;grey&#39;}
+@subplot 221 Subplot 221 {&#39;facecolor&#39;:&#39;red&#39;}
+@subplot 222 Subplot 222 {&#39;facecolor&#39;:&#39;green&#39;}
+@subplot 223 Subplot 223 {&#39;facecolor&#39;:&#39;blue&#39;}
+@subplot 224 Subplot 224 {&#39;facecolor&#39;:&#39;yellow&#39;}
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/postprocessing-subplot.png"><img alt="_images/postprocessing-subplot.png" src="_images/postprocessing-subplot.png" style="width: 581.4px; height: 506.4px;" /></a>
+</div>
+</div>
+<div class="section" id="legend">
+<span id="id4"></span><h2>&#64;legend<a class="headerlink" href="#legend" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;legend</span></code> creates a legend with labels for each plotted curve in the last created subplot.
+For the labels, the legend uses default descriptive labels (that depends on the type of plot),
+but these may be overridden by custom labels using the <code class="docutils literal notranslate"><span class="pre">label</span></code> parameter to the plotting commands.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@legend
+@legend legend_parameters
+</pre></div>
+</div>
+<p>where
+<code class="docutils literal notranslate"><span class="pre">legend_parameters</span></code> is an optional specification of <a class="reference external" href="https://matplotlib.org">Matplotlib</a> <code class="docutils literal notranslate"><span class="pre">Legend</span></code> parameters controlling for example the frame and background colors, in the format <code class="docutils literal notranslate"><span class="pre">{param1:value1,</span> <span class="pre">param2:value2,</span> <span class="pre">...}</span></code>. See <a class="reference external" href="https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.legend">legend parameters</a> for the supported legend parameters.</p>
+<div class="section" id="legend-example1">
+<span id="id6"></span><h3>Example 1<a class="headerlink" href="#legend-example1" title="Permalink to this headline">¶</a></h3>
+<p>Running this script:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects        = 100
+mechanism         = sr
+behaviors         = response, no_response
+stimulus_elements = background, s, reward
+start_v           = default:1
+alpha_v           = 0.1
+u                 = reward:3, default:0
+
+@PHASE training stop: s==100
+new_trial   s          | response: REWARD | NO_REWARD
+REWARD      reward     | new_trial
+NO_REWARD   background | new_trial
+
+@run training
+
+xscale = s
+
+# Postprocessing commands
+@vplot s-&gt;response
+@vplot s-&gt;no_response {&#39;label&#39;:&#39;custom label&#39;}
+@legend
+</pre></div>
+</div>
+<p>creates the following plot:</p>
+<a class="reference internal image-reference" href="_images/postprocessing-legend1.png"><img alt="_images/postprocessing-legend1.png" src="_images/postprocessing-legend1.png" style="width: 385.2px; height: 327.59999999999997px;" /></a>
+</div>
+<div class="section" id="id7">
+<h3>Example 2<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>With the same simulation as in <a class="reference internal" href="#legend-example1"><span class="std std-ref">Example 1</span></a> but the following postprocessing commands:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@vplot s-&gt;response {&#39;linestyle&#39;:&#39;--&#39;, &#39;color&#39;:&#39;black&#39;}
+@vplot s-&gt;no_response {&#39;label&#39;:&#39;my custom label&#39;, &#39;marker&#39;:&#39;o&#39;, &#39;color&#39;:&#39;red&#39;,&#39;markevery&#39;:10}
+@legend {&#39;title&#39;:&#39;my legend title&#39;, &#39;fontsize&#39;:20, &#39;facecolor&#39;:&#39;grey&#39;}
+</pre></div>
+</div>
+<p>creates the following figure:</p>
+<a class="reference internal image-reference" href="_images/postprocessing-legend2.png"><img alt="_images/postprocessing-legend2.png" src="_images/postprocessing-legend2.png" style="width: 385.2px; height: 327.59999999999997px;" /></a>
+</div>
+</div>
+<div class="section" id="vplot">
+<span id="id8"></span><h2>&#64;vplot<a class="headerlink" href="#vplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;vplot</span></code> plots a v-value (the associative strength between a stimulus element and a behavior).</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@vplot e-&gt;b
+@vplot e-&gt;b line_parameters
+</pre></div>
+</div>
+<p>plots the associative strength between the stimulus element <code class="docutils literal notranslate"><span class="pre">e</span></code> and the behavior <code class="docutils literal notranslate"><span class="pre">b</span></code>, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+</div>
+<div class="section" id="vssplot">
+<span id="id9"></span><h2>&#64;vssplot<a class="headerlink" href="#vssplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;vssplot</span></code> plots a vss-value (the associative strength between two stimulus elements).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only the <em>Rescorla-Wagner</em> learning mechanism has vss-values, so the command <code class="docutils literal notranslate"><span class="pre">&#64;vssplot</span></code> is only
+applicable when <code class="docutils literal notranslate"><span class="pre">mechnism=rw</span></code>.</p>
+</div>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@vssplot e1-&gt;e2
+@vssplot e1-&gt;e2 line_parameters
+</pre></div>
+</div>
+<p>plots the associative strength between the stimulus elements <code class="docutils literal notranslate"><span class="pre">e1</span></code> and <code class="docutils literal notranslate"><span class="pre">e2</span></code>, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+</div>
+<div class="section" id="pplot">
+<span id="id10"></span><h2>&#64;pplot<a class="headerlink" href="#pplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;pplot</span></code> plots the probability of responding with a certain behavior to a certain stimulus,
+according to <a class="reference internal" href="background.html#the-decision-function"><span class="std std-ref">The decision function</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@pplot s-&gt;b
+@pplot s-&gt;b line_parameters
+</pre></div>
+</div>
+<p>plots the probability of responding with <code class="docutils literal notranslate"><span class="pre">b</span></code> to the stimulus <code class="docutils literal notranslate"><span class="pre">s</span></code>, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+</div>
+<div class="section" id="wplot">
+<span id="id11"></span><h2>&#64;wplot<a class="headerlink" href="#wplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;wplot</span></code> plots a w-value (the conditional reinforcement for a stimulus element) for the mechanisms that support this (<em>Guided associative learning</em> and <em>Actor-critic</em>).</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@wplot e
+@wplot e line_parameters
+</pre></div>
+</div>
+<p>plots the conditional reinforcement value for the stimulus element <code class="docutils literal notranslate"><span class="pre">e</span></code>, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+</div>
+<div class="section" id="nplot">
+<span id="id12"></span><h2>&#64;nplot<a class="headerlink" href="#nplot" title="Permalink to this headline">¶</a></h2>
+<p>The command <code class="docutils literal notranslate"><span class="pre">&#64;nplot</span></code> plots the number of occurrences of a stimulus, a behavior, or a chain <code class="docutils literal notranslate"><span class="pre">stimulus-&gt;behavior-&gt;stimulus-&gt;...</span></code>
+or <code class="docutils literal notranslate"><span class="pre">behavior-&gt;stimulus-&gt;behavior-&gt;...</span></code> in the history of stimulus-response pairs during the simulation, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@nplot stimulus
+@nplot behavior
+@nplot stimulus1-&gt;behavior1-&gt;stimulus2-&gt;...
+@nplot behavior1-&gt;stimulus1-&gt;behavior2-&gt;...
+@nplot ... line_parameters
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">stimulus</span></code> is a <a class="reference internal" href="scripting-language.html#stimulus-specification"><span class="std std-ref">stimulus</span></a>, i.e. in general a comma-separated list of stimulus elements, <code class="docutils literal notranslate"><span class="pre">behavior</span></code> is a behavior, and <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> are <a class="reference internal" href="#line-parameters"><span class="std std-ref">Line2D parameters</span></a>.</p>
+<div class="section" id="cumulative">
+<h3>cumulative<a class="headerlink" href="#cumulative" title="Permalink to this headline">¶</a></h3>
+<p>The parameter <a class="reference internal" href="cumulative.html"><span class="doc">cumulative</span></a> can have the values <code class="docutils literal notranslate"><span class="pre">on</span></code> or <code class="docutils literal notranslate"><span class="pre">off</span></code> and affects <code class="docutils literal notranslate"><span class="pre">&#64;nplot</span> <span class="pre">input</span></code> in the following way:</p>
+<p>If cumulative is <code class="docutils literal notranslate"><span class="pre">off</span></code>:</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">xscale</span></code> is <code class="docutils literal notranslate"><span class="pre">all</span></code>: At each point (stimulus or response) in the history, the y-value is 1 if <code class="docutils literal notranslate"><span class="pre">input</span></code>
+matches the simulation sequence at that point, and 0 otherwise.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">xscale</span></code> is not <code class="docutils literal notranslate"><span class="pre">all</span></code>: The y-value shows the number of occurrences of <code class="docutils literal notranslate"><span class="pre">input</span></code> between each point (stimulus or response) in the history
+<em>where</em> <code class="docutils literal notranslate"><span class="pre">xscale</span></code> <em>matches the simulation sequence</em>. For example, the y-value at <span class="math notranslate nohighlight">\(x=1\)</span> is the number of occurrences of <code class="docutils literal notranslate"><span class="pre">input</span></code>
+between the first and the second occurrence of <code class="docutils literal notranslate"><span class="pre">input</span></code>, and the y-value at <span class="math notranslate nohighlight">\(x=2\)</span> is the number of occurrences of <code class="docutils literal notranslate"><span class="pre">input</span></code>
+between the second and the third, etc.</p></li>
+</ul>
+<p>If cumulative is <code class="docutils literal notranslate"><span class="pre">on</span></code>, the values above are added cumulatively at each x-value. For example, the value at <span class="math notranslate nohighlight">\(x=4\)</span> shows the sum of
+the values at <span class="math notranslate nohighlight">\(x=0\)</span>, <span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(x=2\)</span>, and <span class="math notranslate nohighlight">\(x=3\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With multiple subjects and <code class="docutils literal notranslate"><span class="pre">subject=average</span></code> the plotting commands (including <code class="docutils literal notranslate"><span class="pre">&#64;nplot</span></code>) renders the <em>average</em> y-value of all subjects, which means that the y-value can be between 0 and 1 even if the y-value for each individual subject is 0 or 1.</p>
+</div>
+</div>
+<div class="section" id="id13">
+<h3>Example<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>With the combination <code class="docutils literal notranslate"><span class="pre">xscale=s</span></code> (for some stimulus <code class="docutils literal notranslate"><span class="pre">s</span></code>), <code class="docutils literal notranslate"><span class="pre">cumulative=off</span></code>, and <code class="docutils literal notranslate"><span class="pre">n_subjects</span></code>&gt;1:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@pplot s-&gt;b
+</pre></div>
+</div>
+<p>shows, at each exposure of <code class="docutils literal notranslate"><span class="pre">s</span></code>, the probability to respond with the behavior <code class="docutils literal notranslate"><span class="pre">b</span></code> to the stimulus <code class="docutils literal notranslate"><span class="pre">s</span></code>, whereas:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@nplot s-&gt;b
+</pre></div>
+</div>
+<p>shows, at each exposure of <code class="docutils literal notranslate"><span class="pre">s</span></code>, the empirical <em>average</em> (over all agents) fraction of times when an agent responded with <code class="docutils literal notranslate"><span class="pre">b</span></code> to <code class="docutils literal notranslate"><span class="pre">s</span></code> in the simulation:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects        = 500
+mechanism         = SR
+behaviors         = respond,ignore
+stimulus_elements = s, reward
+start_v           = s-&gt;ignore:0, default:-1
+alpha_v           = 0.1
+beta              = 1
+u                 = reward:2, default:0
+
+@phase instrumental_conditioning stop:s=100
+STIMULUS    s          | respond: REWARD  | STIMULUS
+REWARD      reward     | STIMULUS
+
+@run instrumental_conditioning
+
+xscale     = s
+cumulative = off
+
+@nplot s-&gt;respond
+@pplot s-&gt;respond
+@legend
+</pre></div>
+</div>
+<img alt="_images/postprocessing-nplot1.png" src="_images/postprocessing-nplot1.png" />
+</div>
+</div>
+<div class="section" id="line2d-parameters">
+<span id="line-parameters"></span><h2>Line2D parameters<a class="headerlink" href="#line2d-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The input <code class="docutils literal notranslate"><span class="pre">line_parameters</span></code> to the plotting commands
+is an optional specification of <a class="reference external" href="https://matplotlib.org">Matplotlib</a> <code class="docutils literal notranslate"><span class="pre">Line2D</span></code> parameters controlling for example line color and line style, in the format <code class="docutils literal notranslate"><span class="pre">{param1:value1,</span> <span class="pre">param2:value2,</span> <span class="pre">...}</span></code>. See <a class="reference external" href="https://matplotlib.org/2.1.2/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D">Line2D parameters</a> for the supported Line2D parameters.</p>
+<p>Use the Line2D parameter <code class="docutils literal notranslate"><span class="pre">label</span></code> to set a custom label for the <a class="reference internal" href="#legend"><span class="std std-ref">legend</span></a> (produced with <code class="docutils literal notranslate"><span class="pre">&#64;legend</span></code>) to the plotted line.</p>
+<p>Useful Line2D parameters to control the appearance of the plot include <code class="docutils literal notranslate"><span class="pre">color</span></code>, <code class="docutils literal notranslate"><span class="pre">linestyle</span></code>, <code class="docutils literal notranslate"><span class="pre">marker</span></code>, <code class="docutils literal notranslate"><span class="pre">markevery</span></code>.</p>
+</div>
+<div class="section" id="exporting-data-to-file">
+<h2>Exporting data to file<a class="headerlink" href="#exporting-data-to-file" title="Permalink to this headline">¶</a></h2>
+<p>The data-exporting commands <code class="docutils literal notranslate"><span class="pre">&#64;vexport</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;wexport</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;pexport</span></code>, and <code class="docutils literal notranslate"><span class="pre">&#64;nexport</span></code> exports to a csv-file the data that is plotted with the
+plotting commads <code class="docutils literal notranslate"><span class="pre">&#64;vplot</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;wplot</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;pplot</span></code>, and <code class="docutils literal notranslate"><span class="pre">&#64;nplot</span></code>, respectively. Therefore the same parameters
+that affect the plot also affect the exported data (for example <code class="docutils literal notranslate"><span class="pre">xscale</span></code>, <code class="docutils literal notranslate"><span class="pre">phases</span></code>, <code class="docutils literal notranslate"><span class="pre">subject</span></code>, <code class="docutils literal notranslate"><span class="pre">runlabel</span></code>, etc.)</p>
+<p>In addition, the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a> is required to all exporting commands.</p>
+<p>The command <a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a> simply exports the sequence of alternating stimuli and responses for the <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> specified with the parameter <code class="docutils literal notranslate"><span class="pre">runlabel</span></code>. There is one sequence for each subject (regardless of the value of the parameter <code class="docutils literal notranslate"><span class="pre">subject</span></code>). The exported data with <code class="docutils literal notranslate"><span class="pre">&#64;hexport</span></code> is not affected by any other parameter.</p>
+<p>The destination file is specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the specified file already exists, the existing file will be overwritten without warning.</p>
+</div>
+<div class="section" id="format-of-the-csv-file">
+<span id="id16"></span><h3>Format of the csv-file<a class="headerlink" href="#format-of-the-csv-file" title="Permalink to this headline">¶</a></h3>
+<p>The data export commands <a class="reference internal" href="#vexport"><span class="std std-ref">&#64;vexport</span></a>, <a class="reference internal" href="#wexport"><span class="std std-ref">&#64;wexport</span></a>, <a class="reference internal" href="#pexport"><span class="std std-ref">&#64;pexport</span></a>, and <a class="reference internal" href="#nexport"><span class="std std-ref">&#64;nexport</span></a>
+exports the data as a csv-file with two or more
+columns. The first column, with title “x” contains step numbers (corresponding to the
+x-axis in the corresponding plot command). The second column onwards
+contains the data for the specified quantity for each subject (controlled by
+the subject parameter). For example, after the commands:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects = 5
+subject = all
+filename = my_file.csv
+@vexport s-&gt;b
+</pre></div>
+</div>
+<p>the first line, containing the headings, in the file <code class="docutils literal notranslate"><span class="pre">my_file.csv</span></code> looks like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&quot;x&quot;,&quot;v(s-&gt;b) subject 0&quot;,&quot;v(s-&gt;b) subject 1&quot;,&quot;v(s-&gt;b) subject 2&quot;,&quot;v(s-&gt;b) subject 3&quot;,&quot;v(s-&gt;b) subject 4&quot;
+</pre></div>
+</div>
+<p>If instead <code class="docutils literal notranslate"><span class="pre">subject</span> <span class="pre">=</span> <span class="pre">average</span></code>, the first line will look like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&quot;x&quot;,&quot;v(s-&gt;b)&quot;
+</pre></div>
+</div>
+<p>The remaining lines contain comma-separated values for the quantities in the heading. An example csv-file
+exported with <code class="docutils literal notranslate"><span class="pre">&#64;vexport</span> <span class="pre">s-&gt;response</span></code> may look like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&quot;x&quot;,&quot;v(s-&gt;response) subject 0&quot;,&quot;v(s-&gt;response) subject 1&quot;,&quot;v(s-&gt;response) subject 2&quot;,&quot;v(s-&gt;response) subject 3&quot;,&quot;v(s-&gt;response) subject 4&quot;
+0,1,1,1,1,1
+1,1.2,1.2,1.2,1,1
+2,1.2,1.2,1.2,1,1
+3,1.38,1.2,1.38,1.2,1.2
+4,1.38,1.2,1.38,1.2,1.2
+5,1.38,1.38,1.5419999999999998,1.38,1.2
+6,1.38,1.38,1.5419999999999998,1.38,1.2
+7,1.5419999999999998,1.38,1.6877999999999997,1.38,1.38
+8,1.5419999999999998,1.38,1.6877999999999997,1.38,1.38
+9,1.6877999999999997,1.5419999999999998,1.8190199999999999,1.5419999999999998,1.38
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a> command exports the sequence of alternating stimuli and responses
+for each subject, and has therefore a different format. See <a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a>.</p>
+</div>
+</div>
+<div class="section" id="vexport">
+<span id="id17"></span><h2>&#64;vexport<a class="headerlink" href="#vexport" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;vexport</span></code> exports the data plotted by <a class="reference internal" href="#vplot"><span class="std std-ref">&#64;vplot</span></a> to the csv-file specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>filename = my_file.csv
+@vexport e-&gt;b
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="#format-of-the-csv-file"><span class="std std-ref">Format of the csv-file</span></a>.</p>
+</div>
+<div class="section" id="vssexport">
+<span id="id18"></span><h2>&#64;vssexport<a class="headerlink" href="#vssexport" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;vssexport</span></code> exports the data plotted by <a class="reference internal" href="#vssplot"><span class="std std-ref">&#64;vssplot</span></a> to the csv-file specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only the <em>Rescorla-Wagner</em> learning mechanism has vss-values, so the command <code class="docutils literal notranslate"><span class="pre">&#64;vssplot</span></code> is only
+applicable when <code class="docutils literal notranslate"><span class="pre">mechnism=rw</span></code>.</p>
+</div>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>filename = my_file.csv
+@vssexport e1-&gt;e2
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="#format-of-the-csv-file"><span class="std std-ref">Format of the csv-file</span></a>.</p>
+</div>
+<div class="section" id="pexport">
+<span id="id19"></span><h2>&#64;pexport<a class="headerlink" href="#pexport" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;pexport</span></code> exports the data plotted by <a class="reference internal" href="#pplot"><span class="std std-ref">&#64;pplot</span></a> to the csv-file specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>filename = my_file.csv
+@pexport s-&gt;b
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="#format-of-the-csv-file"><span class="std std-ref">Format of the csv-file</span></a>.</p>
+</div>
+<div class="section" id="wexport">
+<span id="id20"></span><h2>&#64;wexport<a class="headerlink" href="#wexport" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;wexport</span></code> exports the data plotted by <a class="reference internal" href="#wplot"><span class="std std-ref">&#64;wplot</span></a> to the csv-file specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>filename = my_file.csv
+@vexport e
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="#format-of-the-csv-file"><span class="std std-ref">Format of the csv-file</span></a>.</p>
+</div>
+<div class="section" id="nexport">
+<span id="id21"></span><h2>&#64;nexport<a class="headerlink" href="#nexport" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;nexport</span></code> exports the data plotted by <a class="reference internal" href="#nplot"><span class="std std-ref">&#64;nplot</span></a> to the csv-file specified with the parameter <a class="reference internal" href="filename.html"><span class="doc">filename</span></a>.</p>
+<p>Syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>filename = my_file.csv
+@nexport stimulus
+@nexport behavior
+@nexport stimulus1-&gt;behavior1-&gt;stimulus2-&gt;...
+@nexport behavior1-&gt;stimulus1-&gt;behavior2-&gt;...
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="#format-of-the-csv-file"><span class="std std-ref">Format of the csv-file</span></a>.</p>
+</div>
+<div class="section" id="hexport">
+<span id="id22"></span><h2>&#64;hexport<a class="headerlink" href="#hexport" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a> command exports a csv-file with three or more columns.
+Column 1 contains step numbers. Columns 2 and 3 contains the stimulus and
+response, respectively, for subject 1. Column 4 and 5 contains the stimulus
+and response, respectively, for subject 2, etc:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&quot;step&quot;,&quot;stimulus subject 0&quot;,&quot;response subject 0&quot;,&quot;stimulus subject 1&quot;,&quot;response subject 1&quot;,&quot;stimulus subject 2&quot;,&quot;response subject 2&quot;,...
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All subjects are always included in the output file from <a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a>.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Postprocessing</a><ul>
+<li><a class="reference internal" href="#figure">&#64;figure</a><ul>
+<li><a class="reference internal" href="#example-1">Example 1</a></li>
+<li><a class="reference internal" href="#example-2">Example 2</a></li>
+<li><a class="reference internal" href="#example-3">Example 3</a></li>
+<li><a class="reference internal" href="#example-4">Example 4</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#subplot">&#64;subplot</a><ul>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#legend">&#64;legend</a><ul>
+<li><a class="reference internal" href="#legend-example1">Example 1</a></li>
+<li><a class="reference internal" href="#id7">Example 2</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vplot">&#64;vplot</a></li>
+<li><a class="reference internal" href="#vssplot">&#64;vssplot</a></li>
+<li><a class="reference internal" href="#pplot">&#64;pplot</a></li>
+<li><a class="reference internal" href="#wplot">&#64;wplot</a></li>
+<li><a class="reference internal" href="#nplot">&#64;nplot</a><ul>
+<li><a class="reference internal" href="#cumulative">cumulative</a></li>
+<li><a class="reference internal" href="#id13">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line2d-parameters">Line2D parameters</a></li>
+<li><a class="reference internal" href="#exporting-data-to-file">Exporting data to file</a><ul>
+<li><a class="reference internal" href="#format-of-the-csv-file">Format of the csv-file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vexport">&#64;vexport</a></li>
+<li><a class="reference internal" href="#vssexport">&#64;vssexport</a></li>
+<li><a class="reference internal" href="#pexport">&#64;pexport</a></li>
+<li><a class="reference internal" href="#wexport">&#64;wexport</a></li>
+<li><a class="reference internal" href="#nexport">&#64;nexport</a></li>
+<li><a class="reference internal" href="#hexport">&#64;hexport</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/postprocessing.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Postprocessing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>
