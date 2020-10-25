@@ -45,10 +45,11 @@ Start C:\Pipwin\pip-Win_1.9.exe which starts a GUI in which enter:
 Click Run - starts a command prompt.
 Make sure lesim.spec contains "datas=[('Lemur-icon.gif', '.')]"
 At the started command prompt:
-   C:\Users\markj\lesim\lesim2>pyinstaller -F -w --add-data Lemur-icon.gif;. lesim.py
+   C:\Users\markj\lesim\lesim2> C:\Python38\Scripts\pyinstaller.exe -F -w --add-data Lemur-icon.gif;. lesim.py
    (The option -w makes sure that the created exe-file will not open a console window (stdin/out for Python))
-This creates C:\Users\markj\lesim\dist\lesim.exe
+This creates C:\Users\markj\lesim\lesim2\dist\lesim.exe
 
+copy C:\Users\markj\lesim\lesim2\dist\lesim.exe  C:\Users\markj\lesim\learningsimulator.exe
 
 *****
 Debug
