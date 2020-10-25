@@ -162,8 +162,9 @@ class Gui():
 
         # The Help menu
         help_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
-        help_menu.add_command(label="Documentation", underline=0, command=self.open_documentation,
+        help_menu.add_command(label="Documentation (offline)", underline=0, command=self.open_documentation_offline,
                               accelerator="F1")
+        help_menu.add_command(label="Documentation (online)", underline=0, command=self.open_documentation_online)
         help_menu.add_command(label="License", underline=0, command=self.open_licensedlg)
         self.menu_bar.add_cascade(label="Help", underline=0, menu=help_menu)
 
@@ -491,7 +492,7 @@ class Gui():
         # self.root.bind_class("Text", ",<Control-Y>", self.redo)
 
         self.root.bind("<F5>", self.simulate_thread)
-        self.root.bind("<F1>", self.open_documentation)
+        self.root.bind("<F1>", self.open_documentation_offline)
 
     def undo(self, event=None):
         self.scriptField.undo()
@@ -499,8 +500,12 @@ class Gui():
     def redo(self, event=None):
         self.scriptField.redo()
 
-    def open_documentation(self, event=None):
+    def open_documentation_offline(self, event=None):
         url = f".{SEP}docs{SEP}_build{SEP}html{SEP}index.html"
+        webbrowser.open(url, new=True)
+
+    def open_documentation_online(self, event=None):
+        url = "https://learningsimulator.readthedocs.io/en/latest/"
         webbrowser.open(url, new=True)
 
     def open_licensedlg(self):
