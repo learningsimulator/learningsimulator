@@ -40,7 +40,6 @@ release = '1.0'
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinxjp.themes.basicstrap',
     'recommonmark'
 ]
 
