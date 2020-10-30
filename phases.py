@@ -288,6 +288,7 @@ class PhaseEventCounter():
         stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
         behaviors = parameters.get(BEHAVIORS)
         event_names = list(stimulus_elements) + list(behaviors) + linelabels
+        self.linelabels = linelabels
         self.behaviors = behaviors
         self.last_response = None
         # event_names = set(linelabels).union(stimulus_elements).union(behaviors)
@@ -339,11 +340,10 @@ class PhaseEventCounter():
             expr = expr.replace("count_line()", str(self.count_line[self.line_label]))
         return expr
 
-    def get_count_line_without_behaviors(self):
+    def get_count_line_linelabels(self):
         out = dict()
-        for key in self.count_line:
-            if key not in self.behaviors:
-                out[key] = self.count_line[key]
+        for key in self.linelabels:
+            out[key] = self.count_line[key]
         return out
 
 

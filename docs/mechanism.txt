@@ -1,0 +1,38 @@
+:orphan:
+
+mechanism
+*********
+
+Specifies the learning mechanism to use.
+
+Syntax
+------
+
+::
+
+  mechanism = name
+
+where name is one of the following:
+
+- ``ga`` (`Guided associative learning`)
+- ``sr`` (`Stimulus-response learning`)
+- ``es`` (`Expected SARSA`)
+- ``ql`` (`Q-learning`)
+- ``ac`` (`Actor-critic`)
+- ``rw`` (`Rescorla-Wagner`)
+
+See :ref:`the-mechanisms` for a description of the mechanisms.
+
+Description
+-----------
+
+``mechanism = name`` sets the learning mechanism to ``name``.
+
+Example
+-------
+
+::
+
+  mechanism = sr
+
+sets the learning mechanism to `Stimulus-response learning`. See :ref:`the-mechanisms`.

@@ -7,87 +7,46 @@
   https://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html
 
 
-##############################################
+**********************************************
 Welcome to Learning Simulator's documentation!
-##############################################
+**********************************************
 
-Learning Simulator is a GUI-based Python program used for simulating
-associative learning mechanisms. It uses a simple and well-documented
-scripting language to specify the properties of the mechanism and the
-description of the experiment setup being simulated.
+*Learning Simulator* is a Python program used for simulating associative
+learning mechanisms. It uses a simple and well-documented scripting
+language to specify the properties of the mechanism and the description
+of the experiment setup being simulated.
     
-.. If :math:`\sigma_{1}` equals :math:`\sigma_{2}` then etc, etc.
-    
-The documentation for ``Learning Simulator`` is hosted on `Read the
+The documentation for *Learning Simulator* is hosted on `Read the
 docs <https://readthedocs.org/>`_.
 
 
-********
 Contents
 ********
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 2
 
-   whatis
-   license
-   installation
-   starting
-   usage-example
-   background
-   scripting-language
-   examples
-   community
+  whatis
+  license
+  installation
+  starting
+  usage-example
+  background
+  gui
+  community
 
+.. raw:: html
 
-
-..
- .. toctree::
-    :maxdepth: 2
-
-    license
-..
-   :caption: Contents:
-
-..
-  Indices and tables
-  ==================
-
-  * :ref:`genindex`
-  * :ref:`modindex`
-  * :ref:`search`
-
-
-
-..
-	##################
-	H1: document title
-	##################
-
-	Introduction text.
-
-
-	*********
-	Sample H2
-	*********
-
-	Sample content.
-
-
-	**********
-	Another H2
-	**********
-
-	Sample H3
-	=========
-
-	Sample H4
-	---------
-
-	Sample H5
-	^^^^^^^^^
-
-	Sample H6
-	"""""""""
-
-	And some text.
+  <hr>  
+  <div class="section" id="contents">
+  <li class="toctree-l1"><a class="reference internal" href="scripting-language.html">Scripting Language Reference Manual</a><ul>
+  <li class="toctree-l2"><a class="reference internal" href="scripting-language.html#structure-of-a-script">Structure of a script</a></li>
+  <li class="toctree-l2"><a class="reference internal" href="scripting-language.html#basic-script-language-syntax">Basic script language syntax</a></li>
+  <li class="toctree-l2"><a class="reference internal" href="parameters.html">Parameters</a></li>
+  <li class="toctree-l2"><a class="reference internal" href="variables.html">Global variables</a></li>
+  <li class="toctree-l2"><a class="reference internal" href="phases.html">Phases</a></li>
+  <li class="toctree-l2"><a class="reference internal" href="run.html">The command <code class="docutils literal notranslate"><span class="pre">@run</span></code></a></li>
+  <li class="toctree-l2"><a class="reference internal" href="postprocessing.html">Postprocessing</a></li>
+  </ul>
+  </li>
+  </div>

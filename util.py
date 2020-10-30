@@ -254,8 +254,7 @@ class ParseUtil():
                 behavior_context = ParseUtil._make_bool_behavior_context(phase_event_counter.behaviors,
                                                                          phase_event_counter.last_response)
                 context.update(behavior_context)
-                # context.update(phase_event_counter.count_line)
-                context.update(phase_event_counter.get_count_line_without_behaviors())
+                context.update(phase_event_counter.get_count_line_linelabels())
             else:
                 return None, "Internal error."
 

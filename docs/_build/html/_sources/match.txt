@@ -1,0 +1,95 @@
+:orphan:
+
+match
+*****
+
+.. note::
+
+  Only applies to the ``@nplot`` command.
+
+Specifies how to match compound stimuli in the stimulus-response history to the ``@nplot`` input.
+
+If the simulation does not contain any compound stimuli, this parameter has no effect.
+
+Syntax
+------
+
+::
+
+  match = exact
+  match = subset
+
+Default
+-------
+
+``subset``
+
+Description
+-----------
+
+``match = subset`` will make ``@nplot`` count compound stimuli in the stimulus-response history that are supersets of the 
+``@nplot`` input.
+
+----
+
+``match = exact`` will make ``@nplot`` count only compound stimuli in the stimulus-response history that exactly matches the 
+``@nplot`` input.
+
+
+Example
+-------
+
+If the history is
+
+::
+
+  e1 -> b1 -> e1,e2 -> b2 -> e1,e2,e3 -> b3
+
+and
+
+::
+
+  match = subset
+
+then
+
+::
+
+  @nplot e1
+
+will count both e1, (e1,e2), and (e1,e2,e3) in the plot, and
+
+::
+
+  @nplot e1,e2
+
+will count both (e1,e2) and (e1,e2,e3).
+
+Example
+-------
+
+If the history is
+
+::
+
+  e1 -> b1 -> e1,e2 -> b2 -> e1,e2,e3 -> b3
+
+and
+
+::
+
+  match = exact
+
+then
+
+::
+
+  @nplot e1
+
+will count only e1, and
+
+::
+
+  @nplot e1,e2
+
+will count only (e1, e2).

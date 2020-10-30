@@ -1,0 +1,85 @@
+:orphan:
+
+mu
+**
+
+Specifies the genetic predisposition for responding with certain behaviors to certain stimulus elements.
+The parameter ``mu`` works in conjunction with :doc:`beta` to determine the weights for behaviors 
+in :ref:`the decision function<the-decision-function>`.
+
+The parameter ``mu`` can be set to certain values for certain particular element-behavior pairs.
+It can also be specified as a single value, in which case the same predisposition is used for all
+element-behavior pairs.
+
+Syntax
+------
+
+::
+
+  mu = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d
+  mu = v1
+
+where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+
+Description
+-----------
+
+``mu = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d`` sets the genetic predisposition value for
+
+- e1->b1 to v1,
+- e1->b2 to v2, ...,
+- en->bn to v2,
+
+and the value for all other element-behavior pairs to d.
+
+- The specification is independent of the list order:
+
+  ``mu = e1->b1:v1, e1->b2:v2, default:d``
+
+  is the same as
+
+  ``mu = e1->b2:v2, default:d, e1->b1:v1``.
+
+- ``default`` need not be specified if all possible combinations ``element->behavior`` are present in the list. For example,
+
+  ::
+
+    stimulus_elements = e1, e2
+    behaviors = b1, b2
+    mu = e1->b1:v11, e1->b2:v12, e2->b1:v21, e2->b2:v22
+
+----
+
+``mu = v1`` sets the genetic predisposition value for all element-behavior pairs to v1.
+
+- ``mu = v1`` is the same as ``mu = default: v1``.
+
+Dependencies
+------------
+
+- The properties ``stimulus_elements`` and  ``behaviors`` must be specified before ``mu``.
+- Each stimulus element used in the specification of ``mu`` must be present in the parameter ``stimulus_elements``.
+- Each behavior used in the specification of ``mu`` must be present in the parameter ``behaviors``.
+
+Examples
+--------
+
+::
+
+  @variables x = 1
+  mu = element1->behavior1: x, element1->behavior2: x+1, default:x+2
+
+sets the genetic predisposition value for element1->behavior1 to 1 and for element1->behavior1 to 2, and
+for the remaining possible element-behavior pairs to 3.
+
+::
+
+  mu = element1->behavior1: 0.5, default:0
+
+sets the genetic prediposition value for element1->behavior1 to 0.5, and for the remaining possible element-behavior pairs to 3.
+
+::
+
+  mu = 0.1
+
+sets the genetic predisposition value for all  element-behavior pairs to 0.1.

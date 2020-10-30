@@ -1,0 +1,85 @@
+:orphan:
+
+alpha_w
+*******
+
+**Note:** Only applicable in the A-learning and the Actor-Critic mechanisms.
+
+Specifies the learning rate for w-values (conditioned reinforcement for a stimulus element),
+used in the updating of w-values. See :ref:`the-mechanisms`.
+
+The parameter ``alpha_w`` can be set to certain values for certain particular stimulus elements.
+It can also be specified as a single value, in which case the same learning rate is used for all
+stimulus elements.
+
+Syntax
+------
+
+::
+
+  alpha_w = e1: v1, e2: v2, ..., en: vn, default: d
+  alpha_w = v1
+
+where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+
+Description
+-----------
+
+``alpha_w = e1: v1, e2: v2, ..., en->bn: vn, default: d`` sets the learning rate for
+
+- w(e1) to v1,
+- w(e2) to v2, ...,
+- w(en) to vn,
+
+and the learning rate for all other w-values to d.
+
+- The specification is independent of the list order:
+
+  ``alpha_w = e1:v1, e2:v2, default:d``
+
+  is the same as
+
+  ``alpha_w = e2:v2, default:d, e1:v1``.
+
+- ``default`` need not be specified if all stimulus elements are present in the list. For example,
+
+  ::
+
+    stimulus_elements = e1, e2
+    alpha_w = e1:v1, e2:v2
+
+----
+
+``alpha_w = v1`` sets the learning rate for all w-values to v1.
+
+- ``alpha_w = v1`` is the same as ``alpha_w = default: v1``.
+
+Dependencies
+------------
+
+- The property ``stimulus_elements`` must be specified before ``alpha_w``.
+- Each stimulus element used in the specification of ``alpha_w`` must be present in the parameter ``stimulus_elements``.
+- Applicable only in the A-learning and Actor-Critic mechanisms.
+
+Examples
+--------
+
+::
+
+  @variables x = 1
+  alpha_w = element1: x, element2: x+1, default:x+2
+
+sets the learning rate for w(element1) to 1 and for w(element2) to 2, and
+for the remaining stimulus elements to 3.
+
+::
+
+  alpha_w = element1: 0.5, default:0
+
+sets the learning rate for w(element1) to 0.5, and for the remaining stimulus elements to 3.
+
+::
+
+  alpha_w = 0.1
+
+sets the learning rate for all w-values to 0.1.

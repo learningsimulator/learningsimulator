@@ -1,0 +1,36 @@
+:orphan:
+
+n_subjects
+**********
+
+Specifies the number of subjects (individuals) in a simulation.
+
+Syntax
+------
+
+::
+
+  n_subjects = n
+
+where n is a :ref:`scalar expression<scalar-expressions>` evaluating to a positive integer.
+
+Description
+-----------
+
+``n_subjects = n`` sets the number of subjects to ``n``.
+
+Examples
+--------
+
+::
+
+  n_subjects = 100
+
+sets the number of subjects to 100.
+
+::
+
+  @variables p = 50
+  n_subjects = 100 + p
+
+sets the number of subjects to 150.

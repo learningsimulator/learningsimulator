@@ -1,0 +1,521 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A @phase block &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="a-phase-block">
+<h1>A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block<a class="headerlink" href="#a-phase-block" title="Permalink to this headline">¶</a></h1>
+<p>The environment that the agent interacts with is specified using one or more <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> blocks.
+A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+in the sequence depends on the response to the previous stimulus.</p>
+<p>If the environment is an experiment setup, say a maze, one may use one <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block per phase in the experiment,
+for example one <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> for the training phase and one for the test phase.</p>
+<p>The structure of a phase block is outlined in the below example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase training stop: reward==100
+TRIAL_START  lever      | pull_lever: REWARD | NO_REWARD
+REWARD       reward     | TRIAL_START
+NO_REWARD    background | TRIAL_START
+</pre></div>
+</div>
+<p>The simulation will start with the first phase line below the title line (except for inherited phase blocks, see <a class="reference internal" href="#inheriting-a-phase"><span class="std std-ref">Inheriting a phase</span></a>).</p>
+<div class="section" id="the-phase-title-line">
+<h2>The <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> title line<a class="headerlink" href="#the-phase-title-line" title="Permalink to this headline">¶</a></h2>
+<p>In general, a <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block starts with a <em>title line</em> of the format:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase phase_name stop:stop_condition
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">phase_name</span></code> is the name of the phase (see <a class="reference internal" href="#the-phase-name"><span class="std std-ref">The phase name</span></a>), and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stop_condition</span></code> is the
+stop condition (see <a class="reference internal" href="#the-stop-condition"><span class="std std-ref">The phase stop condition</span></a>) specifying when to exit the phase, usually after a prededermined number of exposures
+to a certain stimulus element, or after a predetermined number of responses with a certain behavior.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> and <code class="docutils literal notranslate"><span class="pre">stop:</span></code> are keywords, and cannot be changed. The name of the phase (<code class="docutils literal notranslate"><span class="pre">phase_name</span></code>) and the stop condition (<code class="docutils literal notranslate"><span class="pre">stop_condition</span></code>) are user defined.</p>
+</div>
+<p>For example, in a script with the following parameter definitions:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stimulus_elements = lever, reward
+behaviors = pull_lever, ignore
+</pre></div>
+</div>
+<p>the title line of a &#64;phase block may look like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase training stop:reward==100
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase training stop:pull_lever==100
+</pre></div>
+</div>
+<div class="section" id="the-phase-name">
+<span id="id1"></span><h3>The phase name<a class="headerlink" href="#the-phase-name" title="Permalink to this headline">¶</a></h3>
+<p>The phase name must be a <a class="reference internal" href="scripting-language.html#valid-names"><span class="std std-ref">valid name</span></a>.</p>
+</div>
+<div class="section" id="the-phase-stop-condition">
+<span id="the-stop-condition"></span><h3>The phase stop condition<a class="headerlink" href="#the-phase-stop-condition" title="Permalink to this headline">¶</a></h3>
+<p>A phase stop condition is a
+<a class="reference internal" href="#boolean-expression">boolean expression</a>
+that may include the following variables:</p>
+<ul class="simple">
+<li><p>Any stimulus element (evaluates to the number of exposures to this stimulus element)</p></li>
+<li><p>Any behavior (evaluates to the number of responses with this behavior)</p></li>
+<li><p>Any phase line label (evaluates to the number of times this phase line has been visited)</p></li>
+<li><p>Any local phase variable (evaluates to the value of this variable)</p></li>
+</ul>
+<p>For example, the first line of a &#64;phase block may look like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase training stop: pull_lever&gt;=10**2 or reward==10
+</pre></div>
+</div>
+<p>which means that the phase stops when either</p>
+<ul class="simple">
+<li><p>the number of responses with the behavior <code class="docutils literal notranslate"><span class="pre">pull_lever</span></code> is greater than or equal to <span class="math notranslate nohighlight">\(10^2=100\)</span>.</p></li>
+<li><p>the number of exposures to the stimulus element <code class="docutils literal notranslate"><span class="pre">reward</span></code> is 100, or</p></li>
+</ul>
+<p>See also <a class="reference internal" href="#using-local-phase-variables-in-phase-stop-condition"><span class="std std-ref">Using local variables in a phase stop condition</span></a>.</p>
+</div>
+<div class="section" id="boolean-expression">
+<h3>Boolean expression<a class="headerlink" href="#boolean-expression" title="Permalink to this headline">¶</a></h3>
+<p>A boolean expression is a mathematical expression
+that evaluates to <em>true</em> or <em>false</em>. It may
+include number literals, variables, parentheses, and the below operators.</p>
+<p>The supported operators in <em>Learning Simulator</em> are the arithmetic operators</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">+</span></code> (addition)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code> (subtraction)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> (multiplication)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/</span></code> (division)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">**</span></code> (power)</p></li>
+</ul>
+<p>and the comparison operators</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">==</span></code> (equals)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&gt;</span></code> (greater than)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> (greater than or equal to)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;</span></code> (less than)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;=</span></code> (less than or equal to)</p></li>
+</ul>
+<p>and the logical operators</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">and</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">or</span></code></p></li>
+</ul>
+<p>and the functions</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">choice</span></code> (See <a class="reference internal" href="scripting-language.html#choice-function"><span class="std std-ref">choice</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rand</span></code> (See <a class="reference internal" href="scripting-language.html#rand-function"><span class="std std-ref">rand</span></a>)</p></li>
+</ul>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">x&gt;2</span> <span class="pre">and</span> <span class="pre">y&lt;=5</span></code> is a boolean expression of the
+variables <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>, the constants 2 and 5, and
+the operators <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>. It evaluates to <em>true</em>
+whenever <code class="docutils literal notranslate"><span class="pre">x</span></code> is greater than two and <code class="docutils literal notranslate"><span class="pre">y</span></code> is smaller
+than or equal to 5, and <em>false</em> otherwise.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">x</span></code> is a number, the expression <code class="docutils literal notranslate"><span class="pre">2x-5</span></code> is not a boolean expression since it
+does not evaluate to <em>true</em> or <em>false</em>, but to a number.</p>
+</div>
+</div>
+<div class="section" id="a-phase-line">
+<span id="phase-line"></span><h2>A phase line<a class="headerlink" href="#a-phase-line" title="Permalink to this headline">¶</a></h2>
+<p>Below the phase title line follows a number of <em>phase lines</em>. Each phase line</p>
+<ul class="simple">
+<li><p>presents a <a class="reference internal" href="scripting-language.html#stimulus-specification"><span class="std std-ref">stimulus</span></a> to the agent (optional),</p></li>
+<li><p>performs a number of (optional) <em>actions</em> (see <a class="reference internal" href="#actions">Actions</a>), and</p></li>
+<li><p>informs which of the phase lines to go to next</p></li>
+</ul>
+<p>A phase line has the general format:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LINE_LABEL s | d11,d12,...,COND1:a11,a12,... | d21,d22,...,COND2: a21,a22,... | an1,an2,...,ann
+</pre></div>
+</div>
+<p>where s is a <a class="reference internal" href="scripting-language.html#stimulus-specification"><span class="std std-ref">stimulus</span></a>, <code class="docutils literal notranslate"><span class="pre">d11</span></code>, <code class="docutils literal notranslate"><span class="pre">d12</span></code>, <code class="docutils literal notranslate"><span class="pre">a11</span></code>, <code class="docutils literal notranslate"><span class="pre">a12</span></code> etc. are <a class="reference internal" href="#actions">actions</a>, and <code class="docutils literal notranslate"><span class="pre">COND1</span></code>, <code class="docutils literal notranslate"><span class="pre">COND2</span></code> etc. are <em>phase line conditions</em> (see <a class="reference internal" href="#phase-line-conditions"><span class="std std-ref">Phase line conditions</span></a>).
+The actions are performed sequentially, in the order they appear. For example, the line:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LINE_LABEL s | d11,d12, COND1:a11,a12 | d21,d22, COND2:a21,a22 | d31,d32, COND3:a31,a32 | a41,a42
+</pre></div>
+</div>
+<p>is interpreted by the simulator as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Present the stimulus s
+Perform actions d11 and d12
+If COND1 is fulfilled:
+    Perform action a11
+    Perform action a12
+Otherwise:
+    Perform action d21
+    Perform action d22
+    If COND2 is fulfilled:
+        Perform action a21
+        Perform action a22
+    Otherwise:
+        Perform action d31
+        Perform action d32
+        If COND3 is fulfilled:
+            Perform action a31
+            Perform action a32
+        Otherwise:
+            Perform action a41
+            Perform action a42
+</pre></div>
+</div>
+<p>Note that one of the action types is “go to phase line with label X”.
+During the simulation, if the above logic does not determine which phase line to go to next, an error message will appear.
+For example, if <code class="docutils literal notranslate"><span class="pre">COND1</span></code> is fulfilled, <code class="docutils literal notranslate"><span class="pre">a12</span></code> cannot be any other action than a phase line label:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LINE_LABEL1 stimulus | d11,d12, COND1:a11,LINE_LABEL2
+LINE_LABEL2 ...
+</pre></div>
+</div>
+<p>Since the actions are performed sequentially, an error will appear if the action <code class="docutils literal notranslate"><span class="pre">LINE_LABEL2</span></code> is followed by additional actions
+as these additional actions will never be performed.</p>
+</div>
+<div class="section" id="phase-line-conditions">
+<span id="id2"></span><h2>Phase line conditions<a class="headerlink" href="#phase-line-conditions" title="Permalink to this headline">¶</a></h2>
+<p>A phase line condition is a
+<a class="reference internal" href="#boolean-expression">boolean expression</a>
+that may depend on the following variables:</p>
+<ul class="simple">
+<li><p>Any behavior (evaluates to <em>true</em> for the behavior that is the response to the stimulus on the line, and <em>false</em> for all other behaviors)</p></li>
+<li><p>Any phase line label (evaluates to the number of times this phase line has been visited)</p></li>
+<li><p>Any local phase variable (evaluates to the value of this variable)</p></li>
+</ul>
+<p>and the following functions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code> (See <a class="reference internal" href="#the-function-count"><span class="std std-ref">The function count</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count_line</span></code> (See <a class="reference internal" href="#the-function-count-line"><span class="std std-ref">The function count_line</span></a>)</p></li>
+</ul>
+<div class="section" id="the-function-count">
+<span id="id3"></span><h3>The function <code class="docutils literal notranslate"><span class="pre">count</span></code><a class="headerlink" href="#the-function-count" title="Permalink to this headline">¶</a></h3>
+<p>The function <code class="docutils literal notranslate"><span class="pre">count</span></code> counts occurrences of each behavior, each stimulus element, and
+number of visits to each phase line (using the phase line label as identifier). For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count(lever)
+</pre></div>
+</div>
+<p>evaluates to the number of times the stimulus element <code class="docutils literal notranslate"><span class="pre">lever</span></code> has been exposed
+to the agent (since the beginning of the phase, or since it was last reset
+using <code class="docutils literal notranslate"><span class="pre">count_reset</span></code>, see below). Similarly,:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count(pull_lever)
+</pre></div>
+</div>
+<p>evaluates to the number of times the afent has responded with the behavior <code class="docutils literal notranslate"><span class="pre">pull_lever</span></code> (to any stimulus) since the beginning of the phase, or since it was last reset.</p>
+<p>To return the number of visits to a phase line with label <code class="docutils literal notranslate"><span class="pre">LBL</span></code>, use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count(LBL)
+</pre></div>
+</div>
+<p>The counter for a specific stimulus element, behavior, or phase line may be
+reset to zero using the action <code class="docutils literal notranslate"><span class="pre">count_reset</span></code> (see <a class="reference internal" href="#the-action-count-reset"><span class="std std-ref">The action count_reset</span></a>).</p>
+</div>
+<div class="section" id="the-function-count-line">
+<span id="id4"></span><h3>The function <code class="docutils literal notranslate"><span class="pre">count_line</span></code><a class="headerlink" href="#the-function-count-line" title="Permalink to this headline">¶</a></h3>
+<p>The function <code class="docutils literal notranslate"><span class="pre">count_line</span></code> counts consecutive occurrences of each
+behavior, each stimulus element, and number of consecutive visits
+to the phase line where this function is used. It is perhaps most useful for behaviors, to count
+the number of consecutive responses to the stimulus on a phase line. For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stimulus_element = s1, s2
+behaviors = b1, b2, b3
+
+@phase ...
+LBL1 s1 | count_line(b1)==3: LBL2 | LBL1
+LBL2 s2 | LBL1
+</pre></div>
+</div>
+<p>will expose the agent to the stimulus <code class="docutils literal notranslate"><span class="pre">s1</span></code> repeatedly until the response
+to <code class="docutils literal notranslate"><span class="pre">s1</span></code> is the behavior <code class="docutils literal notranslate"><span class="pre">b</span></code> three times in a row. Then <code class="docutils literal notranslate"><span class="pre">s2</span></code> will be
+presented. A sequence of stimulus-response pairs may be:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s1 -&gt; b1 -&gt; s1 -&gt; b2 -&gt; s1 -&gt; b1 -&gt; b1 -&gt; b1 -&gt; s2 -&gt; b3
+</pre></div>
+</div>
+<p>If instead the phase lines looked like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LBL1 s1 | count_line(s1)==3: LBL2 | LBL1
+LBL2 s2 | LBL1
+</pre></div>
+</div>
+<p>the agent will be presented with <code class="docutils literal notranslate"><span class="pre">s1</span></code> three times, and regardless of
+the responses, will then be presented with <code class="docutils literal notranslate"><span class="pre">s2</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s1 -&gt; * -&gt; s1 -&gt; * -&gt; s1 -&gt; * -&gt; s2
+</pre></div>
+</div>
+<p>Note that the above example is equivalent to:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LBL1 s1 | count_line(LBL1)==3: LBL2 | LBL1
+LBL2 s2 | LBL1
+</pre></div>
+</div>
+<p>and that <code class="docutils literal notranslate"><span class="pre">count_line(LBL1)</span></code> may be abbreviated <code class="docutils literal notranslate"><span class="pre">count_line()</span></code> as the
+line label is redundant (since <code class="docutils literal notranslate"><span class="pre">count_line</span></code> count consecutive occurrences
+on the very line where it is used):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LBL1 s1 | count_line()==3: LBL2 | LBL1
+LBL2 s2 | LBL1
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="local-phase-variables">
+<span id="id5"></span><h2>Local phase variables<a class="headerlink" href="#local-phase-variables" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to use custom local variables within a phase, whose values may change during the phase.
+They may be assigned a value in an action, and may be referred to in a condition.
+Local phase variables must be initialized (have an assigned value) before they are used.
+A phase variable must have a <a class="reference internal" href="scripting-language.html#valid-names"><span class="std std-ref">valid name</span></a>.</p>
+<p>An action that assigns the value 0.1 to the local variable <code class="docutils literal notranslate"><span class="pre">x</span></code> looks as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x=0.1
+</pre></div>
+</div>
+<p>A phase with an action that sets <code class="docutils literal notranslate"><span class="pre">x</span></code> and with a
+condition that uses <code class="docutils literal notranslate"><span class="pre">x</span></code> may look like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase ...
+L0 x=0.1 | L1                        # Set x to 0.1 and go to L1
+L1 s1    | x=x+0.1, x&gt;=0.5: L2 | L1  # Present s1, increase x with 0.1. If x&gt;=0.5 go to L2, otherwise L1
+L2 s2    | L1                        # Present s2 and go to L1
+</pre></div>
+</div>
+<div class="section" id="using-local-variables-in-a-phase-stop-condition">
+<span id="using-local-phase-variables-in-phase-stop-condition"></span><h3>Using local variables in a phase stop condition<a class="headerlink" href="#using-local-variables-in-a-phase-stop-condition" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to use a local phase variable in a phase stop condition.
+For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase phase_name stop:x&gt;2
+L0 x=0.1 | L1
+L1 s1    | x=x+0.1, x&gt;=0.5: L2 | L1
+L2 s2    | L1
+</pre></div>
+</div>
+<p>The stop condition is not checked until the first stimulus is presented.
+If the phase stop condition depends on local variables, these local
+variables must therefore be initialized before the first stimulus is presented
+(like in the example above), otherwise an “Unknown variable” error will occur.</p>
+</div>
+</div>
+<div class="section" id="actions">
+<h2>Actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
+<p>An action is one of the following:</p>
+<ul class="simple">
+<li><p>Set a local phase variable (for example, <code class="docutils literal notranslate"><span class="pre">x=2</span></code>)</p></li>
+<li><p>Go to a phase line (by simply stating the corresponding phase line label)</p></li>
+<li><p>Go to one of several phase lines, with a probability for each (for example, <code class="docutils literal notranslate"><span class="pre">L1(0.25),L2(0.75)</span></code>). See <a class="reference internal" href="#probabilistic-go-tos"><span class="std std-ref">Probabilistic go-tos</span></a>.</p></li>
+<li><p>Tell the simulation to omit the state variable update in the next step with <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code>. (See <a class="reference internal" href="#omit-learn"><span class="std std-ref">The action &#64;omit_learn</span></a>.)</p></li>
+<li><p>Reset the counting of an event with <code class="docutils literal notranslate"><span class="pre">count_reset</span></code> (See <a class="reference internal" href="#the-action-count-reset"><span class="std std-ref">The action count_reset</span></a>.)</p></li>
+</ul>
+<p>Note that global variables (defined using <code class="docutils literal notranslate"><span class="pre">&#64;variables</span></code>) cannot be set in an action.</p>
+<div class="section" id="probabilistic-go-tos">
+<span id="id6"></span><h3>Probabilistic go-tos<a class="headerlink" href="#probabilistic-go-tos" title="Permalink to this headline">¶</a></h3>
+<p>A probabilistic go-to is an action of the type “go to line L1 with probability p1,
+go to line L2 with probability p2, etc.” and has the syntax:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L1(p1),L2(p2),...
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">p1</span></code>, <code class="docutils literal notranslate"><span class="pre">p2</span></code> etc. are expressions of global variables, local phase variables and numbers.</p>
+<p>For example, to go to line <code class="docutils literal notranslate"><span class="pre">L1</span></code> with probability 0.4 and to <code class="docutils literal notranslate"><span class="pre">L2</span></code> with probability 0.6, use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L1(0.4),L2(0.6)
+</pre></div>
+</div>
+<p>Note that the probabilities may be global variables or local phase variables. For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>START | p1=0.1, p2=0.7, p3=0.2 | L0
+L0 s  | L1(p1),L2(p2),L3(p3)
+L1 ...
+L2 ...
+L3 ...
+</pre></div>
+</div>
+<p>The probabilities within parentheses do not need to add up to 1:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L0 s | L1(0.1),L2(0.7) | L3
+</pre></div>
+</div>
+<p>means that the probability to go to <code class="docutils literal notranslate"><span class="pre">L3</span></code> is 0.2, so this is the same as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L0 s | L1(0.1),L2(0.7),L3(0.2)
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-action-omit-learn">
+<span id="omit-learn"></span><h3>The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code><a class="headerlink" href="#the-action-omit-learn" title="Permalink to this headline">¶</a></h3>
+<p>The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code> tells the simulator to omit the updating of the agent’s state
+variables in the next step. Typically this is done at the end of a trial, when the
+phase represents a number of trials. In that case, it is often not desired to carry
+over the reinforcement value of, say, a reward at the and of a trial to the
+first stimulus in the next.</p>
+<p>For example, in mechanisms with conditional reinforcement values (w-values),
+and we have the following stimulus-response history:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s -&gt; response -&gt; reward -&gt; eat -&gt; s
+</pre></div>
+</div>
+<p>one typically wants to avoid that the w-value for the first stimulus in the
+trial (<code class="docutils literal notranslate"><span class="pre">s</span></code>) affects</p>
+<ul class="simple">
+<li><p>the reinforcement value of <code class="docutils literal notranslate"><span class="pre">reward</span></code>, and</p></li>
+<li><p>the v-value (associative strength) between <code class="docutils literal notranslate"><span class="pre">reward</span></code> and <code class="docutils literal notranslate"><span class="pre">eat</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="the-action-count-reset">
+<span id="id7"></span><h3>The action <code class="docutils literal notranslate"><span class="pre">count_reset</span></code><a class="headerlink" href="#the-action-count-reset" title="Permalink to this headline">¶</a></h3>
+<p>The counter for a specific stimulus element, behavior, or phase line may be
+reset to zero using the action <code class="docutils literal notranslate"><span class="pre">count_reset</span></code>.</p>
+<p>For example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count_reset(pull)
+</pre></div>
+</div>
+<p>resets the counter of <code class="docutils literal notranslate"><span class="pre">pull</span></code> to zero, so that <code class="docutils literal notranslate"><span class="pre">count(pull)</span></code>
+will return zero. This action may be used like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stimulus_elements = lever, reward
+behaviors = pull, ignore
+
+@phase training stop:reward=100
+START                 | count_reset(pull), LEVER_OFF
+LEVER_OFF lever       | count(pull)=3: LEVER_ON | LEVER_OFF
+LEVER_ON  lever       | pull: REWARD | LEVER_ON
+BACKGROUND background | START
+REWARD reward         | START
+</pre></div>
+</div>
+<p>After three <code class="docutils literal notranslate"><span class="pre">pull</span></code> of the <code class="docutils literal notranslate"><span class="pre">lever</span></code>, the lever will “activate” and give reward when pulled.
+Then it is inactivated and three more <code class="docutils literal notranslate"><span class="pre">pull</span></code> are required to activate it.</p>
+<p>To reset the counter for the stimulus element <code class="docutils literal notranslate"><span class="pre">e1</span></code>, use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count_reset(e1)
+</pre></div>
+</div>
+<p>To reset the counter for the phase line with label <code class="docutils literal notranslate"><span class="pre">LBL</span></code>, use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count_reset(LBL)
+</pre></div>
+</div>
+<p>Note that resetting one stimulus element (or behavior or phase line) will not
+affect any other.</p>
+</div>
+</div>
+<div class="section" id="inheriting-a-phase">
+<span id="id8"></span><h2>Inheriting a phase<a class="headerlink" href="#inheriting-a-phase" title="Permalink to this headline">¶</a></h2>
+<p>If you have several &#64;phase-blocks that are very similar to each other, there is a way to avoid
+duplicating each phase line, and instead only state the lines that differ between the phases.
+This is done through <em>phase inheritance</em>. Do create a phase with name <code class="docutils literal notranslate"><span class="pre">phase2</span></code> that inherits
+from from a phase with label <code class="docutils literal notranslate"><span class="pre">phase1</span></code>, use:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@phase phase2(phase1) ...
+</pre></div>
+</div>
+<p>For example, suppose we have the following phase block in a script:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@PHASE training stop: stimulus=50
+new_trial   stimulus   | response1: REWARD1 | response2: REWARD2 | response3: REWARD3 | NO_REWARD
+REWARD1     reward1    | new_trial
+REWARD2     reward2    | new_trial
+REWARD3     reward3    | new_trial
+NO_REWARD   background | new_trial
+</pre></div>
+</div>
+<p>and we want to create a new phase <code class="docutils literal notranslate"><span class="pre">training2</span></code> that is the same as the above but where the line with label <code class="docutils literal notranslate"><span class="pre">REWARD3</span></code> should read:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>REWARD3     reward4    | new_trial
+</pre></div>
+</div>
+<p>This can be accomplished by simply re-stating the entire phase block <code class="docutils literal notranslate"><span class="pre">training</span></code>, and make the change. However, this requires
+a lot of lines and a change in a part of the phase block that should be the same must be performed in each
+phase block. Therefore, using phase inheritance is better:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@PHASE training2(training) stop: stimulus=50
+REWARD3     reward4    | new_trial
+</pre></div>
+</div>
+<p>The above phase block represents the same phase as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@PHASE training2 stop: stimulus=50
+new_trial   stimulus   | response1: REWARD1 | response2: REWARD2 | response3: REWARD3 | NO_REWARD
+REWARD1     reward1    | new_trial
+REWARD2     reward2    | new_trial
+REWARD3     reward4    | new_trial
+NO_REWARD   background | new_trial
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block</a><ul>
+<li><a class="reference internal" href="#the-phase-title-line">The <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> title line</a><ul>
+<li><a class="reference internal" href="#the-phase-name">The phase name</a></li>
+<li><a class="reference internal" href="#the-phase-stop-condition">The phase stop condition</a></li>
+<li><a class="reference internal" href="#boolean-expression">Boolean expression</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#a-phase-line">A phase line</a></li>
+<li><a class="reference internal" href="#phase-line-conditions">Phase line conditions</a><ul>
+<li><a class="reference internal" href="#the-function-count">The function <code class="docutils literal notranslate"><span class="pre">count</span></code></a></li>
+<li><a class="reference internal" href="#the-function-count-line">The function <code class="docutils literal notranslate"><span class="pre">count_line</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#local-phase-variables">Local phase variables</a><ul>
+<li><a class="reference internal" href="#using-local-variables-in-a-phase-stop-condition">Using local variables in a phase stop condition</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#actions">Actions</a><ul>
+<li><a class="reference internal" href="#probabilistic-go-tos">Probabilistic go-tos</a></li>
+<li><a class="reference internal" href="#the-action-omit-learn">The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code></a></li>
+<li><a class="reference internal" href="#the-action-count-reset">The action <code class="docutils literal notranslate"><span class="pre">count_reset</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#inheriting-a-phase">Inheriting a phase</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/phase.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

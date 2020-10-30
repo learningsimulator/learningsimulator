@@ -51,6 +51,7 @@ VSSEXPORT = '@vssexport'
 # Other
 DEFAULT = 'default'
 RAND = 'rand'
+CHOICE = 'choice'
 COUNT = 'count'
 COUNT_LINE = 'count_line'
 

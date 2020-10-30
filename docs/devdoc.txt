@@ -36,23 +36,39 @@ C:\Users\markj\lesim> C:\Python38\python.exe -m unittest -v
 (-v is verbose)
 
 
+*************************
 Build EXE-file on Windows
-=========================
-(Start C:\Pipwin\pip-Win_1.9.exe with
+*************************
+Start C:\Pipwin\pip-Win_1.9.exe which starts a GUI in which enter:
     Python interpreter: C:\Python38\python.exe
     Command: venv lesim-bundle
-)
+Click Run - starts a command prompt.
 Make sure lesim.spec contains "datas=[('Lemur-icon.gif', '.')]"
-C:\Users\markj\lesim\lesim2>pyinstaller -F -w --add-data Lemur-icon.gif;. lesim.py
-(The option -w makes sure that the created exe-file will not open a console window (stdin/out for Python))
-This creates C:\Users\markj\lesim\dist\lesim.exe
+At the started command prompt:
+   C:\Users\markj\lesim\lesim2> C:\Python38\Scripts\pyinstaller.exe -F -w --add-data Lemur-icon.gif;. lesim.py
+   (The option -w makes sure that the created exe-file will not open a console window (stdin/out for Python))
+This creates C:\Users\markj\lesim\lesim2\dist\lesim.exe
 
+copy C:\Users\markj\lesim\lesim2\dist\lesim.exe  C:\Users\markj\lesim\learningsimulator.exe
 
+*****
 Debug
-=====
+*****
 python -m pdb my_program.py
 python -m winpdb my_program.py (Graphical debugger on Windows)
 
 Winpdb no install mode
 ----------------------
 python /the/path/to/winpdb.py my_program.py
+
+
+**********
+Docs build
+**********
+
+(Requires packages sphinx and recommonmark.)
+
+In the docs folder, run
+
+make html (which is short for
+sphinx-build -b html C:\...\docs C:\...\docs\_build)
