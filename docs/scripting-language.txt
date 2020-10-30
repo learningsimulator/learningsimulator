@@ -15,8 +15,8 @@ Structure of a script
 The main components of a script are the following:
 
 - Assigning values to :doc:`parameters <parameters>` and :doc:`global variables <variables>`.
-- One or more :doc:`phase blocks<phase>` which specifies the environment with which the agent interacts, in particular the sequence of stimuli to present to the agent, and how it depends on the agent's behavior.
-- Run the simulation using one or several :doc:`run` commands.
+- One or more :doc:`phase blocks<phase>` which specifiy the environment with which the agent interacts, in particular the sequence of stimuli to present to the agent, and how it depends on the agent's behavior.
+- Run the simulation using one or several :doc:`@run<run>` commands.
 - :doc:`postprocessing`: Plotting and/or exporting the simulation data.
 
 The below example script highlights the typical structure.
@@ -69,7 +69,7 @@ but in general the syntax is::
 
   L1 e1[i1],e2[i2],...en[in] | L2  
 
-where ``e1``, ``e2``, etc. are stimulus elements, and ``i1``, ``i2``, etc. are :ref:`scalar expressions<scalar-expressions>`.
+where ``e1``, ``e2``, etc. are stimulus elements, and the intensities ``i1``, ``i2``, etc. are :ref:`scalar expressions<scalar-expressions>`.
 
 
 Spaces
