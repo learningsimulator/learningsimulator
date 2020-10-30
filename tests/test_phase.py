@@ -35,14 +35,14 @@ class TestBasic(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 19):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_first_line(self):
@@ -54,14 +54,14 @@ class TestBasic(LsTestCase):
         new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 19):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1}, f"{i}")
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_variables(self):
@@ -74,14 +74,14 @@ class TestBasic(LsTestCase):
         new_trial   e1 | L2
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 19):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1}, f"{i}")
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
         text = '''
@@ -95,14 +95,14 @@ class TestBasic(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 10):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
 
@@ -117,15 +117,15 @@ class TestBasic(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         for i in range(1, 10):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
         self.assertEqual(phase.local_variables.values['local_var'], 5)
 
@@ -137,10 +137,10 @@ class TestBasic(LsTestCase):
         L1 e1               | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for _ in range(1, 10):
-            stimulus, _, _ = phase.next_stimulus('b1')
-        stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
 
@@ -163,17 +163,17 @@ class TestInheritance(LsTestCase):
         '''
         phase = parse(text, 'bar')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
         text = '''
@@ -190,17 +190,17 @@ class TestInheritance(LsTestCase):
         '''
         phase = parse(text, 'bar')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_multiple_space(self):
@@ -218,17 +218,17 @@ class TestInheritance(LsTestCase):
         '''
         phase = parse(text, 'bar')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_wrong_parent_name(self):
@@ -354,12 +354,12 @@ class TestInheritance(LsTestCase):
         beta: 1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         msg = "Unknown variable 'local_var'."
         with self.assertRaisesMsg(msg):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
 
 
 class TestHelpLine(LsTestCase):
@@ -376,14 +376,14 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 19):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
         text = '''
@@ -396,14 +396,14 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for i in range(1, 19):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             if i % 2 == 0:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_ignore_response_increment(self):
@@ -416,20 +416,20 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)  # First stimulus
+        stimulus = phase.next_stimulus(None)[0]  # First stimulus
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNotNone(stimulus)  # Now count(b1) is 6
 
         # With two consecutive help lines
@@ -443,20 +443,20 @@ class TestHelpLine(LsTestCase):
         L2 e2  | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)  # First stimulus
+        stimulus = phase.next_stimulus(None)[0]  # First stimulus
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNotNone(stimulus)  # Now count(b1) is 6
 
         # With two consecutive help lines
@@ -470,20 +470,20 @@ class TestHelpLine(LsTestCase):
         L2 e2  | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)  # First stimulus
+        stimulus = phase.next_stimulus(None)[0]  # First stimulus
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNotNone(stimulus)  # Now count(b1) is 6
 
     def test_count_in_logic(self):
@@ -496,19 +496,19 @@ class TestHelpLine(LsTestCase):
         L3 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)  # First stimulus
+        stimulus = phase.next_stimulus(None)[0]  # First stimulus
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_count_reset(self):
@@ -523,26 +523,26 @@ class TestHelpLine(LsTestCase):
         L3 e2              | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         for _ in range(1, 5):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         for _ in range(5):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         for _ in range(5):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
         # Reset a behavior
@@ -556,10 +556,10 @@ class TestHelpLine(LsTestCase):
         L3 e2              | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)  # First stimulus
+        stimulus = phase.next_stimulus(None)[0]  # First stimulus
         self.assertEqual(stimulus, {'e1': 1})
         for i in range(2, 100):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             if i % 6 == 0:
                 self.assertEqual(stimulus, {'e2': 1})
             else:
@@ -579,12 +579,12 @@ class TestHelpLine(LsTestCase):
         for _ in range(1, 10):
             for i in range(5):
                 if first:
-                    stimulus, _, _ = phase.next_stimulus(None)
+                    stimulus = phase.next_stimulus(None)[0]
                     first = False
                 else:
-                    stimulus, _, _ = phase.next_stimulus('b1')
+                    stimulus = phase.next_stimulus('b1')[0]
                 self.assertEqual(stimulus, {'e1': 1})
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e2': 1})
 
         # Reset a line label
@@ -601,15 +601,15 @@ class TestHelpLine(LsTestCase):
         first = True
         for i in range(1, 100):
             if first:
-                stimulus, _, _ = phase.next_stimulus(None)
+                stimulus = phase.next_stimulus(None)[0]
                 first = not first
             else:
-                stimulus, _, _ = phase.next_stimulus('b1')
+                stimulus = phase.next_stimulus('b1')[0]
             if i % 10 == 0:
                 self.assertEqual(stimulus, {'e2': 1})
             else:
                 self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_count_line(self):
@@ -621,18 +621,18 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         # Test same thing but with count(b1)=3 instead of count_line(b1)=3
@@ -644,18 +644,18 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
     def test_count_line_noarg(self):
@@ -667,21 +667,21 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -692,24 +692,24 @@ class TestHelpLine(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertIsNone(stimulus)
 
     def test_multiple_actions1(self):
@@ -722,10 +722,10 @@ class TestHelpLine(LsTestCase):
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'p1': 1, 'p2': 2})
 
@@ -742,33 +742,33 @@ class TestHelpLine(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 2})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(7):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e2': 1})
             self.assertEqual(phase.local_variables.values, {'x1': i + 2, 'x2': 2})
 
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertIsNone(stimulus)
 
     def test_multiple_actions3(self):
@@ -783,35 +783,35 @@ class TestHelpLine(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b2')
-        self.assertEqual(stimulus, {'e1': 1})
-
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b2')[0]
+        self.assertEqual(stimulus, {'e1': 1})
+
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 10, 'x2': 10})
 
@@ -828,68 +828,127 @@ class TestHelpLine(LsTestCase):
         '''
         phase = parse(text, 'phase_label')
 
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 3, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 3, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 5, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 5, 'x2': 0})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 42, 'x2': 2.5})
 
-        # A e1       | p1:1, p2:2, B,A(1.1)  # fel
-        # A e1       | p1:1, p2:2, B(1.1),A(1.1)  # samma fel
+    def test_multiple_actions_error1(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | b1: x1:1, x2:2, B  # Should give error
-        # A e1       | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B  # Should give error
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | x1=1, x2=2, B,A(1.1)
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Invalid condition 'B,A(1.1)'."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
 
-        # A e1       | b1=5: x1:1, x2:2, B | C  # Should give error
+    def test_multiple_actions_error2(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | x1=1, x2=rand(1,3),  b1=5: x2:2, B | C  # to test split with comma
-        # A e1       | x1=1, x2=rand(1,3) | b1=5: x2:2, B | C  # should be same as above
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | p1:1, p2:2, B(1.1),A(1.1)
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Invalid condition 'B(1.1),A(1.1)'. Expected a probability, got '1.1'."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
 
-        # A e1       | x1:1, x2=rand(1,3) | b1=5: x:10, B(0.5),C(0.5)
+    def test_multiple_actions_error3(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
 
-        # A e1       | B | C  # Fel
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | blaj1 blaj2 = blaj3 blaj4: x1:1, x2:2, B
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: Error in expression 'blaj1 blaj2 == blaj3 blaj4': invalid syntax."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
+
+    def test_multiple_actions_error4(self):
+        text = '''
+        behaviors         : b1, b2
+        stimulus_elements : e1, e2, e3
+
+        @PHASE phase_label stop:e1=100
+        S                 | x1 = 0, x2 = 0, A
+        A e1              | B | C
+        B e2              | A
+        C e3              | A
+        '''
+        msg = "Error on line 7: The unconditional goto row label 'B' cannot be continued."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'phase_label')
+
+    # b1==5 should raise error
+    # def test_multiple_actions_error5(self):
+    #     text = '''
+    #     behaviors         : b1, b2
+    #     stimulus_elements : e1, e2, e3
+
+    #     @PHASE phase_label stop:e1=100
+    #     S                 | x1 = 0, x2 = 0, A
+    #     A e1              | b1=5: x1:1, x2:2, B | C  # Should give error
+    #     B e2              | A
+    #     C e3              | A
+    #     '''
+    #     phase = parse(text, 'phase_label')
 
 
 class TestMultipleActions(LsTestCase):
@@ -910,10 +969,10 @@ class TestMultipleActions(LsTestCase):
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'p1': 1, 'p2': 2})
 
@@ -928,10 +987,10 @@ class TestMultipleActions(LsTestCase):
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 2})
 
@@ -946,35 +1005,35 @@ class TestMultipleActions(LsTestCase):
         B e2       | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 2})
 
@@ -990,31 +1049,31 @@ class TestMultipleActions(LsTestCase):
         C e1       | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertTrue('x1' in phase.local_variables.values)
         self.assertTrue('x2' in phase.local_variables.values)
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 1, 'x2': 42})
 
@@ -1030,35 +1089,35 @@ class TestMultipleActions(LsTestCase):
         C e3   | x3:choice(20,22,24), A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values, dict())
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
         self.assertTrue('x1' in phase.local_variables.values)
         self.assertTrue('x2' in phase.local_variables.values)
         self.assertTrue('x3' not in phase.local_variables.values)
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
         self.assertEqual(phase.local_variables.values['x1'], 1)
         self.assertTrue(phase.local_variables.values['x2'] in (11, 12))
         self.assertTrue(phase.local_variables.values['x3'] in (20, 22, 24))
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e3': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
         self.assertEqual(phase.local_variables.values['x1'], 1)
         self.assertTrue(phase.local_variables.values['x2'] in (5, 6))
@@ -1125,13 +1184,13 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         # text = '''
@@ -1144,13 +1203,13 @@ class TestMultipleActions(LsTestCase):
         # B e2   | A
         # '''
         # phase = parse(text, 'phase_label')
-        # stimulus, _, _ = phase.next_stimulus(None)
+        # stimulus = phase.next_stimulus(None)[0]
         # self.assertTrue(stimulus == {'e1': 1})
-        # stimulus, _, _ = phase.next_stimulus('b1')
+        # stimulus = phase.next_stimulus('b1')[0]
         # self.assertTrue(stimulus == {'e1': 1})
-        # stimulus, _, _ = phase.next_stimulus('b1')
+        # stimulus = phase.next_stimulus('b1')[0]
         # self.assertTrue(stimulus == {'e1': 1})
-        # stimulus, _, _ = phase.next_stimulus('b2')
+        # stimulus = phase.next_stimulus('b2')[0]
         # self.assertTrue(stimulus == {'e2': 1})
 
         text = '''
@@ -1163,14 +1222,14 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1183,14 +1242,14 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1203,14 +1262,14 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1223,14 +1282,14 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1243,14 +1302,14 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             self.assertEqual(stimulus, {'e1': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, None)
 
         text = '''
@@ -1263,17 +1322,17 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2', 'b3'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             if i % 2:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1286,17 +1345,17 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2', 'b3'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             if i % 2:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1309,17 +1368,17 @@ class TestMultipleActions(LsTestCase):
         B e2   | A
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
         for i in range(100):
             response = choice(['b1', 'b2', 'b3'])
-            stimulus, _, _ = phase.next_stimulus(response)
+            stimulus = phase.next_stimulus(response)[0]
             if i % 2:
                 self.assertEqual(stimulus, {'e1': 1})
             else:
                 self.assertEqual(stimulus, {'e2': 1})
-        stimulus, _, _ = phase.next_stimulus('b3')
+        stimulus = phase.next_stimulus('b3')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -1365,34 +1424,34 @@ class TestMultipleActions(LsTestCase):
         E3 e3      | E0
         '''
         phase = parse(text, 'phase_label')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e0': 1})
         self.assertEqual(phase.local_variables.values, {'x1': 0, 'x2': 0})
 
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b1')
+            stimulus = phase.next_stimulus('b1')[0]
             self.assertEqual(stimulus, {'e1': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 3})
 
-            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            stimulus = phase.next_stimulus(choice(['b1', 'b2', 'b3']))[0]
             self.assertEqual(stimulus, {'e0': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 2, 'x2': 3})
 
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b2')
+            stimulus = phase.next_stimulus('b2')[0]
             self.assertEqual(stimulus, {'e2': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 4})
 
-            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            stimulus = phase.next_stimulus(choice(['b1', 'b2', 'b3']))[0]
             self.assertEqual(stimulus, {'e0': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 4, 'x2': 4})
 
         for _ in range(42):
-            stimulus, _, _ = phase.next_stimulus('b3')
+            stimulus = phase.next_stimulus('b3')[0]
             self.assertEqual(stimulus, {'e3': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 33, 'x2': 4})
 
-            stimulus, _, _ = phase.next_stimulus(choice(['b1', 'b2', 'b3']))
+            stimulus = phase.next_stimulus(choice(['b1', 'b2', 'b3']))[0]
             self.assertEqual(stimulus, {'e0': 1})
             self.assertEqual(phase.local_variables.values, {'x1': 33, 'x2': 4})
 
@@ -2312,7 +2371,7 @@ class TestExceptions(LsTestCase):
         L2  e2                 | L1
         '''
         phase = parse(text, 'thelabel')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
         msg = "No condition in 'b3=7:L2 | b2=42:L2' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
@@ -2332,7 +2391,7 @@ class TestExceptions(LsTestCase):
         @run vi
         """
         phase = parse(text, 'vi')
-        stimulus, _, _ = phase.next_stimulus(None)
+        stimulus = phase.next_stimulus(None)[0]
         msg = "No condition in 'ON(1/6),FI2(1/6),FI3(1/6)' was met for response 'R'."
         with self.assertRaisesMsg(msg):
             for _ in range(100):
@@ -2404,7 +2463,7 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'thelabel')
         phase.next_stimulus(None)
-        stimulus, _, _ = phase.next_stimulus('b1')
+        stimulus = phase.next_stimulus('b1')[0]
         self.assertEqual(stimulus, {'e2': 1})
 
         text = '''
@@ -2416,7 +2475,7 @@ class TestExceptions(LsTestCase):
         '''
         phase = parse(text, 'thelabel')
         phase.next_stimulus(None)
-        stimulus, _, _ = phase.next_stimulus('b2')
+        stimulus = phase.next_stimulus('b2')[0]
         self.assertEqual(stimulus, {'e1': 1})
 
     def test_invalid_condition(self):

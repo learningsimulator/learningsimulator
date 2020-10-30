@@ -121,13 +121,13 @@ class TestClassicalConditioning(LsTestCase):
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)
-        self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', []))
+        self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], True))
 
         for _ in range(24):
             s = world.next_stimulus('foo')
-            self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', []))
+            self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], False))
         s = world.next_stimulus('foo')
-        self.assertEqual(s, ({"us": 1, "context": 1}, 'pretraining', 'US', []))
+        self.assertEqual(s, ({"us": 1, "context": 1}, 'pretraining', 'US', [], False))
 
         s = world.next_stimulus('R')
         self.assertEqual(s[0], {"reward": 1, "context": 1})

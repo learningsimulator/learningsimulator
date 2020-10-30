@@ -15,9 +15,9 @@ from tkinter import messagebox, filedialog
 
 # import matplotlib.pyplot as plt
 
-from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg
+from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg, WarningDlg
 from parsing import Script
-from exceptions import ParseException, InterruptedSimulation
+from exceptions import ParseException, EvalException, InterruptedSimulation
 
 from functools import partial
 
@@ -240,6 +240,11 @@ class Gui():
             script = self.scriptField.text_box.get("1.0", "end-1c")
             self.script_obj = Script(script)
             self.script_obj.parse()
+
+            msg = self.script_obj.check_deprecated_syntax()
+            if msg is not None:
+                WarningDlg(msg)
+
         except Exception as ex:
             self.handle_exception(ex)
             return
@@ -339,7 +344,7 @@ class Gui():
         if err_msg.startswith("[Errno "):
             rindex = err_msg.index("] ")
             err_msg = err_msg[(rindex + 2):]
-        elif not isinstance(ex, ParseException):
+        elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
             err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
 
         if stack_trace is None:

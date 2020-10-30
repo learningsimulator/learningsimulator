@@ -321,15 +321,15 @@ class TestInitialValues(LsTestCase):
         behavior_cost     : ignore:0, default: 0
         u                 : reward:5, default:0
 
-        @phase chaining_experiment stop: new_trial=120
-        new_trial  s_start    | STEP1
-        STEP1      s1         | b1: STEP2   |  new_trial
-        STEP2      s2         | b2: OUTCOME |  new_trial
-        OUTCOME               | count(new_trial)<=60: REWARD | NO_REWARD
-        REWARD     reward     | new_trial
-        NO_REWARD  no_reward  | new_trial
+        @phase chaining_experiment stop: nju_trial=120
+        nju_trial  s_start    | STEP1
+        STEP1      s1         | b1: STEP2   |  @omit_learn, nju_trial
+        STEP2      s2         | b2: OUTCOME |  @omit_learn, nju_trial
+        OUTCOME               | count(nju_trial)<=60: REWARD | NO_REWARD
+        REWARD     reward     | @omit_learn, nju_trial
+        NO_REWARD  no_reward  | @omit_learn, nju_trial
 
-        bind_trials: off   #try also with on
+        bind_trials: off
         @run chaining_experiment
 
         xscale: s1

@@ -10,7 +10,7 @@ from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
-from util import ParseUtil, eval_average
+from util import ParseUtil  # , eval_average
 
 
 def clean_script(text):
@@ -57,8 +57,11 @@ class Script():
         self.script = script
         self.script_parser = ScriptParser(self.script)
 
-    def parse(self):
+    def parse(self, is_gui=False):
         self.script_parser.parse()
+
+    def check_deprecated_syntax(self):
+        return self.script_parser.check_deprecated_syntax()
 
     def run(self, progress=None):
         return self.script_parser.runs.run(progress)
@@ -339,6 +342,9 @@ class ScriptParser():
 
             else:
                 raise ParseException(lineno, f"Invalid expression '{line}'.")
+
+    def check_deprecated_syntax(self):
+        return self.phases.check_deprecated_syntax()
 
     def _evalparse(self, lineno, parameters):
         """Handles parameters that depend on currently defined runs."""
