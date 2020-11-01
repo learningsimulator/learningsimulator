@@ -360,6 +360,35 @@ class Enquist(Mechanism):
             delta = alpha_w[element] * (usum + discount * wsum - c[self.response] - wsum_prev)
             self.w[element] += delta
 
+    def learn_i(self, stimulus):
+        u = self.parameters.get(kw.U)
+        c = self.parameters.get(kw.BEHAVIOR_COST)
+        alpha_w = self.parameters.get(kw.ALPHA_W)
+        alpha_v = self.parameters.get(kw.ALPHA_V)
+        discount = self.parameters.get(kw.DISCOUNT)
+
+        usum, wsum = 0, 0
+        for element in stimulus:
+            usum += u[element]
+            wsum += self.w[element]
+        wsum *= discount
+
+        vsum_i, wsum_i = 0, 0
+        for element, intensity in self.prev_stimulus_intensities.items():
+            vsum_i += self.v[(element, self.response)] * intensity
+            wsum_i += self.w[element] * intensity
+
+        # v
+        for element, intensity in self.prev_stimulus_intensities.items():
+            alpha_v_er = alpha_v[(element, self.response)]
+            delta = alpha_v_er * (usum + wsum - c[self.response] - vsum_i) * intensity
+            self.v[(element, self.response)] += delta
+        # w
+        for element, intensity in self.prev_stimulus_intensities.items():
+            alpha_w_e = alpha_w[element]
+            delta = alpha_w_e * (usum + wsum - c[self.response] - wsum_i) * intensity
+            self.w[element] += delta
+
     def has_w(self):
         return True
 
