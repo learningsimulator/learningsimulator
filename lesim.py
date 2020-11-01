@@ -28,8 +28,10 @@ if __name__ == "__main__":
     args = sys.argv
     nargs = len(args)
     assert(nargs >= 1)
-    if not getattr(sys, 'frozen', False):
+    is_bundle = getattr(sys, 'frozen', False)
+    if not is_bundle:
         assert(args[0].endswith("lesim.py"))
+
     guiObj = None
     if nargs == 1:
         guiObj = gui.Gui()
@@ -48,11 +50,17 @@ if __name__ == "__main__":
                 script = file_obj.read()
                 script_obj = parsing.Script(script)
                 script_obj.parse()
+
+                msg = script_obj.check_deprecated_syntax()
+                if msg is not None:
+                    print(msg)
+
                 progress = gui.ProgressConsole(script_obj)
                 progress.start()
                 simulation_data = script_obj.run(progress)
                 script_obj.postproc(simulation_data, progress)
                 progress.set_done(True)
+
                 block = (i == nfiles - 1)
                 script_obj.plot(block)
         elif arg1 == HELP:

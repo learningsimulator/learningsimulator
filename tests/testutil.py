@@ -1,6 +1,7 @@
 import os.path
 import unittest
 import matplotlib.pyplot as plt
+import re
 
 from parsing import Script
 
@@ -70,9 +71,8 @@ class LsTestCase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def assertRaisesX(self, ex, msg):
-        # return super().assertRaisesRegex(ex, "^" + msg + "$")
-        return super().assertRaisesRegex(ex, msg + "$")  # XXX
+    def assertRaisesMsg(self, msg):
+        return super().assertRaisesRegex(Exception, re.escape(msg))
 
     def assertAlmostEqualList(self, list1, list2, places=7):
         self.assertEqual(len(list1), len(list2))
@@ -88,3 +88,14 @@ class LsTestCase(unittest.TestCase):
         for filename in filenames:
             fullpath = "./tests/exported_files/{}".format(filename)
             self.assertTrue(os.path.isfile(fullpath))
+
+    def assertIncreasing(self, list1):
+        is_increasing = True
+        if len(list1) > 0:
+            prev = list1[0]
+            for x in list1[1:]:
+                is_increasing = (x >= prev)
+                if not is_increasing:
+                    break
+                prev = x
+        self.assertTrue(is_increasing)

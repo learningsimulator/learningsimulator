@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>phases &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">phases</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="phases">
+<h1>phases<a class="headerlink" href="#phases" title="Permalink to this headline">¶</a></h1>
+<p>Specifies the phases to use in plotting commands.</p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = all
+phases = phase_label_1
+phases = phase_label_1, phase_label_2, ...
+</pre></div>
+</div>
+<p>where each <code class="docutils literal notranslate"><span class="pre">phase_label_i</span></code> is a <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> label.</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">all</span></code></p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">phases</span> <span class="pre">=</span> <span class="pre">all</span></code></p>
+<p>plots the value of the the variable in question at each stimulus and each response in the stimulus-response history.</p>
+<hr class="docutils" />
+<p><code class="docutils literal notranslate"><span class="pre">phases</span> <span class="pre">=</span> <span class="pre">phase_label_1</span></code></p>
+<p>(where <code class="docutils literal notranslate"><span class="pre">phase_label_1</span></code> is a <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> label) plots the value of the variable in question only within the phase with label <code class="docutils literal notranslate"><span class="pre">phase_label_1</span></code>.</p>
+<hr class="docutils" />
+<p><code class="docutils literal notranslate"><span class="pre">phases</span> <span class="pre">=</span> <span class="pre">phase_label_1,</span> <span class="pre">phase_label_2,</span> <span class="pre">...</span></code></p>
+<p>(where <code class="docutils literal notranslate"><span class="pre">phase_label_1</span></code>, <code class="docutils literal notranslate"><span class="pre">phase_label_2</span></code>, … are <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> labels) plots the value of the variable in question
+within the phase with label <code class="docutils literal notranslate"><span class="pre">phase_label_1</span></code>, followed by the phase with label <code class="docutils literal notranslate"><span class="pre">phase_label_2</span></code>, and so on,
+<cite>in that order</cite>. In other words, the order of the phase labels matters:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = phase_label_1, phase_label_2
+</pre></div>
+</div>
+<p>is not the same as</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = phase_label_2, phase_label_1
+</pre></div>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = all
+@wplot e1
+</pre></div>
+</div>
+<p>will plot the w-value of <code class="docutils literal notranslate"><span class="pre">e1</span></code> within all phases.</p>
+</div>
+<div class="section" id="id1">
+<h2>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = phase1
+@wplot e1
+</pre></div>
+</div>
+<p>will plot the w-value of <code class="docutils literal notranslate"><span class="pre">e1</span></code> only within the phase with label <code class="docutils literal notranslate"><span class="pre">phase1</span></code>.</p>
+</div>
+<div class="section" id="id2">
+<h2>Example<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>phases = phase2, phase1
+@wplot e1
+</pre></div>
+</div>
+<p>will plot the w-value of <code class="docutils literal notranslate"><span class="pre">e1</span></code> within the phase with label <code class="docutils literal notranslate"><span class="pre">phase2</span></code> followed by the phase with label <code class="docutils literal notranslate"><span class="pre">phase1</span></code>,
+in that order.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">phases</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#default">Default</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#id1">Example</a></li>
+<li><a class="reference internal" href="#id2">Example</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/phases.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">phases</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

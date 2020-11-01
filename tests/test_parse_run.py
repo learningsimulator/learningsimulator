@@ -1,6 +1,6 @@
 from .testutil import LsTestCase
 from parsing import Script
-from mechanism import Enquist, RescorlaWagner, ActorCritic, Qlearning, EXP_SARSA
+from mechanism import Enquist, StimulusResponse, ActorCritic, Qlearning, EXP_SARSA
 import keywords as kw
 
 # @RUN  phase1,phase2,... [runlabel:lbl]
@@ -134,7 +134,7 @@ class TestBasic(LsTestCase):
         run, parameters = parse(text, 'run1')
         self.assertEqual(run.world.nphases, 2)
         self.assertEqual(run.world.curr_phaseind, 0)
-        self.assertTrue(isinstance(run.mechanism_obj, RescorlaWagner))
+        self.assertTrue(isinstance(run.mechanism_obj, StimulusResponse))
         self.assertFalse(run.has_w)
         self.assertEqual(run.n_subjects, 1)
 
@@ -207,7 +207,7 @@ class TestBasic(LsTestCase):
         @run phase1
         '''
         run, _ = parse(text, 'run1')
-        self.assertTrue(isinstance(run.mechanism_obj, RescorlaWagner))
+        self.assertTrue(isinstance(run.mechanism_obj, StimulusResponse))
         self.assertFalse(run.has_w)
 
         text = '''
@@ -294,8 +294,8 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "@RUN line must have the form '@RUN phases \[runlabel:label\]."
-        with self.assertRaisesX(Exception, msg):
+        msg = "@RUN line must have the form '@RUN phases [runlabel:label]."
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, '_')
 
     def test_redefinition_of_phase(self):
@@ -318,7 +318,7 @@ class TestExceptions(LsTestCase):
         @run phase4, phase1
         '''
         msg = "Redefinition of phase 'phase3'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
     def test_undefined_phase_label(self):
@@ -332,7 +332,7 @@ class TestExceptions(LsTestCase):
         @run foo runlabel:run1
         '''
         msg = "Phase foo undefined."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, 'run1')
 
     def test_empty_mechanism_name(self):
@@ -346,7 +346,7 @@ class TestExceptions(LsTestCase):
         @run phase1 runlabel:run1
         '''
         msg = "Parameter 'mechanism' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
     def test_duplicated_run_label(self):
@@ -364,7 +364,7 @@ class TestExceptions(LsTestCase):
         @run phase2 runlabel:    mylabel
         '''
         msg = "Duplication of run label 'mylabel'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
     def test_multiple_labels(self):
@@ -382,7 +382,7 @@ class TestExceptions(LsTestCase):
         @run phase2 runlabel:run1 runlabel:run2
         '''
         msg = "Maximum one instance of 'runlabel:' on a @run line."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
     def test_redefine_stimulus_elements_or_behaviors(self):
@@ -400,5 +400,5 @@ class TestExceptions(LsTestCase):
         @run phase1
         '''
         msg = "The parameter 'behavior_cost' does not match 'behaviors'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')

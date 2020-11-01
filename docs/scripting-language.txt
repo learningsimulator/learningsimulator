@@ -1,113 +1,286 @@
-######################
-The Scripting Language
-######################
+:orphan:
 
-This section describes the scripting language used to specify the system to simulate.
+***********************************
+Scripting Language Reference Manual
+***********************************
 
-Using the scripting language, you can do the following:
+This section describes the structure of a simulation script and the
+scripting language that is used to specify the system to simulate.
 
-- Set the value of parameters and variables
-- Specify the sequence of stimuli to present to the subject
-- Run the simulation to produce simulation data
-- Plot or export the simulation data
+.. _structure-of-a-script:
+
+Structure of a script
+*********************
+
+The main components of a script are the following:
+
+- Assigning values to :doc:`parameters <parameters>` and :doc:`global variables <variables>`.
+- One or more :doc:`phase blocks<phase>` which specifiy the environment with which the agent interacts, in particular the sequence of stimuli to present to the agent, and how it depends on the agent's behavior.
+- Run the simulation using one or several :doc:`@run<run>` commands.
+- :doc:`postprocessing`: Plotting and/or exporting the simulation data.
+
+The below example script highlights the typical structure.
+
+.. image:: script-structure.png
 
 
-**********
+Basic script language syntax
+****************************
+
+The specification of a simulation consists of the components described in :ref:`structure-of-a-script`.
+This section describes the basic syntax in the scripting language used in these components.
+
+.. _stimulus-specification:
+
+Stimulus specification
+----------------------
+
+Stimuli are specified in various parts of the script, mainly on a :ref:`phase line<phase-line>` in a :doc:`phase block<phase>`,
+where it tells the simulator which stimulus to present to the agent.
+
+A stimulus consists of one or several stimulus elements. (The stimulus elements are specified with the parameter :doc:`stimulus_elements`.)
+A stimulus that consists of more than one element is called a *compound stimulus*.
+In a stimulus specification, each stimulus element has an *intensity* (which is any number).
+If no intensity is specified, the intensity 1 is assumed.
+
+A stimulus is specified as a comma-separated list of stimulus elements, optionally with the intensity in brackets after the stimulus element name,
+for example ``e1,e2``, or ``e1[0.3],e2,e3[0.9]``.
+
+.. note::
+
+  The order of the elements in a compound stimulus has no effect on the stimulus representation, so::
+  
+    e1[0.3],e2,e3[0.9]
+  
+  represents the same stimulus as::
+  
+    e3[0.9],e2,e1[0.3]
+
+A stimulus is often a single stimulus element, so a phase line
+that exposes the agent to a stimulus may look like::
+
+  L1 e | L2
+
+If the stimulus to present to the agent is a compound stimulus of the elements ``e1``, ``e2``, and ``e3``, it looks like::
+
+  L1 e1,e2,e3 | L2
+
+but in general the syntax is::
+
+  L1 e1[i1],e2[i2],...en[in] | L2  
+
+where ``e1``, ``e2``, etc. are stimulus elements, and the intensities ``i1``, ``i2``, etc. are :ref:`scalar expressions<scalar-expressions>`.
+
+
+Spaces
+------
+
+Leading and trailing spaces of a line are ignored. Also, spaces before and after assignment operators
+(``=`` and ``:``) are ignored::
+
+  @variables x  =   0
+  n_subjects   =   10
+  start_v      =   e1->b1 : 1,   e1->b2 : 2,  default: 0
+
+Spaces before and after ``,`` and ``|`` in a :ref:`phase line <phase-line>` are also ignored::
+
+  LABEL1  e1, e2,  e3      | x = 1, y=2,  pull_lever : LABEL2
+
+
+.. _valid-names:
+
+Valid names
+-----------
+
+Global and local variables, stimulus elements and behaviors can
+have a short name (like ``x`` and ``y``) or a more descriptive name (``number_of_trials``,
+``lever``, ``pull_lever``, ``food``, etc.). The rules for these names are the following:
+
+A valid name
+
+- must start with a letter or the underscore character
+- cannot start with a number
+- can only contain alpha-numeric characters and underscores (A-z, 0-9, and _ )
+- is case-sensitive (``lever``, ``LEVER`` and ``Lever`` are three different names)
+- cannot be a :doc:`parameter <parameters>`
+- cannot be a :ref:`function <functions>` or a local phase function (:ref:`count <the-function-count>` or :ref:`count_line <the-function-count_line>`)
+- cannot be ``default``
+
+
+.. _scalar-expressions:
+
+Scalar expressions
+------------------
+
+Numbers are specified in various parts of a simulation script, for example:
+
+- The value of a :doc:`parameter<parameters>`::
+
+    beta = number
+
+- The value of a :doc:`global variable<variables>`::
+
+    @variables x = number
+
+- The value of a :ref:`local phase variable<local-phase-variables>`::
+
+    @phase ...
+    L1     | p=number, L2
+    L2 ...
+
+- A number in a :ref:`phase stop condition<the-stop-condition>`::
+
+    @phase phase_name stop: s=number
+    L1 s    | L2
+    L2 ...   
+
+- A number in a :ref:`phase line condition<phase-line-conditions>`::
+
+    @phase ...
+    L1 s    | b=number: L2 | L3
+    L2 ...   
+
+- A :ref:`stimulus intensity<stimulus-specification>`::
+
+    @phase ...
+    L1 s[number] | L2
+    L2 ...   
+
+- In :ref:`probabilistic go-tos<probabilistic-go-tos>`::
+
+    @phase ...
+    L1 s | L2(number1),L3(number2)
+
+- As input argument to :ref:`functions<functions>`::
+
+    x = rand(number1, number2)
+    y = choice(number1, number2, [number1, number2])
+
+These numbers must be *scalar expressions*, that is, an expression of numbers and variables that evaluates to a single (scalar) number.
+
+For example, number literals are scalar expressions::
+
+  1, 2, 42, 1.42, -110.33
+
+With a number of global variables defined::
+
+  @variables x=1, y=5, z=6.78
+
+the following are also scalar expressions::
+
+  x+y,  -3*x+5.65*y, 3.2*10**x-1
+
+The output of :ref:`functions<functions>` are also single numbers, so the following are also scalar expressions::
+
+  rand(x,y),  rand(x, y+1),  3*choice(x, y, z, [3, x, y+1])
+
+
+.. _functions:
+
+Functions
+---------
+
+The below builtin functions are available in *Learning Simulator*.
+They can be used in :ref:`scalar expressions<scalar-expressions>`, and in conditions (:ref:`phase stop conditions<the-stop-condition>` and :ref:`phase line conditions<phase-line-conditions>`).
+
+.. _choice-function:
+
+choice
+......
+
+The function ``choice`` returns any of the specified values, each with a specified probability. For example::
+
+  x = choice(4, 6, 2, [0.3,0.5,0.2])
+
+returns 4 with probability 0.3, 6 with probability 0.5, and 2 with probability 0.2.
+
+.. _rand-function:
+
+rand
+....
+
+The function ``rand`` returns a random integer in a specified interval, for example::
+
+  x = rand(2, 6)
+
+returns a random integer in the interval [2,6], in other words any of the numbers 2, 3, 4, 5, and 6 with
+equal probability (0.2) each.
+
+Case-sensitivity
+----------------
+
+Parameter names are not case-sensitive: ``beta = 0.5`` is the same as ``Beta = 0.5`` or ``BETA = 0.5``.
+Parameter values that are not user-defined, such as ``on`` and ``off``, ``exact`` and ``subset``,
+and the mechanism names (``sr``, ``ac``, etc.) are also not case-sensitive.
+
+User-defined names, such as global variables, local phase variables, names of stimulus elements and behaviors,
+and phase line labels, *are* case-sensitive: ``x`` and ``X`` are different variables (or element names or behaviors or phase line labels).
+
+
+Comments
+--------
+
+Comments can be used in the scripting language to make custom comments to the simulation script,
+and to temporarily "comment out" parts of the script. Comments are ignored by the script parser
+and therefore not considered in the simulation.
+
+The *Learning Simulator* scripting language has two kinds of comments: *end-of-line comments* and *block comments*.
+
+End-of-line comments starts with `#` and extend to the end of the current line, for example::
+
+  alpha_v = 0.4  # This is a learning rate
+  # This whole line is also an end-of-line comment
+
+Block comments starts with a line that only contains ``###`` (disregaring leadning and trailing spaces),
+and ends with another line that only contains ``###`` (disregaring leadning and trailing spaces). For example::
+
+  ###
+  This is
+  
+  a block
+  comment
+  
+  ###
+
+
 Parameters
 **********
-In order to run a simulation, a number of *parameters* must be specified.
-For example, to set the parameter ``beta`` to the value ``0.4``, use::
 
-  beta: 0.4
+A simulation uses a number of *parameters*, for example how many subjects that
+should be simulated. Therefore, in order
+to run a simulation, a number of parameter values must be set.
 
-Below follows a description of each of the available parameters in ``Learning Simulator``·
+See :doc:`parameters` for the documentation of the parameters.
 
-All parameters can be found in the tables below, one table for parameters that control the
-simulation, and one for the parameters used in the postprocessing.
-The tables also specify the default value of each parameter, or of it is required.
-In the tables, :math:`E` stands for a stimulus element, and :math:`B` for a behavior.
+Global variables
+****************
 
-`E1->B1:val1, ..., En->Bn:valn, default:val`
+A simulation may use custom variables using the ``@variables`` keyword. 
+We call these *global variables* to distinguish them from
+:ref:`local phase variables<local-phase-variables>`.
 
-**Simulation parameters**
+See :doc:`variables` for the documentation of global variables.
 
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| Parameter                 | Default/    | Possible values                              | Example                     |
-|                           | *Required*  |                                              |                             |
-+===========================+=============+==============================================+=============================+
-| ``alpha_v``               | 1           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``alpha_vss``             | 1           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - element values  | | ``E1->E2:1, default:0``   |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``alpha_w``               | 1           | | Scalar                                     | | ``0.8``                   |
-|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``behaviors``             | *Required*  | List of behavior names                       | ``press, walk_away``        |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``behavior_cost``         | 0           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of behavior values                    | | ``S1:1, S2:2, default:0`` |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``beta``                  | 1           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``bind_trials``           | ``off``     | on or off                                    | ``on``                      |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``lambda``                | 0           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - element values  | | ``S1:1, S2:2, default:0`` |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``mechanism_name``        | *Required*  | One of the available ones                    | ``ga``                      |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``mu``                    | 0           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``n_subjects``            | 1           | Positive integer                             | ``10``                      |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``response_requirements`` |             | List of b:se or b:se1,se2,...                | ``press:lever``             |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+                     
-| ``stimulus_elements``     | *Required*  | List of stimulus element names               |  ``cs, us``                 |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+                      
-| ``start_v``               | 1           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - behavior values | | ``E->B:1, default:0``     |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``start_vss``             | 0           | | Scalar                                     | | ``1.5``                   |
-|                           |             | | List of stimulus element - element values  | | ``E->B:1, default:0``     |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``start_w``               | 1           | | Scalar                                     | | 1.5                       |
-|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+ 
-| ``subject``               | ``average`` | ``average``, ``all`` or zero-based index     |                             |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
-| ``u``                     | 1           | | Scalar                                     | | ``0.8``                   |
-|                           |             | | List of stimulus element values            | | ``S1:1, S2:2, default:0`` |
-+---------------------------+-------------+----------------------------------------------+-----------------------------+
+Phases
+******
 
-**Postprocessing parameters**
+The environment that the agent interacts with is specified using one or more ``@phase`` blocks.
+A ``@phase`` block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+in the sequence depends on the response to the previous stimulus.
 
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| Parameter                 | Default/     | Possible values                              | Example                 |
-|                           | *Required*   |                                              |                         |
-+===========================+==============+==============================================+=========================+
-| ``cumulative``            | ``on``       | ``on`` or ``off``                            | ``on``                  |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``filename``              | *Required*   | | a valid file name with or without path     | | ``/path/to/file.txt`` |
-|                           | in export    | |                                            | |                       |
-|                           | commands     | |                                            | |                       |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``match``                 | ``subset``   | ``subset`` or ``exact``                      | ``subset``              |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``runlabel``              | *Required*   | | string without space                       |                         |
-|                           | in ``@run``  | |                                            |                         |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``subplottitle``          | empty string | string                                       |                         |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``title``                 | empty string | string                                       |                         |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``xscale``                | ``all``      | | ``all``, a phase label or a stimulus       |                         |
-|                           |              | | element                                    |                         |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``xscale_match``          | ``subset``   | ``subset`` or ``exact``                      | ``subset``              |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
-| ``phases``                | ``all``      | ``all`` or list of phase labels              | ``phase1, phase2``      |
-+---------------------------+--------------+----------------------------------------------+-------------------------+
+See :doc:`phase` for the documentation of a ``@phase`` block.
+
+The command ``@run``
+********************
+
+The command ``@run`` starts a simulation.
+
+See :doc:`run` for the documentation of the ``@run`` command.
+
+Postprocessing
+**************
+
+The postprocessing stage of a script processes the data from a finished simulation.
+
+See :doc:`postprocessing` for the documentation of posprocessing functions.
+

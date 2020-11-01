@@ -1,0 +1,87 @@
+:orphan:
+
+phases
+******
+
+Specifies the phases to use in plotting commands.
+
+Syntax
+------
+
+::
+
+  phases = all
+  phases = phase_label_1
+  phases = phase_label_1, phase_label_2, ...
+
+where each ``phase_label_i`` is a ``@phase`` label.
+
+Default
+-------
+
+``all``
+
+Description
+-----------
+
+``phases = all``
+
+plots the value of the the variable in question at each stimulus and each response in the stimulus-response history.
+
+----
+
+``phases = phase_label_1``
+
+(where ``phase_label_1`` is a ``@phase`` label) plots the value of the variable in question only within the phase with label ``phase_label_1``.
+
+----
+
+``phases = phase_label_1, phase_label_2, ...``
+
+(where ``phase_label_1``, ``phase_label_2``, ... are ``@phase`` labels) plots the value of the variable in question
+within the phase with label ``phase_label_1``, followed by the phase with label ``phase_label_2``, and so on,
+`in that order`. In other words, the order of the phase labels matters:
+
+::
+
+  phases = phase_label_1, phase_label_2
+
+is not the same as
+
+::
+
+  phases = phase_label_2, phase_label_1
+
+
+Example
+-------
+
+::
+
+  phases = all
+  @wplot e1
+
+will plot the w-value of ``e1`` within all phases.
+
+
+Example
+-------
+
+::
+
+  phases = phase1
+  @wplot e1
+
+will plot the w-value of ``e1`` only within the phase with label ``phase1``.
+
+
+Example
+-------
+
+::
+
+  phases = phase2, phase1
+  @wplot e1
+
+will plot the w-value of ``e1`` within the phase with label ``phase2`` followed by the phase with label ``phase1``,
+in that order.

@@ -1,7 +1,9 @@
 import copy
+import re
 
 from exceptions import ParseException
-from util import ParseUtil
+from util import ParseUtil, is_valid_name
+import keywords as kw
 from keywords import PHASEDIV, STIMULUS_ELEMENTS, BEHAVIORS
 from variables import Variables
 
@@ -9,20 +11,6 @@ from variables import Variables
 class Phases():
     def __init__(self):
         self.phases = dict()  # Keys are phase labels, values are Phase objects
-
-    # def add(self, newblock, parameters):
-    #     label = newblock.pvdict[LABEL]
-    #     rows = newblock.content.splitlines()
-    #     if label in self.phases[0]:
-    #         ind = self.phases[0].index(label)
-    #         self.phases[1][ind].add_rows(rows)
-    #         self.phases[1][ind].pvdict.update(newblock.pvdict)
-    #         self.phases[2][ind] = self.phases[1][ind].make_world(parameters)
-    #     else:
-    #         self.phases[0].append(label)
-    #         phase_obj = Phase(newblock.pvdict, rows)
-    #         self.phases[1].append(phase_obj)
-    #         self.phases[2].append(phase_obj.make_world(parameters))
 
     def add_phase(self, label, stop_condition_str, lineno):
         if label in self.phases:
@@ -47,10 +35,6 @@ class Phases():
             raise Exception("Internal error.")
         self.phases[label].append_line(line, lineno)
 
-    # def labels_set(self):
-    #     """Return all phase labels as a set."""
-    #     return set(self.phases.keys())
-
     def parse_phase(self, label, parameters, variables):
         if label not in self.phases:
             raise Exception("Internal error.")
@@ -74,20 +58,12 @@ class Phases():
                 return True
         return False
 
-    # def make_world(self, phases_to_use):
-    #     if len(phases_to_use) == 0:  # Empty tuple means all phases
-    #         phases_to_use = self.phases[0]  # list(self.phases.keys())
-    #     phase_worlds = list()
-    #     for lbl in phases_to_use:
-    #         if lbl not in self.phases[0]:
-    #             raise Exception("Invalid phase label '{}'.".format(lbl))
-    #         ind = self.phases[0].index(lbl)
-
-    #         # Copy needed if phases_to_use is for example ('phase1','phase1')
-    #         phase_obj = copy.deepcopy(self.phases[2][ind])
-
-    #         phase_worlds.append(phase_obj)
-    #     return LsWorld.World(phase_worlds)
+    def check_deprecated_syntax(self):
+        for _, phase in self.phases.items():
+            msg = phase.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
 
 
 class Phase():
@@ -102,7 +78,8 @@ class Phase():
         # Set in parse
         self.stimulus_elements = None
         self.behaviors = None
-        self.variables = None
+        self.global_variables = None
+        self.local_variables = None
         self.linelabels = list()
         self.end_condition = None
         self.phase_lines = dict()  # Keys are phase line labels, values are PhaseLine objects
@@ -111,17 +88,17 @@ class Phase():
         self.event_counter = None
 
         self.is_first_line = True
-
         self.is_inherited = False
-
         self.is_parsed = False
+
+        self.first_stimulus_presented = False
 
     def append_line(self, line, lineno):
         self.lines.append((line, lineno))
 
-    def parse(self, parameters, variables):
+    def parse(self, parameters, global_variables):
         self.parameters = parameters
-        self.variables = variables
+        self.global_variables = global_variables
 
         stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
         behaviors = parameters.get(BEHAVIORS)
@@ -150,8 +127,8 @@ class Phase():
 
         # Second iteration: Create PhaseLine objects and put in the dict self.phase_lines
         for label, after_label, lineno in zip(self.linelabels, phase_lines_afterlabel, linenos):
-            self.phase_lines[label] = PhaseLine(lineno, label, after_label, self.linelabels,
-                                                self.parameters, self.variables)
+            self.phase_lines[label] = PhaseLine(self, lineno, label, after_label, self.linelabels,
+                                                self.parameters, self.global_variables)
             if label == "new_trial":  # Change self.first_label to the new_trial line
                 self.first_label = label
 
@@ -162,11 +139,7 @@ class Phase():
         self.is_parsed = True
 
     def initialize_local_variables(self):
-        action_lhs_vars = dict()
-        for label, phase_line_obj in self.phase_lines.items():
-            if phase_line_obj.action_lhs_var is not None:
-                action_lhs_vars[phase_line_obj.action_lhs_var] = 0
-        self.local_variables = Variables(action_lhs_vars)
+        self.local_variables = Variables()
 
     def subject_reset(self):
         self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
@@ -175,36 +148,47 @@ class Phase():
         self.prev_linelabel = None
         self.is_first_line = True
         self.initialize_local_variables()
+        self.first_stimulus_presented = False
 
-    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None):
+    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None, omit_learn=None):
         # if not self.is_parsed:
         #     raise Exception("Internal error: Cannot call Phase.next_stimulus" +
         #                     " before Phase.parse().")
 
-        if not preceeding_help_lines:
+        if preceeding_help_lines is None:
             preceeding_help_lines = list()
-
-        variables = Variables.join(self.variables, self.local_variables)
 
         if not ignore_response_increment:
             # if not self.is_first_line:
             if response is not None:
                 self.event_counter.increment_count(response)
                 self.event_counter.increment_count_line(response)
+                self.event_counter.set_last_response(response)
 
-        if self.stop_condition.is_met(variables, self.event_counter):
-            return None, None, preceeding_help_lines
+        if self.first_stimulus_presented:
+            variables_both = Variables.join(self.global_variables, self.local_variables)
+            if self.stop_condition.is_met(variables_both, self.event_counter):
+                return None, None, preceeding_help_lines, None
 
         if self.is_first_line:
-            assert(response is None)
+            # assert(response is None)
             rowlbl = self.first_label
             self.is_first_line = False
+            omit_learn = True  # Since response is None, there is no learning (updating of v-values) to do
         else:
-            rowlbl = self.curr_lineobj.next_line(response, variables, self.event_counter)
+            rowlbl, omit_learn = self.curr_lineobj.next_line(response, self.global_variables, self.local_variables,
+                                                             self.event_counter)
             self.prev_linelabel = self.curr_lineobj.label
             self._make_current_line(rowlbl)
 
         stimulus = self.phase_lines[rowlbl].stimulus
+        if stimulus is not None:
+            for element, intensity in stimulus.items():
+                if type(intensity) is str:  # element[var] where var is a (local) variable
+                    variables_both = Variables.join(self.global_variables, self.local_variables)
+                    stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables_both)
+                    if err:
+                        raise ParseException(self.phase_lines[rowlbl].lineno, err)
 
         if rowlbl != self.prev_linelabel:
             self.event_counter.reset_count_line()
@@ -215,47 +199,83 @@ class Phase():
 
         if stimulus is None:  # Help line
             action = self.phase_lines[rowlbl].action
-            self._perform_action(action)
+            lineno = self.phase_lines[rowlbl].lineno
+            self._perform_action(lineno, action)
             preceeding_help_lines.append(rowlbl)
-            stimulus, rowlbl, preceeding_help_lines = self.next_stimulus(response, ignore_response_increment=True, preceeding_help_lines=preceeding_help_lines)
+            next_stimulus_out = self.next_stimulus(response, ignore_response_increment=True,
+                                                   preceeding_help_lines=preceeding_help_lines,
+                                                   omit_learn=omit_learn)
+            stimulus, rowlbl, preceeding_help_lines, omit_learn_help = next_stimulus_out
+
+            omit_learn = (omit_learn or omit_learn_help)
         else:
             for stimulus_element in stimulus:
                 self.event_counter.increment_count(stimulus_element)
                 self.event_counter.increment_count_line(stimulus_element)
+            self.first_stimulus_presented = True
 
-        return stimulus, rowlbl, preceeding_help_lines
+        return stimulus, rowlbl, preceeding_help_lines, omit_learn
 
     def _make_current_line(self, label):
         # self.curr_linelabel = label
         self.curr_lineobj = self.phase_lines[label]
         # self.endphase_obj.update_itemfreq(label)
 
-    def _perform_action(self, action):
+    def perform_actions(self, lineno, actions):
+        any_omit_learn = False
+        for action in actions:
+            omit_learn = self._perform_action(lineno, action)
+            any_omit_learn = (any_omit_learn or omit_learn)
+        return any_omit_learn
+
+    def _perform_action(self, lineno, action):
         """
         Sets a variable (x:3) or count_reset(event).
         """
+        omit_learn = False
 
-        if len(action) == 0:  # No action to perform
-            return
+        # No action to perform
+        if len(action) == 0:
+            pass
 
-        if action.count(':') == 1:
-            var_name, value_str = ParseUtil.split1_strip(action, sep=':')
-            variables_join = Variables.join(self.variables, self.local_variables)
+        # Setting a variable
+        elif action.count(':') == 1 or action.count('=') == 1:
+            if action.count('=') == 1:
+                sep = '='
+            else:
+                sep = ':'
+            var_name, value_str = ParseUtil.split1_strip(action, sep=sep)
+            variables_join = Variables.join(self.global_variables, self.local_variables)
             value, err = ParseUtil.evaluate(value_str, variables_join)
             if err:
-                raise Exception(err)
+                raise ParseException(lineno, err)
             err = self.local_variables.set(var_name, value, self.parameters)
             if err:
-                raise Exception(err)
+                raise ParseException(lineno, err)
 
+        # count_reset
         elif action.startswith("count_reset(") and action.endswith(")"):
             event = action[12:-1]
             self.event_counter.reset_count(event)
+
+        # omit_learn
+        elif action == "@omit_learn":
+            omit_learn = True
+
         else:
-            raise Exception("Internal error.")
+            raise ParseException(lineno, "Internal error.")  # Should have been caught during Pase.parse()
+
+        return omit_learn
 
     def is_phase_label(self, label):
         return label in self.linelabels
+
+    def check_deprecated_syntax(self):
+        for _, phase_line in self.phase_lines.items():
+            msg = phase_line.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
 
     def copy(self):
         cpy = copy.deepcopy(self)
@@ -268,16 +288,18 @@ class PhaseEventCounter():
         stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
         behaviors = parameters.get(BEHAVIORS)
         event_names = list(stimulus_elements) + list(behaviors) + linelabels
+        self.linelabels = linelabels
+        self.behaviors = behaviors
+        self.last_response = None
         # event_names = set(linelabels).union(stimulus_elements).union(behaviors)
 
-        # self.count_line counts events on current line, start at 1 since it is  incremented only
-        # when previous line is the same as current
+        # self.count_line counts events on current line
         self.count_line = {key: 0 for key in event_names}
 
         # The name of the current line
         self.line_label = None
 
-        # self.event_counter counts all events, reset by count_reset()
+        # self.count counts all events, reset by count_reset()
         self.count = {key: 0 for key in event_names}
 
         # List of all possible count() and count_line() calls, used in replace_count_functions()
@@ -286,6 +308,9 @@ class PhaseEventCounter():
         for event in event_names:
             self.count_calls[event] = f"count({event})"
             self.count_line_calls[event] = f"count_line({event})"
+
+    def set_last_response(self, response):
+        self.last_response = response
 
     def increment_count(self, event):
         self.count[event] += 1
@@ -315,225 +340,312 @@ class PhaseEventCounter():
             expr = expr.replace("count_line()", str(self.count_line[self.line_label]))
         return expr
 
-    # def eval(self, expr, variables):
-    #     comps = ["==", "<=", ">=", "<", ">"]
-    #     comp_count_fcns = [self.count_eq, self.count_leq, self.count_geq,
-    #                        self.count_less, self.count_gr]
-    #     n_comps = len(comps)
-    #     comp_counts = [expr.count(comp) for comp in comps]
-    #     matches0 = [i for i, x in enumerate(comp_counts) if x == 0]
-    #     matches1 = [i for i, x in enumerate(comp_counts) if x == 1]
-    #     if len(matches0) != (n_comps - 1) or len(matches1) != 1:
-    #         return None
+    def get_count_line_linelabels(self):
+        out = dict()
+        for key in self.linelabels:
+            out[key] = self.count_line[key]
+        return out
 
-    #     comp_ind = matches1[0]
-    #     comp = comps[comp_ind]
-    #     comp_count_fcn = comp_count_fcns[comp_ind]
-    #     lhs, rhs = ParseUtil.split1_strip(expr, sep=comp)
 
-    #     # Check that rhs is an int
-    #     rhs, err = ParseUtil.parse_int(rhs, variables)
-    #     if err:
-    #         return None
-
-    #     # Check that lhs is event, count(event) or count_line(event)
-    #     if lhs in self.event_names:
-    #         event = lhs
-    #         return comp_count_fcn(event, rhs)
-    #     elif lhs.startswith("count(") and lhs.endswith(")"):
-    #         event = lhs[6:-1].strip()
-    #         if event in self.event_names:
-    #             return comp_count_fcn(event, rhs)
-    #     elif lhs.startswith("count_line(") and lhs.endswith(")"):
-    #         event = lhs[11:-1].strip()
-    #         if event in self.event_names:
-    #             return comp_count_fcn(event, rhs, is_line=True)
-    #     else:
-    #         return None
-
-    # def count_eq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] == val
-    #     else:
-    #         return self.count[event] == val
-
-    # def count_leq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] <= val
-    #     else:
-    #         return self.count[event] <= val
-
-    # def count_geq(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] >= val
-    #     else:
-    #         return self.count[event] >= val
-
-    # def count_less(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] < val
-    #     else:
-    #         return self.count[event] < val
-
-    # def count_gr(self, event, val, is_line=False):
-    #     if is_line:
-    #         return self.count_line[event] > val
-    #     else:
-    #         return self.count[event] > val
+def check_action(action, parameters, global_variables, lineno, all_linelabels):
+    if action.count(':') == 1 or action.count('=') == 1:
+        if action.count('=') == 1:
+            sep = '='
+        else:
+            sep = ':'
+        var_name, _ = ParseUtil.split1_strip(action, sep=sep)
+        var_err = is_valid_name(var_name, parameters, kw)
+        if var_err is not None:
+            raise ParseException(lineno, var_err)
+        if global_variables.contains(var_name):
+            raise ParseException(lineno, "Cannot modify global variable inside a phase.")
+    elif action.startswith("count_reset(") and action.endswith(")"):
+        behaviors = parameters.get(BEHAVIORS)
+        stimulus_elements = parameters.get(STIMULUS_ELEMENTS)
+        event = action[12:-1]
+        if event not in stimulus_elements and event not in behaviors and event not in all_linelabels:
+            raise ParseException(lineno, f"Unknown event '{event}' in count_reset.")
+    elif action == "@omit_learn":
+        pass
+    else:
+        raise ParseException(lineno, f"Unknown action '{action}'.")
 
 
 class PhaseLine():
-    def __init__(self, lineno, label, after_label, all_linelabels, parameters, variables):
+    def __init__(self, phase_obj, lineno, label, after_label, all_linelabels, parameters, global_variables):
         self.lineno = lineno
         self.label = label
         self.parameters = parameters
-        self.variables = variables
         self.all_linelabels = all_linelabels
 
         self.is_help_line = False
-        self.stimulus = None
+        self.stimulus = None  # A dict with an intensity for each element in stimulus_elememts
         self.action = None
-
-        # self.consec_linecnt = 1
-        # self.consec_respcnt = 1
-        # self.prev_response = None
-
-        self.action_lhs_var = None
 
         self.action, logic = ParseUtil.split1_strip(after_label, sep=PHASEDIV)
         if logic is None:
             raise ParseException(lineno, f"Missing separator '{PHASEDIV}' on phase line.")
         action_list = ParseUtil.comma_split_strip(self.action)
-        self.is_help_line = len(action_list) == 1 and action_list[0] not in parameters.get(STIMULUS_ELEMENTS)
+
+        first_element, _, _ = ParseUtil.parse_element_and_intensity(action_list[0], variables=None,
+                                                                    safe_intensity_eval=True)
+        self.is_help_line = (len(action_list) == 1) and (first_element not in parameters.get(STIMULUS_ELEMENTS))
         if self.is_help_line:
             self.stimulus = None
             if action_list[0] != '':
-                self._check_action(action_list[0])
+                check_action(action_list[0], parameters, global_variables, lineno, all_linelabels)
         else:
-            for element in action_list:
+            self.stimulus, err = ParseUtil.parse_elements_and_intensities(self.action, global_variables,
+                                                                          safe_intensity_eval=True)
+            if err:
+                raise ParseException(lineno, err)
+
+            for element in self.stimulus:
                 if element not in parameters.get(STIMULUS_ELEMENTS):
                     raise ParseException(lineno, f"Expected a stimulus element, got '{element}'.")
-            self.stimulus = tuple(action_list)
+
             self.action = None
 
         if len(logic) == 0:
             raise ParseException(lineno, f"Line with label '{label}' has no conditions.")
-        self.conditions = PhaseLineConditions(lineno, self.is_help_line, logic, parameters,
-                                              all_linelabels, variables)
+        self.conditions = PhaseLineConditions(phase_obj, lineno, self.is_help_line, logic, parameters,
+                                              all_linelabels, global_variables)
 
-    def _check_action(self, action):
-        behaviors = self.parameters.get(BEHAVIORS)
-        stimulus_elements = self.parameters.get(STIMULUS_ELEMENTS)
-        if action.count(':') == 1:
-            var_name, _ = ParseUtil.split1_strip(action, sep=':')
-            if self.variables.contains(var_name):
-                raise ParseException(self.lineno, "Cannot modify global variable inside a phase.")
-            else:
-                self.action_lhs_var = var_name
-        elif action.startswith("count_reset(") and action.endswith(")"):
-            event = action[12:-1]
-            if event not in stimulus_elements and event not in behaviors and event not in self.all_linelabels:
-                raise ParseException(self.lineno, f"Unknown event '{event}' in count_reset.")
+    def next_line(self, response, global_variables, local_variables, event_counter):
+        label, omit_learn = self.conditions.next_line(response, global_variables, local_variables, event_counter)
+        return label, omit_learn
+
+    def check_deprecated_syntax(self):
+        msg = None
+        if self.label.lower() == "new_trial" and self.parameters.get(kw.BIND_TRIALS) == 'off':
+            msg = f"To omit learning, use '@omit_learn' instead of 'bind_trials=off' together with '{self.label}'."
         else:
-            raise ParseException(self.lineno, f"Unknown stimulus element or action '{action}'.")
-
-    def next_line(self, response, variables, event_counter):
-        label = self.conditions.next_line(response, variables, event_counter)
-        return label
+            msg = self.conditions.check_deprecated_syntax()
+        return msg
 
 
 class PhaseLineConditions():
-    def __init__(self, lineno, is_help_line, conditions_str, parameters, all_linelabels,
+    def __init__(self, phase_obj, lineno, is_help_line, logic_str, parameters, all_linelabels,
                  global_variables):
-        # self.variables = variables
+        self.lineno = lineno
+        self.phase_obj = phase_obj
 
         # list of PhaseLineCondition objects
         self.conditions = list()
 
-        self.conditions_str = conditions_str
-        cond_gotos = conditions_str.split(PHASEDIV)
+        self.logic_str = logic_str
+        cond_gotos = logic_str.split(PHASEDIV)
         cond_gotos = [c.strip() for c in cond_gotos]
-        for cond_goto in cond_gotos:
-            condition_obj = PhaseLineCondition(lineno, is_help_line, cond_goto,
-                                               parameters, all_linelabels, global_variables)
+        n_logicparts = len(cond_gotos)
+        for i, cond_goto in enumerate(cond_gotos):
+            condition_obj = PhaseLineCondition(lineno, is_help_line, cond_goto, i,
+                                               n_logicparts, parameters, all_linelabels, global_variables)
             self.conditions.append(condition_obj)
 
-    def next_line(self, response, variables, event_counter):
-        for condition in self.conditions:
-            condition_met, label = condition.is_met(response, variables, event_counter)
+    def next_line(self, response, global_variables, local_variables, event_counter):
+        for i, condition in enumerate(self.conditions):
+            omit_learn1 = self.phase_obj.perform_actions(self.lineno, condition.unconditional_actions)
+            condition_met, label = condition.is_met(response, global_variables, local_variables,
+                                                    event_counter)
             if condition_met:
-                return label
-        raise Exception(f"No condition in '{self.conditions_str}' was met for response '{response}'.")
+                omit_learn2 = self.phase_obj.perform_actions(self.lineno, condition.conditional_actions)
+                return label, (omit_learn1 or omit_learn2)
+        raise ParseException(self.lineno, f"No condition in '{self.logic_str}' was met for response '{response}'.")
+
+    def check_deprecated_syntax(self):
+        for condition in self.conditions:
+            msg = condition.check_deprecated_syntax()
+            if msg is not None:
+                return msg
+        return None
 
 
 class PhaseLineCondition():
-    def __init__(self, lineno, is_help_line, cond_goto, parameters, all_linelabels,
-                 global_variables):
+    def __init__(self, lineno, is_help_line, cond_goto, logicpart_index, n_logicparts, parameters,
+                 all_linelabels, global_variables):
         self.lineno = lineno
+        self.parameters = parameters
 
-        # Before colon
-        self.cond = None
-        self.cond_is_behavior = False
+        # Unconditional actions
+        self.unconditional_actions = list()
 
-        # After colon
-        self.goto = list()  # List of 2-tuples (probability, row_label)
+        # The condition
+        self.condition = None
 
-        self._parse(lineno, is_help_line, cond_goto, parameters, all_linelabels, global_variables)
+        # Whether or not the condition is a behavior
+        self.condition_is_behavior = False
 
-    def _parse(self, lineno, is_help_line, cond_goto, parameters, all_linelabels,
-               global_variables):
-        n_colons = cond_goto.count(':')
-        if n_colons > 1:
-            raise ParseException(lineno, f"Condition {cond_goto} has more than one colon.")
-        if n_colons == 0:
-            self.cond = None
-            self.cond_is_behavior = False
-            goto = cond_goto
-        else:  # n_colons == 1
-            cond, goto = ParseUtil.split1_strip(cond_goto, ':')
-            self.cond = cond
-            self.cond_is_behavior = (cond in parameters.get(BEHAVIORS))
-            if self.cond_is_behavior and is_help_line:
+        # Conditional actions
+        self.conditional_actions = list()
+
+        # Row label to go to
+        self.goto = None  # List of 2-lists [probability, row_label]
+
+        self._parse(lineno, is_help_line, cond_goto, logicpart_index, n_logicparts, parameters,
+                    all_linelabels, global_variables)
+
+    def _parse(self, lineno, is_help_line, condition_and_actions, logicpart_index, n_logicparts, parameters,
+               all_linelabels, global_variables):
+        '''
+        Args:
+            condition_and_actions (str): Examples are
+                "b=5: x:2, y=2, ROWLBL",
+                "x:2, y:2, ROWLBL",
+                "@break"
+                "x=1: @break"
+                "x:1"
+                "@break, x:1"
+        '''
+        self.condition = None
+
+        ca_list = ParseUtil.comma_split_strip(condition_and_actions)
+
+        found_condition = False
+        any_rowlbl_prob = False
+        found_rowlbl = False
+        goto_list = list()
+        goto_list_index = list()
+        for i, ca in enumerate(ca_list):
+            err = f"Invalid statement '{ca}'."
+            n_colons = ca.count(':')
+            if n_colons == 0:
+                contains_condition = False
+                action = ca
+            elif n_colons == 1:
+                before_colon, after_colon = ParseUtil.split1_strip(ca, ':')
+                contains_condition = self._is_condition(before_colon, parameters)
+                if contains_condition:
+                    if self.condition is not None:  # Cannot have multiple conditions
+                        raise ParseException(lineno, f"Multiple conditions ('{self.condition}' and '{before_colon}') found in '{condition_and_actions}'.")
+                    self.condition = before_colon
+                    action = after_colon
+                else:
+                    action = ca
+            elif n_colons == 2:
+                colon_inds = [m.start() for m in re.finditer(':', ca)]
+                if colon_inds[1] - colon_inds[0] == 1:
+                    raise ParseException(lineno, err)
+                before_first_colon, after_first_colon = ParseUtil.split1_strip(ca, ':')
+                if not self._is_condition(before_first_colon, parameters):
+                    raise ParseException(lineno, err)
+                if self.condition is not None:  # Cannot have multiple conditions
+                    raise ParseException(lineno, f"Multiple conditions ('{self.condition}' and '{before_first_colon}') found in '{condition_and_actions}'.")
+                contains_condition = True
+                self.condition = before_first_colon
+                action = after_first_colon
+            else:
+                raise ParseException(lineno, err)
+
+            if contains_condition and found_rowlbl:
+                raise ParseException(lineno, f"Found condition '{self.condition}' after row label '{','.join(goto_list)}'.")
+
+            found_condition = found_condition or contains_condition
+            is_rowlbl, is_rowlbl_prob = self._is_rowlbl(action, all_linelabels)
+            any_rowlbl_prob = (any_rowlbl_prob or is_rowlbl_prob)
+            if is_rowlbl:
+                found_rowlbl = True
+                goto_list.append(action)
+                goto_list_index.append(i)
+            else:
+                check_action(action, parameters, global_variables, lineno, all_linelabels)
+                if found_rowlbl:
+                    err = f"Row label(s) must be the last action(s). Found '{action}' after row-label."
+                    raise ParseException(lineno, err)
+                if found_condition:  # self.condition is not None:
+                    self.conditional_actions.append(action)
+                else:
+                    self.unconditional_actions.append(action)
+
+            is_last_action = (i == len(ca_list) - 1)
+            if is_last_action and not is_rowlbl:
+                raise ParseException(lineno, f"Last action must be a row label, found '{action}'.")
+
+        if found_condition:
+            self.condition_is_behavior = (self.condition in parameters.get(BEHAVIORS))
+            cond_depends_on_behavior, err = ParseUtil.depends_on(self.condition, parameters.get(BEHAVIORS))
+            if err is not None:
+                raise ParseException(lineno, err)
+            if cond_depends_on_behavior and is_help_line:
                 raise ParseException(lineno, "Condition on help line cannot depend on response.")
-        self._parse_goto(goto, lineno, all_linelabels, global_variables)
 
-    def is_met(self, response, variables, event_counter):
-        if self.cond is None:
+        goto_str = ','.join(goto_list)
+
+        # A deterministic ROWLBL cannot have elif/else continuation
+        if (not found_condition) and found_rowlbl and not any_rowlbl_prob:
+            if logicpart_index < n_logicparts - 1:
+                err = f"The unconditional goto row label '{goto_str}' cannot be continued."
+                raise ParseException(lineno, err)
+
+        if len(goto_list) > 0:
+            self._parse_goto(goto_str, lineno, all_linelabels, global_variables)
+
+    def _is_rowlbl(self, lbl, all_linelabels):
+        """Checks if the specified string is a row-label, either just the label or LABEL(something)."""
+        if lbl in all_linelabels:
+            return True, False
+        lindex = lbl.find("(")
+        rindex = lbl.find(")")
+        if (lindex > 0) and (rindex == len(lbl) - 1) and (lbl[0:lindex] in all_linelabels):
+            return True, True
+        return False, None
+
+    def _is_condition(self, condition, parameters):
+        if condition in parameters.get(BEHAVIORS):
+            return True
+        return not condition.isidentifier()
+
+    def is_met(self, response, global_variables, local_variables, event_counter):
+        variables_both = Variables.join(global_variables, local_variables)
+        if self.condition is None:
             ismet = True
-        elif self.cond_is_behavior:
-            ismet = (self.cond == response)
+        elif self.condition_is_behavior:
+            ismet = (self.condition == response)
         else:
-            ismet, err = ParseUtil.evaluate(self.cond, variables, event_counter,
+            ismet, err = ParseUtil.evaluate(self.condition, variables_both, event_counter,
                                             ParseUtil.PHASE_LINE)
             if err:
                 raise ParseException(self.lineno, err)
             if type(ismet) is not bool:
-                raise ParseException(self.lineno, f"Condition '{self.cond}' is not a boolean expression.")
+                raise ParseException(self.lineno, f"Condition '{self.condition}' is not a boolean expression.")
+
         if ismet:
-            label = self._goto_if_met()
+            label = self._goto_if_met(variables_both)
             if label is None:  # In "ROW1(0.1),ROW2(0.3)", goto_if_met returns None with prob. 0.6
                 ismet = False
         else:
             label = None
         return ismet, label
 
-    def _goto_if_met(self):
-        tuple_ind = ParseUtil.weighted_choice(self.goto_prob_cumsum)
-        if tuple_ind is None:
+    def _goto_if_met(self, variables):
+        goto_prob_cumsum = list()
+        cumsum = 0
+        for i in range(len(self.goto)):
+            prob = self.goto[i][0]
+            if type(prob) is str:
+                self.goto[i][0], err = ParseUtil.evaluate(prob, variables=variables)
+                if err:
+                    raise ParseException(self.lineno, err)
+            cumsum += self.goto[i][0]
+            goto_prob_cumsum.append(cumsum)
+        if cumsum > 1:
+            raise ParseException(self.lineno, f"Sum of probabilities is {cumsum}>1.")
+
+        ind = ParseUtil.weighted_choice(goto_prob_cumsum)
+        if ind is None:
             return None
         else:
-            return self.goto[tuple_ind][1]
+            return self.goto[ind][1]
 
-    def _parse_goto(self, goto, lineno, all_linelabels, global_variables):
-        # lbls_and_probs = ParseUtil.split1_strip(goto, sep=',')
-        err = f"Invalid condition '{goto}'. "
-        lbls_and_probs = goto.split(',')
+    def _parse_goto(self, goto_str, lineno, all_linelabels, global_variables):
+        self.goto = list()
+        err = f"Invalid condition '{goto_str}'. "
+        lbls_and_probs = goto_str.split(',')
         lbls_and_probs = [lbl_and_prob.strip() for lbl_and_prob in lbls_and_probs]
         for lbl_and_prob in lbls_and_probs:
             if lbl_and_prob in all_linelabels:
                 if len(lbls_and_probs) > 1:
-                    raise ParseException(lineno, f"Invalid condition '{goto}'.")
-                self.goto.append((1, lbl_and_prob))
+                    raise ParseException(lineno, f"Invalid condition '{goto_str}'.")
+                self.goto.append([1, lbl_and_prob])
             else:
                 if '(' and ')' in lbl_and_prob:
                     if lbl_and_prob.count('(') > 1 or lbl_and_prob.count(')') > 1:
@@ -550,21 +662,30 @@ class PhaseLineCondition():
                     isprob, prob = ParseUtil.is_prob(prob_str, global_variables)
 
                     if not isprob:
-                        raise ParseException(lineno, err + f"Expected a probability, got '{prob_str}'.")
+                        if prob is not None:
+                            raise ParseException(lineno, err + f"Expected a probability, got '{prob_str}'.")
+                        prob = prob_str
                     for prob_lbl in self.goto:
                         if prob_lbl[1] == lbl:
                             raise ParseException(lineno, err + f"Label '{lbl}' duplicated.")
-                    self.goto.append((prob, lbl))
+                    self.goto.append([prob, lbl])
                 else:
-                    raise ParseException(lineno, err + f"Invalid line label '{goto}'.")
+                    raise ParseException(lineno, err + f"Invalid line label '{goto_str}'.")
 
-        self.goto_prob_cumsum = list()
-        cumsum = 0
-        for prob_lbl in self.goto:
-            cumsum += prob_lbl[0]
-            self.goto_prob_cumsum.append(cumsum)
-        if cumsum > 1:
-            raise ParseException(lineno, err + f"Sum of probabilities is {cumsum}>1.")
+    def check_deprecated_syntax(self):
+        if self.condition is not None:
+            relations = ("=", "==", ">", "<", "<=", ">=")
+            for behavior in self.parameters.get(kw.BEHAVIORS):
+                for rel in relations:
+                    lookfor1 = f'^[ ]*{behavior}[ ]*{rel}'
+                    lookfor2 = f'[ ]*{behavior}[ ]*{rel}'
+                    for lookfor in [lookfor1, lookfor2]:
+                        ind = [m.start() for m in re.finditer(lookfor, self.condition)]
+                        if len(ind) > 0:
+                            ind = ind[0]
+                            comp = self.condition[ind: ind + len(lookfor)]
+                            return f"The condition '{comp}' on line {self.lineno} will not work as expected, as '{behavior}' is evaluated to a boolean."
+        return None
 
 
 class EndPhaseCondition():
@@ -588,25 +709,23 @@ class World():
     """
 
     def __init__(self, phases_dict, phase_labels):
-        # self.phase_labels = phase_labels
         self.phases = [phases_dict[phase_label].copy() for phase_label in phase_labels]
-        # for phase_label in phase_labels:
-        #     self.phases[phase_label] = phases_obj.get(phase_label)
         self.nphases = len(phase_labels)
         self.curr_phaseind = 0  # Index into phase_labels
 
     def next_stimulus(self, response):
         """Returns a stimulus-tuple and current phase label."""
         curr_phase = self.phases[self.curr_phaseind]
-        stimulus, row_lbl, preceeding_help_lines = curr_phase.next_stimulus(response)
+        stimulus, row_lbl, preceeding_help_lines, omit_learn = curr_phase.next_stimulus(response)
         if stimulus is None:  # Phase done
             if self.curr_phaseind + 1 >= self.nphases:  # No more phases
-                return None, curr_phase.label, row_lbl, preceeding_help_lines
+                return None, curr_phase.label, row_lbl, preceeding_help_lines, None
             else:  # Go to next phase
                 self.curr_phaseind += 1
-                return self.next_stimulus(None)
+                # return self.next_stimulus(None)
+                return self.next_stimulus(response)
         else:
-            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines
+            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines, omit_learn
 
     # def get_phase_labels(self):
     #     phase_labels = [phase.label for phase in self.phases]

@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>response_requirements &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">response_requirements</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="response-requirements">
+<h1>response_requirements<a class="headerlink" href="#response-requirements" title="Permalink to this headline">¶</a></h1>
+<p>Specifies the behaviors that are feasible responses for each stimulus.</p>
+<p><a class="reference internal" href="background.html#the-decision-function"><span class="std std-ref">The decision function</span></a> computes the probabilities only for the feasible responses to a stimulus.</p>
+<p>For example, in an experiment with the stimulus elements <code class="docutils literal notranslate"><span class="pre">red_lever</span></code> and <code class="docutils literal notranslate"><span class="pre">blue_lever</span></code>, the
+behavior <code class="docutils literal notranslate"><span class="pre">press_blue_lever</span></code> is a feasible respose to <code class="docutils literal notranslate"><span class="pre">blue_lever</span></code> but not to <code class="docutils literal notranslate"><span class="pre">red_lever</span></code>.</p>
+<p>The feasible responses to a compound stimulus (a set of stimulus elements) consist of the union
+of the feasible responses for each element. For example, <code class="docutils literal notranslate"><span class="pre">press_blue_lever</span></code> is a feasible response
+to the compund <code class="docutils literal notranslate"><span class="pre">red_lever,blue_lever</span></code>.</p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>response_requirements = b1:[e11, e12, ...],
+                        b2:[e21, e22, ...],
+                        ...
+                        bn:[en1, en2, ...]
+</pre></div>
+</div>
+<p>If a list of stimulus elements contains a single element, the brackets may be omitted:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>response_requirements = b1:e11,
+                        b2:e21,
+                        ...
+                        bn:[en1, en2, ...]
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>response_requirements = b1:[e11, e12, ...],
+                        b2:[e21, e22, ...],
+                        ...
+                        bn:[en1, en2, ...]
+</pre></div>
+</div>
+<p>specifies that</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">b1</span></code> is a feasible response to <code class="docutils literal notranslate"><span class="pre">e11</span></code>, <code class="docutils literal notranslate"><span class="pre">e12</span></code>, …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">b2</span></code> is a feasible response to <code class="docutils literal notranslate"><span class="pre">e21</span></code>, <code class="docutils literal notranslate"><span class="pre">e22</span></code>, …</p></li>
+<li><p>…</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bn</span></code> is a feasible response to <code class="docutils literal notranslate"><span class="pre">en1</span></code>, <code class="docutils literal notranslate"><span class="pre">en2</span></code>, …</p></li>
+</ul>
+<p>The comma-separated list of <code class="docutils literal notranslate"><span class="pre">behavior:[elements]</span></code> may be line-broken:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>response_requirements = b1:e11,
+                        b2:e21,
+                        ...
+                        bn:[en1, en2, ...]
+</pre></div>
+</div>
+<p>is the same as</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>response_requirements = b1:e11, b2:e21, ..., bn:[en1, en2, ...]
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The properties <code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code> and  <code class="docutils literal notranslate"><span class="pre">behaviors</span></code> must be specified before <code class="docutils literal notranslate"><span class="pre">response_requirements</span></code>.</p></li>
+<li><p>Each stimulus element used in the specification of <code class="docutils literal notranslate"><span class="pre">response_requirements</span></code> must be present in the parameter <code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code>.</p></li>
+<li><p>Each behavior used in the specification of <code class="docutils literal notranslate"><span class="pre">response_requirements</span></code> must be present in the parameter <code class="docutils literal notranslate"><span class="pre">behaviors</span></code>.</p></li>
+<li><p>Applicable in all mechanisms except the Rescorla-Wagner mechanism.</p></li>
+</ul>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stimulus_elements =     blue_lever, red_lever, food
+behaviors =             ignore_lever, press_lever, eat
+response_requirements = press_lever: [blue_lever,red_lever]
+                        ignore_lever: [blue_lever,red_lever]
+                        eat:food
+</pre></div>
+</div>
+<p>specifies that</p>
+<ul class="simple">
+<li><p>the only feasible responses to <code class="docutils literal notranslate"><span class="pre">blue_lever</span></code> is <code class="docutils literal notranslate"><span class="pre">press_lever</span></code> and <code class="docutils literal notranslate"><span class="pre">ignore_lever</span></code></p></li>
+<li><p>the only feasible responses to <code class="docutils literal notranslate"><span class="pre">red_lever</span></code> is <code class="docutils literal notranslate"><span class="pre">press_lever</span></code> and <code class="docutils literal notranslate"><span class="pre">ignore_lever</span></code>, and</p></li>
+<li><p>the only feasible response to <code class="docutils literal notranslate"><span class="pre">food</span></code> is <code class="docutils literal notranslate"><span class="pre">eat</span></code>.</p></li>
+</ul>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">response_requirements</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/response_requirements.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">response_requirements</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

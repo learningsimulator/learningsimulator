@@ -1,0 +1,118 @@
+:orphan:
+
+**********
+Parameters
+**********
+
+A simulation uses a number of *parameters*, for example how many subjects that
+should be simulated. Therefore, in order
+to run a simulation, a number of parameter values must be set.
+Use the equal sign to set the value of a parameter.
+For example, to tell *Learning Simulator* to simulate 10 agents, set the parameter ``n_subjects`` to the value ``10`` like so::
+
+  n_subjects = 10
+
+Below follows a description of each of the available parameters in *Learning Simulator*·
+For a detailed description, syntax, and examples, click the parameter name.
+
+In the tables below, "element" means stimulus element.
+
+Simulation parameters
+*********************
+
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| Parameter                    | Description        | Default/        | Possible values                                   | | Used in     |
+|                              |                    | *Required*      |                                                   | | mechanisms  |
++==============================+====================+=================+===================================================+===============+
+| :doc:`alpha_v`               | | Learning rate    | 1               | | - A single value                                | All except    |
+|                              | | for v-values     |                 | | - One value per element-behavior pair           | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`alpha_vss`             | | Learning rate    | 1               | | - A single value                                | ``rw``        |
+|                              | | for vss-values   |                 | | - One value per element-element pair            |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`alpha_w`               | | Learning rate    | 1               | | - A single value                                | ``ga`` and    |
+|                              | | for w-values     |                 | | - One value per stimulus element                | ``ac``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`behaviors`             | | The behavior     | *Required*      | List of behavior names                            | All except    |
+|                              | | repertoire       |                 |                                                   | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`behavior_cost`         | | Cost for         | 0               | | - A single value                                | All except    |
+|                              | | behaviors        |                 | | - One value per behavior                        | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`beta`                  | Exploration        | 1               | | - A single value                                | All except    |
+|                              |                    |                 | | - One value per element-behavior pair           | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`lambda`                | Reinforcement      | 0               | | - A single value                                | ``rw``        |
+|                              |                    |                 | | - One value per stimulus element                |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`mechanism`             | Learning mechanism | *Required*      | ``ga``, ``sr``, ``es``, ``ql``, ``ac``, or ``rw`` |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`mu`                    | | Genetic          | 0               | | - A single value                                | All except    |
+|                              | | predisposition   |                 | | - One value per element-behavior pair           | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`n_subjects`            | | Number of        | 1               | Positive integer                                  | All           |
+|                              | | subjects         |                 |                                                   |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`response_requirements` | | Possible stimuli | | All stimuli   | | List of                                         | All except    |
+|                              | | per behavior     | | possible for  | | ``behavior:element`` and/or                     | ``rw``        |
+|                              |                    | | each behavior | | ``behavior:[element1,element2,...]``            |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`stimulus_elements`     | Stimulus elements  | *Required*      | List of stimulus element names                    | All           |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`start_v`               | Intial v-values    | 0               | | - A single value                                | All except    |
+|                              |                    |                 | | - One value per element-behavior pair           | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`start_vss`             | | Initial vss-     | 0               | | - A single value                                | ``rw``        |
+|                              | | values           |                 | | - One value per element-element pair            |               |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+ 
+| :doc:`start_w`               | Initial w-values   | 0               | | - A single value                                | ``ga`` and    |
+|                              |                    |                 | | - One value per stimulus element                | ``ac``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`trace`                 | Memory trace       | 0               | A number between 0 and 1                          | ``ga`` and    |
+|                              |                    |                 |                                                   | ``sr``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+| :doc:`u`                     | Reinforcement      | 0               | | - A single value                                | All except    |
+|                              |                    |                 | | - One value per stimulus element                | ``rw``        |
++------------------------------+--------------------+-----------------+---------------------------------------------------+---------------+
+
+Postprocessing parameters
+*************************
+
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| Parameter                 | Description        | Default/     | Possible values                         | | Used in     |
+|                           |                    | *Required*   |                                         | | commands    |
++===========================+====================+==============+=========================================+===============+
+| :doc:`cumulative`         | Plot/export        | ``on``       | | - ``on``                              | ``@nplot``    |
+|                           | cumulative         |              | | - ``off``                             | ``@nexport``  |
+|                           | values             |              |                                         |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`filename`           | Exported           | *Required*   | | a valid file name                     | | Export      |
+|                           | file               | in export    | | with or without path                  | | commands    |
+|                           |                    | commands     |                                         |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`match`              | | How to match     | ``subset``   | | - ``subset``                          | ``@nplot``    |
+|                           | | compound stimuli |              | | - ``exact``                           | ``@nexport``  |
+|                           | | to ``@nplot``    |              |                                         |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`runlabel`           | | Which ``@run``   | | The last   | | string without space                  | All           |
+|                           | | command to use   | | ``@run``   | |                                       |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`xscale`             | The x-axis         | ``all``      | | - ``all``                             | All           |
+|                           | scale              |              | | - a stimulus element                  |               |
+|                           |                    |              | | - a behavior                          |               |
+|                           |                    |              | | - stimulus->behavior->stimulus->...   |               |
+|                           |                    |              | | - behavior->stimulus->behavior->...   |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`xscale_match`       | | How to match     | ``subset``   | | - ``subset``                          | All           |
+|                           | | compound stimuli |              | | - ``exact``                           |               |
+|                           | | to ``xscale``    |              |                                         |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`phases`             | | Which phase(s)   | ``all``      | | - ``all``                             | All           |
+|                           | | to use           |              | | - list of phase labels                |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+| :doc:`subject`            | | Which subject(s) | ``average``  | | - ``average``, ``all``                | All           |
+|                           | | to use           |              | | - ``all``                             |               |
+|                           |                    |              | | - one-based index                     |               |
+|                           |                    |              |     :math:`\le` ``n_subjects``          |               |
++---------------------------+--------------------+--------------+-----------------------------------------+---------------+
+

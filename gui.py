@@ -2,8 +2,11 @@ import sys
 import threading
 import traceback
 import os
+import sys
 import webbrowser
 from abc import ABC, abstractmethod
+import pathlib
+
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -15,14 +18,44 @@ from tkinter import messagebox, filedialog
 
 # import matplotlib.pyplot as plt
 
-from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg
+from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg, WarningDlg
 from parsing import Script
-from exceptions import ParseException, InterruptedSimulation
+from exceptions import ParseException, EvalException, InterruptedSimulation
+
+from functools import partial
+
+import util
 
 # matplotlib.use('Agg')
 
 TITLE = "Learning Simulator"
 FILETYPES = (('Text files', '*.txt'), ('All files', '*.*'))
+
+ROOTDIR = str(pathlib.Path.home())
+SEP = os.path.sep
+RECENT_FILES_FILE = ROOTDIR + SEP + ".lesimrf.txt"
+NUMBER_OF_RECENT_FILES = 10
+
+
+def read_recent_files_file():
+    try:
+        with open(RECENT_FILES_FILE, encoding='utf-8') as f:
+            file_contents = f.read()
+    except Exception:
+        return list()
+    file_list = file_contents.split('\n')
+    nonempty_files = [f for f in file_list if len(f) > 0]
+    return nonempty_files
+
+
+def write_recent_files_file(list_of_files):
+    try:
+        with open(RECENT_FILES_FILE, 'wb') as f:
+            text = '\n'.join(list_of_files)
+            f.write(bytes(text, 'UTF-8'))
+    except IOError:
+        # XXX Maybe add warning if something fails here (e.g. directory write permissions)
+        pass
 
 
 class Gui():
@@ -49,18 +82,54 @@ class Gui():
         self._bind_accelerators()
 
         # Set icon
-        # self.root.iconbitmap('/home/markus/lesim/lesim2/gui/Lemur-icon.gif')
-
-        curr_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_file = curr_dir + '/Lemur-icon.gif'
+        icon_file = util.resource_path('Lemur-icon.gif')
         img = tk.PhotoImage(file=icon_file)
         self.root.tk.call('wm', 'iconphoto', self.root._w, img)
 
-        self.root.minsize(width=500, height=800)
+        self.root.minsize(width=500, height=600)
 
         self.root.protocol("WM_DELETE_WINDOW", self.file_quit)
+
+        # When run in bundle, display licene dialog box
+        is_bundle = getattr(sys, 'frozen', False)
+        if is_bundle:
+            LicenseDlg(self)
+
         self.root.mainloop()
         self.root.quit()
+
+    def _add_recent_file(self, file_to_add):
+        current_list = read_recent_files_file()
+        if file_to_add in current_list:
+            new_list = [file_to_add] + [file for file in current_list if file != file_to_add]
+        else:
+            new_list = [file_to_add] + current_list
+        if len(new_list) > NUMBER_OF_RECENT_FILES:
+            new_list = new_list[0: NUMBER_OF_RECENT_FILES]
+        write_recent_files_file(new_list)
+        self._update_recent_files_menu(new_list)
+
+    def _update_recent_files_menu(self, new_list=None, init=False):
+        if new_list is None:
+            new_list = read_recent_files_file()
+        self._create_recent_files_menu(init)
+        for recent_file in new_list:
+            lbl = recent_file.replace('/', SEP)
+            self.recent_files_menu.add_command(label=lbl, command=partial(self.file_open_recent, recent_file))
+        self.recent_files_menu.add_separator()
+        self.recent_files_menu.add_command(label="Clear Items", command=self.clear_recent_files)
+
+    def clear_recent_files(self):
+        write_recent_files_file(list())
+        self._update_recent_files_menu()
+
+    def _create_recent_files_menu(self, init=False):
+        OPEN_RECENT = "Open Recent"
+        if not init:
+            self.file_menu.delete(OPEN_RECENT)
+        self.recent_files_menu = tk.Menu(self.file_menu, tearoff=0)
+        self.file_menu.insert_cascade(2, label=OPEN_RECENT, menu=self.recent_files_menu,
+                                      underline=0, command=self.file_open_recent)
 
     def _create_widgets(self):
         # The frame containing the widgets
@@ -70,14 +139,17 @@ class Gui():
         self.menu_bar = tk.Menu(self.root, tearoff=0)
 
         # The File menu
-        file_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
-        file_menu.add_command(label="New", underline=0, command=self.file_new, accelerator="Ctrl+N")
-        file_menu.add_command(label="Open...", underline=0, command=self.file_open, accelerator="Ctrl+O")
-        file_menu.add_command(label="Save", underline=0, command=self.file_save, accelerator="Ctrl+S")
-        file_menu.add_command(label="Save As...", underline=1, command=self.file_save_as)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", underline=1, command=self.file_quit)
-        self.menu_bar.add_cascade(label="File", underline=0, menu=file_menu)
+        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be separated from window
+        self.file_menu.add_command(label="New", underline=0, command=self.file_new, accelerator="Ctrl+N")
+        self.file_menu.add_command(label="Open...", underline=0, command=self.file_open, accelerator="Ctrl+O")
+
+        self._update_recent_files_menu(new_list=None, init=True)
+
+        self.file_menu.add_command(label="Save", underline=0, command=self.file_save, accelerator="Ctrl+S")
+        self.file_menu.add_command(label="Save As...", underline=1, command=self.file_save_as)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Exit", underline=1, command=self.file_quit)
+        self.menu_bar.add_cascade(label="File", underline=0, menu=self.file_menu)
 
         # The Edit menu
         edit_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
@@ -93,8 +165,10 @@ class Gui():
 
         # The Help menu
         help_menu = tk.Menu(self.menu_bar, tearoff=0)  # tearoff = 0: can't be seperated from window
-        help_menu.add_command(label="Documentation", underline=0, command=self.open_documentation,
+        help_menu.add_command(label="Documentation (offline)", underline=0, command=self.open_documentation_offline,
                               accelerator="F1")
+        help_menu.add_command(label="Documentation (online)", underline=0, command=self.open_documentation_online)
+        help_menu.add_command(label="License", underline=0, command=self.open_licensedlg)
         self.menu_bar.add_cascade(label="Help", underline=0, menu=help_menu)
 
         self.root.config(menu=self.menu_bar)
@@ -169,6 +243,11 @@ class Gui():
             script = self.scriptField.text_box.get("1.0", "end-1c")
             self.script_obj = Script(script)
             self.script_obj.parse()
+
+            msg = self.script_obj.check_deprecated_syntax()
+            if msg is not None:
+                WarningDlg(msg)
+
         except Exception as ex:
             self.handle_exception(ex)
             return
@@ -190,10 +269,14 @@ class Gui():
             if self.progress.exception is not None:
                 if not isinstance(self.progress.exception, InterruptedSimulation):
                     self.progress.close_dlg()
-                    self.handle_exception(self.progress.exception)
+                    self.handle_exception(self.progress.exception, self.progress.exception_traceback)
             elif self.progress.done:
                 # This will also close the progress dialog box
-                self.script_obj.plot(progress=self.progress)
+                try:
+                    self.script_obj.plot(progress=self.progress)
+                except AttributeError as ex:
+                    self.progress.close_dlg()
+                    self.handle_exception(ex, traceback.format_exc())
         else:
             assert(self.simulation_thread.is_alive())
             self.check_job = self.root.after(100, self.handle_simulation_end)
@@ -204,6 +287,7 @@ class Gui():
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
+            self.progress.exception_traceback = traceback.format_exc()
         finally:
             self.progress.set_done(True)
         # return None  # XXX perhaps not needed? for threading
@@ -247,21 +331,28 @@ class Gui():
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
+            self.progress.exception_traceback = traceback.format_exc()
         finally:
             self.progress.set_done(True)
 
     def close_figs(self):
         plt.close("all")
 
-    def handle_exception(self, ex):
+    def handle_exception(self, ex, stack_trace=None):
         if isinstance(ex, ParseException):
             self._select_line(ex.lineno)
         self.close_figs()
 
         err_msg = str(ex)
-        # messagebox.showerror("Error", err_msg)
-        st = traceback.format_exc()
-        ErrorDlg("Error", err_msg, st)
+        if err_msg.startswith("[Errno "):
+            rindex = err_msg.index("] ")
+            err_msg = err_msg[(rindex + 2):]
+        elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
+            err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
+
+        if stack_trace is None:
+            stack_trace = traceback.format_exc()
+        ErrorDlg("Error", err_msg, stack_trace)
 
     def handle_exception_old(self, ex):
         # err_msg = ex.args[0]
@@ -270,7 +361,6 @@ class Gui():
         #     err_msg = "{0} {1}".format(err_msg, ex.args[1])
         #     # err_msg = err_msg + ex.args[1]
         messagebox.showerror("Error", err_msg)
-        print(traceback.format_exc())
 
     # def file_open(self):
     #     filename = filedialog.askopenfilename()
@@ -301,46 +391,46 @@ class Gui():
         self.file_path = None
         self.set_title()
 
-    def file_open(self, event=None):  # , filepath=None):
+    def file_open_recent(self, recent_file):
+        self._fill_textbox(recent_file)
+        self._add_recent_file(recent_file)
+
+    def file_open(self, event=None):
         save_changes = self.save_changes()
         if not save_changes:
             return
 
         if self.last_open_folder is None:
             initialdir = '.'
-
-            # XXX
-            # markusdir = '/home/markus/Dropbox/LearningSimulator/Scripts'
-            # if os.path.isdir(markusdir):
-            #     initialdir = markusdir
-
         else:
             initialdir = self.last_open_folder
 
         filepath = filedialog.askopenfilename(filetypes=FILETYPES, initialdir=initialdir)
         if filepath is not None and len(filepath) != 0:
-            try:
-                with open(filepath, encoding='utf-8') as f:
-                    file_contents = f.read()
-            except UnicodeDecodeError:
-                # with open(filepath, encoding='utf-8', errors='ignore') as f:
-                with open(filepath, encoding='utf-16') as f:
-                    file_contents = f.read()
-            # Set current text to file contents
-            self.scriptField.text_box.delete(1.0, "end")
-            self.scriptField.text_box.insert(1.0, file_contents)
-            self.scriptField.text_box.edit_modified(False)
-            self.scriptField.text_box.mark_set("insert", "1.0")
-            self.scriptField.text_box.redraw_line_numbers()
-            self.file_path = filepath
-            self.last_open_folder = os.path.dirname(filepath)
-            self.set_title()
+            self._fill_textbox(filepath)
+            self._add_recent_file(filepath)
 
-        # if event is not None:
-        #     try:
-        #         self.scriptField.text_box.edit_undo()
-        #     except tk.TclError: # Exception:  # as e:
-        #         pass  # self.handle_exception(e)
+    def _fill_textbox(self, filepath):
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                file_contents = f.read()
+        except UnicodeDecodeError:
+            # with open(filepath, encoding='utf-8', errors='ignore') as f:
+            with open(filepath, encoding='utf-16') as f:
+                file_contents = f.read()
+        except FileNotFoundError as ex:
+            self.handle_exception(ex)
+            return
+
+        # Set current text to file contents
+        self.scriptField.text_box.delete(1.0, "end")
+        self.scriptField.text_box.insert(1.0, file_contents)
+        self.scriptField.text_box.edit_modified(False)
+        self.scriptField.text_box.mark_set("insert", "1.0")
+        self.scriptField.text_box.redraw_line_numbers()
+        self.file_path = filepath
+        self.last_open_folder = os.path.dirname(filepath)
+        self.set_title()
 
     def file_open_textbox(self, event=None):
         """
@@ -357,6 +447,9 @@ class Gui():
             filepath = filedialog.asksaveasfilename(filetypes=FILETYPES)
             if len(filepath) == 0:  # Empty tuple or empty string is returned if cancelled
                 return  # "cancelled"
+            else:
+                if ('.' not in filepath) and (not filepath.endswith(".txt")):
+                    filepath = filepath + ".txt"
         try:
             with open(filepath, 'wb') as f:
                 text = self.scriptField.text_box.get(1.0, "end-1c")
@@ -364,6 +457,7 @@ class Gui():
                 self.scriptField.text_box.edit_modified(False)
                 self.file_path = filepath
                 self.set_title()
+                self._add_recent_file(filepath)
                 return  # "saved"
         except IOError as e:
             self.handle_exception(e)
@@ -406,17 +500,24 @@ class Gui():
         # self.root.bind_class("Text", ",<Control-Y>", self.redo)
 
         self.root.bind("<F5>", self.simulate_thread)
-        self.root.bind("<F1>", self.open_documentation)
+        self.root.bind("<F1>", self.open_documentation_offline)
 
-    def undo(self):
+    def undo(self, event=None):
         self.scriptField.undo()
 
-    def redo(self):
+    def redo(self, event=None):
         self.scriptField.redo()
 
-    def open_documentation(self, event=None):
-        url = "./docs/_build/html/index.html"
+    def open_documentation_offline(self, event=None):
+        url = f".{SEP}docs{SEP}_build{SEP}html{SEP}index.html"
         webbrowser.open(url, new=True)
+
+    def open_documentation_online(self, event=None):
+        url = "https://learningsimulator.readthedocs.io/en/latest/"
+        webbrowser.open(url, new=True)
+
+    def open_licensedlg(self):
+        LicenseDlg(self, include_agree_buttons=False)
 
 
 class Progress(ABC):
@@ -500,6 +601,7 @@ class ProgressGui(Progress):
         self.dlg = None
 
         self.exception = None
+        self.exception_traceback = None
 
     def start(self):
         self.dlg = ProgressDlg(self)
@@ -516,6 +618,7 @@ class ProgressGui(Progress):
             if not self.done:  # Don't show dlg if progress is done
                 self.dlg.update()
                 self.dlg.deiconify()
+                self.dlg.grab_set()  # update and/or deiconify seem to "demodularize" self.dlg
         else:
             self.dlg.withdraw()
 

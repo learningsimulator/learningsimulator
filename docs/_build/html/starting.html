@@ -1,19 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>How to Run Learning Simulator &#8212; Learning Simulator 1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -32,7 +33,8 @@
         <li class="right" >
           <a href="installation.html" title="Installation Instructions"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">How to Run Learning Simulator</a></li> 
       </ul>
     </div>  
 
@@ -43,27 +45,27 @@
             
   <div class="section" id="how-to-run-learning-simulator">
 <h1>How to Run Learning Simulator<a class="headerlink" href="#how-to-run-learning-simulator" title="Permalink to this headline">¶</a></h1>
-<p>Learning Simulator can run a script either from the command line or using the
+<p>Learning Simulator can run a simulation script either from the command line or using the
 graphical user interface (GUI). Pass <code class="docutils literal notranslate"><span class="pre">lesim.py</span></code> to the <code class="docutils literal notranslate"><span class="pre">python</span></code> command with
 the relevant arguments. To see the available arguments, use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">lesim</span><span class="o">.</span><span class="n">py</span> <span class="n">help</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py help
 </pre></div>
 </div>
 <div class="section" id="running-a-script-from-the-command-line">
 <h2>Running a script from the command line<a class="headerlink" href="#running-a-script-from-the-command-line" title="Permalink to this headline">¶</a></h2>
 <p>To run a script from the command line, use the argument <code class="docutils literal notranslate"><span class="pre">run</span></code> to <code class="docutils literal notranslate"><span class="pre">lesim</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">lesim</span><span class="o">.</span><span class="n">py</span> <span class="n">run</span> <span class="n">file1</span> <span class="p">[</span><span class="n">file2</span><span class="p">,</span> <span class="n">file3</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py run file1 [file2, file3, ...]
 </pre></div>
 </div>
 </div>
 <div class="section" id="running-a-script-using-the-gui">
 <h2>Running a script using the GUI<a class="headerlink" href="#running-a-script-using-the-gui" title="Permalink to this headline">¶</a></h2>
 <p>To launch the GUI, use the argument <code class="docutils literal notranslate"><span class="pre">gui</span></code> to <code class="docutils literal notranslate"><span class="pre">lesim</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">lesim</span><span class="o">.</span><span class="n">py</span> <span class="n">gui</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py gui
 </pre></div>
 </div>
 <p>or, for short:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">lesim</span><span class="o">.</span><span class="n">py</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py
 </pre></div>
 </div>
 <p>If you are using IDLE, you may open <code class="docutils literal notranslate"><span class="pre">lesim.py</span></code> and run it in order to launch the GUI.</p>
@@ -73,6 +75,7 @@ the script window, then run it (with <strong>Run</strong> &gt; <strong>Simulate 
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -101,15 +104,15 @@ the script window, then run it (with <strong>Run</strong> &gt; <strong>Simulate 
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -126,12 +129,13 @@ the script window, then run it (with <strong>Run</strong> &gt; <strong>Simulate 
         <li class="right" >
           <a href="installation.html" title="Installation Instructions"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">How to Run Learning Simulator</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Markus Jonsson.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

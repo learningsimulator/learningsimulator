@@ -1,0 +1,83 @@
+:orphan:
+
+start_vss
+*********
+
+**Note:** Only applicable in the Rescorla-Wagner mechanism.
+
+Specifies the initial vss-values (the associative strength between pairs of stimulus elements).
+
+The parameter ``start_vss`` can be set to certain values for certain particular stimulus element-element pairs.
+It can also be specified as a single value, in which case the same initial value is used for all
+stimulus element-element pairs.
+
+Syntax
+------
+
+::
+
+  start_vss = e1->e2: v1, e3->e4: v2, ..., default: d
+  start_vss = v1
+
+where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+
+Description
+-----------
+
+``start_vss = e1->e2: v1, e3->e4: v2, ..., default: d`` sets the initial value for
+
+- vss(e1->e2) to v1,
+- vss(e3->b4) to v2, ...,
+
+and the initial value for all other vss-values to d.
+
+- The specification is independent of the list order:
+
+  ``e1->e2: v1, e3->b4: v2, default: d``
+
+  is the same as
+
+  ``e3->e4: v2, default: d, e1->e2: v1``.
+
+- ``default`` need not be specified if all possible combinations ``element->element`` are present in the list. For example,
+
+  ::
+
+    stimulus_elements = e1, e2
+    start_vss = e1->e1:v11, e1->e2:v12, e2->e2:v22
+
+----
+
+``start_vss = v1`` sets the initial values for all vss-values to v1.
+
+- ``start_vss = v1`` is the same as ``start_vss = default: v1``.
+
+Dependencies
+------------
+
+- The property ``stimulus_elements`` must be specified before ``start_v``.
+- Each stimulus element used in the specification of ``start_vss`` must be present in the parameter ``stimulus_elements``.
+- Applicable only in the Rescorla-Wagner mechanism. (Use ``start_v`` in other mechanism.)
+
+Examples
+--------
+
+::
+
+  @variables x = 1
+  start_vss = element1->element2: x, element3->element4: x+1, default:x+2
+
+sets the initial value for vss(element1->element2) to 1 and for vss(element1->element2) to 2, and
+for the remaining possible element-element pairs to 3.
+
+::
+
+  start_vss = element1->element2: 0.5, default:0
+
+sets the initial value for vss(element1->element2) to 0.5, and for the remaining possible element-element pairs to 3.
+
+::
+
+  start_vss = 0.1
+
+sets the initial value for all vss-values to 0.1.

@@ -1,0 +1,35 @@
+:orphan:
+
+stimulus_elements
+*****************
+
+Specifies the set of stimulus elements that the world can generate.
+
+Syntax
+------
+::
+
+  stimulus_elements = e1, e2, e3, ..., en
+
+Description
+-----------
+
+``stimulus_elements = e1, e2, e3, ..., bn`` sets the stimulus elements to ``{e1, e2, e3, ..., en}``.
+
+- Each stimulus element name must be a :ref:`valid name<valid-names>`.
+- The comma-separated list of stimulus elements may be line-broken:
+
+  ::
+
+    stimulus_elements = e1, e2,
+                        e3, e4, e5
+
+
+Example
+-------
+
+::
+
+  stimulus_elements = lever, reward
+
+sets the behavior repertoire of the subject to ``{lever, reward}``

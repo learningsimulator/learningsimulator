@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mu &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mu</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mu">
+<h1>mu<a class="headerlink" href="#mu" title="Permalink to this headline">¶</a></h1>
+<p>Specifies the genetic predisposition for responding with certain behaviors to certain stimulus elements.
+The parameter <code class="docutils literal notranslate"><span class="pre">mu</span></code> works in conjunction with <a class="reference internal" href="beta.html"><span class="doc">beta</span></a> to determine the weights for behaviors
+in <a class="reference internal" href="background.html#the-decision-function"><span class="std std-ref">the decision function</span></a>.</p>
+<p>The parameter <code class="docutils literal notranslate"><span class="pre">mu</span></code> can be set to certain values for certain particular element-behavior pairs.
+It can also be specified as a single value, in which case the same predisposition is used for all
+element-behavior pairs.</p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mu = e1-&gt;b1: v1, e1-&gt;b2: v2, ..., en-&gt;bn: vn, default: d
+mu = v1
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">v1,v2,...,vn</span></code> are <a class="reference internal" href="scripting-language.html#scalar-expressions"><span class="std std-ref">scalar expressions</span></a>.</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">e1-&gt;b1:</span> <span class="pre">v1,</span> <span class="pre">e1-&gt;b2:</span> <span class="pre">v2,</span> <span class="pre">...,</span> <span class="pre">en-&gt;bn:</span> <span class="pre">vn,</span> <span class="pre">default:</span> <span class="pre">d</span></code> sets the genetic predisposition value for</p>
+<ul class="simple">
+<li><p>e1-&gt;b1 to v1,</p></li>
+<li><p>e1-&gt;b2 to v2, …,</p></li>
+<li><p>en-&gt;bn to v2,</p></li>
+</ul>
+<p>and the value for all other element-behavior pairs to d.</p>
+<ul>
+<li><p>The specification is independent of the list order:</p>
+<p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">e1-&gt;b1:v1,</span> <span class="pre">e1-&gt;b2:v2,</span> <span class="pre">default:d</span></code></p>
+<p>is the same as</p>
+<p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">e1-&gt;b2:v2,</span> <span class="pre">default:d,</span> <span class="pre">e1-&gt;b1:v1</span></code>.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default</span></code> need not be specified if all possible combinations <code class="docutils literal notranslate"><span class="pre">element-&gt;behavior</span></code> are present in the list. For example,</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stimulus_elements = e1, e2
+behaviors = b1, b2
+mu = e1-&gt;b1:v11, e1-&gt;b2:v12, e2-&gt;b1:v21, e2-&gt;b2:v22
+</pre></div>
+</div>
+</li>
+</ul>
+<hr class="docutils" />
+<p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">v1</span></code> sets the genetic predisposition value for all element-behavior pairs to v1.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">v1</span></code> is the same as <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">default:</span> <span class="pre">v1</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The properties <code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code> and  <code class="docutils literal notranslate"><span class="pre">behaviors</span></code> must be specified before <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p></li>
+<li><p>Each stimulus element used in the specification of <code class="docutils literal notranslate"><span class="pre">mu</span></code> must be present in the parameter <code class="docutils literal notranslate"><span class="pre">stimulus_elements</span></code>.</p></li>
+<li><p>Each behavior used in the specification of <code class="docutils literal notranslate"><span class="pre">mu</span></code> must be present in the parameter <code class="docutils literal notranslate"><span class="pre">behaviors</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@variables x = 1
+mu = element1-&gt;behavior1: x, element1-&gt;behavior2: x+1, default:x+2
+</pre></div>
+</div>
+<p>sets the genetic predisposition value for element1-&gt;behavior1 to 1 and for element1-&gt;behavior1 to 2, and
+for the remaining possible element-behavior pairs to 3.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mu = element1-&gt;behavior1: 0.5, default:0
+</pre></div>
+</div>
+<p>sets the genetic prediposition value for element1-&gt;behavior1 to 0.5, and for the remaining possible element-behavior pairs to 3.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mu = 0.1
+</pre></div>
+</div>
+<p>sets the genetic predisposition value for all  element-behavior pairs to 0.1.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mu</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mu.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mu</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

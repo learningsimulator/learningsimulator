@@ -10,7 +10,7 @@ from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
-from util import ParseUtil
+from util import ParseUtil  # , eval_average
 
 
 def clean_script(text):
@@ -57,8 +57,11 @@ class Script():
         self.script = script
         self.script_parser = ScriptParser(self.script)
 
-    def parse(self):
+    def parse(self, is_gui=False):
         self.script_parser.parse()
+
+    def check_deprecated_syntax(self):
+        return self.script_parser.check_deprecated_syntax()
 
     def run(self, progress=None):
         return self.script_parser.runs.run(progress)
@@ -74,7 +77,7 @@ class Script():
         self.script_parser.postcmds.plot()
         if progress is not None:
             progress.close_dlg()
-        plt.show(block)
+        plt.show(block=block)
 
 
 class LineParser():
@@ -90,19 +93,32 @@ class LineParser():
     PLOT = 9
     EXPORT = 10
     LEGEND = 11
+    PREV_DEFINED_VARIABLE = 12
 
-    def __init__(self, line):
+    def __init__(self, line, global_variables):
         self.line = line
+        self.global_variables = global_variables
         self.linesplit_colon = line.split(':', 1)  # Has length 1 or 2
+        self.linesplit_equal = line.split('=', 1)  # Has length 1 or 2
         self.linesplit_space = line.split(' ', 1)  # Has length 1 or 2
         self.param = None  # The parameter when line is "param: value"
         self.line_type = None
 
     def parse(self):
-        possible_param = self.linesplit_colon[0].strip().lower()
-        if is_parameter_name(possible_param):
-            self.param = possible_param
+        possible_param_colon = self.linesplit_colon[0].strip().lower()
+        possible_param_equal = self.linesplit_equal[0].strip().lower()
+        is_parameter_name_colon = is_parameter_name(possible_param_colon)
+        is_parameter_name_equal = is_parameter_name(possible_param_equal)
+        if is_parameter_name_colon or is_parameter_name_equal:
+            if is_parameter_name_colon:
+                self.param = possible_param_colon
+            else:
+                self.param = possible_param_equal
             self.line_type = LineParser.PARAMETER
+
+        if self.global_variables.contains(possible_param_equal):
+            self.line_type = LineParser.PREV_DEFINED_VARIABLE
+
         first_word = self.linesplit_space[0].lower()
         if first_word == kw.VARIABLES:
             self.line_type = LineParser.VARIABLES
@@ -166,9 +182,10 @@ class ScriptParser():
             if line_endswith_comma:
                 line = line[:-1]
 
-            line_parser = LineParser(line)
+            line_parser = LineParser(line, self.variables)
             line_parser.parse()
             linesplit_colon = line_parser.linesplit_colon
+            linesplit_equal = line_parser.linesplit_equal
             linesplit_space = line_parser.linesplit_space
 
             if in_prop or in_variables or in_phase:
@@ -198,9 +215,19 @@ class ScriptParser():
             if line_parser.line_type == LineParser.PARAMETER:
                 # Handle line that sets a parameter (e.g. "prop   :    val")
                 prop = line_parser.param
-                if len(linesplit_colon) == 1:
+                if len(linesplit_colon) == 1 and len(linesplit_equal) == 1:
                     raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
-                possible_val = linesplit_colon[1].strip()
+                first_colon_index = line_orig.find(':')
+                first_equal_index = line_orig.find('=')
+                if first_equal_index > 0 and first_colon_index > 0:
+                    if first_colon_index < first_equal_index:          # u : a=1, b=2
+                        possible_val = linesplit_colon[1].strip()
+                    else:                                              # u = a:1, b:2
+                        possible_val = linesplit_equal[1].strip()
+                elif first_equal_index > 0 and first_colon_index < 0:  # u = 2
+                    possible_val = linesplit_equal[1].strip()
+                elif first_colon_index > 0 and first_equal_index < 0:  # u : 2
+                    possible_val = linesplit_colon[1].strip()
                 if len(possible_val) == 0:
                     raise ParseException(lineno, f"Parameter '{prop}' is not specified.")
                 if line_endswith_comma:
@@ -219,6 +246,13 @@ class ScriptParser():
                 in_variables = line_endswith_comma
                 cs_varvals = linesplit_space[1].strip()
                 err = self.variables.add_cs_varvals(cs_varvals, self.parameters)
+                if err:
+                    raise ParseException(lineno, err)
+                else:
+                    continue
+
+            elif line_parser.line_type == LineParser.PREV_DEFINED_VARIABLE:
+                err = self.variables.add_cs_varvals(line.strip(), self.parameters)
                 if err:
                     raise ParseException(lineno, err)
                 else:
@@ -309,6 +343,9 @@ class ScriptParser():
             else:
                 raise ParseException(lineno, f"Invalid expression '{line}'.")
 
+    def check_deprecated_syntax(self):
+        return self.phases.check_deprecated_syntax()
+
     def _evalparse(self, lineno, parameters):
         """Handles parameters that depend on currently defined runs."""
         if len(self.all_run_labels) == 0:
@@ -370,7 +407,9 @@ class ScriptParser():
         elif cmd == kw.VSSEXPORT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PEXPORT:
-            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
+                                                                        all_behaviors, self.variables)
+            expr = (stimulus, behavior)
         elif cmd == kw.NEXPORT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
@@ -384,15 +423,12 @@ class ScriptParser():
         cmd = linesplit_space[0]
         if len(linesplit_space) == 1:  # @plot
             raise ParseException(lineno, f"Invalid {cmd} command.")
-        args = linesplit_space[1]
-        expr0, mpl_prop_str = ParseUtil.split1_strip(args)
-        expr = expr0
-        if mpl_prop_str is None:
+
+        expr0, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+        if mpl_prop is None:
             mpl_prop = dict()
-        else:
-            is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
-            if not is_dict:
-                raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
+
+        expr = expr0
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
@@ -401,22 +437,13 @@ class ScriptParser():
         elif cmd == kw.VSSPLOT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
         elif cmd == kw.PPLOT:
-            expr, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements, all_behaviors)
+            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
+                                                                        all_behaviors, self.variables)
+            expr = (stimulus, behavior)
         elif cmd == kw.NPLOT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
             raise ParseException(lineno, err)
-            # expr = ParseUtil._arrow2tuple_np(expr0, self.parameters.get(kw.STIMULUS_ELEMENTS))
-
-            # # util.find_and_cumsum takes list
-            # expr = list(expr)
-
-            # # Single-element stimuli are written to history as strings, so ('s',) in expr won't
-            # # match 's' in history, so change ('s',) to 's' in expr
-            # for i, _ in enumerate(expr):
-            #     if type(expr[i]) is tuple and len(expr[i]) == 1:
-            #         expr[i] = expr[i][0]
-
         return expr, mpl_prop, expr0
 
     def _parse_subplot(self, lineno, linesplit_space):
@@ -428,26 +455,20 @@ class ScriptParser():
         @subplot subplotspec title {mpl_prop}
         """
         title_param = self.parameters.get(kw.SUBPLOTTITLE)
+
         if len(linesplit_space) == 1:  # @subplot
             subplotspec = '111'
             title = title_param
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @subplot ...
-            args = linesplit_space[1]
-            subplotspec, title_mplprop = ParseUtil.split1_strip(args)
-            if title_mplprop is None:  # @subplot subplotspec
-                title = title_param
+            args, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+            if mpl_prop is None:
                 mpl_prop = dict()
+            subplotspec, title_line = ParseUtil.split1_strip(args)
+            if title_line is None:  # @subplot subplotspec
+                title = title_param
             else:
-                title, mpl_prop_str = ParseUtil.split1_strip(title_mplprop)
-                if mpl_prop_str is None:
-                    is_dict, mpl_prop = ParseUtil.is_dict(title)
-                    if not is_dict:
-                        mpl_prop = dict()
-                else:
-                    is_dict, mpl_prop = ParseUtil.is_dict(mpl_prop_str)
-                    if not is_dict:
-                        raise ParseException(lineno, f"Expected a dict, got {mpl_prop_str}.")
+                title = title_line
         return subplotspec, title, mpl_prop
 
     def _parse_figure(self, lineno, linesplit_space):
@@ -461,19 +482,9 @@ class ScriptParser():
         if len(linesplit_space) == 1:  # @figure
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @figure args
-            args = linesplit_space[1].split()
-            nargs = len(args)
-            found_dict = False
-            for i in range(nargs - 1, 0, -1):
-                candidate = ''.join(args[i: nargs])
-                found_dict, d = ParseUtil.is_dict(candidate)
-                if found_dict:
-                    mpl_prop = d
-                    title = ' '.join(args[0: i])
-                    break
-            if not found_dict:
+            title, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+            if mpl_prop is None:
                 mpl_prop = dict()
-                title = ' '.join(linesplit_space[1:])
         return title, mpl_prop
 
     def _parse_run(self, after_run, lineno):
@@ -538,6 +549,26 @@ class PostCmds():
         for cmd in self.cmds:
             cmd.plot()
 
+        # # XXX Add average plots in all subplots
+        # fig_average = plt.figure()
+        # ax_average = fig_average.add_subplot(1, 1, 1)
+        # for i in plt.get_fignums():
+        #     fig = plt.figure(i)
+        #     if fig == fig_average:
+        #         continue
+        #     axes = fig.get_axes()
+        #     for axis in axes:
+        #         lines = axis.get_lines()
+        #         all_y = list()
+        #         for line in lines:
+        #             all_y.append(line.get_ydata())
+        #             # line.set_visible(False)
+        #         if len(lines) > 0:
+        #             average = eval_average(all_y)
+        #             ax_average.plot(lines[0].get_xdata(), average, label=axis.get_title())
+        #         ax_average.legend()
+        #     ax_average.grid()
+
 
 class PostCmd():
     def __init__(self):
@@ -564,29 +595,41 @@ class PlotCmd(PostCmd):
 
     def run(self, simulation_data):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
+        start_at_1 = False
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
             ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
-            legend_label = f"v({self.expr0})"
+            default_label = f"v({self.expr0})"
         elif self.cmd == kw.VSSPLOT:
             ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
-            legend_label = f"vss({self.expr0})"
+            default_label = f"vss({self.expr0})"
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
-            legend_label = f"w({self.expr0})"
+            default_label = f"w({self.expr0})"
         elif self.cmd == kw.PPLOT:
             ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
-            legend_label = f"p({self.expr0})"
+            default_label = f"p({self.expr0})"
         elif self.cmd == kw.NPLOT:
             ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
-            legend_label = f"n({self.expr0})"
+            default_label = f"n({self.expr0})"
+            start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
+                          (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
+
+        if 'label' in self.mpl_prop:
+            legend_label = self.mpl_prop['label']
+            self.mpl_prop.pop('label')
+        else:
+            legend_label = default_label
 
         if self.parameters.get(kw.SUBJECT) == kw.EVAL_ALL:
             self.ydata_list = ydata
             self.plot_args_list = list()
             for i, _ in enumerate(ydata):
-                subject_legend_label = f"{legend_label}, subject {i}"
+                if len(legend_label) > 0:
+                    subject_legend_label = f"{legend_label}, subject {i + 1}"
+                else:
+                    subject_legend_label = f"subject {i + 1}"
                 plot_args = dict({'label': subject_legend_label}, **self.mpl_prop)
                 # plt.plot(subject_ydata, **plot_args)
                 self.plot_args_list.append(plot_args)
@@ -594,9 +637,8 @@ class PlotCmd(PostCmd):
             self.ydata_list = [ydata]
             plot_args = dict({'label': legend_label}, **self.mpl_prop)
             self.plot_args_list = [plot_args]
-            # plt.plot(ydata, **plot_args)
-        # plt.grid(True)
-        self.plot_data = PlotData(self.ydata_list, self.plot_args_list)
+
+        self.plot_data = PlotData(self.ydata_list, self.plot_args_list, start_at_1)
 
     def plot(self):
         self.plot_data.plot()
@@ -610,14 +652,20 @@ class PlotData():
     Encapsulates the data required to produce a PlotCmd plot.
     """
 
-    def __init__(self, ydata_list, plot_args_list):
+    def __init__(self, ydata_list, plot_args_list, start_at_1):
         self.ydata_list = ydata_list
         self.plot_args_list = plot_args_list
+        self.start_at_1 = start_at_1
 
     def plot(self):
         for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
-            plt.plot(ydata, **plot_args)
+            if self.start_at_1:
+                xdata = list(range(len(ydata)))
+                plt.plot(xdata[1:], ydata[1:], **plot_args)
+            else:
+                plt.plot(ydata, **plot_args)
         plt.grid(True)
+        plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem)
 
 
 class ExportCmd(PostCmd):

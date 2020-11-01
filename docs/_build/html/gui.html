@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Graphical User Interface (GUI) &#8212; Learning Simulator 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Community" href="community.html" />
+    <link rel="prev" title="Background" href="background.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="community.html" title="Community"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="background.html" title="Background"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">The Graphical User Interface (GUI)</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-graphical-user-interface-gui">
+<h1>The Graphical User Interface (GUI)<a class="headerlink" href="#the-graphical-user-interface-gui" title="Permalink to this headline">¶</a></h1>
+<p>This page describes the different parts of the graphical user interface in <cite>Learning Simulator</cite>.</p>
+<p>See <a class="reference internal" href="starting.html"><span class="doc">How to Run Learning Simulator</span></a> for instructions on how to launch the GUI.</p>
+<p>The GUI aims to allow easy editing and running of a simulation script.</p>
+<img alt="gui.png" src="_images/gui.png" />
+<div class="section" id="menu-bar">
+<h2>Menu bar<a class="headerlink" href="#menu-bar" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="file-menu">
+<h3>File menu<a class="headerlink" href="#file-menu" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/menu-file.png" src="_images/menu-file.png" />
+<div class="line-block">
+<div class="line"><strong>New</strong></div>
+<div class="line">Create a new (blank) script. If the current script is not saved, a dialog box below appear asking if you want to save the changes.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Open…</strong></div>
+<div class="line">Open an existing script file by browsing the file system. If the current script is not saved, a dialog box below appears asking if you want to save the changes.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Open Recent</strong></div>
+<div class="line">Selecting this menu item displays the last opened/saved script files. Open any of them by selecting it.</div>
+<div class="line"><br /></div>
+<div class="line">Below the list of recent files, there is a <strong>Clear Items</strong> menu item. Select this to clear the list of recent files.</div>
+<div class="line"><br /></div>
+<div class="line">The list of the last opened/saved files are stored in the file <code class="docutils literal notranslate"><span class="pre">lesimrf.txt</span></code> in the user’s home directory (on Windows this is typically C:\Users\name).</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Save</strong></div>
+<div class="line">Save the current script.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Save As…</strong></div>
+<div class="line">Save the current script as a different name.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Exit</strong></div>
+<div class="line">Exit the GUI.</div>
+</div>
+</div>
+<div class="section" id="edit-menu">
+<h3>Edit menu<a class="headerlink" href="#edit-menu" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/menu-edit.png" src="_images/menu-edit.png" />
+<div class="line-block">
+<div class="line"><strong>Undo</strong></div>
+<div class="line">Undo the last action.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Redo</strong></div>
+<div class="line">Redo the last action.</div>
+</div>
+</div>
+<div class="section" id="run-menu">
+<h3>Run menu<a class="headerlink" href="#run-menu" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/menu-run.png" src="_images/menu-run.png" />
+<div class="line-block">
+<div class="line"><strong>Simulate and Plot</strong></div>
+<div class="line">Run the current script, including displaying plots and performing exports.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Plot</strong></div>
+<div class="line">Only performs the plotting and exporting commands on the data from the last simulation.</div>
+</div>
+</div>
+<div class="section" id="help-menu">
+<h3>Help menu<a class="headerlink" href="#help-menu" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/menu-help.png" src="_images/menu-help.png" />
+<div class="line-block">
+<div class="line"><strong>Documentation</strong></div>
+<div class="line">Opens this documentation.</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>License</strong></div>
+<div class="line">Displays the terms and conditions for the license of <cite>Learning Simulator</cite>.</div>
+</div>
+</div>
+</div>
+<div class="section" id="script-window">
+<h2>Script window<a class="headerlink" href="#script-window" title="Permalink to this headline">¶</a></h2>
+<p>This is the text area where to open/edit scripts. It works like a simple editor.</p>
+<p>If you need further editor features, you may use your favourite editor, save the file
+as a text-file, and run the script from the command line. See <a class="reference internal" href="starting.html"><span class="doc">How to Run Learning Simulator</span></a>.</p>
+</div>
+<div class="section" id="button-panel">
+<h2>Button panel<a class="headerlink" href="#button-panel" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>Simulate and Plot</strong> button does the same as the menu item <strong>Run &gt; Simulate and Plot</strong></p>
+<p>The <strong>Plot</strong> button does the same as the menu item <strong>Run &gt; Plot</strong></p>
+<p>The <strong>Close Figures</strong> button closes all currently open plot figures.</p>
+</div>
+<div class="section" id="message-log">
+<h2>Message log<a class="headerlink" href="#message-log" title="Permalink to this headline">¶</a></h2>
+<p>This is the message log, used to display information from the <cite>Learning Simulator</cite>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Graphical User Interface (GUI)</a><ul>
+<li><a class="reference internal" href="#menu-bar">Menu bar</a><ul>
+<li><a class="reference internal" href="#file-menu">File menu</a></li>
+<li><a class="reference internal" href="#edit-menu">Edit menu</a></li>
+<li><a class="reference internal" href="#run-menu">Run menu</a></li>
+<li><a class="reference internal" href="#help-menu">Help menu</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#script-window">Script window</a></li>
+<li><a class="reference internal" href="#button-panel">Button panel</a></li>
+<li><a class="reference internal" href="#message-log">Message log</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="background.html"
+                        title="previous chapter">Background</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="community.html"
+                        title="next chapter">Community</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gui.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="community.html" title="Community"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="background.html" title="Background"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">The Graphical User Interface (GUI)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Markus Jonsson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

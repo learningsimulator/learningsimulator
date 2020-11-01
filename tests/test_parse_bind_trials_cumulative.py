@@ -114,14 +114,14 @@ class TestExceptions(LsTestCase):
         {name}:
         '''
         msg = f"Parameter '{name}' is not specified."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
         {}   :
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_empty_name_no_colon(self):
@@ -133,7 +133,7 @@ class TestExceptions(LsTestCase):
         {}
         '''.format(name)
         msg = "Parameter '{}' is not specified.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)
 
     def test_invalid_value(self):
@@ -145,5 +145,5 @@ class TestExceptions(LsTestCase):
         {}: galopp
         '''.format(name)
         msg = "Parameter '{}' must be 'on' or 'off'.".format(name)
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             parse(text, name)

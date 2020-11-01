@@ -7,7 +7,7 @@ from LsExceptions import LsParseException
 
 
 def make_script_parameters(paramblock):
-    script = paramblock + "\n" + "@run"
+    script = paramblock + "n" + "@run"
     script_obj = LsScript.LsScript(script)
     return script_obj.parameters.parameters
 

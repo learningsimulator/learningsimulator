@@ -1,17 +1,20 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.font as tkFont
 from tkinter import Canvas  # , Frame
 from tkinter.scrolledtext import ScrolledText
 from tkinter.constants import YES  # , BOTH
+from tkinter import messagebox
 # import threading
 
 # import time
 
 
 class TextBoxLineNumbers(Canvas):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, font, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.text_box = None
+        self.font = font
 
     def redraw(self):
         self.delete("all")
@@ -22,9 +25,13 @@ class TextBoxLineNumbers(Canvas):
             if dline is None:
                 break
             y = dline[1]
-            linenum = str(i).split(".")[0]
-            self.create_text(2, y, anchor="nw", text=linenum)
+            line_number = str(i).split(".")[0]
+            self.create_text(2, y, anchor="nw", text=line_number, font=self.font)
             i = self.text_box.index("%s+1line" % i)
+
+    def set_font(self, font):
+        self.font = font
+        self.redraw()
 
 
 class TextBox(ScrolledText):
@@ -49,6 +56,13 @@ class TextBox(ScrolledText):
         # self['yscrollcommand'] = self.yscroll
         # self.vbar.config(command=self.yview)
         super().focus_set()  # Set focus to the TextBox
+
+    def set_font(self, font):
+        super().config(font=font)
+
+    def get_current_font(self):
+        font_obj = tkFont.Font(font=self['font']).actual()
+        return (font_obj['family'], font_obj['size'])
 
     def undo(self, event=None):
         try:
@@ -85,17 +99,41 @@ class LineNumberedTextBox():
     def __init__(self, frame):
         self.text_box = TextBox(frame)
         # self.text_box.vbar.config(command=self.text_box.yview)
-        self.line_numbers = TextBoxLineNumbers(frame, width=30, highlightthickness=1, bd=1)
+        self.font = self.text_box.get_current_font()
+        self.line_numbers = TextBoxLineNumbers(self.font, frame, width=30, highlightthickness=1, bd=1)
+
         self.text_box.attach(self.line_numbers)
 
         self.line_numbers.pack(side="left", fill="y")
         self.text_box.pack(side="right", fill="both", expand=YES)
+
+        self.text_box.bind("<Control-plus>", self.increase_fontsize)
+        self.text_box.bind("<Control-minus>", self.decrease_fontsize)
 
     def redraw_line_numbers(self):
         self.text_box.redraw_line_numbers()
 
     def bind(self, acc, fcn):
         self.text_box.bind(acc, fcn)
+
+    def undo(self, event=None):
+        self.text_box.undo()
+
+    def redo(self, event=None):
+        self.text_box.redo()
+
+    def increase_fontsize(self, event=None):
+        self.font = (self.font[0], self.font[1] + 1)
+        self._update_font()
+
+    def decrease_fontsize(self, event=None):
+        self.font = (self.font[0], self.font[1] - 1)
+        self._update_font()
+
+    def _update_font(self):
+        self.text_box.set_font(self.font)
+        self.line_numbers.set_font(self.font)
+        self.redraw_line_numbers()
 
 
 class ErrorDlg(tk.Toplevel):
@@ -121,7 +159,8 @@ class ErrorDlg(tk.Toplevel):
         text_frame.rowconfigure(0, weight=1)
         text_frame.columnconfigure(0, weight=1)
 
-        ttk.Label(button_frame, text=message).grid(row=0, column=0, columnspan=3, pady=(7, 7), padx=(7, 7), sticky="w")
+        lbl = ttk.Label(button_frame, text=message)
+        lbl.grid(row=0, column=0, columnspan=3, pady=(7, 7), padx=(7, 7), sticky="w")
         ok_button = ttk.Button(button_frame, text="OK", command=self.destroy)
         ok_button.grid(row=1, column=1, sticky="e")
         self.details_button = ttk.Button(button_frame, text="Details >>",
@@ -238,11 +277,169 @@ class ProgressDlg(tk.Toplevel):
     def report2(self, message):
         self.label2.config(text=message)
 
-# if __name__ == "__main__":
-#     root = tk.Tk()
-#
-#     frame = Frame(root)
-#     lntb = LineNumberedTextBox(frame)
-#     frame.pack(side="top", anchor="w", fill=BOTH, expand=YES)
-#
-#     root.mainloop()
+
+class WarningDlg():
+    def __init__(self, msg):
+        messagebox.showwarning(title="Warning", message=msg)
+
+
+class LicenseDlg(tk.Toplevel):
+    def __init__(self, gui, include_agree_buttons=True):
+        super().__init__()
+        self.gui = gui
+        self.title("License")
+        self.geometry("500x100")
+        self.minsize(700, 400)
+        self.maxsize(1000, 700)
+        self.rowconfigure(0, weight=0)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=0)
+        self.columnconfigure(0, weight=1)
+
+        lbl_frame = tk.Frame(self)
+        lbl_frame.grid(row=0, column=0, sticky="nsew")
+        lbl_frame.rowconfigure(0, weight=0)
+        lbl = ttk.Label(lbl_frame, text=self._get_text(), background=gui.root['bg'])
+        lbl.grid(row=0, column=0, pady=(3, 0), padx=(7, 7), sticky="w")
+
+        text_frame = tk.Frame(self)
+        text_frame.grid(row=1, column=0, padx=(7, 7), pady=(5, 0), sticky="nsew")
+        text_frame.rowconfigure(0, weight=1)
+        text_frame.columnconfigure(0, weight=1)
+
+        textbox = tk.scrolledtext.ScrolledText(text_frame, height=6)
+        textbox.config(wrap=tk.WORD)
+        textbox.grid(row=0, column=0, sticky='nsew')
+        textbox.insert("1.0", self._get_license_text())
+        textbox.config(state="disabled")
+
+        question_frame = tk.Frame(self)
+        question_frame.grid(row=2, column=0, padx=(7, 7), pady=(7, 7), sticky="nsew")
+        question_frame.columnconfigure(0, weight=1)
+        question = ttk.Label(question_frame, text="Do you agree to these terms and conditions?",
+                             background=gui.root['bg'])
+        question.grid(row=0, column=0, padx=(0, 7), sticky="w")
+
+        button_frame = tk.Frame(question_frame)
+        button_frame.grid(row=0, column=1, sticky="e")
+        yes_button = ttk.Button(button_frame, text="Yes", command=self.destroy)
+        yes_button.grid(row=0, column=0)
+        no_button = ttk.Button(button_frame, text="No", command=self.no)
+        no_button.grid(row=0, column=1, padx=(5, 0))
+
+        self.resizable(True, True)
+        self.grab_set()  # Make this dialog box modal
+        if include_agree_buttons:
+            yes_button.focus_set()
+            self.protocol("WM_DELETE_WINDOW", self.no)
+        else:
+            question.grid_remove()
+            no_button.grid_remove()
+            yes_button.config(text="Close")
+
+    @staticmethod
+    def _get_text():
+        return """Learning Simulator is developed at Centre for Cultural Evolution at Stockholm University.
+When using this software in research, please cite it as
+    Jonsson, Ghirlanda, Lind, Enquist, Learning Simulator, (2020), GitHub repository,
+    https://github.com/learningsimulator/learningsimulator.
+
+The souce code for this software is hosted on GitHub under the MIT license stated below. It is is built using
+- Python(R) (Copyright © 2001-2020 Python Software Foundation (PSF); All Rights Reserved)
+- Matplotlib (Copyright © 2012-2020 Matplotlib Development Team (MDT); All Rights Reserved)
+
+The terms and conditions for these products can be found below."""
+
+    @staticmethod
+    def _get_license_text():
+        return """MIT License for Learning Simulator
+----------------------------------
+Copyright (c) 2018 markusrobertjonsson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+Terms and conditions for accessing or otherwise using Python
+------------------------------------------------------------
+PSF LICENSE AGREEMENT FOR PYTHON 3.8.2rc2
+
+1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
+   the Individual or Organization ("Licensee") accessing and otherwise using Python
+   3.8.2rc2 software in source or binary form and its associated documentation.
+
+2. Subject to the terms and conditions of this License Agreement, PSF hereby
+   grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
+   analyze, test, perform and/or display publicly, prepare derivative works,
+   distribute, and otherwise use Python 3.8.2rc2 alone or in any derivative
+   version, provided, however, that PSF's License Agreement and PSF's notice of
+   copyright, i.e., "Copyright © 2001-2020 Python Software Foundation; All Rights
+   Reserved" are retained in Python 3.8.2rc2 alone or in any derivative version
+   prepared by Licensee.
+
+3. In the event Licensee prepares a derivative work that is based on or
+   incorporates Python 3.8.2rc2 or any part thereof, and wants to make the
+   derivative work available to others as provided herein, then Licensee hereby
+   agrees to include in any such work a brief summary of the changes made to Python
+   3.8.2rc2.
+
+4. PSF is making Python 3.8.2rc2 available to Licensee on an "AS IS" basis.
+   PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY OF
+   EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY REPRESENTATION OR
+   WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
+   USE OF PYTHON 3.8.2rc2 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+
+5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON 3.8.2rc2
+   FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF
+   MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.8.2rc2, OR ANY DERIVATIVE
+   THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+6. This License Agreement will automatically terminate upon a material breach of
+   its terms and conditions.
+
+7. Nothing in this License Agreement shall be deemed to create any relationship
+   of agency, partnership, or joint venture between PSF and Licensee.  This License
+   Agreement does not grant permission to use PSF trademarks or trade name in a
+   trademark sense to endorse or promote products or services of Licensee, or any
+   third party.
+
+8. By copying, installing or otherwise using Python 3.8.2rc2, Licensee agrees
+   to be bound by the terms and conditions of this License Agreement.
+
+
+License agreement for matplotlib 3.1.3
+--------------------------------------
+1. This LICENSE AGREEMENT is between the Matplotlib Development Team ("MDT"), and the Individual or Organization ("Licensee") accessing and otherwise using matplotlib software in source or binary form and its associated documentation.
+
+2. Subject to the terms and conditions of this License Agreement, MDT hereby grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce, analyze, test, perform and/or display publicly, prepare derivative works, distribute, and otherwise use matplotlib 3.1.3 alone or in any derivative version, provided, however, that MDT's License Agreement and MDT's notice of copyright, i.e., "Copyright (c) 2012-2013 Matplotlib Development Team; All Rights Reserved" are retained in matplotlib 3.1.3 alone or in any derivative version prepared by Licensee.
+
+3. In the event Licensee prepares a derivative work that is based on or incorporates matplotlib 3.1.3 or any part thereof, and wants to make the derivative work available to others as provided herein, then Licensee hereby agrees to include in any such work a brief summary of the changes made to matplotlib 3.1.3.
+
+4. MDT is making matplotlib 3.1.3 available to Licensee on an "AS IS" basis. MDT MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, MDT MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF MATPLOTLIB 3.1.3 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+
+5. MDT SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF MATPLOTLIB 3.1.3 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING MATPLOTLIB 3.1.3, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+
+6. This License Agreement will automatically terminate upon a material breach of its terms and conditions.
+
+7. Nothing in this License Agreement shall be deemed to create any relationship of agency, partnership, or joint venture between MDT and Licensee. This License Agreement does not grant permission to use MDT trademarks or trade name in a trademark sense to endorse or promote products or services of Licensee, or any third party.
+
+8. By copying, installing or otherwise using matplotlib 3.1.3, Licensee agrees to be bound by the terms and conditions of this License Agreement.
+"""
+
+    def no(self):
+        self.gui.file_quit()

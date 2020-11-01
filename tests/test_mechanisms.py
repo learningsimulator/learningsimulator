@@ -4,7 +4,45 @@ from .testutil import LsTestCase
 from .testutil import run, get_plot_data, remove_files
 
 
-class TestOriginalRescorlaWagner(LsTestCase):
+class TestVMechanisms(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_simple(self):
+        mechanism_names_to_test = ['ga', 'sr', 'es', 'ql', 'ac']
+        for mechanism_name in mechanism_names_to_test:
+            text = f'''
+            mechanism: {mechanism_name}
+            stimulus_elements: s1, s2, rew, norew
+            behaviors: b1, b2, dummy
+            u: rew:1, norew:-1, default:0
+            n_subjects:100
+            response_requirements: b1:[s1, s2],
+                                   b2:[s1, s2],
+                                   dummy:[rew, norew]
+
+            @phase phase stop:s1=50
+            new_trial s1    | b1:S2     | NOREW
+            S2        s2    | b2:REW    | NOREW
+            NOREW     norew | new_trial
+            REW       rew   | new_trial
+
+            @run phase
+
+            xscale:new_trial
+            @vplot s1->b1
+            '''
+            run(text)
+
+
+class TestRescorlaWagner(LsTestCase):
     @classmethod
     def setUpClass(cls):
         pass
@@ -58,6 +96,46 @@ class TestOriginalRescorlaWagner(LsTestCase):
             self.assertAlmostEqual(us_cs['y'][i], 1 - expected_increasing_y[i], 6)
             self.assertAlmostEqual(us_us['y'][i], 1 - expected_increasing_y[i], 6)
             self.assertAlmostEqual(cs_cs['y'][i], 1 - expected_increasing_y[i], 6)
+
+    def test_default_alpha_vss(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+
+        @figure
+        @vssplot cs->us
+        @vssplot us->cs
+        @vssplot us->us
+        @vssplot cs->cs
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        cs_us = plot_data['vss(cs->us)']
+        us_cs = plot_data['vss(us->cs)']
+        us_us = plot_data['vss(us->us)']
+        cs_cs = plot_data['vss(cs->cs)']
+
+        expected_x = list(range(0, 5))
+        self.assertEqual(cs_us['x'], expected_x)
+        self.assertEqual(us_cs['x'], expected_x)
+        self.assertEqual(us_us['x'], expected_x)
+        self.assertEqual(cs_cs['x'], expected_x)
+
+        self.assertEqual(cs_cs['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(cs_us['y'], [0.5, 1.0, 1.0, 1.0, 1.0])
+        self.assertEqual(us_cs['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
+        self.assertEqual(us_us['y'], [0.5, 0.0, 0.0, 0.0, 0.0])
 
     def test_xscale_stimulus(self):
         text = '''
@@ -287,13 +365,13 @@ class TestOriginalRescorlaWagner(LsTestCase):
                     '@vexport cs->b1 ./tests/exported_files/export_filename.txt',
                     '@pexport cs->b1 ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'v'."
-            with self.assertRaisesX(Exception, msg):
+            with self.assertRaisesMsg(msg):
                 run(text.format(cmd))
         for cmd in ['@wplot cs', '@wplot us',
                     '@wexport cs ./tests/exported_files/export_filename.txt',
                     '@wexport us ./tests/exported_files/export_filename.txt']:
             msg = "Used mechanism does not have variable 'w'."
-            with self.assertRaisesX(Exception, msg):
+            with self.assertRaisesMsg(msg):
                 run(text.format(cmd))
 
         remove_files(['export_filename.txt'])
@@ -453,7 +531,7 @@ class TestExceptions(LsTestCase):
         @vplot s1->b
         """
         msg = "There is no @RUN."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     def test_error_for_w_vss(self):
@@ -474,10 +552,10 @@ class TestExceptions(LsTestCase):
         {}
         """
         msg = "Used mechanism does not have variable 'w'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text.format("@wplot cs"))
         msg = "Used mechanism does not have variable 'vss'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text.format("@vssplot cs->us"))
 
     def test_stop_condition_depends_on_behavior(self):
@@ -500,7 +578,7 @@ class TestExceptions(LsTestCase):
         @run foo
         """
         msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
         text = """
@@ -548,7 +626,7 @@ class TestExceptions(LsTestCase):
         @run foo, bar
         """
         msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
     def test_phase_line_logic_depends_on_behavior(self):
@@ -567,7 +645,7 @@ class TestExceptions(LsTestCase):
         @run bar
         """
         msg = "Phase line logic cannot depend on behavior in mechanism 'rw'."
-        with self.assertRaisesX(Exception, msg):
+        with self.assertRaisesMsg(msg):
             run(text)
 
         text = """

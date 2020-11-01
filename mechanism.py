@@ -13,6 +13,15 @@ class Mechanism():
     def __init__(self, parameters):
         self.parameters = parameters
         # parameters.scalar_expand()
+        self.trace = self.parameters.get(kw.TRACE)
+        self.use_trace = (self.trace != 0)
+
+        if self.use_trace:
+            self.stimulus_intensities = {s: 0 for s in parameters.get(kw.STIMULUS_ELEMENTS)}
+            self.prev_stimulus_intensities = dict(self.stimulus_intensities)
+        else:
+            self.stimulus_intensities = None
+            self.prev_stimulus_intensities = None
 
         self.v = None
         self.w = None
@@ -27,28 +36,68 @@ class Mechanism():
     def subject_reset(self):
         self.v = dict(self.parameters.get(kw.START_V))
         self.w = dict(self.parameters.get(kw.START_W))
-
-        # self.v = dict(parameters.get(kw.START_V))
-        # self.w = dict(parameters.get(kw.START_W))
-        # self._initialize_v()
-        # self._initialize_w()
         self.prev_stimulus = None
         self.response = None
 
+        if self.use_trace:
+            self._reset_trace()
+
+    def foo_reset_trace(self, stimulus=None):
+        for s in self.stimulus_intensities:
+            if (stimulus is not None) and (s in stimulus):  # Keep intensities for the elements in stimulus
+                self.stimulus_intensities[s] = stimulus[s]
+            else:
+                self.stimulus_intensities[s] = 0
+        for s in self.prev_stimulus_intensities:
+            self.prev_stimulus_intensities[s] = 0
+
+    def _reset_trace(self, stimulus=None):
+        for s in self.stimulus_intensities:
+            self.stimulus_intensities[s] = 0
+        for s in self.prev_stimulus_intensities:
+            self.prev_stimulus_intensities[s] = 0
+
+    def _decay_stimulus_intensities(self, stimulus):
+        '''stimulus is a dict.'''
+        for e in self.stimulus_intensities:
+            self.stimulus_intensities[e] *= self.trace
+        for e in stimulus:
+            self.stimulus_intensities[e] += stimulus[e]
+
     def learn_and_respond(self, stimulus, omit=False):
-        """stimulus is a tuple."""
-        # element_in_omit = False
-        # for e in stimulus:
-        #     if e in self.omit_learning:
-        #         element_in_omit = True
-        #         break
-        if self.prev_stimulus is not None and not omit:
-            # Do not update if first time or if omit
-            self.learn(stimulus)
+        '''stimulus is a dict.'''
+        if self.use_trace:
+            self._decay_stimulus_intensities(stimulus)
+
+        if (self.prev_stimulus is None) or omit:  # Do not update if first time or if omit
+            pass
+        else:
+            if self.use_trace:
+                self.learn_i(stimulus)
+            else:
+                self.learn(stimulus)
 
         self.response = self._get_response(stimulus)
-        self.prev_stimulus = stimulus
+
+        # if self.use_trace and omit:
+        #     # XXX Should be a separate @cleartrace or something that triggers
+        #     # this reset (separate from "omit learning")
+        #     self._reset_trace(stimulus)
+
+        self.prev_stimulus = dict(stimulus)  # dict ok?
+        if self.use_trace:
+            for s in self.parameters.get(kw.STIMULUS_ELEMENTS):
+                self.prev_stimulus_intensities[s] = self.stimulus_intensities[s]
+
         return self.response
+
+    def learn(self, stimulus):
+        # Must be overridden
+        raise NotImplementedError
+
+    def learn_i(self, stimulus):
+        mechanism_name = self.parameters.get(kw.MECHANISM_NAME)
+        raise NotImplementedError(f"Trace not implemented in mechanism '{mechanism_name}'.")
 
     def _get_response(self, stimulus):
         x, feasible_behaviors = self._support_vector(stimulus)
@@ -62,7 +111,8 @@ class Mechanism():
         behaviors = self.parameters.get(kw.BEHAVIORS)
         beta = self.parameters.get(kw.BETA)
         mu = self.parameters.get(kw.MU)
-        return support_vector_static(stimulus, behaviors, self.stimulus_req, beta, mu, self.v)
+        return support_vector_static(stimulus, self.stimulus_intensities, behaviors,
+                                     self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
         return True, None, None  # To be overridden where necessary
@@ -95,23 +145,33 @@ def get_feasible_behaviors(stimulus, behaviors, stimulus_req):
     return feasible_behaviors
 
 
-def support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v):
+def support_vector_static(stimulus, internal_intensities, behaviors, stimulus_req, beta, mu, v):
+    if internal_intensities is None:
+        internal_intensities = stimulus
     feasible_behaviors = get_feasible_behaviors(stimulus, behaviors, stimulus_req)
-    vector = list()
+    exponents = list()
     for behavior in feasible_behaviors:
         exponent = 0
-        for element in stimulus:
+        for element, intensity in internal_intensities.items():
             key = (element, behavior)
-            exponent += beta[key] * v[key] + mu[key]
-        value = exp(exponent)
-        vector.append(value)
+            exponent += beta[key] * v[key] * intensity + mu[key]
+        exponents.append(exponent)
+    max_exponent = max(exponents)
+    if max_exponent > 500:
+        shifted_exponents = [x - max_exponent for x in exponents]
+        vector = [exp(x) for x in shifted_exponents]
+    else:
+        vector = [exp(x) for x in exponents]
     return vector, feasible_behaviors
 
 
-# For postprocessing only
-def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, mu, v):
-    x, feasible_behaviors = support_vector_static(stimulus, behaviors, stimulus_req, beta, mu, v)
+# For postprocessing (pplot) only
+def probability_of_response(stimulus, behavior, behaviors,
+                            stimulus_req, beta, mu, v):
+    x, feasible_behaviors = support_vector_static(stimulus, None, behaviors,
+                                                  stimulus_req, beta, mu, v)
     if behavior not in feasible_behaviors:
+        stimulus = [e for e in stimulus if e != 0]
         csse = ','.join(stimulus)  # Comma-separated stimulus elements
         raise Exception(f"Behavior '{behavior}' is not a possible response to '{csse}'.")
     index = feasible_behaviors.index(behavior)
@@ -119,7 +179,7 @@ def probability_of_response(stimulus, behavior, behaviors, stimulus_req, beta, m
     return p
 
 
-class RescorlaWagner(Mechanism):
+class StimulusResponse(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -128,17 +188,28 @@ class RescorlaWagner(Mechanism):
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
 
-        if self.prev_stimulus is None:
-            return
         usum, vsum = 0, 0
-        for element in stimulus:
-            usum += u[element]
-        for element in self.prev_stimulus:
-            vsum += self.v[(element, self.response)]
-        for element in self.prev_stimulus:
+        for element, intensity in stimulus.items():
+            usum += u[element] * intensity
+        for element, intensity in self.prev_stimulus.items():
+            vsum += self.v[(element, self.response)] * intensity
+        for element, intensity in self.prev_stimulus.items():
             alpha_v_er = alpha_v[(element, self.response)]
-            self.v[(element, self.response)] += alpha_v_er * (usum - vsum - c[self.response])
+            self.v[(element, self.response)] += alpha_v_er * (usum - vsum - c[self.response]) * intensity
 
+    def learn_i(self, stimulus):
+        u = self.parameters.get(kw.U)
+        c = self.parameters.get(kw.BEHAVIOR_COST)
+        alpha_v = self.parameters.get(kw.ALPHA_V)
+
+        usum, vsum = 0, 0
+        for element, intensity in stimulus.items():
+            usum += u[element] * intensity
+        for element, intensity in self.prev_stimulus_intensities.items():
+            vsum += self.v[(element, self.response)] * intensity
+        for element, intensity in self.prev_stimulus_intensities.items():
+            alpha_v_er = alpha_v[(element, self.response)]
+            self.v[(element, self.response)] += alpha_v_er * (usum - vsum - c[self.response]) * intensity
 
 # class SARSA(Mechanism):
 #     def __init__(self, **kwargs):
@@ -175,7 +246,7 @@ class EXP_SARSA(Mechanism):
 
         E = 0
         for element in stimulus:
-            x, feasible_behaviors = self._support_vector((element,))
+            x, feasible_behaviors = self._support_vector({element: 1})
             sum_x = sum(x)
 
             expected_value = 0
@@ -224,31 +295,6 @@ class Qlearning(Mechanism):
             self.v[(element, self.response)] += delta
 
 
-'''class ActorCritic(Mechanism):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def learn(self, stimulus):
-        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
-        for element in self.prev_stimulus:
-            vsum_prev += self.v[(element, self.response)]
-            wsum_prev += self.w[element]
-        for element in stimulus:
-            usum += self.u[element]
-            wsum += self.w[element]
-
-        delta = usum + wsum - wsum_prev - self.c[self.response]
-        deltav = self.alpha_v * delta
-        deltaw = self.alpha_w * delta
-
-        # v
-        for element in self.prev_stimulus:
-            self.v[(element, self.response)] += deltav
-        # w
-        for element in self.prev_stimulus:
-            self.w[element] += deltaw'''
-
-
 class ActorCritic(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -271,8 +317,8 @@ class ActorCritic(Mechanism):
 
         # v
         delta = usum + discount * wsum - c[self.response] - wsum_prev
-        x, feasible_behaviors = self._support_vector(stimulus)
-        p = x[ feasible_behaviors == self.response ] / sum(x)
+        x, feasible_behaviors = self._support_vector(self.prev_stimulus)
+        p = x[feasible_behaviors.index(self.response)] / sum(x)
         for element in self.prev_stimulus:
             alpha_v_er = alpha_v[(element, self.response)]
             beta_er = beta[(element, self.response)]
@@ -343,12 +389,15 @@ class OriginalRescorlaWagner(Mechanism):
         assert(len(self.prev_stimulus) == 1)
         assert(len(stimulus) == 1)
 
-        ss = (self.prev_stimulus[0], stimulus[0])
-        self.vss[ss] += alpha_vss[ss] * (_lambda[stimulus[0]] - self.vss[ss])
+        s1 = list(self.prev_stimulus.keys())[0]
+        s2 = list(stimulus.keys())[0]
+        # ss = (self.prev_stimulus[0], stimulus[0])
+        ss = (s1, s2)
+        self.vss[ss] += alpha_vss[ss] * (_lambda[s2] - self.vss[ss])
 
         for s in self.parameters.get(kw.STIMULUS_ELEMENTS):
-            if s != stimulus[0]:
-                key = (self.prev_stimulus[0], s)
+            if s != s2:
+                key = (s1, s)
                 self.vss[key] += -alpha_vss[key] * self.vss[key]
 
     def check_compatibility_with_world(self, world):
@@ -368,7 +417,7 @@ class OriginalRescorlaWagner(Mechanism):
         for phase in world.phases:
             for _, phase_line in phase.phase_lines.items():
                 for condition_obj in phase_line.conditions.conditions:
-                    if condition_obj.cond_is_behavior:
+                    if condition_obj.condition_is_behavior:
                         mech_name = self.parameters.get(kw.MECHANISM_NAME)
                         err = f"Phase line logic cannot depend on behavior in mechanism '{mech_name}'."
                         lineno = condition_obj.lineno

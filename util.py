@@ -1,6 +1,8 @@
 import ast
 import re
 import random
+import os
+import sys
 
 
 def rand(start, stop):
@@ -11,6 +13,34 @@ def rand(start, stop):
     if start > stop:
         raise Exception("The first argument to 'rand' must be less than or equal to the second argument.")
     return random.randint(start, stop)
+
+
+def choice(*args):
+    def _is_numeric_iter(vec):
+        return all(isinstance(x, (int, float)) for x in vec)
+
+    def _choice_float(population, weights=None):
+        ERRMSG = "Found non-number in 'choice'."
+        if not _is_numeric_iter(population):
+            raise Exception(ERRMSG)
+        if weights is None:
+            return random.choice(population)
+        if not _is_numeric_iter(weights):
+            raise Exception(ERRMSG)
+        return random.choices(population=population, weights=weights, k=1)[0]
+
+    nargs = len(args)
+    if nargs == 0:
+        raise Exception("The function 'choice' must have at least one argument.")
+    elif nargs == 1:
+        if type(args[0]) is list:
+            return _choice_float(args[0])
+        else:
+            raise Exception("Single input to 'choice' must be a list.")
+    elif nargs == 2 and all(isinstance(x, list) for x in args):
+        return _choice_float(args[0], args[1])
+    else:
+        return _choice_float(args)
 
 
 def count(event_counter, event):
@@ -63,7 +93,7 @@ class ParseUtil():
             return False, None
         else:
             if val < 0 or val > 1:
-                return False, None
+                return False, val
         return True, val
 
     @staticmethod
@@ -97,7 +127,7 @@ class ParseUtil():
             return None, parse_err
         if type(v) is not int:
             return None, None
-        if v < 0:
+        if v <= 0:
             return None, None
         return v, None
 
@@ -129,27 +159,102 @@ class ParseUtil():
         return out
 
     @staticmethod
-    def evaluate(expr, variables, phase_event_counter=None, phase_event_counter_type=None):
+    def depends_on(expr_orig, var_list):
+        expr = ParseUtil._single2double_eq(expr_orig)
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
+            return None, err
+        for node in ast.walk(tree):
+            if type(node) is ast.Name:
+                name = node.id
+                if name in var_list:
+                    return True, err
+        return False, None
+
+    @staticmethod
+    def ast_parse(expr):
+        try:
+            tree = ast.parse(expr, mode='eval')
+        except Exception as ex:
+            err = f"Error in expression '{expr}': {ex}."
+            err = err.replace(" (<unknown>, line 1)", "")
+            return None, err
+        return tree, None
+
+    # def replace_initial_behaviors(expr, behaviors, last_response):
+    #     """
+    #     Replace any intial occurence of "b1 or b2 or ... or bn" in expr (where each b is in behaviors)
+    #     with "False or True or ... or False" where True is for the behavior matching last_response.
+    #     """
+    #     def _is_behavior(b):
+    #         # Ignore any parenthesis adjacent to behavior: "(b1 or b2) and ..."
+    #         b_noparenthesis = re.sub(r'[()]*', '', b)
+    #         return b_noparenthesis in behaviors, b_noparenthesis
+
+    #     replaced_expr = ''
+    #     words = expr.split()
+    #     initial_behaviors_done = False
+    #     expecting_behavior = True
+    #     the_rest = ''
+    #     for i, word in enumerate(words):
+    #         if set(word).issubset({'(', ')'}):  # Ignore any parenthesis as own words: "( b1 or b2 ) and ..."
+    #             replaced_expr += word
+    #             continue
+    #         if expecting_behavior:
+    #             is_behavior, behavior = _is_behavior(word)
+    #             if is_behavior:
+    #                 # replaced_expr += f"{behavior == last_response} "  # "True"/"False"
+    #                 replaced_expr += word.replace(behavior, f"{behavior == last_response} ")
+    #             else:
+    #                 initial_behaviors_done = True
+    #         else:  # expecting "or"
+    #             if word == "or":
+    #                 replaced_expr += "or "
+    #             else:
+    #                 if i == 1 and word in ("=", "==", "<=", ">=", "<", ">"):
+    #                     return expr  # A behavior followed by comparison, e.g. "b1 == 5"
+    #                 initial_behaviors_done = True
+    #         if initial_behaviors_done:
+    #             the_rest = " ".join(words[i:])
+    #             break
+    #         expecting_behavior = not expecting_behavior
+    #     replaced_expr += the_rest
+    #     return replaced_expr.strip()
+
+    @staticmethod
+    def _make_bool_behavior_context(behaviors, true_behavior):
+        assert(true_behavior in behaviors), f"{true_behavior} not in {behaviors}."
+        behavior_context = {b: False for b in behaviors}
+        behavior_context[true_behavior] = True
+        return behavior_context
+
+    @staticmethod
+    def evaluate(expr, variables=None, phase_event_counter=None, phase_event_counter_type=None):
         """
         Evaluate the specified expression using the specified Variables and PhaseEventCounter
         objects.
+
+        Returns evaluated_value, error
         """
         expr_orig = expr
 
-        # Remove all spaces
-        expr = expr.replace(" ", "")
-
         expr = ParseUtil._single2double_eq(expr)
 
-        context = {'rand': rand}
-        context.update(variables.values)
+        context = {'rand': rand, 'choice': choice}
+        if variables is not None:
+            context.update(variables.values)
 
-        if phase_event_counter:
+        if phase_event_counter is not None:
             if phase_event_counter_type == ParseUtil.STOP_COND:
                 context.update(phase_event_counter.count)
             elif phase_event_counter_type == ParseUtil.PHASE_LINE:
+                # expr = ParseUtil.replace_initial_behaviors(expr, phase_event_counter.behaviors,
+                #                                            phase_event_counter.last_response)
                 expr = phase_event_counter.replace_count_functions(expr)
-                context.update(phase_event_counter.count_line)
+                behavior_context = ParseUtil._make_bool_behavior_context(phase_event_counter.behaviors,
+                                                                         phase_event_counter.last_response)
+                context.update(behavior_context)
+                context.update(phase_event_counter.get_count_line_linelabels())
             else:
                 return None, "Internal error."
 
@@ -164,11 +269,8 @@ class ParseUtil():
             # expr = expr.replace("count_line(", f"count_line({PEC},")
 
         # Make sure that the expression is valid
-        try:
-            tree = ast.parse(expr, mode='eval')
-        except Exception as ex:
-            err = f"Error in expression '{expr}': {ex}."
-            err = err.replace(" (<unknown>, line 1)", "")
+        tree, err = ParseUtil.ast_parse(expr)
+        if err is not None:
             return None, err
 
         # if phase_event_counter:
@@ -176,22 +278,21 @@ class ParseUtil():
         #                     'count_line': phase_event_counter.get_count_line})
 
         # Check that all contained variables are in variables
+        has_boolean_operator = False
         for node in ast.walk(tree):
             if type(node) is ast.Name:
                 name = node.id
                 if name in context:
                     continue
-                if variables.contains(name):
+                if (variables is not None) and variables.contains(name):
                     continue
-                if phase_event_counter and name in phase_event_counter.count:
+                if (phase_event_counter is not None) and (name in phase_event_counter.count):
                     continue
                 return None, f"Unknown variable '{name}'."
+            if type(node) is ast.BoolOp:
+                has_boolean_operator = True
 
         # Now it is safe to evaluate using eval
-        # if phase_event_counter is not None:
-            # ParseUtil.pec = phase_event_counter
-            # context.update(phase_event_counter.event_names_dict)
-            # context.update({PEC: phase_event_counter})
         try:
             out = eval(expr, {"__builtins__": None}, context)
         except Exception as ex:
@@ -199,6 +300,11 @@ class ParseUtil():
             if not err.endswith("."):  # Some errors {ex} ends with period, some don't
                 err = err + "."
             return None, err
+
+        # Due to short-circuiting, "0 and False" is 0 (int), but "1 and False" is False (bool)
+        if has_boolean_operator:
+            out = bool(out)
+
         type_out = type(out)
         if type_out is not int and type_out is not float and type_out is not bool:
             return None, f"Error in expression '{expr_orig}'."
@@ -256,6 +362,7 @@ class ParseUtil():
 
     @staticmethod
     def parse_chain(v_str, all_stimulus_elements, all_behaviors):
+        """Parse a chain, for example 's1->b1->s2' and return a list (['s1','b1','s2'])."""
         out = list()
         chain = v_str.replace(' ', '').split('->')
         first_link = chain[0].split(',')
@@ -286,26 +393,103 @@ class ParseUtil():
         return out, None
 
     @staticmethod
-    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors):
-        # arrow2evalexpr_p
+    def get_ending_dict(string):
         """
-        From an expression of the form "s1,s2,...->r", return the tuple (('s1','s2',...), 'r').
+        Return the rstripped string preceeding the dict at the end of the specified string,
+        and the dict itself if any (otherwise None).
+
+        Example:
+            get_ending_string(" foo  bar    {'a' : 1}")
+            returns " foo  bar", {'a': 1}
+
+            get_ending_string(" foo  bar    {'a' : 1}")
+            returns " foo  bar", None
+        """
+        string_len = len(string)
+        for i in reversed(range(string_len)):
+            candidate = string[i: string_len]
+            is_dict, d = ParseUtil.is_dict(candidate)
+            if is_dict:
+                preceeding_dict = string[0: i].rstrip()  # Strip spaces separating string from dict
+                return preceeding_dict, d
+        return string, None
+
+    @staticmethod
+    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables):
+        """
+        From an expression of the form "s1[i1],s2[i2],...->r", return the
+        tuple t where t[0] = (('s1',i1), ('s2',i2), ...) and t[1] = 'r'.
         """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, "Expression must include a '->'."
+            return None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
+            return None, None, "Expression must include only one '->'."
 
-        stimulus, behavior = expr.split('->')
-        stimulus_elements = tuple([x.strip() for x in stimulus.split(',')])
-        for element in stimulus_elements:
+        elements, behavior = expr.split('->')
+        stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
+        if err:
+            return None, None, err
+
+        for element in stimulus:
             if element not in all_stimulus_elements:
-                return None, f"Expected a stimulus element, got {element}."
+                return None, None, f"Expected a stimulus element, got {element}."
+
+        behavior = behavior.strip()
         if behavior not in all_behaviors:
-            return None, f"Expected a behavior name, got {behavior}."
-        return (stimulus_elements, behavior), None
+            return None, None, f"Expected a behavior name, got {behavior}."
+
+        return stimulus, behavior, None
+
+    @staticmethod
+    def parse_elements_and_intensities(stimulus, variables, safe_intensity_eval=False):
+        """Parse an expression of the form 'e1[i1],e2[i2],...'. If no brackets, i = 1."""
+        stimulus_elements = [x.strip() for x in stimulus.split(',')]
+        elements_and_intensities = dict()
+        for element_and_intensity in stimulus_elements:
+            element, intensity, err = ParseUtil.parse_element_and_intensity(element_and_intensity, variables,
+                                                                            safe_intensity_eval)
+            if err:
+                return None, err
+            elements_and_intensities[element] = intensity
+        return elements_and_intensities, None
+
+    @staticmethod
+    def parse_element_and_intensity(expr, variables=None, safe_intensity_eval=False):
+        """
+        Parse an expression of the form 'element[intensity]'. If no brackets, intensity = 1.
+        Return element (str), intensity (float), and error (str).
+
+        If safe_intensity_eval is True and intensity cannot be evaluated, return
+        the expression for the intensity (str) instead of the evaluated value (float).
+        """
+        err_output = (None, None, f"Invalid expression {expr}.")
+        expr = expr.strip()
+        if '[' in expr:
+            lb_inds = [m.start() for m in re.finditer('\[', expr)]
+            rb_inds = [m.start() for m in re.finditer('\]', expr)]
+            if len(lb_inds) != 1 or len(rb_inds) != 1:
+                return err_output
+            lb_ind = lb_inds[0]
+            rb_ind = rb_inds[0]
+            if lb_ind == 0:
+                return err_output
+            if rb_ind != len(expr) - 1:  # ']' must be at the end
+                return err_output
+            element = expr[0: lb_ind].strip()
+            intensity_str = expr[lb_ind + 1: -1]
+
+            intensity, _ = ParseUtil.evaluate(intensity_str, variables)
+            if intensity is None:
+                if safe_intensity_eval:
+                    intensity = intensity_str
+                else:
+                    return err_output
+        else:
+            element = expr
+            intensity = 1
+        return element, intensity, None
 
     @staticmethod
     def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
@@ -509,11 +693,40 @@ def is_prob(string):
     return True, val
 
 
+def is_valid_name(name, parameters, kw):
+    """Checks if name is a valid script variable name. Returns the error."""
+    if not name.isidentifier():
+        return "Variable name '{}' is not a valid identifier.".format(name)
+    if name in kw.KEYWORDS:
+        return "Variable name '{}' is a keyword.".format(name)
+    behaviors = parameters.get(kw.BEHAVIORS)
+    if behaviors is not None and name in behaviors:
+        return "Variable name '{}' equals a behavior name.".format(name)
+    stimulus_elements = parameters.get(kw.STIMULUS_ELEMENTS)
+    if stimulus_elements is not None and name in stimulus_elements:
+        return "Variable name '{}' equals a stimulus element name.".format(name)
+    return None
+
+
 def strip_quotes(string):
     string_out = string
     string_out = string_out.replace('"', '')
     string_out = string_out.replace("'", "")
     return string_out
+
+
+def make_readable_list_of_strings(input_list):
+    """Return the string "'a', 'b' and 'c'" for the input ['a', 'b', 'c']."""
+    out = "'" + input_list[0] + "'"
+    list_length = len(input_list)
+    if list_length > 1:
+        for i in range(1, list_length):
+            s = input_list[i]
+            if i == list_length - 1:
+                out += " and " + "'" + s + "'"
+            else:
+                out += ", " + "'" + s + "'"
+    return out
 
 
 def weighted_choice(prob_cumsum):
@@ -600,9 +813,37 @@ def dict_of_list_ind(d, ind):
 
 
 def find_and_cumsum(seq, pattern, use_exact_match):
-    '''seq is list of strings and tuples.
-       pattern is a string, a tuple of strings or a list of strings and tuples of strings.
-       If use_exact_match is false, count also part of tuples as match.'''
+    '''
+    seq is list of strings and tuples.
+    pattern is a string, a tuple of strings or a list of strings and tuples of strings.
+    If use_exact_match is false, count also part of tuples as match.
+    '''
+    def _is_match(seq, pattern, use_exact_match):
+        for i in range(len(seq)):
+            if not _is_match_local(seq[i], pattern[i], use_exact_match):
+                return False
+        return True
+
+    def _is_match_local(st, pattern, use_exact_match):
+        st_type = type(st)
+        pattern_type = type(pattern)
+        if pattern_type is tuple:
+            if st_type is tuple:
+                if use_exact_match:
+                    return set(st) == set(pattern)
+                else:
+                    return set(pattern).issubset(set(st))
+            else:
+                return False
+        else:
+            if st_type is tuple:
+                if use_exact_match:
+                    return False
+                else:
+                    return pattern in st
+            else:
+                return pattern == st
+
     assert(type(seq) == list)
     for s in seq:
         s_type = type(s)
@@ -620,13 +861,13 @@ def find_and_cumsum(seq, pattern, use_exact_match):
         for p in pattern:
             assert((type(p) is str) or (type(p) is tuple))
         pattern_list = pattern
-    else:
+    else:  # pattern_type is str
         pattern_list = [pattern]
 
     seq_len = len(seq)
 
     findind = [0] * seq_len
-    cumsum = [None] * seq_len
+    cumsum_out = [None] * seq_len
     cumsum_curr = 0
     # pattern_is_tuple = (pattern_type is tuple)
     for i in range(seq_len - pattern_len + 1):
@@ -634,41 +875,48 @@ def find_and_cumsum(seq, pattern, use_exact_match):
         if _is_match(seqpart, pattern_list, use_exact_match):  # , pattern_is_tuple):
             findind[i] = 1
             cumsum_curr += 1
-        cumsum[i] = cumsum_curr
+        cumsum_out[i] = cumsum_curr
     # The last indices for which the pattern is too long will be counted as no match:
     for i in range(seq_len - pattern_len + 1, seq_len):
         findind[i] = 0
-        cumsum[i] = cumsum_curr
+        cumsum_out[i] = cumsum_curr
 
-    return findind, cumsum
-
-
-def _is_match(seq, pattern, use_exact_match):
-    for i in range(len(seq)):
-        if not _is_match_local(seq[i], pattern[i], use_exact_match):
-            return False
-    return True
+    return findind, cumsum_out
 
 
-def _is_match_local(st, pattern, use_exact_match):
-    st_type = type(st)
-    pattern_type = type(pattern)
-    if pattern_type is tuple:
-        if st_type is tuple:
-            if use_exact_match:
-                return set(st) == set(pattern)
-            else:
-                return set(pattern).issubset(set(st))
-        else:
-            return False
-    else:
-        if st_type is tuple:
-            if use_exact_match:
-                return False
-            else:
-                return pattern in st
-        else:
-            return pattern == st
+def find_and_cumsum_interval(seq, pattern, use_exact_match,
+                             interval_pattern, interval_pattern_exact):
+    """
+    Return the number of occurances of pattern in seq, between every two consecutive
+    occurrences of interval_pattern.
+
+    Example:
+        find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X', True)
+        returns [2, 1, 0]
+    """
+    ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)
+    ind_int, _ = find_and_cumsum(seq, interval_pattern, interval_pattern_exact)
+    cnt = 0
+    out = list()
+    for i in range(len(ind_seq)):
+        cnt += ind_seq[i]
+        if ind_int[i] == 1:
+            out.append(cnt)
+            cnt = 0
+    #print(f"seq={seq}")
+    #print(f"out={out}")
+    #print(f"cumsum(out) = {cumsum(out)}")
+    #input()
+    return out, cumsum(out)
+
+
+def cumsum(arr):
+    out = [None] * len(arr)
+    curr = 0
+    for i, x in enumerate(arr):
+        curr += x
+        out[i] = curr
+    return out
 
 
 def arraydivide(num, den):
@@ -740,3 +988,13 @@ def dict_inv(d_in):
             if v in val:
                 d_out[v].append(key)
     return d_out
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)

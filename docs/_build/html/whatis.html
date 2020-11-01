@@ -1,19 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>What is Learning Simulator? &#8212; Learning Simulator 1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -32,7 +33,8 @@
         <li class="right" >
           <a href="index.html" title="Welcome to Learning Simulator’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">What is <em>Learning Simulator</em>?</a></li> 
       </ul>
     </div>  
 
@@ -42,22 +44,27 @@
           <div class="body" role="main">
             
   <div class="section" id="what-is-learning-simulator">
-<h1>What is <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>?<a class="headerlink" href="#what-is-learning-simulator" title="Permalink to this headline">¶</a></h1>
-<p>Below follows a non-technical introduction to <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>.</p>
-<p>The system being simulated consists of a <em>subject</em> interacting with a <em>world</em>.
+<h1>What is <em>Learning Simulator</em>?<a class="headerlink" href="#what-is-learning-simulator" title="Permalink to this headline">¶</a></h1>
+<p>Below follows a non-technical introduction to <em>Learning Simulator</em>.
+For a more technical description, see <a class="reference internal" href="background.html"><span class="doc">Background</span></a>.</p>
+<p>The system being simulated consists of a <em>subject</em> (or <em>organism</em>, <em>individual</em>, or <em>agent</em>)
+interacting with a <em>world</em> (or <em>environment</em>).
 In reality, this could be for example a rat (the subject) in a maze (the world)
 choosing which way to go in each intersection.
-The world can produce different stimuli (in a pre-defined set of stimuli which we call
-the world’s <em>stimulus repertoire</em>) that the subject observes.
+The world can present different stimuli (from a pre-defined set of stimulus elements
+which we call the world’s <em>stimulus repertoire</em>) to the subject.
 The simulation starts with the world producing the first stimulus.
 The subject then responds
-to this stimulus with a behavior (among the subject’s <em>behavior repertoire</em>).
-As a result, the world produces a new stimulus that the subject responds to, and so on.
-The subject associates each stimulus-response pair with a value, which measures how
+to this stimulus with one of the behaviors in the subject’s <em>behavior repertoire</em>.
+As a result, the world produces a new stimulus that the subject responds to, and so on.</p>
+<p>The subject associates each stimulus-response pair with a value, that
+we call the <em>associative strength</em> between the stimulus and the response,
+and denote by <span class="math notranslate nohighlight">\(v\)</span>.
+It measures how
 “good” it is to respond with a certain behavior to a certain stimulus.
 The subject also associate each stimulus in itself with a value which may or may not
-change. Based on earlier interactions, these values are updated after each response
-choice have been made. These values in turn affect the next response decision.</p>
+change. Based on earlier interactions, these values are updated after each stimulus
+exposure. These values in turn affect the next response decision.</p>
 <p>For example, if a dove is rewarded (with food, for example) after picking on a lever
 when a blue light comes on,
 but is not rewarded when picking when the light is red, the next time the light comes on,
@@ -65,17 +72,19 @@ the dove is more likely to pick on the lever if the light is blue than if it is 
 In this case, the value of the stimulus-response pair (blue light, pick) increases
 over time.</p>
 <p>In the above example, the animal has learned to pick when a blue light is on.
-It is this kind of learning processes that can be simulated in <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>.
-The user of the simulator specifies in a simple text-based scripting language
-how the world produces stimulus, as well as a number of other parameters to the
-simulation. After a completed simulation, using script commands, the user can
+It is this kind of learning processes that can be simulated in <em>Learning Simulator</em>.
+The user of the simulator specifies in a text-based scripting language
+how the world produces stimuli, as well as a number of other parameters to the
+simulation. After a completed simulation, the user can
 visualize how the value of certain stimuli or certain stimulus-response pairs
 change over time. This script file is the only input to <code class="docutils literal notranslate"><span class="pre">Learning</span> <span class="pre">Simulator</span></code>.
-The output is typically plots of these values, but these values can also be
+The output is typically one or several plots of these values as a function of
+simulation steps (learning curves). These values can also be
 exported in csv-format to an external file.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -95,15 +104,15 @@ exported in csv-format to an external file.</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -120,12 +129,13 @@ exported in csv-format to an external file.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to Learning Simulator’s documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">What is <em>Learning Simulator</em>?</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Markus Jonsson.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

@@ -27,8 +27,8 @@ def parse(text):
 
 def check_logic(self, condition, lineno, cond, cond_is_behavior, goto):
     self.assertEqual(condition.lineno, lineno)
-    self.assertEqual(condition.cond, cond)
-    self.assertEqual(condition.cond_is_behavior, cond_is_behavior)
+    self.assertEqual(condition.condition, cond)
+    self.assertEqual(condition.condition_is_behavior, cond_is_behavior)
     self.assertEqual(condition.goto, goto)
 
 
@@ -52,7 +52,8 @@ class TestMisc(LsTestCase):
         """
         world, _ = parse(script)
         msg = "Unknown variable 'E00'."
-        with self.assertRaisesX(Exception, msg):
+        world.next_stimulus(None)
+        with self.assertRaisesMsg(msg):
             world.next_stimulus('R0')
 
     def test_repeat_phase(self):
@@ -99,53 +100,53 @@ class TestClassicalConditioning(LsTestCase):
 
         row = phase.phase_lines["CONTEXT"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("context",))
+        self.assertEqual(row.stimulus, {"context": 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, 'count_line()=25', False, [(1, "US")])
-        check_logic(self, conditions[1], 6, None, False, [(1, "CONTEXT")])
+        check_logic(self, conditions[0], 6, 'count_line()=25', False, [[1, "US"]])
+        check_logic(self, conditions[1], 6, None, False, [[1, "CONTEXT"]])
 
         row = phase.phase_lines["US"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("us", "context"))
+        self.assertEqual(row.stimulus, {"us": 1, "context": 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 7, 'R', True, [(1, "REWARD")])
-        check_logic(self, conditions[1], 7, None, False, [(1, "CONTEXT")])
+        check_logic(self, conditions[0], 7, 'R', True, [[1, "REWARD"]])
+        check_logic(self, conditions[1], 7, None, False, [[1, "CONTEXT"]])
 
         row = phase.phase_lines["REWARD"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward", "context"))
+        self.assertEqual(row.stimulus, {"reward": 1, "context": 1})
         self.assertEqual(len(conditions), 1)
-        check_logic(self, conditions[0], 8, None, False, [(1, "CONTEXT")])
+        check_logic(self, conditions[0], 8, None, False, [[1, "CONTEXT"]])
 
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)
-        self.assertEqual(s, (("context",), 'pretraining', 'CONTEXT', []))
+        self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], True))
 
         for _ in range(24):
             s = world.next_stimulus('foo')
-            self.assertEqual(s, (("context",), 'pretraining', 'CONTEXT', []))
+            self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], False))
         s = world.next_stimulus('foo')
-        self.assertEqual(s, (("us", "context"), 'pretraining', 'US', []))
+        self.assertEqual(s, ({"us": 1, "context": 1}, 'pretraining', 'US', [], False))
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ("reward", "context"))
+        self.assertEqual(s[0], {"reward": 1, "context": 1})
 
         for _ in range(25):
             s = world.next_stimulus('foo')
-            self.assertEqual(s[0], ("context",))
+            self.assertEqual(s[0], {"context": 1})
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ("us", "context",))
+        self.assertEqual(s[0], {"us": 1, "context": 1})
 
         for i in range(19):
             for j in range(25):
                 s = world.next_stimulus('foo')
-                self.assertEqual(s[0], ("context",))
+                self.assertEqual(s[0], {"context": 1})
             s = world.next_stimulus('R')
-            self.assertEqual(s[0], ("us", "context",))
+            self.assertEqual(s[0], {"us": 1, "context": 1})
             s = world.next_stimulus('R')
-            self.assertEqual(s[0], ("reward", "context",))
+            self.assertEqual(s[0], {"reward": 1, "context": 1})
 
         s = world.next_stimulus('R')
         self.assertIsNone(s[0])
@@ -178,23 +179,23 @@ class TestFixedInterval(LsTestCase):
 
         row = phase.phase_lines["OFF"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever",))
+        self.assertEqual(row.stimulus, {"lever": 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, "count_line()=4", False, [(1, "ON")])
-        check_logic(self, conditions[1], 6, None, False, [(1, "OFF")])
+        check_logic(self, conditions[0], 6, "count_line()=4", False, [[1, "ON"]])
+        check_logic(self, conditions[1], 6, None, False, [[1, "OFF"]])
 
         row = phase.phase_lines["ON"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever",))
+        self.assertEqual(row.stimulus, {"lever": 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 7, "R", True, [(1, "REWARD")])
-        check_logic(self, conditions[1], 7, None, False, [(1, "ON")])
+        check_logic(self, conditions[0], 7, "R", True, [[1, "REWARD"]])
+        check_logic(self, conditions[1], 7, None, False, [[1, "ON"]])
 
         row = phase.phase_lines["REWARD"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward",))
+        self.assertEqual(row.stimulus, {"reward": 1})
         self.assertEqual(len(conditions), 1)
-        check_logic(self, conditions[0], 8, None, False, [(1, "OFF")])
+        check_logic(self, conditions[0], 8, None, False, [[1, "OFF"]])
 
     def test_run(self):
         pass
@@ -207,7 +208,7 @@ class TestFixedRatio(LsTestCase):
         behaviors : R, R0
 
         @phase fixed_ratio stop:reward=23
-        OFF lever       | R=4: ON   | OFF
+        OFF lever       | count_line(R)=4: ON   | OFF
         ON  lever       | R: REWARD | ON
         REWARD  reward  | OFF
         """
@@ -223,57 +224,57 @@ class TestFixedRatio(LsTestCase):
 
         row = phase.phase_lines["OFF"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever",))
+        self.assertEqual(row.stimulus, {'lever': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, 'R=4', False, [(1, "ON")])
-        check_logic(self, conditions[1], 6, None, False, [(1, "OFF")])
+        check_logic(self, conditions[0], 6, 'count_line(R)=4', False, [[1, "ON"]])
+        check_logic(self, conditions[1], 6, None, False, [[1, "OFF"]])
 
         row = phase.phase_lines["ON"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever",))
+        self.assertEqual(row.stimulus, {'lever': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 7, 'R', True, [(1, "REWARD")])
-        check_logic(self, conditions[1], 7, None, False, [(1, "ON")])
+        check_logic(self, conditions[0], 7, 'R', True, [[1, "REWARD"]])
+        check_logic(self, conditions[1], 7, None, False, [[1, "ON"]])
 
         row = phase.phase_lines["REWARD"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward",))
+        self.assertEqual(row.stimulus, {'reward': 1})
         self.assertEqual(len(conditions), 1)
-        check_logic(self, conditions[0], 8, None, False, [(1, "OFF")])
+        check_logic(self, conditions[0], 8, None, False, [[1, "OFF"]])
 
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('reward',))
+        self.assertEqual(s[0], {'reward': 1})
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
 
         for _ in range(100):
             s = world.next_stimulus('R0')
-            self.assertEqual(s[0], ('lever',))
+            self.assertEqual(s[0], {'lever': 1})
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('reward',))
+        self.assertEqual(s[0], {'reward': 1})
 
 
 class TestProbabilitySchedule(LsTestCase):
@@ -299,33 +300,34 @@ class TestProbabilitySchedule(LsTestCase):
 
         row = phase.phase_lines["LEVER"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever",))
+        self.assertEqual(row.stimulus, {'lever': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, "R", True, [(0.2, "REWARD1"), (0.3, "REWARD2")])
-        check_logic(self, conditions[1], 6, None, False, [(1, "LEVER")])
+        check_logic(self, conditions[0], 6, "R", True, [[0.2, "REWARD1"], [0.3, "REWARD2"]])
+        check_logic(self, conditions[1], 6, None, False, [[1, "LEVER"]])
 
         row = phase.phase_lines["REWARD1"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward1",))
+        self.assertEqual(row.stimulus, {'reward1': 1})
         self.assertEqual(len(conditions), 1)
-        check_logic(self, conditions[0], 7, None, False, [(1, "LEVER")])
+        check_logic(self, conditions[0], 7, None, False, [[1, "LEVER"]])
 
         row = phase.phase_lines["REWARD2"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward2",))
+        self.assertEqual(row.stimulus, {'reward2': 1})
         self.assertEqual(len(conditions), 1)
-        check_logic(self, conditions[0], 8, None, False, [(1, "LEVER")])
+        check_logic(self, conditions[0], 8, None, False, [[1, "LEVER"]])
 
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)[0]
-        self.assertEqual(s, ('lever',))
+        self.assertEqual(s, {'lever': 1})
 
         d = {'lever': 0, 'reward1': 0, 'reward2': 0}
         n = 200000
         prev_was_lever = True
         for _ in range(n):
-            s = world.next_stimulus('R')[0][0]
+            s = world.next_stimulus('R')[0]
+            s = list(s.keys())[0]
             if prev_was_lever:
                 d[s] += 1
             prev_was_lever = (s == 'lever')
@@ -360,57 +362,58 @@ class TestVariableInterval(LsTestCase):
 
         row = phase.phase_lines["FI3"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever3",))
+        self.assertEqual(row.stimulus, {'lever3': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 6, "count_line()=3", False, [(1, "ON")])
-        check_logic(self, conditions[1], 6, None, False, [(1, "FI3")])
+        check_logic(self, conditions[0], 6, "count_line()=3", False, [[1, "ON"]])
+        check_logic(self, conditions[1], 6, None, False, [[1, "FI3"]])
 
         row = phase.phase_lines["FI2"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("lever2",))
+        self.assertEqual(row.stimulus, {'lever2': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 7, "count_line()=2", False, [(1, "ON")])
-        check_logic(self, conditions[1], 7, None, False, [(1, "FI2")])
+        check_logic(self, conditions[0], 7, "count_line()=2", False, [[1, "ON"]])
+        check_logic(self, conditions[1], 7, None, False, [[1, "FI2"]])
 
         row = phase.phase_lines["ON"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("leveron",))
+        self.assertEqual(row.stimulus, {'leveron': 1})
         self.assertEqual(len(conditions), 2)
-        check_logic(self, conditions[0], 8, "R", True, [(1, "REWARD")])
-        check_logic(self, conditions[1], 8, None, False, [(1, "ON")])
+        check_logic(self, conditions[0], 8, "R", True, [[1, "REWARD"]])
+        check_logic(self, conditions[1], 8, None, False, [[1, "ON"]])
 
         row = phase.phase_lines["REWARD"]
         conditions = row.conditions.conditions
-        self.assertEqual(row.stimulus, ("reward",))
+        self.assertEqual(row.stimulus, {'reward': 1})
         self.assertEqual(len(conditions), 1)
         check_logic(self, conditions[0], 9, None, False,
-                    [(1 / 3, "ON"), (1 / 3, "FI2"), (1 / 3, "FI3")])
+                    [[1 / 3, "ON"], [1 / 3, "FI2"], [1 / 3, "FI3"]])
 
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)
-        self.assertEqual(s[0], ('lever3',))
+        self.assertEqual(s[0], {'lever3': 1})
 
         s = world.next_stimulus('foo')
-        self.assertEqual(s[0], ('lever3',))
+        self.assertEqual(s[0], {'lever3': 1})
 
         s = world.next_stimulus('bar')
-        self.assertEqual(s[0], ('lever3',))
+        self.assertEqual(s[0], {'lever3': 1})
 
         s = world.next_stimulus('foobar')
-        self.assertEqual(s[0], ('leveron',))
+        self.assertEqual(s[0], {'leveron': 1})
 
         for _ in range(100):
             s = world.next_stimulus('foobar')
-            self.assertEqual(s[0], ('leveron',))
+            self.assertEqual(s[0], {'leveron': 1})
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('reward',))
+        self.assertEqual(s[0], {'reward': 1})
 
         d = {'lever3': 0, 'lever2': 0, 'leveron': 0}
         n = 200000
         prev_was_reward = True
         for _ in range(n):
-            s = world.next_stimulus('R')[0][0]
+            s = world.next_stimulus('R')[0]
+            s = list(s.keys())[0]
             if prev_was_reward:
                 d[s] += 1
             prev_was_reward = (s == 'reward')
@@ -428,8 +431,8 @@ class TestVariableRatio(LsTestCase):
         behaviors : R, R1, bar
 
         @phase variable_ratio stop:reward = 250000
-        FR3 lever      | R=2 : ON  | FR3
-        FR2 lever      | R=1 : ON  | FR2
+        FR3 lever      | count_line(R)=2 : ON  | FR3
+        FR2 lever      | R : ON  | FR2
         ON  leveron    | R:REWARD    | R1:ON
         REWARD  reward | ON(1/3),FR2(1/3),FR3(1/3)
         """
@@ -441,32 +444,33 @@ class TestVariableRatio(LsTestCase):
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)
-        self.assertEqual(s[0], ('lever',))
+        self.assertEqual(s[0], {'lever': 1})
 
         # First R
-        s = world.next_stimulus('R')[0]
-        self.assertEqual(s[0], 'lever')
+        s = world.next_stimulus('R')
+        self.assertEqual(s[0], {'lever': 1})
 
         for _ in range(142):
             s = world.next_stimulus('bar')
-            self.assertEqual(s[0], ('lever',))
+            self.assertEqual(s[0], {'lever': 1})
 
         # Second R, go to ON
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('leveron',))
+        self.assertEqual(s[0], {'leveron': 1})
 
         for _ in range(107):
             s = world.next_stimulus('R1')
-            self.assertEqual(s[0], ('leveron',))
+            self.assertEqual(s[0], {'leveron': 1})
 
         s = world.next_stimulus('R')
-        self.assertEqual(s[0], ('reward',))
+        self.assertEqual(s[0], {'reward': 1})
 
         d = {'lever': 0, 'leveron': 0}
         n = 200000
         prev_was_reward = True
         for _ in range(n):
-            s = world.next_stimulus('R')[0][0]
+            s_dict = world.next_stimulus('R')[0]
+            s = list(s_dict.keys())[0]
             if prev_was_reward:
                 d[s] += 1
             prev_was_reward = (s == 'reward')
@@ -494,18 +498,18 @@ class TestFixedTime(LsTestCase):
     def test_run(self):
         world = self.world
         s = world.next_stimulus(None)[0]
-        self.assertEqual(s[0], 'lever')
+        self.assertEqual(s, {'lever': 1})
 
         for _ in range(4):
             s = world.next_stimulus('foo')[0]
-            self.assertEqual(s[0], 'lever')
+            self.assertEqual(s, {'lever': 1})
 
         s = world.next_stimulus('foo')[0]
-        self.assertEqual(s[0], 'reward')
+        self.assertEqual(s, {'reward': 1})
 
         for i in range(100):
             for _ in range(5):
                 s = world.next_stimulus('foo')[0]
-                self.assertEqual(s[0], 'lever')
+                self.assertEqual(s, {'lever': 1})
             s = world.next_stimulus('bar')[0]
-            self.assertEqual(s[0], 'reward')
+            self.assertEqual(s, {'reward': 1})

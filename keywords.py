@@ -10,6 +10,8 @@ ALPHA_VSS = 'alpha_vss'
 ALPHA_W = 'alpha_w'
 BETA = 'beta'
 MU = 'mu'
+DISCOUNT = 'discount'
+TRACE = 'trace'
 BEHAVIOR_COST = 'behavior_cost'
 U = 'u'
 LAMBDA = 'lambda'
@@ -49,6 +51,7 @@ VSSEXPORT = '@vssexport'
 # Other
 DEFAULT = 'default'
 RAND = 'rand'
+CHOICE = 'choice'
 COUNT = 'count'
 COUNT_LINE = 'count_line'
 
@@ -63,6 +66,8 @@ KEYWORDS = (BEHAVIORS,
             ALPHA_W,
             BETA,
             MU,
+            DISCOUNT,
+            TRACE,
             BEHAVIOR_COST,
             U,
             LAMBDA,
