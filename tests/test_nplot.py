@@ -352,7 +352,7 @@ class TestInitialValues(LsTestCase):
         sum_of_squares = 0
         for py, ny in zip(pploty, nploty):
             sum_of_squares += (py - ny)**2
-        self.assertLess(sum_of_squares, 0.2)
+        self.assertLess(sum_of_squares, 0.3)
 
     def test_p_vs_n2(self):
         text = '''
