@@ -32,7 +32,7 @@ bibliography: paper.bib
 
 # Summary
 
-`Learning Simulator` is a software for simulating learning phenomena governed by
+Learning Simulator is a software for simulating learning phenomena governed by
 associative learning. It is written in Python and can be run either in a graphical
 user interface, or from a system command prompt. 
 Our software is primarily targeted to computational and behavior biologists, ethologists,
@@ -50,7 +50,7 @@ The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
 its responses (output), and each response from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
-simulated in `Learning Simulator`. See \autoref{fig:system-fig}.
+simulated in Learning Simulator. See \autoref{fig:system-fig}.
 
 ![The subject and the environment are two interacting dynamical systems.\label{fig:system-fig}](system-fig.png)
 
@@ -67,7 +67,7 @@ the behavior with which the subject responded.
 The values of these state variables control the
 probabilities of future responses.
 
-The user of `Learning Simulator` specifies in a text-based script how the next
+The user of Learning Simulator specifies in a text-based script how the next
 stimulus depends on the subject's response to the previous stimulus.
 <!---
 Conversely, `Learning Simulator` also implements the stochastic decision
@@ -77,7 +77,7 @@ stimulus.
 This script also specifies the values of all parameters used
 in the learning process.
 The simultion script, written in a well-documented scripting language,
-is the only input to `Learning Simulator`. In this language,
+is the only input to Learning Simulator. In this language,
 the user also specifies how to visualize or export the simulation data,
 for example how a memory state variable changes over time during the simulation.
 
@@ -114,11 +114,11 @@ The main advantage of our software lies in its flexibility. It is designed with 
 in mind, seeing the system being simulated as two interacting dynamical systems,
 making it generally applicable to the different areas where associative learning plays a role.
 
-Apart from its flexibility, `Learning Simulator`'s simple scripting language provides a way to easily investigate
+Apart from its flexibility, Learning Simulator's simple scripting language provides a way to easily investigate
 the properties of different learning mechanisms and the effects of varying their properties, such as
 exploration, learning rate coefficients, initial state variable values, etc. 
 
-Another strength of `Learning Simulator` lies in the simplicity to specify even complex
+Another strength of Learning Simulator lies in the simplicity to specify even complex
 environments with which the subject interacts. The scripting language has been
 developed to be available to any researcher of learning phenomena -- not necessarily
 computer programmers. This turns it into a useful research tool for biologists and
@@ -152,7 +152,7 @@ and experts alike within the fields of biology, ethology, and psychology.
 The program is written in Python, using the standard Python package `Tkinter` for its graphical user iterface, and `Matplotlib` [@Hunter:2007]
 for plotting simulation results.
 In terms of quality assurance, test-driven development has been employed, and
-our repository incorporates Travis CI alongside Coveralls code coverage measurement of `Learning Simulator`'s test suite.
+our repository incorporates Travis CI alongside Coveralls code coverage measurement of the program's test suite.
 
 <!---
  finding the balance between exploration and exploitation, time to convergence,
