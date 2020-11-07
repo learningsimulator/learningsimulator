@@ -9,7 +9,7 @@ tags:
   - simulation
   - gui
 authors:
-  - name: Markus Jonsson^[1]
+  - name: Markus Jonsson
     orcid: 0000-0003-1242-3599
     affiliation: 1  # (Multiple affiliations must be quoted)
   - name: Stefano Ghirlanda
@@ -96,7 +96,7 @@ misbehavior and genetic predispositions, and social learning [@Enquist:2016].
 
 Moreover, AL theory underpins some of the most successful applications
 of psychology to animal welfare and training [@Mcgreevy:2011], and to
-human health [@Bernstein:1999, @Haselgrove:2013, @Schachtman:2011].
+human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
 
 The ability of AL algorithms to be able to search for optimal policies using
 low-variance gradient estimates has made them useful in several real-life
@@ -130,7 +130,7 @@ and experts alike.
 -->
 
 Our software has been
-used in scientific publications [@Enquist:2016,@Lind:2018,@Lind:2019]
+used in scientific publications [@Enquist:2016; @Lind:2018; @Lind:2019]
 as well as in teaching, 
 both at the Ethology Master's Programme at Stockholm University, and
 at the Veterinary Programme at the Swedish University of Agricultural Sciences.
