@@ -32,8 +32,8 @@ bibliography: paper.bib
 
 # Summary
 
-`Learning Simulator` is a software for simulating learning phenomena using
-associative learning mechanisms. It is written in Python and can be run either in a graphical
+`Learning Simulator` is a software for simulating learning phenomena governed by
+associative learning. It is written in Python and can be run either in a graphical
 user interface, or from a system command prompt. 
 Our software is primarily targeted to computational and behavior biologists, ethologists,
 and psychologists, however students/teachers who learn/teach learning phenomena may also
@@ -105,18 +105,18 @@ applications, such as robotics, power control, and finance [@Grondman:2012].
 # Statement of need
 
 The wide range of application areas of AL has given rise to a need
-for a general simulation software for simulating AL mechanisms.
+for a general simulation software for simulating different AL mechanisms.
+The aim of our software is to fulfil this need.
 The fast development of computing power has drastically improved the possibility
-for this type of simulations. The aim of our software is to fulfil this need.
+for this type of simulations.
 
 The main advantage of our software lies in its flexibility. It is designed with \autoref{fig:system-fig}
 in mind, seeing the system being simulated as two interacting dynamical systems,
-making it useful in the different application areas where associative learning plays a role.
+making it generally applicable to the different areas where associative learning plays a role.
 
 Apart from its flexibility, `Learning Simulator`'s simple scripting language provides a way to easily investigate
-the properties of different learning mechanisms and the effects of varying simulation parameters, such as
-exploration, learning rate coefficients, initial state variable values,
-number of trials, etc. 
+the properties of different learning mechanisms and the effects of varying their properties, such as
+exploration, learning rate coefficients, initial state variable values, etc. 
 
 Another strength of `Learning Simulator` lies in the simplicity to specify even complex
 environments with which the subject interacts. The scripting language has been
@@ -149,12 +149,8 @@ and experts alike.
 An open source license as well as its accessibility enables further scientific exploration of learning phenomena by students
 and experts alike within the fields of biology, ethology, and psychology.
 
-
-# Technical details
-
-The program is written in Python, using `tkinter` for its graphical user iterface, and `Matplotlib` [@Hunter:2007]
+The program is written in Python, using the standard Python package `Tkinter` for its graphical user iterface, and `Matplotlib` [@Hunter:2007]
 for plotting simulation results.
-
 In terms of quality assurance, test-driven development has been employed, and
 our repository incorporates Travis CI alongside Coveralls code coverage measurement of `Learning Simulator`'s test suite.
 
