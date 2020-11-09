@@ -17,7 +17,7 @@ language to specify the properties of the mechanism and the description
 of the experiment setup being simulated.
     
 The documentation for *Learning Simulator* is hosted on `Read the
-docs <https://readthedocs.org/>`_.
+Docs <https://readthedocs.org/>`_.
 
 
 Contents

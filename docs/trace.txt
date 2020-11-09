@@ -8,7 +8,7 @@ trace
   Memory traces are only implemented in the *Stimulus-response learning* and *Guided associative learning* mechanisms.
 
 Specifies the decay factor of fading memory traces. The value is a number between 0 and 1. The higher value, the longer the
-memory trace of each stimulus stays with the agent. A low value means it fades fast. The default is 0.
+memory trace of each stimulus stays with the subject. A low value means it fades fast. The default is 0.
 
 The value of the parameter ``trace`` is used in :ref:`the decision function<the-decision-function>`.
 

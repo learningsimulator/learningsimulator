@@ -4,8 +4,8 @@
 A ``@phase`` block
 ******************
 
-The environment that the agent interacts with is specified using one or more ``@phase`` blocks.
-A ``@phase`` block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+The environment that the subject interacts with is specified using one or more ``@phase`` blocks.
+A ``@phase`` block defines the sequence of stimuli that the subject is exposed to, and how the next stimulus
 in the sequence depends on the response to the previous stimulus.
 
 If the environment is an experiment setup, say a maze, one may use one ``@phase`` block per phase in the experiment,
@@ -131,7 +131,7 @@ A phase line
 
 Below the phase title line follows a number of *phase lines*. Each phase line 
 
-- presents a :ref:`stimulus <stimulus-specification>` to the agent (optional),
+- presents a :ref:`stimulus <stimulus-specification>` to the subject (optional),
 - performs a number of (optional) *actions* (see `Actions <Actions_>`_), and
 - informs which of the phase lines to go to next
 
@@ -207,7 +207,7 @@ number of visits to each phase line (using the phase line label as identifier). 
   count(lever)
 
 evaluates to the number of times the stimulus element ``lever`` has been exposed
-to the agent (since the beginning of the phase, or since it was last reset
+to the subject (since the beginning of the phase, or since it was last reset
 using ``count_reset``, see below). Similarly,::
 
   count(pull_lever)
@@ -239,7 +239,7 @@ the number of consecutive responses to the stimulus on a phase line. For example
   LBL1 s1 | count_line(b1)==3: LBL2 | LBL1
   LBL2 s2 | LBL1
 
-will expose the agent to the stimulus ``s1`` repeatedly until the response
+will expose the subject to the stimulus ``s1`` repeatedly until the response
 to ``s1`` is the behavior ``b`` three times in a row. Then ``s2`` will be
 presented. A sequence of stimulus-response pairs may be::
 
@@ -250,7 +250,7 @@ If instead the phase lines looked like this::
   LBL1 s1 | count_line(s1)==3: LBL2 | LBL1
   LBL2 s2 | LBL1
 
-the agent will be presented with ``s1`` three times, and regardless of 
+the subject will be presented with ``s1`` three times, and regardless of 
 the responses, will then be presented with ``s2``::
 
   s1 -> * -> s1 -> * -> s1 -> * -> s2
@@ -361,7 +361,7 @@ means that the probability to go to ``L3`` is 0.2, so this is the same as::
 The action ``@omit_learn``
 --------------------------
 
-The action ``@omit_learn`` tells the simulator to omit the updating of the agent's state
+The action ``@omit_learn`` tells the simulator to omit the updating of the subject's state
 variables in the next step. Typically this is done at the end of a trial, when the
 phase represents a number of trials. In that case, it is often not desired to carry
 over the reinforcement value of, say, a reward at the and of a trial to the

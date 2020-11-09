@@ -128,22 +128,6 @@ and
 |                              |         |                        | | :math:`\Delta v_{E\to X} = -\alpha_{E\to X} v_{E\to X} \; \forall X\ne E'`                                |                           |
 +------------------------------+---------+------------------------+-------------------------------------------------------------------------------------------------------------+---------------------------+
 
-.. rubric:: References
-
-.. [1] Bush, R. R., & Mosteller, F. (1951). A mathematical model for simple learning. *Psychological review*, 58(5), 313.
-
-.. [2] Rescorla, R. A., & Wagner, A. R. (1972), A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and non-reinforcement. In A. H. Black & W. F. Prokasy (Eds.), Classical conditioning II. Current research and theory* (pp 64-99). New York: Appleton- Century- Crofts.
-
-.. [3] Watkins, C. J. C. H. (1989). Learning from delayed rewards.
-
-.. [4] Watkins, C. J., & Dayan, P. (1992). Q-learning. *Machine learning*, 8(3-4), 279-292.
-
-.. [5] Van Seijen, H., Van Hasselt, H., Whiteson, S., & Wiering, M. (2009, March). A theoretical and empirical analysis of Expected Sarsa. In *2009 ieee symposium on adaptive dynamic programming and reinforcement learning* (pp. 177-184). IEEE.
-
-.. [6] Witten, I. H. (1977), An adaptive optimal controller for discrete-time Markov environments, *Inf. Control*, vol. 34, pp. 286-295, .
-
-.. [7] Ghirlanda, S., Lind, J., & Enquist, M. (2020). A-learning: A new formulation of associative learning theory. *Psychonomic Bulletin & Review*, 1-29.
-
 
 .. _the-decision-function:
 
@@ -161,3 +145,20 @@ this probability distribution. In
 
 where the parameters :math:`\beta_{E\to B}` control the extent to which the decision is governed by the
 :math:`v`-values: Smaller :math:`\beta` means more exploration in the reponse decision. The parameter :math:`\mu` may be used for genetic predisposition, for example to increase/decrease the probability for a particular response to a particular stimulus element.
+
+
+.. rubric:: References
+
+.. [1] Bush, R. R., & Mosteller, F. (1951). A mathematical model for simple learning. *Psychological review*, 58(5), 313.
+
+.. [2] Rescorla, R. A., & Wagner, A. R. (1972), A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and non-reinforcement. In A. H. Black & W. F. Prokasy (Eds.), Classical conditioning II. Current research and theory* (pp 64-99). New York: Appleton- Century- Crofts.
+
+.. [3] Watkins, C. J. C. H. (1989). Learning from delayed rewards.
+
+.. [4] Watkins, C. J., & Dayan, P. (1992). Q-learning. *Machine learning*, 8(3-4), 279-292.
+
+.. [5] Van Seijen, H., Van Hasselt, H., Whiteson, S., & Wiering, M. (2009, March). A theoretical and empirical analysis of Expected Sarsa. In *2009 ieee symposium on adaptive dynamic programming and reinforcement learning* (pp. 177-184). IEEE.
+
+.. [6] Witten, I. H. (1977), An adaptive optimal controller for discrete-time Markov environments, *Inf. Control*, vol. 34, pp. 286-295, .
+
+.. [7] Ghirlanda, S., Lind, J., & Enquist, M. (2020). A-learning: A new formulation of associative learning theory. *Psychonomic Bulletin & Review*, 1-29.

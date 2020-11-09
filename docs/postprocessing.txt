@@ -5,7 +5,7 @@ Postprocessing
 **************
 
 The postprocessing stage of a script processes the data from a finished simulation, for example
-plotting or exporting the value of the agents' state variables (v-values or w-values).
+plotting or exporting the value of the subjects' state variables (v-values or w-values).
 
 The postprocessing commands are the following:
 
@@ -47,7 +47,8 @@ The postprocessing commands are the following:
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`nexport`   | Exports the values of a :ref:`nplot`           | :doc:`filename` and same as :ref:`nplot`             |
 +------------------+------------------------------------------------+------------------------------------------------------+
-| :ref:`hexport`   | Exports the history of stimuli and responses   | :doc:`filename`, :doc:`runlabel`                     |
+| :ref:`hexport`   | | Exports the history of stimuli and           | :doc:`filename`, :doc:`runlabel`                     |
+|                  | | responses                                    |                                                      |
 +------------------+------------------------------------------------+------------------------------------------------------+
 
 The below plots show the components of a plot window:
@@ -62,21 +63,21 @@ The below plots show the components of a plot window:
   u                 = reward:3, default:0
   
   @PHASE training stop: s==100
-  new_trial   s          | response: REWARD | NO_REWARD
-  REWARD      reward     | new_trial
-  NO_REWARD   background | new_trial
+  start_trial s          | response: REWARD | NO_REWARD
+  REWARD      reward     | start_trial
+  NO_REWARD   background | start_trial
   
   @run training
   
   xscale = s
   
-  @figure Figure
-  @subplot 121 Subplot 1
+  @figure Figure title
+  @subplot 121 Subplot 1 title {'xlabel':'x-axis label', 'ylabel':'y-axis label'}
   @vplot s->response
   @vplot s->no_response
   @legend
   
-  @subplot 122 Subplot 2
+  @subplot 122 Subplot 2 title {'xlabel':'x-axis label', 'ylabel':'y-axis label'}
   @pplot s->response
   @pplot s->no_response
   @legend
@@ -235,15 +236,16 @@ Running this script:
   u                 = reward:3, default:0
   
   @PHASE training stop: s==100
-  new_trial   s          | response: REWARD | NO_REWARD
-  REWARD      reward     | new_trial
-  NO_REWARD   background | new_trial
+  START_TRIAL s          | response: REWARD | NO_REWARD
+  REWARD      reward     | START_TRIAL
+  NO_REWARD   background | START_TRIAL
   
   @run training
   
   xscale = s
   
   # Postprocessing commands
+  @subplot 111 {'xlabel':'Number of exposures to s', 'ylabel':'v-value'}
   @vplot s->response
   @vplot s->no_response {'label':'custom label'}
   @legend
@@ -385,7 +387,7 @@ shows, at each exposure of ``s``, the probability to respond with the behavior `
 
   @nplot s->b
 
-shows, at each exposure of ``s``, the empirical *average* (over all agents) fraction of times when an agent responded with ``b`` to ``s`` in the simulation::
+shows, at each exposure of ``s``, the empirical *average* (over all subjects) fraction of times when an subject responded with ``b`` to ``s`` in the simulation::
 
   n_subjects        = 500
   mechanism         = SR
@@ -405,6 +407,7 @@ shows, at each exposure of ``s``, the empirical *average* (over all agents) frac
   xscale     = s
   cumulative = off
   
+  @subplot 111 {'xlabel':'Number of exposures to s', 'ylabel':'Proportion/probability of response to s'}
   @nplot s->respond
   @pplot s->respond
   @legend

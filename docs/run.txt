@@ -33,17 +33,17 @@ In other words, it is possible to re-set the value of a parameter and perform a 
 with several ``@run`` commands, use the label ``runlabel`` to label a ``@run`` command::
 
   n_subjects = 10
-  @run phase_name runlabel:ten_agents
+  @run phase_name runlabel:ten_individuals
 
   n_subjects = 100
-  @run phase_name runlabel:hundred_agents
+  @run phase_name runlabel:hundred_individuals
 
-These labels (``ten_agents`` and ``hundred_agents``) can then be used in the postprocessing stage in order to, for example,
-plot the data from the simulation with ten agents, or from the simulation with 100 agents::
+These labels (``ten_individuals`` and ``hundred_individuals``) can then be used in the postprocessing stage in order to, for example,
+plot the data from the simulation with ten individuals, or from the simulation with 100 individuals::
 
-  runlabel = ten_agents
-  @vplot e->b  # Plots the associative strength betweeen e and b in the simulation with 10 agents
+  runlabel = ten_individuals
+  @vplot e->b  # Plots the associative strength betweeen e and b in the simulation with 10 individuals
 
-  runlabel = hundred_agents
-  @vplot e->b  # Plots the associative strength betweeen e and b in the simulation with 100 agents  
+  runlabel = hundred_individuals
+  @vplot e->b  # Plots the associative strength betweeen e and b in the simulation with 100 individuals
 

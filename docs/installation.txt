@@ -1,18 +1,27 @@
-#########################
+*************************
 Installation Instructions
-#########################
+*************************
 
 Learning Simulator runs with Python 3 and uses the packages ``tkinter`` and ``matplotlib``.
 
+You can use ``pip`` or ``conda`` to install ``tkinter`` and ``matplotlib``.
+``tkinter`` usually comes bundled with Python.
+
+The source code is hosted on GitHub `here <https://github.com/learningsimulator/learningsimulator>`_.
+Download or clone this repository and follow the instructions on :doc:`how to run the learning simulator<starting>`.
+
+See the `Download section <https://learningsimulator.org/download-simulator/>`_ on the `Learning Simulator Project website <https://learningsimulator.org/>`_
+for detailed installation instructions.
+
+.. _dependencies:
+
 Python Dependencies
-===================
+*******************
 
 *Learning Simulator* has the following dependencies (note that the version numbers
 below indicate the versions with which *Learning Simulator* is tested):
 
 - Python >= 3.6
 - ``tkinter`` >= 8.6
-- ``matplotlib``: >= 2.1.1
+- ``matplotlib`` >= 2.1.1
 
-You can use ``pip`` or ``conda`` to install ``tkinter`` and ``matplotlib``.
-However, ``tkinter`` usually comes bundled with Python.

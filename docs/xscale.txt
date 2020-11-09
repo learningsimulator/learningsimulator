@@ -43,7 +43,7 @@ The value ``all`` is interpreted differently for different plot commands:
   * etc.
 
 * The other plot commands (:ref:`vplot`, :ref:`vssplot`, :ref:`wplot`, :ref:`pplot`) will plot the quantity in question at each point
-  when the agent's state variables (v and w) are updated, which is after every triple::
+  when the subject's state variables (v and w) are updated, which is after every triple::
 
     stimulus -> response -> stimulus
 
