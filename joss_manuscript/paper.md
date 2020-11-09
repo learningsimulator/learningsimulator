@@ -51,9 +51,7 @@ or between stimulus-behavior pairs (operant or instrumental conditioning)
 
 During the past few decades, a fair amount of research in
 the field of AL has been directed toward the development
-of mathematical models, *learning mechanisms*. As a result, there is a plethora
-of mechanisms with varying properties and varying predictive power in
-different environments.
+of mathematical models, *learning mechanisms*.
 
 <!--- Here we formalize associative learning experiments.-->
 One formalization of AL that captures both classical and operant conditioning
@@ -77,7 +75,7 @@ would have a negative value.
 
 As per the formalization in \autoref{fig:system-fig}, after the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
 \begin{equation}
-S \to B \to S'.
+S \to B \to S'. \nonumber
 \end{equation}
 Thus, as a consequence of responding with behavior $B$ to $S$, the subject meets
 the stimulus $S'$.
@@ -142,8 +140,13 @@ applications, such as robotics, power control, and finance [@Grondman:2012].
 
 # Statement of need
 
-The wide range of application areas and the various mechanisms
-has given rise to a need
+As a result of the development of formal models of AL, there is now a plethora
+of mechanisms with varying properties and varying predictive power in
+different environments in different application areas.
+
+<!---The wide range of application areas and the various mechanisms-->
+
+This has given rise to a need
 for a general simulation software for simulating different AL mechanisms.
 The aim of our software is to fulfil this need.
 The fast development of computing power has drastically improved the possibility
