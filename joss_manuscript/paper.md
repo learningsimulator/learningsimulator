@@ -40,26 +40,33 @@ find it useful.
 
 # Introduction
 
+<!---
 Associative learning is the ability of organisms to acquire knowledge about environmental contingencies between stimuli, responses, and outcomes
+-->
 
 Associative learning (AL) is the process by which a subject learns contingency
 relations, either between pairs of stimuli (classical or Pavlovian conditioning),
 or between stimulus-behavior pairs (operant or instrumental conditioning)
-[@Pearce:2013; @Bouton:2016]. In each of these type, different *learning mechanisms*
-have been developed ... XXX
+[@Pearce:2013; @Bouton:2016]. 
 
-Here we formalize associative learning experiments.
-One formalization of associative learning that captures both classical and operant conditioning
+During the past few decades, a fair amount of research in
+the field of AL has been directed toward the development
+of mathematical models, *learning mechanisms*. As a result, there is a plethora
+of mechanisms with varying properties and varying predictive power in
+different environments.
+
+<!--- Here we formalize associative learning experiments.-->
+One formalization of AL that captures both classical and operant conditioning
 comprises a subject that interacts with an environment.
 The environment presents a stimulus to the subject, and the subject responds
 with a behavior. As a result, the environment presents the next stimulus
-that the subject responds to, and so on.
+that the subject responds to, and so on. See \autoref{fig:system-fig}.
 
 The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
 its responses (the subject's output), and each response from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
-simulated in Learning Simulator. See \autoref{fig:system-fig}.
+simulated in Learning Simulator.
 
 ![The subject and the environment are two interacting dynamical systems.\label{fig:system-fig}](system-fig.png)
 
@@ -68,7 +75,7 @@ biological subjects). A rewarding stimulus (e.g. food) would typically have
 positive value, while a stimulus representing harm to the body ("punishment")
 would have a negative value.
 
-After the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
+As per the formalization in \autoref{fig:system-fig}, after the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
 \begin{equation}
 S \to B \to S'.
 \end{equation}
@@ -122,7 +129,7 @@ to their environment. Thus, AL can also provide explanations for a wide range of
 learning phenomena in biological systems (both human and non-human
 animals), for example misbehavior and genetic predispositions, and
 social learning [@Enquist:2016], and the learning of behavior sequences
-[@Ghirlanda2017]. This fact also enables the possibility of generating
+[@Ghirlanda:2017]. This fact also enables the possibility of generating
 predictions of animal behavior.
 
 Moreover, AL theory underpins some of the most successful applications
@@ -135,7 +142,7 @@ applications, such as robotics, power control, and finance [@Grondman:2012].
 
 # Statement of need
 
-The wide range of application areas and the various mathematical models of AL XXX
+The wide range of application areas and the various mechanisms
 has given rise to a need
 for a general simulation software for simulating different AL mechanisms.
 The aim of our software is to fulfil this need.
@@ -147,12 +154,12 @@ mechanism [@Schultheis:2008_1]  (Harris model), [@Alonso:2012]  (Rescorla-Wagner
 [@Schultheis:2008_2]  (only Rescorla-Wagner with compound stimuli),
 or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009] 
 (where the latter is not maintained),
-or where both the mechanism (Q-learning) and environment (maze) are hard-wired [https://www.mladdict.com/q-learning-simulator]
+or where both the mechanism (Q-learning) and environment (maze) are hard-wired [https://www.mladdict.com/q-learning-simulator].
 
 The present simulator includes
 several mechanisms of AL in a common program environment.
 Because of this, it further facilitates direct comparison of
-the models included and allows the generation of meaningful
+the mechanisms included and allows the generation of meaningful
 experiment designs and discrimination tasks.
 
 The main advantage of our software lies in its flexibility. It is designed with \autoref{fig:system-fig}
@@ -161,10 +168,10 @@ making it generally applicable to the different areas where associative learning
 
 Apart from its flexibility, Learning Simulator's simple scripting language provides a way to easily investigate
 the properties of different learning mechanisms and the effects of varying their properties, such as
-exploration, learning rate coefficients, initial state variable values, etc. 
+exploration, learning rate coefficients, initial values of state variables, etc. 
 
 Another strength of Learning Simulator lies in the simplicity to specify even complex
-environments with which the subject interacts, for example experiment trial structures. The scripting language has been
+environments with which the subject interacts, for example an experiment trial structure. The scripting language has been
 developed to be available to any researcher of learning phenomena -- not necessarily
 computer programmers. This turns it into a useful research tool for biologists and
 psychologists.
@@ -234,9 +241,9 @@ For a quick reference, the following citation commands can be used:
 
 # Road map
 
-Making the softwre ever more readily available with a web interface.
+Making the software ever more readily available with a web interface.
 
-Adding an even more easy-to-use (however less flexible) graphical user interface (GUI) to the scripting language.
+Adding an alternative, even more easy-to-use (however less flexible) graphical user interface (GUI) to the scripting language.
 
 Make it easier to add custom learning mechanisms.
 
