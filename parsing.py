@@ -665,7 +665,12 @@ class PlotData():
             else:
                 plt.plot(ydata, **plot_args)
         plt.grid(True)
-        plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem)
+
+        # cfm = plt.get_current_fig_manager()
+        # cfm.window.attributes('-topmost', True)
+        # plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem) when ProgressDlg has been up
+        # plt.get_current_fig_manager().set_window_title("FOO")
+        plt.gcf().show()
 
 
 class ExportCmd(PostCmd):
