@@ -47,33 +47,41 @@ Associative learning is the ability of organisms to acquire knowledge about envi
 Associative learning (AL) is the process by which a subject learns contingency
 relations, either between pairs of stimuli (classical or Pavlovian conditioning),
 or between stimulus-behavior pairs (operant or instrumental conditioning)
-[@Pearce:2013; @Bouton:2016]. 
+[@Pearce:2013; @Bouton:2016].
 
-During the past few decades, a fair amount of research in
+<!---
+During the past few decades, a 
+
+amount of research in
 the field of AL has been directed toward the development
 of mathematical models, *learning mechanisms*.
+-->
 
 <!--- Here we formalize associative learning experiments.-->
-One formalization of AL that captures both classical and operant conditioning
+The formalization of AL used in Learning Simulator
+that captures both classical and operant conditioning
 comprises a subject that interacts with an environment.
 The environment presents a stimulus to the subject, and the subject responds
 with a behavior. As a result, the environment presents the next stimulus
 that the subject responds to, and so on. See \autoref{fig:system-fig}.
 
-The subject and the world can be seen as two interacting dynamical systems,
+<!---
+![The subject and the environment are two interacting dynamical systems.\label{fig:system-fig}](system-fig.png)
+-->
+
+![The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
 its responses (the subject's output), and each response from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
 simulated in Learning Simulator.
-
-![The subject and the environment are two interacting dynamical systems.\label{fig:system-fig}](system-fig.png)
+\label{fig:system-fig}](system-fig.png)
 
 Each stimulus has a reinforcement value (which is genetically determined for
 biological subjects). A rewarding stimulus (e.g. food) would typically have
 positive value, while a stimulus representing harm to the body ("punishment")
 would have a negative value.
 
-As per the formalization in \autoref{fig:system-fig}, after the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
+As per \autoref{fig:system-fig}, after the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
 \begin{equation}
 S \to B \to S'. \nonumber
 \end{equation}
@@ -84,20 +92,17 @@ This stimulus has a
 reinforcement value (typically a "reward" or "punishment") that the subject receives
 -->
 The reinforcement value of $S'$ gives the subject an indication of the quality of the response $B$ to $S$. 
-This is accomplished by the learning mechanism updating one or more of
+Specifically, this is accomplished by the learning mechanism updating one or more of
 the subject's memory state
 variables. In the case of operant conditioning, these include the associative strength between the stimulus $S$
 and its response $B$. 
-<!---
-the behavior with which the subject responded.
--->
 The values of these state variables control the
 probabilities of future responses. For example, if the response $B$ to stimulus $S$
 leads to a reward (a stimulus with high reinforcement value), the subject will be more likely to respond with $B$ the next
 time it faces $S$.
 
 The user of Learning Simulator specifies in a text-based script how the output
-stimulus from the invironment depends on the subject's response to the previous stimulus.
+stimulus from the environment depends on the subject's response to the previous stimulus.
 <!---
 Conversely, `Learning Simulator` also implements the stochastic decision
 function that determines how the subject's response depends on the presented
@@ -105,7 +110,7 @@ stimulus.
 -->
 This script also specifies the values of all parameters used
 in the learning process.
-The simultion script, written in a simple and well-documented scripting language,
+The simulation script, written in a simple and well-documented scripting language,
 is the only input to Learning Simulator. In this language,
 the user also specifies how to visualize the simulation data,
 for example how a memory state variable changes over time during the simulation.
@@ -151,19 +156,6 @@ for a general simulation software for simulating different AL mechanisms.
 The aim of our software is to fulfil this need.
 The fast development of computing power has drastically improved the possibility
 for this type of simulations.
-
-Other simulating software either specialize in one particular
-mechanism [@Schultheis:2008_1]  (Harris model), [@Alonso:2012]  (Rescorla-Wagner),
-[@Schultheis:2008_2]  (only Rescorla-Wagner with compound stimuli),
-or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009] 
-(where the latter is not maintained),
-or where both the mechanism (Q-learning) and environment (maze) are hard-wired [https://www.mladdict.com/q-learning-simulator].
-
-The present simulator includes
-several mechanisms of AL in a common program environment.
-Because of this, it further facilitates direct comparison of
-the mechanisms included and allows the generation of meaningful
-experiment designs and discrimination tasks.
 
 The main advantage of our software lies in its flexibility. It is designed with \autoref{fig:system-fig}
 in mind, seeing the system being simulated as two interacting dynamical systems,
@@ -217,6 +209,19 @@ In terms of quality assurance, test-driven development has been employed, and
 our repository incorporates Travis CI alongside Coveralls code coverage measurement of the program's test suite.
 
 # State of the field
+
+Other simulating software either specialize in one particular
+mechanism [@Schultheis:2008_1]  (Harris model), [@Alonso:2012]  (Rescorla-Wagner),
+[@Schultheis:2008_2]  (only Rescorla-Wagner with compound stimuli),
+or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009] 
+(where the latter is not maintained),
+or where both the mechanism (Q-learning) and environment (maze) are hard-wired [https://www.mladdict.com/q-learning-simulator].
+
+The present simulator includes
+several mechanisms of AL in a common program environment.
+Because of this, it further facilitates direct comparison of
+the mechanisms included and allows the generation of meaningful
+experiment designs and discrimination tasks.
 
 
 <!---
