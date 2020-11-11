@@ -29,7 +29,7 @@ that captures both classical and operant conditioning
 comprises a subject that interacts with an environment.
 The environment presents a stimulus to the subject, and the subject responds
 with a behavior. As a result, the environment presents the next stimulus
-that the subject responds to, and so on. See \autoref{fig:system-fig}.
+that the subject responds to, and so on. See Figure 1.
 
 <!---
 ![The subject and the world can be seen as two interacting dynamical systems,
