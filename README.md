@@ -3,7 +3,7 @@
 ## Status
 
 ### Build and test
-https://github.com/markusrobertjonsson/lesim2/workflows/Learning%20Simulator/badge.svg
+![Build](https://github.com/markusrobertjonsson/lesim2/workflows/Learning%20Simulator/badge.svg)
 
 <!---
 ## Docs
