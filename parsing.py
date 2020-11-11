@@ -492,7 +492,7 @@ class ScriptParser():
         Parses a @RUN line ("@RUN  phase1,phase2,... [runlabel:lbl]") and returns the run label and
         a list of phase labels.
         """
-        match_objs_iterator = re.finditer(' runlabel[\s]*:', after_run)
+        match_objs_iterator = re.finditer(r' runlabel[\s]*:', after_run)
         match_objs = tuple(match_objs_iterator)
         n_matches = len(match_objs)
         if n_matches == 0:

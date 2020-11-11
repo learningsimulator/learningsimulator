@@ -467,8 +467,8 @@ class ParseUtil():
         err_output = (None, None, f"Invalid expression {expr}.")
         expr = expr.strip()
         if '[' in expr:
-            lb_inds = [m.start() for m in re.finditer('\[', expr)]
-            rb_inds = [m.start() for m in re.finditer('\]', expr)]
+            lb_inds = [m.start() for m in re.finditer(r'\[', expr)]
+            rb_inds = [m.start() for m in re.finditer(r'\]', expr)]
             if len(lb_inds) != 1 or len(rb_inds) != 1:
                 return err_output
             lb_ind = lb_inds[0]
@@ -903,10 +903,6 @@ def find_and_cumsum_interval(seq, pattern, use_exact_match,
         if ind_int[i] == 1:
             out.append(cnt)
             cnt = 0
-    #print(f"seq={seq}")
-    #print(f"out={out}")
-    #print(f"cumsum(out) = {cumsum(out)}")
-    #input()
     return out, cumsum(out)
 
 
