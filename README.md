@@ -21,8 +21,7 @@ find it useful.
 
 Associative learning (AL) is the process by which a subject learns contingency
 relations, either between pairs of stimuli (classical or Pavlovian conditioning),
-or between stimulus-behavior pairs (operant or instrumental conditioning)
-[@Pearce:2013; @Bouton:2016].
+or between stimulus-behavior pairs (operant or instrumental conditioning).
 
 The formalization of AL that is used in Learning Simulator and
 that captures both classical and operant conditioning
