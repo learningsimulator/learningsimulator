@@ -31,12 +31,21 @@ The environment presents a stimulus to the subject, and the subject responds
 with a behavior. As a result, the environment presents the next stimulus
 that the subject responds to, and so on. See \autoref{fig:system-fig}.
 
+<!---
 ![The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
 its behaviors (the subject's output), and each behavior from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
 simulated in Learning Simulator.
-\label{fig:system-fig}](system-fig.png =100x)
+\label{fig:system-fig}](system-fig.png)
+-->
+<img src="system-fig.png" width="505" height="339" />
+
+**Figure 1: The subject and the world can be seen as two interacting dynamical systems,
+where the state variables in the subject determines the probabilities for
+its behaviors (the subject's output), and each behavior from the subject puts the environment
+in a state that determines its output stimulus. It is this system that is
+simulated in Learning Simulator.**
 
 Each stimulus has a reinforcement value (which is genetically determined for
 biological subjects). A rewarding stimulus (e.g. food) would typically have
