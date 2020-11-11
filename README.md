@@ -5,6 +5,9 @@
 ### Build and test
 ![Build](https://github.com/markusrobertjonsson/lesim2/workflows/Learning%20Simulator/badge.svg)
 
+### Coverage
+![Coverage](/home/runner/work/lesim2/lesim2/coverage.svg)
+
 <!---
 ## Docs
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
