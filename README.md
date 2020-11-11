@@ -6,7 +6,7 @@
 ![Build](https://github.com/markusrobertjonsson/lesim2/workflows/Learning%20Simulator/badge.svg)
 
 ### Coverage
-![Coverage](/home/runner/work/lesim2/lesim2/coverage.svg)
+![Coverage](file://home/runner/work/lesim2/lesim2/coverage.svg)
 
 <!---
 ## Docs
