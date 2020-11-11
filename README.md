@@ -43,21 +43,21 @@ biological subjects). A rewarding stimulus (e.g. food) would typically have
 positive value, while a stimulus representing harm to the body ("punishment")
 would have a negative value.
 
-As per \autoref{fig:system-fig}, after the response $B$ to a stimulus $S$, the subject is presented with the next stimulus $S'$:
-\begin{equation}
-S \to B \to S'. \nonumber
-\end{equation}
-Thus, as a consequence of responding with behavior $B$ to $S$, the subject meets
-the stimulus $S'$.
-The reinforcement value of $S'$ gives the subject an indication of the quality of the response $B$ to $S$. 
+As per \autoref{fig:system-fig}, after the response *B* to a stimulus *S*, the subject is presented with the next stimulus *S'*:
+
+*S* -> *B* -> *S'*.
+
+Thus, as a consequence of responding with behavior *B* to *S*, the subject meets
+the stimulus *S'*.
+The reinforcement value of *S'* gives the subject an indication of the quality of the response *B* to *S*. 
 Specifically, this is accomplished by the learning mechanism updating one or more of
 the subject's memory state
-variables. In the case of operant conditioning, these include the associative strength between the stimulus $S$
-and its response $B$. 
+variables. In the case of operant conditioning, these include the associative strength between the stimulus *S*
+and its response *B*. 
 The values of these state variables control the
-probabilities of future responses. For example, if the response $B$ to stimulus $S$
-leads to a reward (a stimulus with high reinforcement value), the subject will be more likely to respond with $B$ the next
-time it faces $S$.
+probabilities of future responses. For example, if the response *B* to stimulus *S*
+leads to a reward (a stimulus with high reinforcement value), the subject will be more likely to respond with *B* the next
+time it faces *S*.
 
 The user of Learning Simulator specifies in a text-based script how the output
 stimulus from the environment depends on the subject's response to the previous stimulus.
