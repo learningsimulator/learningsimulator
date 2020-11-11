@@ -1,19 +1,20 @@
-# Learning Simulator
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-## Build status
+# Learning Simulator - Simulating Associative Learning
 
 ![Build](https://github.com/markusrobertjonsson/lesim2/workflows/Learning%20Simulator/badge.svg)
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Summary
 
 *Learning Simulator* is a software for simulating learning phenomena governed by
-associative learning. It is written in Python and can be run either in a graphical
+associative learning. 
+
+See also the [Learning Simulator Project](learningsimulator.org).
+
+It can be run either in a graphical
 user interface, or from a system command prompt. The input to the program is a
 text-based script in a simple scripting language.
-Our software is primarily targeted to computational and behavior biologists, ethologists,
+Learning Simulator is primarily targeted to computational and behavior biologists, ethologists,
 and psychologists, however students/teachers who learn/teach learning phenomena may also
 find it useful.
 
