@@ -36,7 +36,7 @@ where the state variables in the subject determines the probabilities for
 its behaviors (the subject's output), and each behavior from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
 simulated in Learning Simulator.
-\label{fig:system-fig}](system-fig.png)
+\label{fig:system-fig}](system-fig.png =100x)
 
 Each stimulus has a reinforcement value (which is genetically determined for
 biological subjects). A rewarding stimulus (e.g. food) would typically have
