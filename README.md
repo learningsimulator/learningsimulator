@@ -51,7 +51,7 @@ biological subjects). A rewarding stimulus (e.g. food) would typically have
 positive value, while a stimulus representing harm to the body ("punishment")
 would have a negative value.
 
-As per \autoref{fig:system-fig}, after the response *B* to a stimulus *S*, the subject is presented with the next stimulus *S'*:
+As per Figure 1, after the response *B* to a stimulus *S*, the subject is presented with the next stimulus *S'*:
 
 *S* -> *B* -> *S'*.
 
