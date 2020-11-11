@@ -4,7 +4,7 @@
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# Summary
+## Summary
 
 *Learning Simulator* is a software for simulating learning phenomena governed by
 associative learning. 
@@ -18,7 +18,7 @@ Learning Simulator is primarily targeted to computational and behavior biologist
 and psychologists, however students/teachers who learn/teach learning phenomena may also
 find it useful.
 
-# Introduction
+## Introduction
 
 Associative learning (AL) is the process by which a subject learns contingency
 relations, either between pairs of stimuli (classical or Pavlovian conditioning),
