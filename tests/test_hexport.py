@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import csv
 import os
 
-from .testutil import LsTestCase, run
+from .testutil import LsTestCase, run, remove_exported_files, create_exported_files_folder, delete_exported_files_folder
 
 
 class TestHExport(LsTestCase):
@@ -11,30 +11,17 @@ class TestHExport(LsTestCase):
         pass
 
     def setUp(self):
-        pass
+        create_exported_files_folder()
 
     def tearDown(self):
+        delete_exported_files_folder()
         plt.close('all')
 
-    @staticmethod
-    def remove_files(filenames):
-        for filename in filenames:
-            if os.path.isfile(filename):
-                os.remove(filename)
-
-    def check_that_files_are_removed(self, filenames):
-        for filename in filenames:
-            # fullpath = "./tests/exported_files/{}".format(filename)
-            self.assertFalse(os.path.isfile(filename))
-
-    def check_that_files_exist(self, filenames):
-        for filename in filenames:
-            self.assertTrue(os.path.isfile(filename))
-
     def test_issue_57(self):
-        filepath = './tests/exported_files/test_issue_57.txt'
-        self.remove_files([filepath])
-        self.check_that_files_are_removed([filepath])
+        file = 'test_issue_57.txt'
+        filepath = os.path.join('.', 'tests', 'exported_files', file)
+        remove_exported_files([file])
+        self.assert_exported_files_are_removed([file])
 
         text = '''
         n_subjects: 2
@@ -53,7 +40,7 @@ class TestHExport(LsTestCase):
         successful_attempt = False
         while not successful_attempt:
             run(text)
-            self.check_that_files_exist([filepath])
+            self.assert_exported_files_exist([file])
             last_row = None
             with open(filepath) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')

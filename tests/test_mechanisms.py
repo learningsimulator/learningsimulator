@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase
-from .testutil import run, get_plot_data, remove_files
+from .testutil import run, get_plot_data, create_exported_files_folder, delete_exported_files_folder, remove_exported_files
 
 
 class TestVMechanisms(LsTestCase):
@@ -10,9 +10,10 @@ class TestVMechanisms(LsTestCase):
         pass
 
     def setUp(self):
-        pass
+        create_exported_files_folder()
 
     def tearDown(self):
+        delete_exported_files_folder()
         plt.close('all')
 
     def test_simple(self):
@@ -48,9 +49,10 @@ class TestRescorlaWagner(LsTestCase):
         pass
 
     def setUp(self):
-        pass
+        create_exported_files_folder()
 
     def tearDown(self):
+        delete_exported_files_folder()
         plt.close('all')
 
     def test_simple(self):
@@ -374,8 +376,8 @@ class TestRescorlaWagner(LsTestCase):
             with self.assertRaisesMsg(msg):
                 run(text.format(cmd))
 
-        remove_files(['export_filename.txt'])
-        self.assert_files_are_removed(['export_filename.txt'])
+        remove_exported_files(['export_filename.txt'])
+        self.assert_exported_files_are_removed(['export_filename.txt'])
 
     def test_hexport(self):
         text = '''
@@ -417,8 +419,8 @@ class TestRescorlaWagner(LsTestCase):
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
     def test_nexport(self):
         text = '''
@@ -470,8 +472,8 @@ class TestRescorlaWagner(LsTestCase):
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
         filename = './tests/exported_files/test_rw_nexport.txt'
         run(text.format(f'@nexport cs {filename}'))
@@ -505,8 +507,8 @@ class TestRescorlaWagner(LsTestCase):
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
 
 class TestExceptions(LsTestCase):

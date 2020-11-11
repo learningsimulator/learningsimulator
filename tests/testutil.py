@@ -42,11 +42,29 @@ def check_run_output_subject_vw(test_obj, output_vw):
     test_obj.assertEqual(all_steps, list(range(1, max_step)))
 
 
-def remove_files(filenames):
+def create_exported_files_folder():
+    exported_files_folder = os.path.join('.', 'tests', 'exported_files')
+    if not os.path.exists(exported_files_folder):
+        os.makedirs(exported_files_folder)
+
+
+def delete_exported_files_folder():
+    exported_files_folder = os.path.join('.', 'tests', 'exported_files')
+
+    # Delete all files in the folder
+    for filename in os.listdir(exported_files_folder):
+        file_path = os.path.join(exported_files_folder, filename)
+        os.remove(file_path)
+
+    # Delete the folder itself
+    os.rmdir(exported_files_folder)
+
+
+def remove_exported_files(filenames):
     for filename in filenames:
-        fullpath = "./tests/exported_files/{}".format(filename)
-        if os.path.isfile(fullpath):
-            os.remove(fullpath)
+        filepath = os.path.join('.', 'tests', 'exported_files', filename)
+        if os.path.isfile(filepath):
+            os.remove(filepath)
 
 
 def get_plot_data(figure_number=1, axes_number=1):
@@ -79,15 +97,15 @@ class LsTestCase(unittest.TestCase):
         for val1, val2 in zip(list1, list2):
             self.assertAlmostEqual(val1, val2, places)
 
-    def assert_files_are_removed(self, filenames):
+    def assert_exported_files_are_removed(self, filenames):
         for filename in filenames:
             fullpath = "./tests/exported_files/{}".format(filename)
             self.assertFalse(os.path.isfile(fullpath))
 
-    def assert_files_exist(self, filenames):
+    def assert_exported_files_exist(self, filenames):
         for filename in filenames:
-            fullpath = "./tests/exported_files/{}".format(filename)
-            self.assertTrue(os.path.isfile(fullpath))
+            filepath = os.path.join('.', 'tests', 'exported_files', filename)
+            self.assertTrue(os.path.isfile(filepath))
 
     def assertIncreasing(self, list1):
         is_increasing = True

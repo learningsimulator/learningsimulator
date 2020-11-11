@@ -1,9 +1,9 @@
-from .testutil import LsTestCase, run, remove_files
+from .testutil import LsTestCase, run, remove_exported_files, create_exported_files_folder, delete_exported_files_folder
 
 
 class TestPlots(LsTestCase):
     def setUp(self):
-        pass
+        create_exported_files_folder()
 
     def tearDown(self):
         filenames = ['test_wexport1.csv',
@@ -16,8 +16,8 @@ class TestPlots(LsTestCase):
                      'test_nexport2.txt',
                      'test_hexport1.csv',
                      'test_hexport2.csv']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
         filenames = ['test_wexportMS1.csv',
                      'test_wexportMS2.csv',
@@ -29,8 +29,10 @@ class TestPlots(LsTestCase):
                      'test_nexportMS2.csv',
                      'test_hexportMS1.csv',
                      'test_hexportMS2.csv']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+
+        delete_exported_files_folder()
 
     def test_singlesubject(self):
         filenames = ['test_wexport1.csv',
@@ -43,8 +45,8 @@ class TestPlots(LsTestCase):
                      'test_nexport2.txt',
                      'test_hexport1.csv',
                      'test_hexport2.csv']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
         script = '''
         n_subjects          : 1
@@ -102,7 +104,7 @@ class TestPlots(LsTestCase):
         @hexport ./tests/exported_files/test_hexport2.csv
         '''
         run(script)
-        self.assert_files_exist(filenames)
+        self.assert_exported_files_exist(filenames)
 
     def test_multisubject(self):
         filenames = ['test_wexportMS1.csv',
@@ -113,8 +115,8 @@ class TestPlots(LsTestCase):
                      'test_pexportMS2.csv',
                      'test_nexportMS1.csv',
                      'test_nexportMS2.csv']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
         script = '''
         n_subjects        : 10
@@ -165,7 +167,7 @@ class TestPlots(LsTestCase):
         @hexport ./tests/exported_files/test_hexportMS2.csv
         '''
         run(script)
-        self.assert_files_exist(filenames)
+        self.assert_exported_files_exist(filenames)
 
     def test_wrong_arguments(self):
         for vwnp in 'vwnp':
@@ -185,8 +187,8 @@ class TestPlots(LsTestCase):
 
     def test_vssexport(self):
         filenames = ['foobar_csus.txt', 'foobar_uscs.txt', 'foobar_usus.txt', 'foobar_cscs.txt']
-        remove_files(filenames)
-        self.assert_files_are_removed(filenames)
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
 
         script = """
         mechanism: rw
@@ -213,7 +215,7 @@ class TestPlots(LsTestCase):
         @vssexport cs->cs ./tests/exported_files/foobar_cscs.txt
         """
         run(script)
-        self.assert_files_exist(filenames)
+        self.assert_exported_files_exist(filenames)
 
     def test_compare_to_plots(self):
         pass  # XXX
