@@ -185,7 +185,7 @@ runlabel: trace
         self.tearDown()
 
         script = '''
-n_subjects        : 10
+n_subjects        : 50
 mechanism         : sr
 behaviors         : response, no_response, bg_response
 stimulus_elements : background, stimulus, reward
@@ -202,8 +202,8 @@ NO_REWARD   background | NEW
 
 @run training runlabel:no_trace
 
-trace:0.1
-@run training runlabel:trace=0.1
+trace:0.05
+@run training runlabel:trace=0.05
 
 trace:0.25
 @run training runlabel:trace=0.25
@@ -218,8 +218,8 @@ runlabel: no_trace
 @figure
 @vplot stimulus->response {'label':'no trace'}
 
-runlabel: trace=0.1
-@vplot stimulus->response {'label':'trace=0.1'}
+runlabel: trace=0.05
+@vplot stimulus->response {'label':'trace=0.05'}
 
 runlabel: trace=0.25
 @vplot stimulus->response {'label':'trace=0.25'}
@@ -233,7 +233,7 @@ runlabel: trace=0.5
         plot_data = get_plot_data()
 
         # Check first and last values for all vplots
-        for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
+        for lbl in ['trace=0.05', 'trace=0.25', 'trace=0.5']:
             self.assertEqual(plot_data[lbl]['y'][0], -1)
 
             # The first time stimulus is encountered, we still haven't
@@ -245,12 +245,12 @@ runlabel: trace=0.5
 
         # check that the smaller the trace-value, the closer to "no trace" the vplot is
         sum_of_sqares = dict()
-        for lbl in ['trace=0.1', 'trace=0.25', 'trace=0.5']:
+        for lbl in ['trace=0.05', 'trace=0.25', 'trace=0.5']:
             ss = 0
             for i in range(len(plot_data[lbl]['y'])):
                 ss += abs(plot_data['no trace']['y'][i] - plot_data[lbl]['y'][i])
             sum_of_sqares[lbl] = ss
-        self.assertLess(sum_of_sqares['trace=0.1'], sum_of_sqares['trace=0.25'])
+        self.assertLess(sum_of_sqares['trace=0.05'], sum_of_sqares['trace=0.25'])
         self.assertLess(sum_of_sqares['trace=0.25'], sum_of_sqares['trace=0.5'])
 
 
