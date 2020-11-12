@@ -21,10 +21,12 @@ authors:
   - name: Magnus Enquist
     affiliation: 1
 affiliations:
- - name: Centre for Cultural Evolution, Stockholm University, Stockholm, Sweden
-   index: 1
- - name: Department of Psychology, Brooklyn College and Graduate Center, CUNY, New York, NY, USA
-   index: 2
+  - name: Centre for Cultural Evolution, Stockholm University, Stockholm, Sweden
+    index: 1
+  - name: Department of Psychology, Brooklyn College and Graduate Center, CUNY, New York, NY, USA
+    index: 2
+  - name: Department of Zoology, Stockholm University, Sweden
+    index: 3
 date: 4 November 2020
 bibliography: paper.bib
 ---
@@ -33,7 +35,8 @@ bibliography: paper.bib
 
 *Learning Simulator* is a software for simulating learning phenomena governed by
 associative learning. It is written in Python and can be run either in a graphical
-user interface, or from a system command prompt. 
+user interface, or from a system command prompt. The input to the program is a
+text-based script in a simple scripting language.
 Our software is primarily targeted to computational and behavior biologists, ethologists,
 and psychologists, however students/teachers who learn/teach learning phenomena may also
 find it useful.
@@ -44,14 +47,18 @@ find it useful.
 Associative learning is the ability of organisms to acquire knowledge about environmental contingencies between stimuli, responses, and outcomes
 -->
 
-Associative learning (AL) is the process by which a subject learns contingency
+Learning Simulator was developed to study AL in animals, the process by which a subject
+<!---
+Associative learning (AL) is the process by which a subject 
+-->
+learns contingency
 relations, either between pairs of stimuli (classical or Pavlovian conditioning),
 or between stimulus-behavior pairs (operant or instrumental conditioning)
 [@Pearce:2013; @Bouton:2016].
 
 <!--- Here we formalize associative learning experiments.-->
-The formalization of AL that is used in Learning Simulator and
-that captures both classical and operant conditioning
+The simulator uses a commonly used framing of learning that
+<!---that captures both classical and operant conditioning-->
 comprises a subject that interacts with an environment.
 The environment presents a stimulus to the subject, and the subject responds
 with a behavior. As a result, the environment presents the next stimulus
@@ -63,12 +70,14 @@ that the subject responds to, and so on. See \autoref{fig:system-fig}.
 
 ![The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
-its responses (the subject's output), and each response from the subject puts the environment
+its behaviors (the subject's output), and each behavior from the subject puts the environment
 in a state that determines its output stimulus. It is this system that is
 simulated in Learning Simulator.
-\label{fig:system-fig}](system-fig.png)
+\label{fig:system-fig}](system-fig.pdf)
 
-Each stimulus has a reinforcement value (which is genetically determined for
+The stimuli that the environment presents and the behaviors that the subject
+can exhibit are pre-defined by the user of the program.
+Each stimulus is given a reinforcement value (which is genetically determined for
 biological subjects). A rewarding stimulus (e.g. food) would typically have
 positive value, while a stimulus representing harm to the body ("punishment")
 would have a negative value.
@@ -105,24 +114,28 @@ for example how a memory state variable changes over time during the simulation.
 Learning Simulator also includes a functionality to export the results to a
 data processor spreadsheet.
 
+More information is available at https://www.learningsimulator.org
 
 # Applications of associative learning
 
 Associative learning theory has a rich tradition of computational modeling.
-During the last decade or so, AL has proven to be an increasingly powerful,
+During the last decade or so, AL has proven to be increasingly powerful,
 as a fair amount of research in
 the field has been directed toward the development
 of different mathematical models, *learning mechanisms*.
 
-Firstly, AL mechanisms have been used in artificial intelligence (where the subject is
+For example, when applied to deep neural networks, 
+<!---Firstly, AL mechanisms have been used in artificial intelligence (where the subject is
 a virtual computer agent),
-for example to teach computers to find optimal play and achieve human
+-->
+AL has been used 
+to teach computers to find optimal play and achieve human
 level skills in chess [@Silver:2017] and the Chinese board game Go [@Silver:2016].
 
 Secondly, behaving optimally (or near-optimally) is central to animals' adaptation
 to their environment. Thus, AL can also provide explanations for a wide range of
-learning phenomena in biological systems (both human and non-human
-animals) [@Enquist:2016; @Ghirlanda:2017]
+learning phenomena in biological systems, both human and non-human
+animals [@Enquist:2016; @Ghirlanda:2020].
 <!---
 , for example tool use, social learning, 
 misbehavior, and
@@ -132,9 +145,14 @@ social learning [@Enquist:2016], and the learning of behavior sequences
 This fact also enables the possibility of generating
 predictions of animal behavior.
 
+<!---
 Moreover, AL theory underpins some of the most successful applications
 of psychology to animal welfare and training [@Mcgreevy:2011], and to
 human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
+-->
+
+Moreover, AL theory underpins some of the most successful applications of psychology to animal welfare and training
+[@Mcgreevy:2011]. It has also proven important for applications in subjects related to human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
 
 The ability of AL algorithms to be able to search for optimal policies using
 low-variance gradient estimates has made them useful in several other real-life
@@ -142,9 +160,11 @@ applications, such as robotics, power control, and finance [@Grondman:2012].
 
 # Statement of need
 
-As a result of the development of formal models of AL, there is now a plethora
+As a result of the 
+many application areas and of the
+development of formal models of AL, there is now a plethora
 of mechanisms with varying properties and varying predictive power in
-different environments in different application areas.
+different environments.
 
 <!---The wide range of application areas and the various mechanisms-->
 
@@ -202,23 +222,25 @@ and experts alike within the fields of biology, ethology, and psychology.
 
 # State of the field
 
-Other simulating software either specialize in one particular
-mechanism [@Schultheis:2008_1]  (Harris model), [@Alonso:2012]  (Rescorla-Wagner),
-[@Schultheis:2008_2]  (only Rescorla-Wagner with compound stimuli),
-or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009] 
-(where the latter is not maintained),
-or where both the mechanism (Q-learning) and environment (maze) are hard-wired [https://www.mladdict.com/q-learning-simulator].
+Other simulating software either specialize in one specific
+mechanism [@Schultheis:2008_1; <!--- Harris model -->
+@Alonso:2012; <!---  (Rescorla-Wagner),-->
+@Schultheis:2008_2]  <!---  (only Rescorla-Wagner with compound stimuli),  -->
+or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009],
+<!---(where the latter is not maintained),-->
+or where both the mechanism and environment are hard-wired [@QLSim].
 
 The present simulator includes
-several mechanisms of AL in a common program environment.
+several mechanisms of AL in a common program environment, and
+where the environment can be arbitrarily defined by the user.
 Currently, these include
 
-- *Stimulus-response learning* [@Bush:1951; @Wagner:1972],
+- *Stimulus-response learning* [@Bush:1951],
 - *Q-learning* [@Watkins:1989; Watkins:1992],
 - *Expected SARSA* [@vanSeijen:2009],
 - *Actor-critic* [@Witten:1977],
 - *A-learning* [@Ghirlanda:2020], and
-- *Rescorla-Wagner* [???].
+- *Rescorla-Wagner* [@Wagner:1972].
 
 This facilitates direct comparison of
 the mechanisms included and allows the generation of meaningful
@@ -231,7 +253,7 @@ for plotting simulation results. The documentation is generated using `Sphinx` a
 In terms of quality assurance, test-driven development has been employed, and
 our repository incorporates 
 <!---Travis CI alongside Coveralls code coverage measurement of the program's test suite.-->
-continuous integration with automatic build of the documentation, linting with `flake8`, and
+continuous integration with automatic build of the documentation, linting with `Flake8`, and
 execution of the program's test suite with `pytest` along with code coverage measurement
 with `Coverage.py` (https://coverage.readthedocs.io).
 
@@ -271,9 +293,7 @@ Make it easier to add custom learning mechanisms.
 
 # Acknowledgements
 
-Financial support from Wallenberg:
-
-The development work has been supported by grant XXXX.XXXX (2015.0005?) from the Knut and Alice Wallenberg Foundation.
+Research and development was supported by the Knut and Alice Wallenberg Foundation (2015.0005).
 
 We acknowledge valuable contributions from Vera Vinken during the development of this project.
 
