@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-See also the [Learning Simulator Project](learningsimulator.org).
+See also the [Learning Simulator Project](learningsimulator.org) and the [Learning Simulator Documentation](https://learningsimulator.readthedocs.io/en/latest/).
 
 ## Build status
 
