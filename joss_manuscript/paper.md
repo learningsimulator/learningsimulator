@@ -270,9 +270,7 @@ Learning Simulator includes several mechanisms of AL in a common program platfor
 - *A-learning* [@Ghirlanda:2020], and
 - *Rescorla-Wagner* [@Wagner:1972],
 
-facilitating direct comparison of these mechanisms.
-
-Moreover, the flexible environment definition allows the generation of meaningful
+facilitating direct comparison of these mechanisms. Moreover, the flexible environment definition allows the generation of meaningful
 experiment designs and discrimination tasks.
 
 # Repository
@@ -285,7 +283,6 @@ for plotting simulation results.
 Its documentation is
 <!---generated using `Sphinx` and-->
 hosted on Read the Docs.
-
 <!---In terms of quality assurance, 
 test-driven development has been employed, and-->
 The repository incorporates 
