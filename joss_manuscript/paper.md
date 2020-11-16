@@ -147,7 +147,7 @@ learning phenomena in
 <!---biological systems, 
 -->
 both humans and 
-animals [@Niv:2006; @Dayan:2008; @Enquist:2016; @Ghirlanda:2020].
+animals [@Niv:2009; @Dayan:2008; @Enquist:2016; @Ghirlanda:2020].
 <!---
 , for example tool use, social learning, 
 misbehavior, and
