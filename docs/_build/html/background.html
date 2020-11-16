@@ -135,7 +135,7 @@ In the scripting language, such restrictions are specified in the parameter <a c
 <tbody>
 <tr class="row-even"><td><div class="line-block">
 <div class="line">Stimulus-response learning</div>
-<div class="line"><a class="footnote-reference brackets" href="#id9" id="id2">1</a>, <a class="footnote-reference brackets" href="#id10" id="id3">2</a></div>
+<div class="line"><a class="footnote-reference brackets" href="#id10" id="id2">1</a>, <a class="footnote-reference brackets" href="#id11" id="id3">2</a></div>
 </div>
 </td>
 <td><p>SR</p></td>
@@ -143,19 +143,19 @@ In the scripting language, such restrictions are specified in the parameter <a c
 <td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}-v_{S\to B}-c_B)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p>Q-learning <a class="footnote-reference brackets" href="#id11" id="id4">3</a>, <a class="footnote-reference brackets" href="#id12" id="id5">4</a></p></td>
+<tr class="row-odd"><td><p>Q-learning <a class="footnote-reference brackets" href="#id12" id="id4">3</a>, <a class="footnote-reference brackets" href="#id13" id="id5">4</a></p></td>
 <td><p>QL</p></td>
 <td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\big(u_{S'}-v_{S\to B}-c_B+\gamma\max\limits_{B'}v_{S'\to B'}\big)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p>Expected SARSA <a class="footnote-reference brackets" href="#id13" id="id6">5</a></p></td>
+<tr class="row-even"><td><p>Expected SARSA <a class="footnote-reference brackets" href="#id14" id="id6">5</a></p></td>
 <td><p>ES</p></td>
 <td><p><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\Delta v_{E\to B}=\alpha_{E\to B}\big(u_{S'}-v_{S\to B}-c_B+\gamma E(v_{S'\to B'})\big)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p>Actor-critic <a class="footnote-reference brackets" href="#id14" id="id7">6</a></p></td>
+<tr class="row-odd"><td><p>Actor-critic <a class="footnote-reference brackets" href="#id15" id="id7">6</a></p></td>
 <td><p>AC</p></td>
 <td><div class="line-block">
 <div class="line"><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></div>
@@ -174,7 +174,7 @@ In the scripting language, such restrictions are specified in the parameter <a c
 <td><p><span class="math notranslate nohighlight">\(\forall E\in S\)</span></p></td>
 </tr>
 <tr class="row-even"><td><p>Guided associative learning
-<a class="footnote-reference brackets" href="#id15" id="id8">7</a></p></td>
+<a class="footnote-reference brackets" href="#id16" id="id8">7</a></p></td>
 <td><p>GA</p></td>
 <td><div class="line-block">
 <div class="line"><span class="math notranslate nohighlight">\(v_{E\to B}\)</span></div>
@@ -202,33 +202,9 @@ In the scripting language, such restrictions are specified in the parameter <a c
 </tr>
 </tbody>
 </table>
-<p class="rubric">References</p>
-<dl class="footnote brackets">
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
-<dd><p>Bush, R. R., &amp; Mosteller, F. (1951). A mathematical model for simple learning. <em>Psychological review</em>, 58(5), 313.</p>
-</dd>
-<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
-<dd><p>Rescorla, R. A., &amp; Wagner, A. R. (1972), A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and non-reinforcement. In A. H. Black &amp; W. F. Prokasy (Eds.), Classical conditioning II. Current research and theory* (pp 64-99). New York: Appleton- Century- Crofts.</p>
-</dd>
-<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
-<dd><p>Watkins, C. J. C. H. (1989). Learning from delayed rewards.</p>
-</dd>
-<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
-<dd><p>Watkins, C. J., &amp; Dayan, P. (1992). Q-learning. <em>Machine learning</em>, 8(3-4), 279-292.</p>
-</dd>
-<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
-<dd><p>Van Seijen, H., Van Hasselt, H., Whiteson, S., &amp; Wiering, M. (2009, March). A theoretical and empirical analysis of Expected Sarsa. In <em>2009 ieee symposium on adaptive dynamic programming and reinforcement learning</em> (pp. 177-184). IEEE.</p>
-</dd>
-<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id7">6</a></span></dt>
-<dd><p>Witten, I. H. (1977), An adaptive optimal controller for discrete-time Markov environments, <em>Inf. Control</em>, vol. 34, pp. 286-295, .</p>
-</dd>
-<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id8">7</a></span></dt>
-<dd><p>Ghirlanda, S., Lind, J., &amp; Enquist, M. (2020). A-learning: A new formulation of associative learning theory. <em>Psychonomic Bulletin &amp; Review</em>, 1-29.</p>
-</dd>
-</dl>
 </div>
 <div class="section" id="the-decision-function">
-<span id="id16"></span><h3>The decision function<a class="headerlink" href="#the-decision-function" title="Permalink to this headline">¶</a></h3>
+<span id="id9"></span><h3>The decision function<a class="headerlink" href="#the-decision-function" title="Permalink to this headline">¶</a></h3>
 <p>When the subject is exposed to a stimulus <span class="math notranslate nohighlight">\(S=\{E_1,E_2,\dotsc\}\)</span>, it makes a decision about which behavior in the
 behavior repertoire to respond with. This is done by associating each possible behavior <span class="math notranslate nohighlight">\(B_i\)</span>
 with a probability <span class="math notranslate nohighlight">\(\Pr(S\rightarrow B_i)\)</span> and then choosing a response by sampling from
@@ -238,6 +214,30 @@ this probability distribution. In
 \[\Pr(S\to B_{i})=\frac{\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B_{i}} v_{E\to B_{i}} + \mu_{E\to B_{i}}) \Big)} {\sum\limits_{B\in\mathscr{B}(S)}\exp\Big(\sum\limits_{E\in S}(\beta_{E\to B} v_{E\to B} + \mu_{E\to B})\Big)}\]</div>
 <p>where the parameters <span class="math notranslate nohighlight">\(\beta_{E\to B}\)</span> control the extent to which the decision is governed by the
 <span class="math notranslate nohighlight">\(v\)</span>-values: Smaller <span class="math notranslate nohighlight">\(\beta\)</span> means more exploration in the reponse decision. The parameter <span class="math notranslate nohighlight">\(\mu\)</span> may be used for genetic predisposition, for example to increase/decrease the probability for a particular response to a particular stimulus element.</p>
+<p class="rubric">References</p>
+<dl class="footnote brackets">
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dd><p>Bush, R. R., &amp; Mosteller, F. (1951). A mathematical model for simple learning. <em>Psychological review</em>, 58(5), 313.</p>
+</dd>
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
+<dd><p>Rescorla, R. A., &amp; Wagner, A. R. (1972), A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and non-reinforcement. In A. H. Black &amp; W. F. Prokasy (Eds.), Classical conditioning II. Current research and theory* (pp 64-99). New York: Appleton- Century- Crofts.</p>
+</dd>
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
+<dd><p>Watkins, C. J. C. H. (1989). Learning from delayed rewards.</p>
+</dd>
+<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
+<dd><p>Watkins, C. J., &amp; Dayan, P. (1992). Q-learning. <em>Machine learning</em>, 8(3-4), 279-292.</p>
+</dd>
+<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id6">5</a></span></dt>
+<dd><p>Van Seijen, H., Van Hasselt, H., Whiteson, S., &amp; Wiering, M. (2009, March). A theoretical and empirical analysis of Expected Sarsa. In <em>2009 ieee symposium on adaptive dynamic programming and reinforcement learning</em> (pp. 177-184). IEEE.</p>
+</dd>
+<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id7">6</a></span></dt>
+<dd><p>Witten, I. H. (1977), An adaptive optimal controller for discrete-time Markov environments, <em>Inf. Control</em>, vol. 34, pp. 286-295, .</p>
+</dd>
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id8">7</a></span></dt>
+<dd><p>Ghirlanda, S., Lind, J., &amp; Enquist, M. (2020). A-learning: A new formulation of associative learning theory. <em>Psychonomic Bulletin &amp; Review</em>, 1-29.</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>

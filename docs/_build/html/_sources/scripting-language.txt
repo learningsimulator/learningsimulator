@@ -15,7 +15,7 @@ Structure of a script
 The main components of a script are the following:
 
 - Assigning values to :doc:`parameters <parameters>` and :doc:`global variables <variables>`.
-- One or more :doc:`phase blocks<phase>` which specifies the environment with which the agent interacts, in particular the sequence of stimuli to present to the agent, and how it depends on the agent's behavior.
+- One or more :doc:`phase blocks<phase>` which specifiy the environment with which the subject interacts, in particular the sequence of stimuli to present to the subject, and how it depends on the subject's behavior.
 - Run the simulation using one or several :doc:`@run<run>` commands.
 - :doc:`postprocessing`: Plotting and/or exporting the simulation data.
 
@@ -36,7 +36,7 @@ Stimulus specification
 ----------------------
 
 Stimuli are specified in various parts of the script, mainly on a :ref:`phase line<phase-line>` in a :doc:`phase block<phase>`,
-where it tells the simulator which stimulus to present to the agent.
+where it tells the simulator which stimulus to present to the subject.
 
 A stimulus consists of one or several stimulus elements. (The stimulus elements are specified with the parameter :doc:`stimulus_elements`.)
 A stimulus that consists of more than one element is called a *compound stimulus*.
@@ -57,11 +57,11 @@ for example ``e1,e2``, or ``e1[0.3],e2,e3[0.9]``.
     e3[0.9],e2,e1[0.3]
 
 A stimulus is often a single stimulus element, so a phase line
-that exposes the agent to a stimulus may look like::
+that exposes the subject to a stimulus may look like::
 
   L1 e | L2
 
-If the stimulus to present to the agent is a compound stimulus of the elements ``e1``, ``e2``, and ``e3``, it looks like::
+If the stimulus to present to the subject is a compound stimulus of the elements ``e1``, ``e2``, and ``e3``, it looks like::
 
   L1 e1,e2,e3 | L2
 
@@ -78,7 +78,7 @@ Spaces
 Leading and trailing spaces of a line are ignored. Also, spaces before and after assignment operators
 (``=`` and ``:``) are ignored::
 
-  @variables x  =   0
+  @variables x    =   0
   n_subjects   =   10
   start_v      =   e1->b1 : 1,   e1->b2 : 2,  default: 0
 
@@ -264,8 +264,8 @@ See :doc:`variables` for the documentation of global variables.
 Phases
 ******
 
-The environment that the agent interacts with is specified using one or more ``@phase`` blocks.
-A ``@phase`` block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+The environment that the subject interacts with is specified using one or more ``@phase`` blocks.
+A ``@phase`` block defines the sequence of stimuli that the subject is exposed to, and how the next stimulus
 in the sequence depends on the response to the previous stimulus.
 
 See :doc:`phase` for the documentation of a ``@phase`` block.

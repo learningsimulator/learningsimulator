@@ -29,11 +29,19 @@ Run a specific test file:
 -------------------------
 C:\Users\markj\lesim>C:\Python38\python.exe -m unittest -v tests/test_beta.py
 
+or, with pytest:
+
+C:\Users\markj\lesim>pytest tests/test_beta.py
+
 Run all test files (that starts with "test_")
 ---------------------------------------------
 Make sure there is an empty file __init__.py in the test folder
-C:\Users\markj\lesim> C:\Python38\python.exe -m unittest -v
+C:\Users\markj\lesim>C:\Python38\python.exe -m unittest -v
 (-v is verbose)
+
+or, with pytest:
+
+C:\Users\markj\lesim>pytest [tests]
 
 
 *************************
@@ -72,3 +80,28 @@ In the docs folder, run
 
 make html (which is short for
 sphinx-build -b html C:\...\docs C:\...\docs\_build)
+
+
+********
+Coverage
+********
+Use Coverage.py (https://coverage.readthedocs.io/en/coverage-5.3, "pip install coverage").
+
+coverage run -m pytest [tests]
+C:\Python38\Scripts\coverage.exe run -m pytest [tests]
+
+This creates the file .coverage in the directory where the tests were run.
+
+Convert coverage data (.coverage) to (readable) html:
+C:\Python38\Scripts\coverage.exe html
+This creates the folder htmlcov in the directory where the tests were run.
+
+Generate coverage badge
+=======================
+Use coverage-badge (https://pypi.org/project/coverage-badge, "pip install coverage-badge").
+
+After above test has run and .coverage has been created:
+
+C:\Users\markj\lesim\lesim2>C:\Python38\Scripts\coverage-badge.exe -o coverage.svg
+
+This creates the file coverage.svg.

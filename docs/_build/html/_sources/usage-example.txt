@@ -10,19 +10,20 @@ Below follows a script for simulating simple instrumental training, where the su
   mechanism         = sr
   behaviors         = response, no_response
   stimulus_elements = background, stimulus, reward
-  start_v           = default:-1
+  start_v           = -1
   alpha_v           = 0.1
   u                 = reward:10, default:0
 
   @PHASE training stop: stimulus==50
-  NEW_TRIAL  stimulus   | response: REWARD | NO_REWARD
-  REWARD     reward     | NEW_TRIAL
-  NO_REWARD  background | NEW_TRIAL
+  START_TRIAL stimulus   | response: REWARD | NO_REWARD
+  REWARD      reward     | START_TRIAL
+  NO_REWARD   background | START_TRIAL
 
   @run training
 
   xscale: stimulus
   @figure v(stimulus->response)
+  @subplot 111 {'xlabel':'exposures to stimulus', 'ylabel':'v-value'}
   @vplot stimulus->response
 
 Running this script should result in a figure similar to the one below, where we see that the value of

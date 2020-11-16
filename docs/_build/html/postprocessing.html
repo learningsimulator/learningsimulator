@@ -38,7 +38,7 @@
   <div class="section" id="postprocessing">
 <h1>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h1>
 <p>The postprocessing stage of a script processes the data from a finished simulation, for example
-plotting or exporting the value of the agents’ state variables (v-values or w-values).</p>
+plotting or exporting the value of the subjects’ state variables (v-values or w-values).</p>
 <p>The postprocessing commands are the following:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -128,7 +128,11 @@ the current subplot</p></td>
 <td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a> and same as <a class="reference internal" href="#nplot"><span class="std std-ref">&#64;nplot</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#hexport"><span class="std std-ref">&#64;hexport</span></a></p></td>
-<td><p>Exports the history of stimuli and responses</p></td>
+<td><div class="line-block">
+<div class="line">Exports the history of stimuli and</div>
+<div class="line">responses</div>
+</div>
+</td>
 <td><p><a class="reference internal" href="filename.html"><span class="doc">filename</span></a>, <a class="reference internal" href="runlabel.html"><span class="doc">runlabel</span></a></p></td>
 </tr>
 </tbody>
@@ -251,15 +255,16 @@ alpha_v           = 0.1
 u                 = reward:3, default:0
 
 @PHASE training stop: s==100
-new_trial   s          | response: REWARD | NO_REWARD
-REWARD      reward     | new_trial
-NO_REWARD   background | new_trial
+START_TRIAL s          | response: REWARD | NO_REWARD
+REWARD      reward     | START_TRIAL
+NO_REWARD   background | START_TRIAL
 
 @run training
 
 xscale = s
 
 # Postprocessing commands
+@subplot 111 {&#39;xlabel&#39;:&#39;Number of exposures to s&#39;, &#39;ylabel&#39;:&#39;v-value&#39;}
 @vplot s-&gt;response
 @vplot s-&gt;no_response {&#39;label&#39;:&#39;custom label&#39;}
 @legend
@@ -368,7 +373,7 @@ the values at <span class="math notranslate nohighlight">\(x=0\)</span>, <span c
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@nplot s-&gt;b
 </pre></div>
 </div>
-<p>shows, at each exposure of <code class="docutils literal notranslate"><span class="pre">s</span></code>, the empirical <em>average</em> (over all agents) fraction of times when an agent responded with <code class="docutils literal notranslate"><span class="pre">b</span></code> to <code class="docutils literal notranslate"><span class="pre">s</span></code> in the simulation:</p>
+<p>shows, at each exposure of <code class="docutils literal notranslate"><span class="pre">s</span></code>, the empirical <em>average</em> (over all subjects) fraction of times when an subject responded with <code class="docutils literal notranslate"><span class="pre">b</span></code> to <code class="docutils literal notranslate"><span class="pre">s</span></code> in the simulation:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects        = 500
 mechanism         = SR
 behaviors         = respond,ignore
@@ -387,6 +392,7 @@ REWARD      reward     | STIMULUS
 xscale     = s
 cumulative = off
 
+@subplot 111 {&#39;xlabel&#39;:&#39;Number of exposures to s&#39;, &#39;ylabel&#39;:&#39;Proportion/probability of response to s&#39;}
 @nplot s-&gt;respond
 @pplot s-&gt;respond
 @legend

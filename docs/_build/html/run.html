@@ -60,19 +60,19 @@ refer to them in postprocessing:</p>
 <p>In other words, it is possible to re-set the value of a parameter and perform a <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> again. In a script
 with several <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> commands, use the label <code class="docutils literal notranslate"><span class="pre">runlabel</span></code> to label a <code class="docutils literal notranslate"><span class="pre">&#64;run</span></code> command:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>n_subjects = 10
-@run phase_name runlabel:ten_agents
+@run phase_name runlabel:ten_individuals
 
 n_subjects = 100
-@run phase_name runlabel:hundred_agents
+@run phase_name runlabel:hundred_individuals
 </pre></div>
 </div>
-<p>These labels (<code class="docutils literal notranslate"><span class="pre">ten_agents</span></code> and <code class="docutils literal notranslate"><span class="pre">hundred_agents</span></code>) can then be used in the postprocessing stage in order to, for example,
-plot the data from the simulation with ten agents, or from the simulation with 100 agents:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>runlabel = ten_agents
-@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 10 agents
+<p>These labels (<code class="docutils literal notranslate"><span class="pre">ten_individuals</span></code> and <code class="docutils literal notranslate"><span class="pre">hundred_individuals</span></code>) can then be used in the postprocessing stage in order to, for example,
+plot the data from the simulation with ten individuals, or from the simulation with 100 individuals:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>runlabel = ten_individuals
+@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 10 individuals
 
-runlabel = hundred_agents
-@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 100 agents
+runlabel = hundred_individuals
+@vplot e-&gt;b  # Plots the associative strength betweeen e and b in the simulation with 100 individuals
 </pre></div>
 </div>
 </div>

@@ -37,8 +37,8 @@
             
   <div class="section" id="a-phase-block">
 <h1>A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block<a class="headerlink" href="#a-phase-block" title="Permalink to this headline">¶</a></h1>
-<p>The environment that the agent interacts with is specified using one or more <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> blocks.
-A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block defines the sequence of stimuli that the agent is exposed to, and how the next stimulus
+<p>The environment that the subject interacts with is specified using one or more <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> blocks.
+A <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block defines the sequence of stimuli that the subject is exposed to, and how the next stimulus
 in the sequence depends on the response to the previous stimulus.</p>
 <p>If the environment is an experiment setup, say a maze, one may use one <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> block per phase in the experiment,
 for example one <code class="docutils literal notranslate"><span class="pre">&#64;phase</span></code> for the training phase and one for the test phase.</p>
@@ -150,7 +150,7 @@ does not evaluate to <em>true</em> or <em>false</em>, but to a number.</p>
 <span id="phase-line"></span><h2>A phase line<a class="headerlink" href="#a-phase-line" title="Permalink to this headline">¶</a></h2>
 <p>Below the phase title line follows a number of <em>phase lines</em>. Each phase line</p>
 <ul class="simple">
-<li><p>presents a <a class="reference internal" href="scripting-language.html#stimulus-specification"><span class="std std-ref">stimulus</span></a> to the agent (optional),</p></li>
+<li><p>presents a <a class="reference internal" href="scripting-language.html#stimulus-specification"><span class="std std-ref">stimulus</span></a> to the subject (optional),</p></li>
 <li><p>performs a number of (optional) <em>actions</em> (see <a class="reference internal" href="#actions">Actions</a>), and</p></li>
 <li><p>informs which of the phase lines to go to next</p></li>
 </ul>
@@ -219,7 +219,7 @@ number of visits to each phase line (using the phase line label as identifier). 
 </pre></div>
 </div>
 <p>evaluates to the number of times the stimulus element <code class="docutils literal notranslate"><span class="pre">lever</span></code> has been exposed
-to the agent (since the beginning of the phase, or since it was last reset
+to the subject (since the beginning of the phase, or since it was last reset
 using <code class="docutils literal notranslate"><span class="pre">count_reset</span></code>, see below). Similarly,:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>count(pull_lever)
 </pre></div>
@@ -246,7 +246,7 @@ LBL1 s1 | count_line(b1)==3: LBL2 | LBL1
 LBL2 s2 | LBL1
 </pre></div>
 </div>
-<p>will expose the agent to the stimulus <code class="docutils literal notranslate"><span class="pre">s1</span></code> repeatedly until the response
+<p>will expose the subject to the stimulus <code class="docutils literal notranslate"><span class="pre">s1</span></code> repeatedly until the response
 to <code class="docutils literal notranslate"><span class="pre">s1</span></code> is the behavior <code class="docutils literal notranslate"><span class="pre">b</span></code> three times in a row. Then <code class="docutils literal notranslate"><span class="pre">s2</span></code> will be
 presented. A sequence of stimulus-response pairs may be:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s1 -&gt; b1 -&gt; s1 -&gt; b2 -&gt; s1 -&gt; b1 -&gt; b1 -&gt; b1 -&gt; s2 -&gt; b3
@@ -257,7 +257,7 @@ presented. A sequence of stimulus-response pairs may be:</p>
 LBL2 s2 | LBL1
 </pre></div>
 </div>
-<p>the agent will be presented with <code class="docutils literal notranslate"><span class="pre">s1</span></code> three times, and regardless of
+<p>the subject will be presented with <code class="docutils literal notranslate"><span class="pre">s1</span></code> three times, and regardless of
 the responses, will then be presented with <code class="docutils literal notranslate"><span class="pre">s2</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>s1 -&gt; * -&gt; s1 -&gt; * -&gt; s1 -&gt; * -&gt; s2
 </pre></div>
@@ -352,7 +352,7 @@ L3 ...
 </div>
 <div class="section" id="the-action-omit-learn">
 <span id="omit-learn"></span><h3>The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code><a class="headerlink" href="#the-action-omit-learn" title="Permalink to this headline">¶</a></h3>
-<p>The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code> tells the simulator to omit the updating of the agent’s state
+<p>The action <code class="docutils literal notranslate"><span class="pre">&#64;omit_learn</span></code> tells the simulator to omit the updating of the subject’s state
 variables in the next step. Typically this is done at the end of a trial, when the
 phase represents a number of trials. In that case, it is often not desired to carry
 over the reinforcement value of, say, a reward at the and of a trial to the
