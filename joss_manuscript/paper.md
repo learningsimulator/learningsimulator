@@ -1,5 +1,5 @@
 ---
-title: 'Learning Simulator: A simulation software for associative learning'
+title: 'Learning Simulator: A simulation software for animal and human learning'
 tags:
   - Python
   - associative learning
