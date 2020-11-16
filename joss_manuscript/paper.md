@@ -38,11 +38,11 @@ bibliography: paper.bib
 
 # Summary
 
-Learning Simulator is a software for simulating learning phenomena governed by
-associative learning, applicable for example to animal learning experiments.
-It is primarily targeted to computational and behavior biologists, ethologists,
-and psychologists, however students/teachers who learn/teach learning phenomena may also
-find it useful.
+Learning Simulator is a software for simulating learning in animals
+and humans, as studied for example in experimental psychology and
+animal cognition research.  It is primarily intended for computational
+and behavioral biologists, ethologists, and psychologists, and it can
+also be useful to students and teachers in these fields.
 
 <!--
   The input to the program is a text-based script in a simple scripting language.
@@ -56,14 +56,7 @@ user interface, or from a system command prompt.
 Associative learning is the ability of organisms to acquire knowledge about environmental contingencies between stimuli, responses, and outcomes
 -->
 
-Learning Simulator was developed to study associative learning (AL) in animals, the process by which a subject
-<!---
-Associative learning (AL) is the process by which a subject 
--->
-learns contingency
-relations, either between pairs of stimuli (classical or Pavlovian conditioning),
-or between stimulus-behavior pairs (operant or instrumental conditioning)
-[@Pearce:2013; @Bouton:2016].
+Learning Simulator was developed to study learning in animals and humans. The current version implements a number of associative learning (AL) algorithms, apt to study instrumental (operant) learning and Pavlovian (classical) learning [@Pearce:2013; @Bouton:2016], including in complex situations such as social learning or maze learning. A plugin system to add more learning mechanisms is planned for a future version.
 
 <!--- Here we formalize associative learning experiments.-->
 The simulator uses a commonly used framing of learning that
