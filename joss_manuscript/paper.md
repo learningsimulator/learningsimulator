@@ -266,7 +266,7 @@ Learning Simulator includes several mechanisms of AL in a common program platfor
 - *Expected SARSA* [@vanSeijen:2009],
 - *Actor-critic* [@Witten:1977],
 - *A-learning* [@Ghirlanda:2020], and
-- *Rescorla-Wagner* [@Wagner:1972],
+- *Rescorla-Wagner* [@Rescorla:1972],
 
 facilitating direct comparison of these mechanisms. Moreover, the flexible environment definition allows the generation of meaningful
 experiment designs and discrimination tasks.
