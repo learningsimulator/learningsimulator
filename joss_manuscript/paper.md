@@ -56,7 +56,7 @@ user interface, or from a system command prompt.
 Associative learning is the ability of organisms to acquire knowledge about environmental contingencies between stimuli, responses, and outcomes
 -->
 
-Learning Simulator was developed to study learning in animals and humans. The current version implements a number of associative learning (AL) algorithms, apt to study instrumental (operant) learning and Pavlovian (classical) learning [@Pearce:2013; @Bouton:2016], including in complex situations such as social learning or maze learning. A plugin system to add more learning mechanisms is planned for a future version.
+Learning Simulator was developed to study learning in animals and humans. The current version implements associative learning (AL) and reinforcement learning (RL) algorithms, apt to study instrumental (operant) learning and Pavlovian (classical) learning [@Pearce:2013; @Bouton:2016], including in complex situations such as social learning or maze learning. A plugin system to add more learning mechanisms is planned for a future version.
 
 <!--- Here we formalize associative learning experiments.-->
 The simulator uses a commonly used framing of learning that
@@ -73,16 +73,16 @@ that the subject responds to, and so on. See \autoref{fig:system-fig}.
 ![The subject and the world can be seen as two interacting dynamical systems,
 where the state variables in the subject determines the probabilities for
 its behaviors (the subject's output), and each behavior from the subject puts the environment
-in a state that determines its output stimulus.
+in a state that determines (probabilistically) its output stimulus.
 <!---It is this system that is
 simulated in Learning Simulator.-->
 \label{fig:system-fig}](system-fig.pdf)
 
 The stimuli that the environment presents and the behaviors that the subject
 can exhibit are pre-defined by the user of the program.
-Each stimulus is given a reinforcement value (which is genetically determined for
-biological subjects). A rewarding stimulus (e.g. food) would typically have
-positive value, while a stimulus representing harm to the body ("punishment")
+Each stimulus is given a reinforcement value (corresponding to genetically determined values in
+biological organisms). A stimulus such as food would typically have
+positive value, while the perception of harm to the body
 would have a negative value.
 
 As seen in \autoref{fig:system-fig}, 
@@ -94,20 +94,20 @@ after a response (say $B$) to a stimulus (say $S$), the subject is presented wit
 \begin{equation}
     S \to B \to S'. \nonumber
 \end{equation}
-The reinforcement value of $S'$ gives the subject an indication of the quality of the response $B$ to $S$. 
-Specifically, this is accomplished by 
+Learning algorithms can then use the reinforcement value of $S'$ gives as an indication of the quality of the response $B$ to $S$. 
+Specifically, this can be accomplished by 
 <!--- the learning mechanism --> 
 updating one or more of the subject's memory state
 variables.
 <!---
-In the case of operant conditioning, these include the associative strength between the stimulus $S$
-and its response $B$. 
+For example, in operant conditioning these may include the associative strength between the stimulus $S$
+and the response $B$. 
 -->
-The values of these state variables control the
+These state variables control the
 probabilities of future responses: if the response $B$ to stimulus $S$
 leads to a reward (a stimulus with high reinforcement value), the subject will be more likely to respond with $B$ the next time it faces $S$.
 
-The user of Learning Simulator specifies in a text-based script how the output
+The user of Learning Simulator specifies in a text script how the output
 stimulus from the environment depends on the subject's response to the previous stimulus.
 <!---
 Conversely, `Learning Simulator` also implements the stochastic decision
@@ -119,18 +119,19 @@ in the learning process.
 The simulation script, written in a simple and well-documented scripting language,
 is the only input to Learning Simulator. The user also specifies how to visualize the simulation data,
 for example how a memory state variable changes over time during the simulation.
-Learning Simulator also includes a functionality to export the results to a
-data processor spreadsheet.
+Learning Simulator can also export results to CSV files.
 
 More information is available at https://www.learningsimulator.org.
 
 # Applications of associative learning
 
-Associative learning theory has a rich tradition of computational modeling.
-During the last decade or so, AL has proven increasingly powerful,
+Associative learning theory has a rich tradition of computational modeling, recently augmented by reinforcement learning models [@Sutton:2018].
+During the last decade or so, AL and RL algorithms have proven increasingly powerful.
+<!-- ,
 as a fair amount of research in
 the field has been directed toward the development
 of different mathematical models, *learning mechanisms*.
+-->
 
 Firstly, when applied to deep neural networks, 
 <!---Firstly, AL mechanisms have been used in artificial intelligence (where the subject is
