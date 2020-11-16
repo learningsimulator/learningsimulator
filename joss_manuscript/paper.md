@@ -334,7 +334,8 @@ Make it easier to add custom learning mechanisms.
 
 Research and development was supported by the Knut and Alice Wallenberg Foundation (2015.0005).
 
-We acknowledge valuable contributions from Vera Vinken during the development of this project.
-
+<!---
+  We acknowledge valuable contributions from Vera Vinken during the development of this project.
+-->
 
 # References
