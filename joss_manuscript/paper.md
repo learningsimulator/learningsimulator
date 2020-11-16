@@ -117,15 +117,15 @@ stimulus.
 This script also specifies the values of all parameters used
 in the learning process.
 The simulation script, written in a simple and well-documented scripting language,
-is the only input to Learning Simulator. The user also specifies how to visualize the simulation data,
-for example how a memory state variable changes over time during the simulation.
+is the only input to Learning Simulator, facilitating reproducible workflows. The script also specifies how to visualize the simulation data,
+for example how a memory state variable changes during the simulation.
 Learning Simulator can also export results to CSV files.
 
 More information is available at https://www.learningsimulator.org.
 
 # Applications of associative learning
 
-Associative learning theory has a rich tradition of computational modeling, recently augmented by reinforcement learning models [@Sutton:2018].
+Associative learning theory has a rich tradition of computational modeling, which has recently converged with RL learning models from machine learning [@Sutton:2018].
 During the last decade or so, AL and RL algorithms have proven increasingly powerful.
 <!-- ,
 as a fair amount of research in
@@ -134,61 +134,52 @@ of different mathematical models, *learning mechanisms*.
 -->
 
 Firstly, when applied to deep neural networks, 
-<!---Firstly, AL mechanisms have been used in artificial intelligence (where the subject is
+<!---Firstly, RL mechanisms have been used in artificial intelligence (where the subject is
 a virtual computer agent),
 -->
-AL has been used 
-to teach computers to find optimal play and achieve human
-level skills in chess [@Silver:2017] and the Chinese board game Go [@Silver:2016].
+RL has been used 
+to teach computers to find optimal play and achieve human-level
+skills in chess [@Silver:2017] and the Chinese board game Go [@Silver:2016].
 
 Secondly, behaving optimally (or near-optimally) is central to animals' adaptation
-to their environment. Thus, AL can also provide explanations for a wide range of
+to their environment. AL and RL can provide explanations for a wide range of
 learning phenomena in 
 <!---biological systems, 
 -->
-both human and non-human
-animals [@Enquist:2016; @Ghirlanda:2020].
+both humans and 
+animals [@Niv:2006; @Dayan:2008; @Enquist:2016; @Ghirlanda:2020].
 <!---
 , for example tool use, social learning, 
 misbehavior, and
 social learning [@Enquist:2016], and the learning of behavior sequences
 [@Ghirlanda:2017].
 -->
-This also enables the possibility of generating
-predictions of animal behavior.
+Indeed, investigating predictions about animal and human behavior is the main motivation behind Learning Simulator,
+with the goal to understand biological learning and its numerous applications to animal welfare and training
+[@Mcgreevy:2011], and to human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
 
-<!---
-Moreover, AL theory underpins some of the most successful applications
-of psychology to animal welfare and training [@Mcgreevy:2011], and to
-human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
--->
+<!-- STEFANO: I would take this out because it is not clear that Learning Simulator is relevant to these applications
 
-Moreover, AL theory underpins some of the most successful applications of psychology to animal welfare and training
-[@Mcgreevy:2011]. It has also proven important for applications related to human health [@Bernstein:1999; @Haselgrove:2013; @Schachtman:2011].
-
-The ability of AL algorithms to be able to search for optimal policies using
+Lastly, the ability of AL algorithms to search for optimal policies using
 low-variance gradient estimates has made them useful in several other real-life
 applications, such as robotics, power control, and finance [@Grondman:2012].
 
+-->
+
 # Statement of need
 
-As a result of the 
-many application areas
-<!---and of the
-development of formal models -->
-of AL,
-there is now a plethora
-of mechanisms with varying properties and varying predictive power in
-different environments.
+As a result of a strong theoretical tradition, and of the many
+application areas, there are now many AL and RL models with varying
+properties and varying predictive power in different environments.
 
 <!---The wide range of application areas and the various mechanisms-->
 
-This has given rise to a need
-for a general simulation software for simulating different AL mechanisms.
+This situation has created a need
+for a general simulation software offering a convenient way to investigate different learning models.
 The first aim of our software is to fulfil this need.
 
 The second aim is to provide a generic, flexible
-way to describe very different animal learning experiment trial structures.
+way to describe unambiguously the design of learning experiments or, more generally, the features of any learning scenario.
 
 <!---The fast development of computing power has drastically improved the possibility
 for this type of simulations.
@@ -200,15 +191,15 @@ making it generally applicable to the different areas where associative learning
 -->
 
 The main advantage of Learning Simulator is its simple scripting language that
-provides a way to explore/understand different learning mechanisms and investigate
+provides a way to explore and understand learning mechanisms in a multitude of learning scenarios, and investigate
 the effects of varying their underlying parameters.
 
 <!---properties, bysuch as
 exploration, learning rate coefficients, initial values of state variables, etc. -->
 
-Another strength of Learning Simulator lies in the simplicity to specify even complex
-environments with which the subject interacts, for example an experiment trial structure.
-The scripting language has been developed to be available to any researcher of learning phenomena -- not necessarily
+A further strength is the simplicity with which even complex learning
+environments can be specified, such as psychological experiments with complex dependencies between stimuli and behaviors.
+The scripting language has been developed to be useful to any researcher of learning phenomena -- not necessarily
 computer programmers. 
 
 <!--This turns it into a useful research tool for biologists and
@@ -232,9 +223,8 @@ representations involved.
 -->
 Our software has been
 used in scientific publications [@Lind:2018; @Lind:2019; @Ghirlanda:2020]
-as well as in teaching, 
-both at the Ethology Master's Programme at Stockholm University, and
-at the Veterinary Programme at the Swedish University of Agricultural Sciences.
+as well as in teaching at the Ethology Master's Programme at Stockholm University, 
+at the Veterinary Programme at the Swedish University of Agricultural Sciences, and at the Department of Psychology of Brooklyn College, City University of New York.
 
 <!---
 Our software can also potentially be applied to animal welfare in terms of experiment planning,
@@ -247,7 +237,7 @@ enables scientific exploration of learning phenomena by students
 and experts alike.
 -->
 
-An open source license as well as its accessibility enables further scientific exploration of learning phenomena by students and experts alike within the fields of biology, ethology, and psychology.
+An open source license and an accessible scripting language enable further scientific exploration of learning phenomena by students and experts alike within the fields of biology, ethology, psychology, and neuroscience.
 
 
 # State of the field
@@ -256,21 +246,21 @@ Other simulating software either specialize in one specific
 mechanism [@Schultheis:2008_1; <!--- Harris model -->
 @Alonso:2012; <!---  (Rescorla-Wagner),-->
 @Schultheis:2008_2]  <!---  (only Rescorla-Wagner with compound stimuli),  -->
-or only includes models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009],
+or only include models of classical conditioning [@Harris:2010; @learnSim; @Thorwart:2009],
 <!---(where the latter is not maintained),-->
-or where both the mechanism and environment are hard-wired [@QLSim].
+or provide only one learning algorithm or environment [@QLSim].
 
-Learning Simulator includes several mechanisms of AL in a common program platform:
+Learning Simulator provides a common interface to several AL and RL algorithms:
 
 - *Stimulus-response learning* [@Bush:1951],
-- *Q-learning* [@Watkins:1989; @Watkins:1992],
-- *Expected SARSA* [@vanSeijen:2009],
-- *Actor-critic* [@Witten:1977],
-- *A-learning* [@Ghirlanda:2020], and
 - *Rescorla-Wagner* [@Rescorla:1972],
+- *Actor-critic* [@Witten:1977; @Sutton:2018],
+- *Q-learning* [@Watkins:1989; @Watkins:1992],
+- *Expected SARSA* [@vanSeijen:2009], and
+- *A-learning* [@Ghirlanda:2020]
 
-facilitating direct comparison of these mechanisms. Moreover, the flexible environment definition allows the generation of meaningful
-experiment designs and discrimination tasks.
+facilitating direct comparison of these mechanisms. <!-- STEFANO: I think we said this in the previous section Moreover, the flexible environment definition allows the generation of meaningful
+experiment designs and discrimination tasks. -->
 
 # Repository
 
