@@ -20,6 +20,9 @@ authors:
     affiliation: 1
   - name: Magnus Enquist
     affiliation: "1, 3"
+  - name: Vera Vinken
+    affiliation: 4
+
 affiliations:
   - name: Centre for Cultural Evolution, Stockholm University, Stockholm, Sweden
     index: 1
@@ -27,6 +30,8 @@ affiliations:
     index: 2
   - name: Department of Zoology, Stockholm University, Sweden
     index: 3
+  - name: Newcastle University, ???, ???
+    index: 4
 date: 4 November 2020
 bibliography: paper.bib
 ---
