@@ -30,7 +30,8 @@ affiliations:
     index: 2
   - name: Department of Zoology, Stockholm University, Sweden
     index: 3
-  - name: Center for Behaviour and Evolution, Newcastle University
+<!---  - name: Center for Behaviour and Evolution, Newcastle University -->
+  - name: Biosciences Institute, Newcastle University, Newcastle upon Tyne, United Kingdom
     index: 4
 date: 4 November 2020
 bibliography: paper.bib
@@ -71,7 +72,7 @@ that the subject responds to, and so on. See \autoref{fig:system-fig}.
 -->
 
 ![The subject and the world can be seen as two interacting dynamical systems,
-where the state variables in the subject determines the probabilities for
+where the state variables in the subject determine the probabilities for
 its behaviors (the subject's output), and each behavior from the subject puts the environment
 in a state that determines (probabilistically) its output stimulus.
 <!---It is this system that is
@@ -81,7 +82,7 @@ simulated in Learning Simulator.-->
 The stimuli that the environment presents and the behaviors that the subject
 can exhibit are pre-defined by the user of the program.
 Each stimulus is given a reinforcement value (corresponding to genetically determined values in
-biological organisms). A stimulus such as food would typically have
+biological organisms). A stimulus such as food would typically have a
 positive value, while the perception of harm to the body
 would have a negative value.
 
@@ -94,7 +95,7 @@ after a response (say $B$) to a stimulus (say $S$), the subject is presented wit
 \begin{equation}
     S \to B \to S'. \nonumber
 \end{equation}
-Learning algorithms can then use the reinforcement value of $S'$ gives as an indication of the quality of the response $B$ to $S$. 
+Learning algorithms can then use the reinforcement value of $S'$ as an indication of the quality of the response $B$ to $S$. 
 Specifically, this can be accomplished by 
 <!--- the learning mechanism --> 
 updating one or more of the subject's memory state
