@@ -30,12 +30,13 @@ affiliations:
     index: 2
   - name: Department of Zoology, Stockholm University, Sweden
     index: 3
-<!---  - name: Center for Behaviour and Evolution, Newcastle University -->
   - name: Biosciences Institute, Newcastle University, Newcastle upon Tyne, United Kingdom
     index: 4
 date: 4 November 2020
 bibliography: paper.bib
 ---
+
+<!---  - name: Center for Behaviour and Evolution, Newcastle University -->
 
 # Summary
 
