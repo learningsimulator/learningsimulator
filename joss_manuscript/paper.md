@@ -18,10 +18,10 @@ authors:
   - name: Johan Lind
     orcid: 0000-0002-4159-6926
     affiliation: 1
-  - name: Magnus Enquist
-    affiliation: "1, 3"
   - name: Vera Vinken
     affiliation: 4
+  - name: Magnus Enquist
+    affiliation: "1, 3"
 
 affiliations:
   - name: Centre for Cultural Evolution, Stockholm University, Stockholm, Sweden
