@@ -11,12 +11,12 @@
 Welcome to Learning Simulator's documentation!
 **********************************************
 
-*Learning Simulator* is a Python program used for simulating associative
-learning mechanisms. It uses a simple and well-documented scripting
-language to specify the properties of the mechanism and the description
-of the experiment setup being simulated.
+*Learning Simulator* is a software for simulating learning in animals and humans,
+as studied for example in experimental psychology and animal cognition research.
+It is primarily intended for computational biologists, ethologists, and psychologists,
+and it can also be useful to students and teachers in these fields.
     
-The documentation for *Learning Simulator* is hosted on `Read the
+This documentation for *Learning Simulator* is hosted on `Read the
 Docs <https://readthedocs.org/>`_.
 
 

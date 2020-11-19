@@ -18,10 +18,8 @@ for detailed installation instructions.
 Python Dependencies
 *******************
 
-*Learning Simulator* has the following dependencies (note that the version numbers
-below indicate the versions with which *Learning Simulator* is tested):
+*Learning Simulator* has the following dependencies:
 
 - Python >= 3.6
 - ``tkinter`` >= 8.6
 - ``matplotlib`` >= 2.1.1
-
