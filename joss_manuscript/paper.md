@@ -19,18 +19,18 @@ authors:
     orcid: 0000-0002-4159-6926
     affiliation: 1
   - name: Vera Vinken
-    affiliation: 4
+    affiliation: 3
   - name: Magnus Enquist
-    affiliation: "1, 3"
+    affiliation: "1, 4"
 
 affiliations:
   - name: Centre for Cultural Evolution, Stockholm University, Stockholm, Sweden
     index: 1
   - name: Department of Psychology, Brooklyn College and Graduate Center, CUNY, New York, NY, USA
     index: 2
-  - name: Department of Zoology, Stockholm University, Sweden
-    index: 3
   - name: Biosciences Institute, Newcastle University, Newcastle upon Tyne, United Kingdom
+    index: 3    
+  - name: Department of Zoology, Stockholm University, Sweden
     index: 4
 date: 4 November 2020
 bibliography: paper.bib
