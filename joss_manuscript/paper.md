@@ -89,7 +89,7 @@ would have a negative value.
 
 As seen in \autoref{fig:system-fig}, 
 the consequence of responding with a behavior (say $B$) to a stimulus (say $S$) is that the subject meets
-the next stimulus (say $S')$:
+the next stimulus (say $S'$):
 <!---
 after a response (say $B$) to a stimulus (say $S$), the subject is presented with the next stimulus (say $S')$:
 -->
