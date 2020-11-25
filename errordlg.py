@@ -76,11 +76,10 @@ class topErrorWindow_pack(tk.Toplevel):
         frame1.pack_propagate(0)
         label1 = ttk.Label(frame1, text=message)
         label1.pack()
-        #frame2 = tk.Frame(self, width=50, height = 50, background="#b22222")
+        # frame2 = tk.Frame(self, width=50, height = 50, background="#b22222")
 
         frame1.pack(fill=None, expand=False)
-        #frame2.place(relx=.5, rely=.5, anchor="c")
-
+        # frame2.place(relx=.5, rely=.5, anchor="c")
 
         button_frame = tk.Frame(self)
         message_label = ttk.Label(button_frame, text=message)
@@ -106,17 +105,17 @@ class topErrorWindow_pack(tk.Toplevel):
     def toggle_details(self):
         if self.details_expanded:
             self.geometry("600x400+100+100")
-            #self.textbox.config(height=1)
-            #self.textbox.pack()
-            #self.text_frame.pack()
-            #self.textbox.pack_forget()
+            # self.textbox.config(height=1)
+            # self.textbox.pack()
+            # self.text_frame.pack()
+            # self.textbox.pack_forget()
             self.resizable(False, False)
             self.details_button.config(text="Details >>")
             self.details_expanded = False
         else:
             self.geometry("600x300+100+100")
-            #self.textbox.config(height=6)
-            #self.textbox.pack()
+            # self.textbox.config(height=6)
+            # self.textbox.pack()
             self.resizable(True, True)
             self.details_button.config(text="<< Details")
             self.details_expanded = True

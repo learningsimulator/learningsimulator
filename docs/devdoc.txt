@@ -32,6 +32,7 @@ C:\Users\markj\lesim>C:\Python38\python.exe -m unittest -v tests/test_beta.py
 or, with pytest:
 
 C:\Users\markj\lesim>pytest tests/test_beta.py
+(C:\Users\markj\lesim>C:\Python38\Scripts\pytest.exe tests/test_beta.py)
 
 Run all test files (that starts with "test_")
 ---------------------------------------------
@@ -42,6 +43,7 @@ C:\Users\markj\lesim>C:\Python38\python.exe -m unittest -v
 or, with pytest:
 
 C:\Users\markj\lesim>pytest [tests]
+(C:\Users\markj\lesim>C:\Python38\Scripts\pytest.exe [tests])
 
 
 *************************

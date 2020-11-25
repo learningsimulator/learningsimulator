@@ -342,7 +342,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: e1, e2, e3, e4
         {}: e1:0.123, e2:4.56, foo:1, e1:99, default:-22
         '''.format(name)
-        msg = "'foo' is an invalid stimulus element.".format(name)
+        msg = "'foo' is an invalid stimulus element."
         with self.assertRaisesMsg(msg):
             parse(text, name)
 

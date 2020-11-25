@@ -1,6 +1,6 @@
 import util
 from mechanism import probability_of_response
-from exceptions import EvalException, ParseException
+from exceptions import EvalException
 import keywords as kw
 
 

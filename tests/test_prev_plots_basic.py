@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import unittest
 
-from parsing import Script
 from .testutil import run
 
 

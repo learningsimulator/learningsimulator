@@ -43,8 +43,7 @@ if __name__ == "__main__":
         elif arg1 == RUN:
             files = args[2:len(args)]
             if len(files) == 0:
-                print(
-                    "No script file given to lesim run. Type 'lesim.py help' for the available options.".format(arg1))
+                print("No script file given to lesim run. Type 'lesim.py help' for the available options.")
             nfiles = len(files)
             for i, file in enumerate(files):
                 file_obj = open(file, "r")

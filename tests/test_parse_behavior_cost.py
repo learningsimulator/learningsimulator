@@ -297,7 +297,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3, b4
         {}: b1:0.123, b2:4.56, foo:1, b1:99, default:-22
         '''.format(name)
-        msg = "'foo' is an invalid behavior name.".format(name)
+        msg = "'foo' is an invalid behavior name."
         with self.assertRaisesMsg(msg):
             parse(text)
 

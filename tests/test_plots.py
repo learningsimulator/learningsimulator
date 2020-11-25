@@ -319,7 +319,7 @@ class TestPlotProperties(LsTestCase):
         self.assertEqual(plot_data_s['both_phase1s_and_phase2s'],
                          plot_data_nt['both_phase1nt_and_phase2nt'])
 
-    def test_phase_order_not_run_order(self):
+    def test_phase_order_not_run_order1(self):
         text = '''
         mechanism: ga
         stimulus_elements: s1, s2
@@ -334,9 +334,9 @@ class TestPlotProperties(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4, 5])
+        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4])
 
-    def test_phase_order_not_run_order(self):
+    def test_phase_order_not_run_order2(self):
         """
         Test that the first value in plot (x=0) is
         - inital value if the first phase in 'phases' is the first run phase,
@@ -359,8 +359,8 @@ class TestPlotProperties(LsTestCase):
         phases: phase2, phase1
         @nplot s1
         '''
-        #assert(False)  # Test all plot types and that y(0) is last value in previous phase
-        # (or start value if first phase)
+        # assert(False)  # Test all plot types and that y(0) is last value in previous phase
+        #  (or start value if first phase)
 
     def test_run_phases(self):
         """
