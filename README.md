@@ -1,4 +1,4 @@
-# Learning Simulator - A simulation software for animal and human learning
+# Learning Simulator: A simulation software for animal and human learning
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
