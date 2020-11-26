@@ -6,7 +6,7 @@ See also the [Learning Simulator Project](https://www.learningsimulator.org/) an
 
 ## Build status
 
-![Build](https://github.com/markusrobertjonsson/learningsimulator/workflows/Learning%20Simulator/badge.svg)
+![Build](https://github.com/learningsimulator/learningsimulator/workflows/Learning%20Simulator/badge.svg)
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
 
 ## Summary
