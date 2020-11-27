@@ -53,7 +53,7 @@ have a negative value.
 As seen in Figure 1, the consequence of responding with a behavior (say *B*) to a stimulus (say *S*) is
 that the subject meets the next stimulus (say *S'*):
 
-*S* -> *B* -> *S'*.
+*S* &#8594; *B* &#8594; *S'*.
 
 Learning algorithms can then use the reinforcement value of *S'* as an indication of the quality
 of the response *B* to *S*. Specifically, this can be accomplished by updating one or more
