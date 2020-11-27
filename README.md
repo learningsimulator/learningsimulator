@@ -37,7 +37,7 @@ in a state that determines its output stimulus. It is this system that is
 simulated in Learning Simulator.
 \label{fig:system-fig}](system-fig.png)
 -->
-<img src="system-fig.png" width="505" height="339" />
+<img src="system-fig.png" width="337" height="226" />
 
 **Figure 1: The subject and the world can be seen as two interacting dynamical systems, where the
 state variables in the subject determine the probabilities for its behaviors (the subject’s output), and
