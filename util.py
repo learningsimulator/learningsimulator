@@ -497,7 +497,7 @@ class ParseUtil():
         First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
 
         Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
+            parse_element_behavior("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
         """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
@@ -512,6 +512,27 @@ class ParseUtil():
         if behavior not in all_behaviors:
             return None, f"Expected a behavior name, got {behavior}."
         return (stimulus_element, behavior), None
+
+    @staticmethod
+    def parse_element_behavior_element(expr, all_stimulus_elements, all_behaviors):
+        """
+        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
+        """
+        arrow_inds = [m.start() for m in re.finditer('->', expr)]
+        n_arrows = len(arrow_inds)
+        if n_arrows < 2:
+            return None, "Expression must include two '->'."
+        elif n_arrows > 2:
+            return None, "Expression must include only two '->'."
+
+        stimulus_element1, behavior, stimulus_element2 = expr.split('->')
+        if stimulus_element1 not in all_stimulus_elements:
+            return None, f"Expected a stimulus element, got {stimulus_element1}."
+        if stimulus_element2 not in all_stimulus_elements:
+            return None, f"Expected a stimulus element, got {stimulus_element2}."
+        if behavior not in all_behaviors:
+            return None, f"Expected a behavior name, got {behavior}."
+        return (stimulus_element1, behavior, stimulus_element2), None
 
     @staticmethod
     def parse_element_element(expr, all_stimulus_elements):

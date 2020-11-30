@@ -1,6 +1,6 @@
 import util
 from mechanism import probability_of_response
-from exceptions import EvalException, ParseException
+from exceptions import EvalException
 import keywords as kw
 
 
@@ -21,10 +21,19 @@ class ScriptOutput():
         '''stimulus is a tuple.'''
         self.run_outputs[run_label].write_w(subject_ind, stimulus, step, mechanism)
 
-    def vwpn_eval(self, vwph, expr, parameters):
+    def write_x(self, run_label, subject_ind, stimulus, step, mechanism):
+        self.run_outputs[run_label].write_x(subject_ind, stimulus, step, mechanism)
+
+    def write_y(self, run_label, subject_ind, stimulus, response, step, mechanism):
+        self.run_outputs[run_label].write_y(subject_ind, stimulus, response, step, mechanism)
+
+    def write_z(self, run_label, subject_ind, stimulus1, response, stimulus2, step, mechanism):
+        self.run_outputs[run_label].write_z(subject_ind, stimulus1, response, stimulus2, step, mechanism)
+
+    def var_eval(self, vwph, expr, parameters):
         # self._evalparse(parameters)
         run_label = parameters.get(kw.RUNLABEL)
-        return self.run_outputs[run_label].vwpn_eval(vwph, expr, parameters)
+        return self.run_outputs[run_label].var_eval(vwph, expr, parameters)
 
     def printout(self):
         for run_label, run_output in self.run_outputs.items():
@@ -126,6 +135,15 @@ class RunOutput():
         '''stimulus is a tuple.'''
         self.output_subjects[subject_ind].write_w(stimulus, step, mechanism)
 
+    def write_x(self, subject_ind, stimulus, step, mechanism):
+        self.output_subjects[subject_ind].write_x(stimulus, step, mechanism)
+
+    def write_y(self, subject_ind, stimulus, response, step, mechanism):
+        self.output_subjects[subject_ind].write_y(stimulus, response, step, mechanism)
+
+    def write_z(self, subject_ind, stimulus1, response, stimulus2, step, mechanism):
+        self.output_subjects[subject_ind].write_z(stimulus1, response, stimulus2, step, mechanism)
+
     def write_history(self, subject_ind, stimulus, response):
         self.output_subjects[subject_ind].write_history(stimulus, response)
 
@@ -136,29 +154,35 @@ class RunOutput():
         self.output_subjects[subject_ind].write_phase_line_label(phase_line_label, step,
                                                                  preceeding_help_lines)
 
-    def vwpn_eval(self, vwpn, expr, parameters):
-        if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
+    def var_eval(self, var, expr, parameters):
+        if var in ('v', 'p') and not self.mechanism_obj.has_v():
             raise EvalException("Used mechanism does not have variable 'v'.")
-        if vwpn == 'w' and not self.mechanism_obj.has_w():
+        if var == 'w' and not self.mechanism_obj.has_w():
             raise EvalException("Used mechanism does not have variable 'w'.")
-        if vwpn == 'vss' and not self.mechanism_obj.has_vss():
+        if var == 'vss' and not self.mechanism_obj.has_vss():
             raise EvalException("Used mechanism does not have variable 'vss'.")
+        if var == 'x' and not self.mechanism_obj.has_x():
+            raise EvalException("Used mechanism does not have variable 'x'.")
+        if var == 'y' and not self.mechanism_obj.has_y():
+            raise EvalException("Used mechanism does not have variable 'y'.")
+        if var == 'z' and not self.mechanism_obj.has_z():
+            raise EvalException("Used mechanism does not have variable 'z'.")
 
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
         if subject_ind == kw.EVAL_AVERAGE:
             eval_subjects = list()
             for i in range(self.n_subjects):
-                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters))
+                eval_subjects.append(self.output_subjects[i].var_eval(var, expr, parameters))
             return util.eval_average(eval_subjects)
         elif subject_ind == kw.EVAL_ALL:
             eval_subjects = list()
             for i in range(self.n_subjects):
-                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters))
+                eval_subjects.append(self.output_subjects[i].var_eval(var, expr, parameters))
             return eval_subjects
         else:
             if subject_ind >= len(self.output_subjects):
                 raise EvalException(f"The value ({subject_ind + 1}) for the parameter '{kw.EVAL_SUBJECT}' exceeds the number of subjects ({len(self.output_subjects)}).")
-            return self.output_subjects[subject_ind].vwpn_eval(vwpn, expr, parameters)
+            return self.output_subjects[subject_ind].var_eval(var, expr, parameters)
 
     def printout(self):
         i = 0
@@ -180,6 +204,15 @@ class RunOutputSubject():
 
         # Keys are stimulus elements (strings), values are Val objects
         self.w = dict()
+
+        # Keys are stimulus elements (strings), values are Val objects
+        self.x = dict()
+
+        # Keys are 2-tuples (stimulus_element,response), values are Val objects
+        self.y = dict()
+
+        # Keys are 3-tuples (stimulus_element,response,stimulus_element), values are Val objects
+        self.z = dict()
 
         # History of stimulus and responses [S1,R1,S2,R2,...]
         self.history = list()
@@ -246,12 +279,34 @@ class RunOutputSubject():
                 self.w[key] = Val()
             self.w[key].write(mechanism.w[key], step)
 
-    def vwpn_eval(self, vwpn, expr, parameters):
-        if vwpn == 'n':
+    def write_x(self, stimulus, step, mechanism):
+        for element in stimulus:
+            key = element
+            if key not in self.x:
+                self.x[key] = Val()
+            self.x[key].write(mechanism.x[key], step)
+
+    def write_y(self, stimulus, response, step, mechanism):
+        for element in stimulus:
+            key = (element, response)
+            if key not in self.y:
+                self.y[key] = Val()
+            self.y[key].write(mechanism.y[key], step)
+
+    def write_z(self, stimulus1, response, stimulus2, step, mechanism):
+        for element1 in stimulus1:
+            for element2 in stimulus2:
+                key = (element1, response, element2)
+                if key not in self.z:
+                    self.z[key] = Val()
+                self.z[key].write(mechanism.z[key], step)
+
+    def var_eval(self, var, expr, parameters):
+        if var == 'n':
             _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
             return RunOutputSubject.n_eval(expr, history, phase_line_labels, parameters)
         else:
-            if vwpn == 'p':
+            if var == 'p':
                 # expr is a tuple ({'e1':i1, 'e2':i2, ...}, behavior)
                 stimulus = expr[0]
                 behavior = expr[1]
@@ -260,9 +315,12 @@ class RunOutputSubject():
                 switcher = {
                     'v': self.v_eval,
                     'vss': self.vss_eval,
-                    'w': self.w_eval
+                    'w': self.w_eval,
+                    'x': self.x_eval,
+                    'y': self.y_eval,
+                    'z': self.z_eval
                 }
-                fun = switcher[vwpn]
+                fun = switcher[var]
                 funout = fun(expr, parameters)
             funout, history, phase_line_labels, phase_line_labels_steps = self._phasefilter(funout, parameters)
             return self._xscalefilter(funout, history, phase_line_labels, phase_line_labels_steps, parameters)
@@ -402,6 +460,15 @@ class RunOutputSubject():
 
     def w_eval(self, element, parameters):
         return self.w[element].evaluate(parameters)
+
+    def x_eval(self, element, parameters):
+        return self.x[element].evaluate(parameters)
+
+    def y_eval(self, er, parameters):
+        return self.y[er].evaluate(parameters)
+
+    def z_eval(self, ere, parameters):
+        return self.z[ere].evaluate(parameters)
 
     def p_eval(self, stimulus, response, parameters):
         """stimulus is a dict with intensities for stimulus elements. response is a string."""

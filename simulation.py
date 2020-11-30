@@ -63,6 +63,9 @@ class Run():
         self.has_v = mechanism_obj.has_v()
         self.has_w = mechanism_obj.has_w()
         self.has_vss = mechanism_obj.has_vss()
+        self.has_x = mechanism_obj.has_x()
+        self.has_y = mechanism_obj.has_y()
+        self.has_z = mechanism_obj.has_z()
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 
@@ -92,6 +95,16 @@ class Run():
                 if self.has_vss:
                     for element2 in stimulus_elements:
                         out.write_vss(subject_ind, {element: 1}, {element2: 1}, 0, self.mechanism_obj)
+
+                if self.has_x:
+                    out.write_x(subject_ind, {element: 1}, 0, self.mechanism_obj)
+                if self.has_y:
+                    for behavior in behaviors:
+                        out.write_y(subject_ind, {element: 1}, behavior, 0, self.mechanism_obj)
+                if self.has_z:
+                    for behavior in behaviors:
+                        for element2 in stimulus_elements:
+                            out.write_z(subject_ind, {element: 1}, behavior, {element2: 1}, 0, self.mechanism_obj)
             # out.write_step(subject_ind, self.world.phases[0].label, 0)
 
         # The actual simulation
@@ -143,6 +156,16 @@ class Run():
                             for e in stimulus_elements:
                                 out.write_vss(subject_ind, prev_stimulus, {e: 1}, step,
                                               self.mechanism_obj)
+
+                        if self.has_x:
+                            out.write_x(subject_ind, prev_stimulus, step, self.mechanism_obj)
+                        if self.has_y:
+                            for behavior in behaviors:
+                                out.write_y(subject_ind, prev_stimulus, prev_response, step, self.mechanism_obj)
+                        if self.has_z:
+                            for element2 in stimulus_elements:
+                                out.write_z(subject_ind, prev_stimulus, prev_response, stimulus, step, self.mechanism_obj)
+
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         phase_step = step
                         if step > 1:
@@ -170,6 +193,21 @@ class Run():
                             for element2 in stimulus_elements:
                                 out.write_vss(subject_ind, {element1: 1}, {element2: 1}, step,
                                               self.mechanism_obj)
+
+                    if self.has_x:
+                        for element in stimulus_elements:
+                            out.write_x(subject_ind, (element,), step, self.mechanism_obj)
+                    if self.has_y:
+                        for element in stimulus_elements:
+                            for behavior in behaviors:
+                                out.write_y(subject_ind, {element: 1}, behavior, step,
+                                            self.mechanism_obj)
+                    if self.has_z:
+                        for element1 in stimulus_elements:
+                            for behavior in behaviors:
+                                for element2 in stimulus_elements:
+                                    out.write_z(subject_ind, {element1: 1}, behavior, {element2: 1}, step,
+                                                self.mechanism_obj)
 
                     out.write_history(subject_ind, last_stimulus, last_response)
                     out.write_step(subject_ind, "last", step + 2)

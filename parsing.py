@@ -126,7 +126,7 @@ class LineParser():
             self.line_type = LineParser.RUN
         elif first_word == kw.PHASE:
             self.line_type = LineParser.PHASE
-        elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.PPLOT, kw.NPLOT):
+        elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.XPLOT, kw.YPLOT, kw.ZPLOT, kw.PPLOT, kw.NPLOT):
             self.line_type = LineParser.PLOT
         elif first_word == kw.FIGURE:
             self.line_type = LineParser.FIGURE
@@ -432,7 +432,7 @@ class ScriptParser():
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
-        if cmd == kw.VPLOT:
+        if cmd in (kw.VPLOT, kw.YPLOT):
             expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.VSSPLOT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
@@ -440,6 +440,8 @@ class ScriptParser():
             stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
                                                                         all_behaviors, self.variables)
             expr = (stimulus, behavior)
+        elif cmd == kw.ZPLOT:
+            expr, err = ParseUtil.parse_element_behavior_element(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.NPLOT:
             expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
         if err:
@@ -599,19 +601,28 @@ class PlotCmd(PostCmd):
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('v', self.expr, self.parameters)
             default_label = f"v({self.expr0})"
         elif self.cmd == kw.VSSPLOT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('vss', self.expr, self.parameters)
             default_label = f"vss({self.expr0})"
         elif self.cmd == kw.WPLOT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('w', self.expr, self.parameters)
             default_label = f"w({self.expr0})"
+        elif self.cmd == kw.XPLOT:
+            ydata = simulation_data.var_eval('x', self.expr, self.parameters)
+            default_label = f"x({self.expr0})"
+        if self.cmd == kw.YPLOT:
+            ydata = simulation_data.var_eval('y', self.expr, self.parameters)
+            default_label = f"y({self.expr0})"
+        if self.cmd == kw.ZPLOT:
+            ydata = simulation_data.var_eval('z', self.expr, self.parameters)
+            default_label = f"z({self.expr0})"
         elif self.cmd == kw.PPLOT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('p', self.expr, self.parameters)
             default_label = f"p({self.expr0})"
         elif self.cmd == kw.NPLOT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('n', self.expr, self.parameters)
             default_label = f"n({self.expr0})"
             start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
                           (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
@@ -696,7 +707,7 @@ class ExportCmd(PostCmd):
             if self.cmd == kw.HEXPORT:
                 self._h_export(file, simulation_data)
             else:
-                self._vwpn_export(file, simulation_data)
+                self._var_export(file, simulation_data)
         except EvalException as ex:
             file.close()
             raise ex
@@ -753,22 +764,22 @@ class ExportCmd(PostCmd):
             #         datarow = [row, ydata[row]]
             #         w.writerow(datarow)
 
-    def _vwpn_export(self, file, simulation_data):
+    def _var_export(self, file, simulation_data):
         label_expr = self.expr0  # beautify_expr_for_label(self.expr)
         if self.cmd == kw.VEXPORT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('v', self.expr, self.parameters)
             legend_label = f"v({label_expr})"
         if self.cmd == kw.VSSEXPORT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('vss', self.expr, self.parameters)
             legend_label = f"vss({label_expr})"
         elif self.cmd == kw.WEXPORT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('w', self.expr, self.parameters)
             legend_label = f"w({label_expr})"
         elif self.cmd == kw.PEXPORT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('p', self.expr, self.parameters)
             legend_label = f"p({label_expr})"
         elif self.cmd == kw.NEXPORT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
+            ydata = simulation_data.var_eval('n', self.expr, self.parameters)
             legend_label = f"n({label_expr})"
 
         n_ydata = len(ydata)

@@ -126,6 +126,15 @@ class Mechanism():
     def has_vss(self):
         return False
 
+    def has_x(self):
+        return False
+
+    def has_y(self):
+        return False
+
+    def has_z(self):
+        return False
+
 
 # This cache doesn't seem to speed things up.
 # feasible_behaviors_cache = dict()
@@ -459,3 +468,47 @@ class OriginalRescorlaWagner(Mechanism):
 
     def has_v(self):
         return False
+
+
+class XYZMechanism(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def subject_reset(self):
+        super().subject_reset()
+        self.x = dict(self.parameters.get(kw.START_X))  # Indexed by elements
+        self.y = dict(self.parameters.get(kw.START_Y))  # Indexed by element-behavior pairs
+        self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
+
+    def learn(self, stimulus):
+        # xyz_e = self.parameters.get(kw.XYZ_E)
+        # xyz_b = self.parameters.get(kw.XYZ_B)
+        # xyz_eb = self.parameters.get(kw.XYZ_EB)
+
+        # x, y
+        for element in self.prev_stimulus:
+            self.x[element] += 1
+            self.y[(element, self.response)] += 1
+
+        # z
+        for e in stimulus:
+            for element in self.prev_stimulus:
+                self.z[(element, self.response, e)] += 1
+
+    def has_v(self):
+        return False
+
+    def has_w(self):
+        return False
+
+    def has_vss(self):
+        return False
+
+    def has_x(self):
+        return True
+
+    def has_y(self):
+        return True
+
+    def has_z(self):
+        return True
