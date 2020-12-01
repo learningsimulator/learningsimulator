@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['lesim.py'],
-             pathex=['C:\\Users\\markj\\lesim\\lesim2'],
+             pathex=['C:\\Users\\markj\\lesim\\learningsimulator'],
              binaries=[],
              datas=[('Lemur-icon.gif', '.')],
              hiddenimports=[],
