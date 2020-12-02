@@ -354,7 +354,7 @@ The terms and conditions for these products can be found below."""
     def _get_license_text():
         return """MIT License for Learning Simulator
 ----------------------------------
-Copyright (c) 2018 markusrobertjonsson
+Copyright (c) 2018 learningsimulator
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
