@@ -34,4 +34,7 @@ jobs:
     - name: Test with pytest
       run: |
         coverage run -m pytest
-        coverage-badge -o coverage.svg        
+        coverage-badge -o coverage.svg
+    - uses: actions/download-artifact@v2
+      with:
+        name: coverage.svg
