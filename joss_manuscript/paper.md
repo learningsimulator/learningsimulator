@@ -61,7 +61,7 @@ Associative learning is the ability of organisms to acquire knowledge about envi
 Learning Simulator was developed to study learning in animals and humans. The current version implements associative learning (AL) and reinforcement learning (RL) algorithms, apt to study instrumental (operant) learning and Pavlovian (classical) learning [@Pearce:2013; @Bouton:2016], including in complex situations such as social learning or maze learning. A plugin system to add more learning mechanisms is planned for a future version.
 
 <!--- Here we formalize associative learning experiments.-->
-The simulator uses a commonly used framing of learning that
+The simulator uses a common framing of learning that
 <!---that captures both classical and operant conditioning-->
 comprises a subject interacting with an environment.
 The environment presents a stimulus to the subject, and the subject responds
