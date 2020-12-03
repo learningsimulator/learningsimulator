@@ -33,5 +33,14 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        coverage run -m pytest
-        coverage-badge -o coverage.svg        
+        coverage run -m pytest tests/test_beta.py
+        coverage-badge -o coverage.svg
+    - name: Archive code coverage badge
+      uses: actions/upload-artifact@v2
+      with:
+          name: coverage-badge
+          path: coverage.svg
+    - name: Display structure of downloaded files
+      run: |
+        ls -R
+      working-directory: .
