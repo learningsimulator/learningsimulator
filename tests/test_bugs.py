@@ -37,23 +37,26 @@ class TestGitHubIssues(LsTestCase):
         plt.close('all')
 
         text = '''
-        mechanism             : SR
-        behaviors             : b1, b2
-        stimulus_elements     : s1, s2
+        mechanism             = SR
+        behaviors             = b1, b2
+        stimulus_elements     = s0, s1, s2
 
         @phase phase_name stop: LINE0=1000
-        LINE0 p:0.5 | LINE1(p) | LINE1
+        START       | p=0.5, LINE0
+        LINE0 s0    | LINE1(p) | LINE0
         LINE1 s1    | LINE2(p) | LINE0
         LINE2 s2    | LINE0
 
+        xscale = s0
         @run phase_name
-        @nplot s2
-        '''
+        @nplot s2        '''
         script, script_output = run(text)
         plot_data = get_plot_data()
+        x = plot_data['x']
         y = plot_data['y']
-        assert(y[-1] < 550)
-        assert(y[-1] > 450)
+        assert(x[-1] == 1000)
+        assert(y[-1] < 300)
+        assert(y[-1] > 200)
 
         # mechanism             : SR
         # behaviors             : b1, b2
