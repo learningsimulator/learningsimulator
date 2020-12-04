@@ -2,11 +2,9 @@
 How to Run Learning Simulator
 *****************************
 
-If you use the executable file ``learningsimulator.exe`` on Windows (downloadable from the
-`Download section <https://learningsimulator.org/download-simulator/>`_ on the
-`Learning Simulator Project website <https://learningsimulator.org/>`_), this will launch the 
-`Learning Simulator` graphical user interface (GUI)
-only. It is not possible to run a script from the command line with this executable.
+If you use the file ``learningsimulator.exe`` on Windows, you do not need
+any installation of Python, as this standalone executable comes bundles with the 
+required Python version.
 
 If you use IDLE, open the file ``lesim.py`` and run it to launch the GUI.
 
@@ -27,6 +25,9 @@ To run a script from the command line, use the argument ``run`` to ``lesim``::
 
   > python lesim.py run file1 [file2, file3, ...]
 
+With ``learningsimulator.exe`` on Windows::
+
+  > learningsimulator.exe run file1 [file2, file3, ...]
 
 Running a script using the GUI
 ******************************
@@ -38,6 +39,8 @@ To launch the GUI, use the argument ``gui`` to ``lesim``::
 or, for short::
 
   > python lesim.py
+
+With ``learningsimulator.exe`` on Windows, just run that file to launch the GUI.
 
 Once the GUI is launched, run a script by opening it (with **File** > **Open**), write a script, or paste an existing script into
 the script window, then run it (with **Run** > **Simulate and Plot**, or the **Simulate and Plot** button).

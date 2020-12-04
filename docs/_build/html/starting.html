@@ -45,11 +45,9 @@
             
   <div class="section" id="how-to-run-learning-simulator">
 <h1>How to Run Learning Simulator<a class="headerlink" href="#how-to-run-learning-simulator" title="Permalink to this headline">¶</a></h1>
-<p>If you use the executable file <code class="docutils literal notranslate"><span class="pre">learningsimulator.exe</span></code> on Windows (downloadable from the
-<a class="reference external" href="https://learningsimulator.org/download-simulator/">Download section</a> on the
-<a class="reference external" href="https://learningsimulator.org/">Learning Simulator Project website</a>), this will launch the
-<cite>Learning Simulator</cite> graphical user interface (GUI)
-only. It is not possible to run a script from the command line with this executable.</p>
+<p>If you use the file <code class="docutils literal notranslate"><span class="pre">learningsimulator.exe</span></code> on Windows, you do not need
+any installation of Python, as this standalone executable comes bundles with the
+required Python version.</p>
 <p>If you use IDLE, open the file <code class="docutils literal notranslate"><span class="pre">lesim.py</span></code> and run it to launch the GUI.</p>
 <p>If you have a standard Python environment (that fulfils the <a class="reference internal" href="installation.html#dependencies"><span class="std std-ref">Python Dependencies</span></a>), use
 the below commands.</p>
@@ -65,6 +63,10 @@ the relevant arguments. To see the available arguments, use:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py run file1 [file2, file3, ...]
 </pre></div>
 </div>
+<p>With <code class="docutils literal notranslate"><span class="pre">learningsimulator.exe</span></code> on Windows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; learningsimulator.exe run file1 [file2, file3, ...]
+</pre></div>
+</div>
 </div>
 <div class="section" id="running-a-script-using-the-gui">
 <h2>Running a script using the GUI<a class="headerlink" href="#running-a-script-using-the-gui" title="Permalink to this headline">¶</a></h2>
@@ -76,6 +78,7 @@ the relevant arguments. To see the available arguments, use:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; python lesim.py
 </pre></div>
 </div>
+<p>With <code class="docutils literal notranslate"><span class="pre">learningsimulator.exe</span></code> on Windows, just run that file to launch the GUI.</p>
 <p>Once the GUI is launched, run a script by opening it (with <strong>File</strong> &gt; <strong>Open</strong>), write a script, or paste an existing script into
 the script window, then run it (with <strong>Run</strong> &gt; <strong>Simulate and Plot</strong>, or the <strong>Simulate and Plot</strong> button).</p>
 </div>
