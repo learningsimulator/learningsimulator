@@ -36,12 +36,17 @@ jobs:
         coverage run -m pytest tests/test_beta.py
         coverage html
         coverage-badge -o coverage.svg
+    - name: Archive code coverage html
+      uses: actions/upload-artifact@v2
+      with:
+          name: coverage-html
+          path: htmlcov
     - name: Archive code coverage badge
       uses: actions/upload-artifact@v2
       with:
           name: coverage-badge
           path: coverage.svg
-    - name: Display structure of downloaded files
+    - name: Display structure of files
       run: |
         ls -R
       working-directory: .
