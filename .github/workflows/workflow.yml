@@ -34,6 +34,7 @@ jobs:
     - name: Test with pytest
       run: |
         coverage run -m pytest tests/test_beta.py
+        coverage html
         coverage-badge -o coverage.svg
     - name: Archive code coverage badge
       uses: actions/upload-artifact@v2
