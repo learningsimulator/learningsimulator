@@ -144,7 +144,7 @@ class TestGitHubIssues(LsTestCase):
                 self.assertGreater(y1 - y2, 9)
                 self.assertGreater(y2, -0.2)
                 self.assertLess(y2, 0)
-                self.assertGreater(y1, 9.6)
+                self.assertGreater(y1, 9.5)
                 self.assertLess(y1, 10)
         for val in plot_data['n=2']['y']:
             self.assertLess(val, 0)
@@ -328,6 +328,65 @@ class TestGitHubIssues(LsTestCase):
 
         history = script_output.run_outputs["n=20"].output_subjects[0].history
         self.assertEqual(history[0::2], ['e1'] * 10)
+
+    def test_issue125(self):
+        text = '''
+        ########################  Parameters   ##########################################################
+
+        n_subjects              : 10
+        mechanism               : GA
+        behaviors               : behaviour, other
+        stimulus_elements       : food, s0, s1, s2
+        #response_requirements  :
+        #mu                     :
+        start_v                 : s0->behaviour:-1, s1->behaviour:-1, s2->behaviour:-1,  default: 1 
+        alpha_v                 : 0.1
+        alpha_w                 : 0.1
+        behavior_cost           : behaviour:2, default:0
+        beta                    : 1
+        u                       : food:10, default:0 
+        #bind_trials            : off     
+        cumulative: on
+
+
+
+        ########################  Describe Phases   #####################################################
+
+        @phase environment stop: food=100                                               # stop when there are 100 rewards given out 
+        START0       t0:0              | NEXT0                                              # Reset counter #1
+        NEXT0        t0:t0+1           | t0=50: START1 | S0
+        S0           s0                | NEXT0
+
+        START1       t1:0              | NEXT1
+        NEXT1        t1:t1+1           | t1=3: S_FOOD   | S1
+        S1           s1                | NEXT1          
+
+        S_FOOD       s1,s2                     | behaviour:FOOD         | START0
+        FOOD         food              | START0                                 
+
+                                                    
+
+         
+
+        ########################   Start Running   ######################################################
+
+        @run environment
+
+
+        #######################    Figures    ##########################################################
+
+        xscale:food
+        subject: average
+        @figure Predicting stimuli
+
+
+        @subplot 111  {'xlabel':'Reward number', 'ylabel':'probability', 'ylim':[-0.03,1] }
+        @pplot s0->behaviour
+        @pplot s1->behaviour
+        @pplot s1,s2->behaviour
+        @legend
+        '''
+        run(text)
 
 
 class TestFoundBugs(LsTestCase):
