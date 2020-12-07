@@ -126,7 +126,7 @@ class LineParser():
             self.line_type = LineParser.RUN
         elif first_word == kw.PHASE:
             self.line_type = LineParser.PHASE
-        elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.XPLOT, kw.YPLOT, kw.ZPLOT, kw.PPLOT, kw.NPLOT):
+        elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.ZPLOT, kw.PPLOT, kw.NPLOT):
             self.line_type = LineParser.PLOT
         elif first_word == kw.FIGURE:
             self.line_type = LineParser.FIGURE
@@ -432,7 +432,7 @@ class ScriptParser():
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
-        if cmd in (kw.VPLOT, kw.YPLOT):
+        if cmd in (kw.VPLOT):
             expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
         elif cmd == kw.VSSPLOT:
             expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
@@ -609,12 +609,6 @@ class PlotCmd(PostCmd):
         elif self.cmd == kw.WPLOT:
             ydata = simulation_data.var_eval('w', self.expr, self.parameters)
             default_label = f"w({self.expr0})"
-        elif self.cmd == kw.XPLOT:
-            ydata = simulation_data.var_eval('x', self.expr, self.parameters)
-            default_label = f"x({self.expr0})"
-        if self.cmd == kw.YPLOT:
-            ydata = simulation_data.var_eval('y', self.expr, self.parameters)
-            default_label = f"y({self.expr0})"
         if self.cmd == kw.ZPLOT:
             ydata = simulation_data.var_eval('z', self.expr, self.parameters)
             default_label = f"z({self.expr0})"

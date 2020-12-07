@@ -5,12 +5,11 @@ MECHANISM_NAME = 'mechanism'
 START_V = 'start_v'
 START_VSS = 'start_vss'
 START_W = 'start_w'
-START_X = 'start_x'
-START_Y = 'start_y'
 START_Z = 'start_z'
 ALPHA_V = 'alpha_v'
 ALPHA_VSS = 'alpha_vss'
 ALPHA_W = 'alpha_w'
+ALPHA_Z = 'alpha_z'
 BETA = 'beta'
 MU = 'mu'
 DISCOUNT = 'discount'
@@ -42,8 +41,6 @@ LEGEND = '@legend'
 VPLOT = '@vplot'
 VSSPLOT = '@vssplot'
 WPLOT = '@wplot'
-XPLOT = '@xplot'
-YPLOT = '@yplot'
 ZPLOT = '@zplot'
 PPLOT = '@pplot'
 NPLOT = '@nplot'
@@ -70,6 +67,7 @@ KEYWORDS = (BEHAVIORS,
             ALPHA_V,
             ALPHA_VSS,
             ALPHA_W,
+            ALPHA_Z,
             BETA,
             MU,
             DISCOUNT,

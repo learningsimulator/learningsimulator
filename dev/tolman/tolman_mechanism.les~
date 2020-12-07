@@ -1,0 +1,25 @@
+n_subjects        = 1
+mechanism         = xyz
+behaviors         = response, no_response
+stimulus_elements = background, stimulus, reward
+start_x = 10
+start_y = 20
+start_z = 30
+
+
+@PHASE training stop: stimulus==10
+START_TRIAL stimulus   | response: REWARD | NO_REWARD
+REWARD      reward     | START_TRIAL
+NO_REWARD   background | START_TRIAL
+
+@run training
+
+xscale: all
+@figure
+
+@xplot stimulus
+@yplot stimulus->response
+@zplot stimulus->response->reward
+@legend
+
+@hexport hexport.txt

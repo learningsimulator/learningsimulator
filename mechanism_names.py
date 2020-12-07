@@ -4,6 +4,6 @@ ES = 'es'
 QL = 'ql'
 AC = 'ac'
 RW = 'rw'
-XYZ = 'xyz'
+TOLMAN = 'tolman'
 
-MECHANISM_NAMES = (GA, SR, ES, QL, AC, RW, XYZ)
+MECHANISM_NAMES = (GA, SR, ES, QL, AC, RW, TOLMAN)

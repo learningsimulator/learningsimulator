@@ -470,14 +470,12 @@ class OriginalRescorlaWagner(Mechanism):
         return False
 
 
-class XYZMechanism(Mechanism):
+class TolmanMechanism(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
     def subject_reset(self):
         super().subject_reset()
-        self.x = dict(self.parameters.get(kw.START_X))  # Indexed by elements
-        self.y = dict(self.parameters.get(kw.START_Y))  # Indexed by element-behavior pairs
         self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
 
     def learn(self, stimulus):
@@ -485,16 +483,41 @@ class XYZMechanism(Mechanism):
         # xyz_b = self.parameters.get(kw.XYZ_B)
         # xyz_eb = self.parameters.get(kw.XYZ_EB)
 
-        # x, y
-        for element in self.prev_stimulus:
-            self.x[element] += 1
-            self.y[(element, self.response)] += 1
+        # shortcuts:
+        alpha_z = self.parameters.get(kw.ALPHA_Z)
+        b = self.response
 
-        # z
-        for e in stimulus:
-            for element in self.prev_stimulus:
-                self.z[(element, self.response, e)] += 1
+        print( "-" * 20 )
+        print( "stimulus is", stimulus )
+        print( "prev_stimulus is", self.prev_stimulus )
+        
+        # loop over *all* stimulus elements updating their prediction
+        # based on elements in the previous stimulus: 
+        for e2 in self.parameters.get(kw.STIMULUS_ELEMENTS):
+            print( "-" * 5 )
+            print( "updating", e2 )
+            ## the correct z is 1 if e2 is present, 0 otherwise:
+            if e2 in stimulus.keys(): zcorrect = 1
+            else:                     zcorrect = 0
+            print( "correct z for", e2, "is", zcorrect )
+            ## set intensity of e2 for learning rate purposes, which
+            ## means i2=1 if e2 is absent:
+            if e2 in stimulus.keys(): i2 = stimulus[ e2 ]
+            else:                     i2 = 1
+            print( "intensity of", e2, "is", i2 )
+            ## calculate prediction for this element
+            zsum = 0
+            for e1, i1 in self.prev_stimulus.items():
+                zsum += self.z[ (e1,b,e2) ] * i1
+            print( "prediction is z(", e1, b, e2, ") = ", zsum )
+            ## now we can update the prediction of e2 for all elements
+            ## in prev_stimulus:
+            for e1, i1 in self.prev_stimulus.items():
+                print( "updating z(", e1, b, e2, ") from", self.z[ (e1,b,e2) ] )
+                self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
+                print( "to", self.z[ (e1,b,e2) ] )
 
+                
     def has_v(self):
         return False
 
@@ -504,11 +527,6 @@ class XYZMechanism(Mechanism):
     def has_vss(self):
         return False
 
-    def has_x(self):
-        return True
-
-    def has_y(self):
-        return True
-
     def has_z(self):
         return True
+

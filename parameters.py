@@ -11,10 +11,9 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.START_VSS: 0,                   # Scalar or list of se->se:val or default:val  ,
-      kw.START_X: 0,                     # Scalar or list of se:val or default:val      ,
-      kw.START_Y: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.START_Z: 0,                     # Scalar or list of se->b->se:val or default:val ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
+      kw.ALPHA_Z: 0.1,                     # -"-                                          ,
       kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
@@ -91,11 +90,11 @@ class Parameters():
             return self._parse_alphastart_vss(prop, v_str, variables, to_be_continued,
                                               is_appending)
 
-        elif prop in (kw.START_W, kw.START_X, kw.ALPHA_W, kw.U, kw.LAMBDA):
+        elif prop in (kw.START_W, kw.ALPHA_W, kw.U, kw.LAMBDA):
             return self._parse_stimulus_values(prop, v_str, variables, to_be_continued,
                                                is_appending)
 
-        elif prop in (kw.BETA, kw.MU, kw.START_V, kw.START_Y, kw.ALPHA_V):
+        elif prop in (kw.BETA, kw.MU, kw.START_V, kw.ALPHA_V):
             return self._parse_stimulus_response_values(prop, v_str, variables,
                                                         to_be_continued, is_appending)
 
@@ -208,8 +207,8 @@ class Parameters():
             mechanism_obj = mechanism.Enquist(self)
         elif mechanism_name == mn.RW:
             mechanism_obj = mechanism.OriginalRescorlaWagner(self)
-        elif mechanism_name == mn.XYZ:
-            mechanism_obj = mechanism.XYZMechanism(self)
+        elif mechanism_name == mn.TOLMAN:
+            mechanism_obj = mechanism.TolmanMechanism(self)
         else:
             raise Exception(f"Internal error. Unknown mechanism {mechanism_name}.")
         return mechanism_obj, None
@@ -726,7 +725,7 @@ class Parameters():
 
     def is_csv(self, prop):
         return prop in (kw.BEHAVIORS, kw.STIMULUS_ELEMENTS, kw.BETA, kw.MU, kw.LAMBDA, kw.START_V,
-                        kw.START_VSS, kw.START_W, kw.START_X, kw.START_Y, kw.START_Z, kw.ALPHA_V,
+                        kw.START_VSS, kw.START_W, kw.START_Z, kw.ALPHA_V,
                         kw.ALPHA_VSS, kw.ALPHA_W, kw.BEHAVIOR_COST, kw.U, kw.RESPONSE_REQUIREMENTS, kw.PHASES)
 
     def scalar_expand(self):
@@ -767,10 +766,6 @@ class Parameters():
         self._scalar_expand_element_behavior(kw.START_V, stimulus_elements, behaviors,
                                              expected_sb_keys)
 
-        # Check START_Y
-        self._scalar_expand_element_behavior(kw.START_Y, stimulus_elements, behaviors,
-                                             expected_sb_keys)
-
         # Check ALPHA_V
         self._scalar_expand_element_behavior(kw.ALPHA_V, stimulus_elements, behaviors,
                                              expected_sb_keys)
@@ -792,9 +787,6 @@ class Parameters():
 
         # Check START_W
         self._scalar_expand_element(kw.START_W, stimulus_elements, expected_s_keys)
-
-        # Check START_X
-        self._scalar_expand_element(kw.START_X, stimulus_elements, expected_s_keys)
 
         # Check ALPHA_W
         self._scalar_expand_element(kw.ALPHA_W, stimulus_elements, expected_s_keys)
