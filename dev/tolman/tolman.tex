@@ -1,4 +1,4 @@
-% Created 2020-12-07 Mon 12:51
+% Created 2020-12-07 Mon 14:27
 % Intended LaTeX compiler: pdflatex
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
@@ -25,7 +25,7 @@
 \maketitle
 
 \section{Rationale}
-\label{sec:org0d8da31}
+\label{sec:orgd4d25c2}
 
 \begin{itemize}
 \item The Tolman mechanism implements a learning mechanism that formalizes
@@ -40,7 +40,7 @@ that ``restart'' after the goal is obtained.
 \end{itemize}
 
 \section{Variables}
-\label{sec:org07d817a}
+\label{sec:org1b3a1dd}
 
 \begin{itemize}
 \item The Tolman mechanism learns \(S\to B\to S'\) transition
@@ -50,7 +50,7 @@ probabilities.
 \end{itemize}
 
 \section{Learning}
-\label{sec:orge3433ed}
+\label{sec:org45913e8}
 
 \begin{itemize}
 \item There is a single learning rate, \(\alpha_z\).
@@ -100,8 +100,55 @@ where \(\lambda=1\) if \(X\in S'\) and \(\lambda=0\) otherwise.
 \end{equation}
 \end{itemize}
 
+\subsection{Trial implementation \textit{<2020-12-07 Mon>}}
+\label{sec:org81cc5f6}
+
+\begin{itemize}
+\item The equations above have been implemented in the \texttt{github} branch
+\texttt{tolman-mechanism}
+
+\item I have made a super simple test where there is only behavior \(B\) and
+two stimuli \(S_1\) and \(S_2\)), and the only thing that happens is the
+sequence:
+\begin{equation}
+  \label{eq:simple-test}
+  \cdots \to S_1 \to B \to S_2 \to B \to S_1 \to \cdots
+\end{equation}
+
+\item In this case, the Tolman mechanism should learn:
+\begin{align}
+  \label{eq:simple-test-z}
+  z(S_1,B,S_2) &= 1\\
+  z(S_1,B,S_1) &= 0\\
+  z(S_2,B,S_1) &= 1\\
+  z(S_2,B,S_2) &= 0
+\end{align}
+
+\item Printing this values throughout the simulation shows that they are
+in fact learned, but the graphs do not come out well. I think this
+is because the current plotting code only updates the plot for
+stimulus elements that are actually presented, but the Tolman
+mechanism also updates \(z(S,B,S')\) for \(S'\) elements that are not
+present. For example, this is a graph I get:
+\end{itemize}
+\begin{center}
+\includegraphics[width=.5\textwidth]{./first-try.pdf}
+\end{center}
+
+\begin{itemize}
+\item The initial values of all \(z\) is 0.1 for testing purposes. The blue
+line goes to 1 as it should. The orange is plotted at the initial
+0.1 throughout the simulation, but for the last point, which is the
+correct value of 0. As I mentioned above, however, if I print the
+values during learning I do see that they are decreasing toward 0
+all the time.
+
+\item (Element intensities and multiple elements are implemented but not
+tested yet.)
+\end{itemize}
+
 \section{Responding}
-\label{sec:org6dbfce8}
+\label{sec:orgf30a6be}
 
 \begin{itemize}
 \item Responding assumes that the world model in \(z\) is true.

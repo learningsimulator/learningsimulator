@@ -4,6 +4,8 @@ from random import seed, random
 import keywords as kw
 from util import dict_inv, ParseUtil
 
+import math
+
 seed()
 
 
@@ -473,53 +475,129 @@ class OriginalRescorlaWagner(Mechanism):
 class TolmanMechanism(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
-
+        self.seen_stimuli = list()
+        
     def subject_reset(self):
         super().subject_reset()
         self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
+        
+    def learn_and_respond(self, stimulus, omit=False):        
 
+        print( "seen stimuli:", self.seen_stimuli )
+        print( "stimulus:", stimulus )
+        if stimulus not in self.seen_stimuli:
+            print( "new stimulus", stimulus )
+            self.seen_stimuli.append( stimulus )
+        print( "seen stimuli:", self.seen_stimuli )
+
+        u = self.parameters.get(kw.U)
+        behaviors = self.parameters.get(kw.BEHAVIORS)
+        behavior_cost = self.parameters.get(kw.BEHAVIOR_COST)
+
+        # find highest valued stimulus
+        # XXX finds only one even if there are more
+        usums = list()
+        for s in self.seen_stimuli:
+            usums.append( sum( u[e] for e in s.keys() ) )
+        goal = self.seen_stimuli[ usums.index( max(usums) ) ]
+
+        # if we're already there, choose a random behavior
+        if stimulus == goal:
+            self.v = dict(self.parameters.get(kw.START_V))
+            return super().learn_and_respond( stimulus, omit )
+
+        # build transition graph between experienced stimuli.
+        # transition probabilities are transformed into "distances" to
+        # later apply Dijkstra's algorithm
+        graph = list()
+        for b in behaviors:
+            for s1 in self.seen_stimuli:
+                for s2 in self.seen_stimuli:
+                    zsum = 0
+                    for e1 in s1.keys():
+                        for e2 in s2.keys():
+                            zsum += self.z.get( (e1,b,e2), 0 )
+                    print( s1, b, s2, zsum )
+                    if zsum>0:
+                        zsum = min( zsum, 1 ) # XXX overprediction
+                        graph.append( [ s1,b,s2,math.log1p(zsum) ] )
+                        
+        print( "graph:", graph )
+        
+        # use Dijkstra's algorithm to find the shortest path from stimulus to goal
+        unvisited = self.seen_stimuli
+        distances = dict.fromkeys( [frozenset(s) for s in self.seen_stimuli], math.inf )
+        current = stimulus
+        distances[ frozenset(current) ] = 0
+        while len(unvisited):
+            # print( "current:", current )
+            # print( "unvisited:", unvisited )
+            # print( "distances:", distances )
+            # consider neighbors of current node
+            for x in graph:
+                if x[0]==current and x[2] in unvisited:
+                    # print( "looking at", x[0], x[2] )
+                    # print( "testing", x[3], "<", distances[ frozenset(x[2]) ] )
+                    if x[3] < distances[ frozenset(x[2]) ]:
+                        # print( "got it" )
+                        distances[ frozenset(x[2]) ] = x[3]
+            unvisited.remove( current )
+            # print( "unvisited:", unvisited )
+            if goal not in unvisited:
+                break
+            ## set closest node as current 
+            mindist = math.inf
+            for s in unvisited:
+                if distances[ frozenset(s) ] < mindist:
+                    mindist = distances[ frozenset(s) ]
+                    current = s
+            if mindist == math.inf:
+                break
+            
+        print( "distances:", distances )
+        
+        # STEP 4: use super() method
+        return super().learn_and_respond(stimulus, omit)
+
+    
     def learn(self, stimulus):
-        # xyz_e = self.parameters.get(kw.XYZ_E)
-        # xyz_b = self.parameters.get(kw.XYZ_B)
-        # xyz_eb = self.parameters.get(kw.XYZ_EB)
-
         # shortcuts:
         alpha_z = self.parameters.get(kw.ALPHA_Z)
         b = self.response
 
-        print( "-" * 20 )
-        print( "stimulus is", stimulus )
-        print( "prev_stimulus is", self.prev_stimulus )
+        # print( "-" * 20 )
+        # print( "stimulus is", stimulus )
+        # print( "prev_stimulus is", self.prev_stimulus )
         
         # loop over *all* stimulus elements updating their prediction
         # based on elements in the previous stimulus: 
         for e2 in self.parameters.get(kw.STIMULUS_ELEMENTS):
-            print( "-" * 5 )
-            print( "updating", e2 )
+            # print( "-" * 5 )
+            # print( "updating", e2 )
             ## the correct z is 1 if e2 is present, 0 otherwise:
             if e2 in stimulus.keys(): zcorrect = 1
             else:                     zcorrect = 0
-            print( "correct z for", e2, "is", zcorrect )
+            # print( "correct z for", e2, "is", zcorrect )
             ## set intensity of e2 for learning rate purposes, which
             ## means i2=1 if e2 is absent:
             if e2 in stimulus.keys(): i2 = stimulus[ e2 ]
             else:                     i2 = 1
-            print( "intensity of", e2, "is", i2 )
+            # print( "intensity of", e2, "is", i2 )
             ## calculate prediction for this element
             zsum = 0
             for e1, i1 in self.prev_stimulus.items():
                 zsum += self.z[ (e1,b,e2) ] * i1
-            print( "prediction is z(", e1, b, e2, ") = ", zsum )
+            # print( "prediction is z(", e1, b, e2, ") = ", zsum )
             ## now we can update the prediction of e2 for all elements
             ## in prev_stimulus:
             for e1, i1 in self.prev_stimulus.items():
-                print( "updating z(", e1, b, e2, ") from", self.z[ (e1,b,e2) ] )
+                # print( "updating z(", e1, b, e2, ") from", self.z[ (e1,b,e2) ] )
                 self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
-                print( "to", self.z[ (e1,b,e2) ] )
+                # print( "to", self.z[ (e1,b,e2) ] )
 
                 
     def has_v(self):
-        return False
+        return True
 
     def has_w(self):
         return False

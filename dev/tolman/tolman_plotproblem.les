@@ -2,16 +2,17 @@ n_subjects        = 1
 mechanism         = tolman
 behaviors         = b
 stimulus_elements = s1, s2
-alpha_z = 0.01
-start_z = .5
+alpha_z = 0.1
+start_z = .1
+u = s2:1, default:0
 
-@PHASE training stop: s1==500
+@PHASE training stop: s1==50
 S1 s1   | S2
 S2 s2   | S1
 
 @run training
 
-xscale: all
+xscale: s1
 @figure
 @zplot s1->b->s2
 @zplot s1->b->s1

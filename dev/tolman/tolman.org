@@ -80,12 +80,61 @@
   \end{equation}
   #+end_export
 
+** Trial implementation <2020-12-07 Mon>
+
+- The equations above have been implemented in the ~github~ branch
+  ~tolman-mechanism~
+
+- I have made a super simple test where there is only behavior $B$ and
+  two stimuli $S_1$ and $S_2$), and the only thing that happens is the
+  sequence:
+  #+begin_export latex
+  \begin{equation}
+    \label{eq:simple-test}
+    \cdots \to S_1 \to B \to S_2 \to B \to S_1 \to \cdots
+  \end{equation}
+  #+end_export
+
+- In this case, the Tolman mechanism should learn:
+  #+begin_export latex
+  \begin{align}
+    \label{eq:simple-test-z}
+    z(S_1,B,S_2) &= 1\\
+    z(S_1,B,S_1) &= 0\\
+    z(S_2,B,S_1) &= 1\\
+    z(S_2,B,S_2) &= 0
+  \end{align}
+  #+end_export
+
+- Printing this values throughout the simulation shows that they are
+  in fact learned, but the graphs do not come out well. I think this
+  is because the current plotting code only updates the plot for
+  stimulus elements that are actually presented, but the Tolman
+  mechanism also updates $z(S,B,S')$ for $S'$ elements that are not
+  present. For example, this is a graph I get:
+#+attr_latex: :width .5\textwidth :float nil
+[[./first-try.pdf]]
+
+- The initial values of all $z$ is 0.1 for testing purposes. The blue
+  line goes to 1 as it should. The orange is plotted at the initial
+  0.1 throughout the simulation, but for the last point, which is the
+  correct value of 0. As I mentioned above, however, if I print the
+  values during learning I do see that they are decreasing toward 0
+  all the time.
+
+- (Element intensities and multiple elements are implemented but not
+  tested yet.)
+
 * Responding
 
 - Responding assumes that the world model in $z$ is true.
 
 - Responding should then make the "best plan" given this
   knowledge.
+
+- What we need to decide is actually the first step of the plan. We do
+  this assigning a $v$ value to each behavior so that we can keep the
+  same decision-making mechanimsm.
 
 - Evaluating all possible plans is tricky in general. Let's work with
   a particular kind of world to begin with:
