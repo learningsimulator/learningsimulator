@@ -1,5 +1,5 @@
 from math import exp
-from random import seed, random
+from random import seed, random, choice
 
 import keywords as kw
 from util import dict_inv, ParseUtil
@@ -480,35 +480,39 @@ class TolmanMechanism(Mechanism):
     def subject_reset(self):
         super().subject_reset()
         self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
+        self.seen_stimuli = list()
         
     def learn_and_respond(self, stimulus, omit=False):        
 
-        print( "seen stimuli:", self.seen_stimuli )
-        print( "stimulus:", stimulus )
-        if stimulus not in self.seen_stimuli:
-            print( "new stimulus", stimulus )
-            self.seen_stimuli.append( stimulus )
-        print( "seen stimuli:", self.seen_stimuli )
+        if self.prev_stimulus and self.response and not omit:
+            self.learn(stimulus)
 
+        # print( "-"*20, "\nsti:", stimulus )
+
+        if stimulus not in self.seen_stimuli:
+            self.seen_stimuli.append( stimulus )
+
+        # shortcuts
         u = self.parameters.get(kw.U)
         behaviors = self.parameters.get(kw.BEHAVIORS)
-        behavior_cost = self.parameters.get(kw.BEHAVIOR_COST)
 
-        # find highest valued stimulus
-        # XXX finds only one even if there are more
+        # goal = highest valued stimulus in seen_stimuli
+        # (XXX finds only one even if there are more)
         usums = list()
         for s in self.seen_stimuli:
             usums.append( sum( u[e] for e in s.keys() ) )
         goal = self.seen_stimuli[ usums.index( max(usums) ) ]
 
-        # if we're already there, choose a random behavior
         if stimulus == goal:
-            self.v = dict(self.parameters.get(kw.START_V))
-            return super().learn_and_respond( stimulus, omit )
-
-        # build transition graph between experienced stimuli.
-        # transition probabilities are transformed into "distances" to
-        # later apply Dijkstra's algorithm
+            self.response = self._get_response(stimulus)
+            self.prev_stimulus = dict(stimulus)  # dict ok?
+            return self.response
+        
+        # build transition graph between seen_stimuli. probabilities
+        # are transformed into distances for Dijkstra's algorithm:
+        # dist = -log( prob ). the graph is just a list of
+        # connections, which requires some looping later on when we
+        # need to find a specific connection
         graph = list()
         for b in behaviors:
             for s1 in self.seen_stimuli:
@@ -517,47 +521,69 @@ class TolmanMechanism(Mechanism):
                     for e1 in s1.keys():
                         for e2 in s2.keys():
                             zsum += self.z.get( (e1,b,e2), 0 )
-                    print( s1, b, s2, zsum )
-                    if zsum>0:
-                        zsum = min( zsum, 1 ) # XXX overprediction
-                        graph.append( [ s1,b,s2,math.log1p(zsum) ] )
+                    zsum = min( zsum, 1 ) # XXX overprediction
+                    if zsum>0: # possible transition: add
+                        graph.append({ 'from':s1,'to':s2,'with':b,'prob':zsum })
                         
-        print( "graph:", graph )
+        # print( "graph:", graph )
         
-        # use Dijkstra's algorithm to find the shortest path from stimulus to goal
-        unvisited = self.seen_stimuli
-        distances = dict.fromkeys( [frozenset(s) for s in self.seen_stimuli], math.inf )
-        current = stimulus
-        distances[ frozenset(current) ] = 0
-        while len(unvisited):
-            # print( "current:", current )
-            # print( "unvisited:", unvisited )
-            # print( "distances:", distances )
-            # consider neighbors of current node
-            for x in graph:
-                if x[0]==current and x[2] in unvisited:
-                    # print( "looking at", x[0], x[2] )
-                    # print( "testing", x[3], "<", distances[ frozenset(x[2]) ] )
-                    if x[3] < distances[ frozenset(x[2]) ]:
-                        # print( "got it" )
-                        distances[ frozenset(x[2]) ] = x[3]
-            unvisited.remove( current )
-            # print( "unvisited:", unvisited )
-            if goal not in unvisited:
+        # use Dijkstra's algorithm to find a shortest path from
+        # stimulus to goal, if one exists
+
+        # data setup:
+        # unvisited nodes:
+        unv = self.seen_stimuli.copy()
+        # dis[s] = distance between node and goal: 
+        dis = dict.fromkeys( [frozenset(s) for s in unv], math.inf )
+        # act[s] = response to s to follow shortest path  
+        act = dict.fromkeys( [frozenset(s) for s in unv], None )
+        # start from current stimulus:
+        cur = stimulus
+        dis[ frozenset(cur) ] = 0
+
+        # algorithm loops while there are unvisited nodes:
+        while len(unv):
+            # loop over all connections in graph:
+            for con in graph: 
+                # con must lead from cur to an unv node:
+                if con['from'] != cur or con['to'] not in unv:
+                    continue
+                # new estimate for distance:
+                guess = -math.log( con['prob'] ) + dis[ frozenset(cur) ]
+                # update if better than existing estimate:
+                k = frozenset(con['to'])
+                if guess < dis[k]:
+                    dis[k] = guess
+                    act[k] = con['with']
+                    # print( "update:", con )
+            unv.remove( cur )
+            # stop if path found:
+            if goal not in unv: 
                 break
-            ## set closest node as current 
-            mindist = math.inf
-            for s in unvisited:
-                if distances[ frozenset(s) ] < mindist:
-                    mindist = distances[ frozenset(s) ]
-                    current = s
-            if mindist == math.inf:
+            ## set closest (estimated) unv node as cur: 
+            mindis = math.inf
+            for u in unv:
+                if dis[frozenset(u)] < mindis:
+                    mindis = dis[frozenset(u)]
+                    cur = u
+            if mindis == math.inf: # no path
                 break
-            
-        print( "distances:", distances )
+
+        # print( "dis:", dis )
+        # print( "act:", act )
+
+        # we don't want to pick the current stimulus:
+        del dis[frozenset(stimulus)]
         
-        # STEP 4: use super() method
-        return super().learn_and_respond(stimulus, omit)
+        self.response = act[ min(dis, key=dis.get) ]
+        if self.response == None: # no path to goal
+            # print( "res: None" )
+            self.response = self._get_response(stimulus)
+
+        # print( "res:", self.response )
+        
+        self.prev_stimulus = dict(stimulus)
+        return self.response
 
     
     def learn(self, stimulus):
@@ -565,35 +591,24 @@ class TolmanMechanism(Mechanism):
         alpha_z = self.parameters.get(kw.ALPHA_Z)
         b = self.response
 
-        # print( "-" * 20 )
-        # print( "stimulus is", stimulus )
-        # print( "prev_stimulus is", self.prev_stimulus )
-        
-        # loop over *all* stimulus elements updating their prediction
-        # based on elements in the previous stimulus: 
+        # loop over all stimulus elements to update their prediction
+        # based on elements in pre_stimulus:
         for e2 in self.parameters.get(kw.STIMULUS_ELEMENTS):
-            # print( "-" * 5 )
-            # print( "updating", e2 )
-            ## the correct z is 1 if e2 is present, 0 otherwise:
+            # the correct z is 1 if e2 is present, 0 otherwise:
             if e2 in stimulus.keys(): zcorrect = 1
             else:                     zcorrect = 0
-            # print( "correct z for", e2, "is", zcorrect )
-            ## set intensity of e2 for learning rate purposes, which
-            ## means i2=1 if e2 is absent:
+            # set intensity of e2 for learning rate purposes, which
+            # means i2=1 if e2 is absent:
             if e2 in stimulus.keys(): i2 = stimulus[ e2 ]
             else:                     i2 = 1
-            # print( "intensity of", e2, "is", i2 )
-            ## calculate prediction for this element
+            # calculate prediction for this element
             zsum = 0
             for e1, i1 in self.prev_stimulus.items():
                 zsum += self.z[ (e1,b,e2) ] * i1
-            # print( "prediction is z(", e1, b, e2, ") = ", zsum )
-            ## now we can update the prediction of e2 for all elements
-            ## in prev_stimulus:
+            # now we can update the prediction of e2 for all elements
+            # in prev_stimulus:
             for e1, i1 in self.prev_stimulus.items():
-                # print( "updating z(", e1, b, e2, ") from", self.z[ (e1,b,e2) ] )
                 self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
-                # print( "to", self.z[ (e1,b,e2) ] )
 
                 
     def has_v(self):

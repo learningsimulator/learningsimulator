@@ -1,24 +1,25 @@
 n_subjects        = 1
 mechanism         = tolman
-behaviors         = b
-stimulus_elements = s1, s2, s3, s4
-alpha_z = 1
+behaviors         = b1, b2, b3, b4, b5, b6, b7, b8, b9, b10
+stimulus_elements = s1, r
+alpha_z = .1
 start_z = 0
-u = s4:1, default:0
+u = r:1, default:0
 
-@PHASE training stop: s1==100
-S1 s1   | S2
-S2 s2   | S3
-S3 s3   | S4
-S4 s4   | S1
+@PHASE training stop: S1==100
+S1 s1 | b1:R(.9) | b2:R(.5) | S1
+R  r  | S1
 
 @run training
 
-xscale: s1
+xscale=s1
 @figure
-@zplot s1->b->s2
-@zplot s2->b->s3
-@zplot s3->b->s4
+@subplot 211
+@zplot s1->b1->r
+@zplot s1->b2->r
 @legend
-
-@hexport hexport.txt
+@subplot 212
+@nplot r
+@nplot s1->b1
+@nplot s1->b2
+@legend
