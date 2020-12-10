@@ -472,7 +472,54 @@ class OriginalRescorlaWagner(Mechanism):
         return False
 
 
-class TolmanMechanism(Mechanism):
+class MapLearner(Mechanism):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.seen_stimuli = list()
+        
+    def subject_reset(self):
+        super().subject_reset()
+        self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
+        self.seen_stimuli = list()
+    
+    def learn(self, stimulus):
+        # shortcuts:
+        alpha_z = self.parameters.get(kw.ALPHA_Z)
+        b = self.response
+
+        # loop over all stimulus elements to update their prediction
+        # based on elements in pre_stimulus:
+        for e2 in self.parameters.get(kw.STIMULUS_ELEMENTS):
+            # the correct z is 1 if e2 is present, 0 otherwise:
+            if e2 in stimulus.keys(): zcorrect = 1
+            else:                     zcorrect = 0
+            # set intensity of e2 for learning rate purposes, which
+            # means i2=1 if e2 is absent:
+            if e2 in stimulus.keys(): i2 = stimulus[ e2 ]
+            else:                     i2 = 1
+            # calculate prediction for this element
+            zsum = 0
+            for e1, i1 in self.prev_stimulus.items():
+                zsum += self.z[ (e1,b,e2) ] * i1
+            # now we can update the prediction of e2 for all elements
+            # in prev_stimulus:
+            for e1, i1 in self.prev_stimulus.items():
+                self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
+
+    def has_v(self):
+        return True
+
+    def has_w(self):
+        return False
+
+    def has_vss(self):
+        return False
+
+    def has_z(self):
+        return True
+
+
+class TolmanMechanism(MapLearner):
     def __init__(self, parameters):
         super().__init__(parameters)
         self.seen_stimuli = list()
@@ -535,6 +582,8 @@ class TolmanMechanism(Mechanism):
         unv = self.seen_stimuli.copy()
         # dis[s] = distance between node and goal: 
         dis = dict.fromkeys( [frozenset(s) for s in unv], math.inf )
+        # previous node on the shortest path
+        pre = dict.fromkeys( [frozenset(s) for s in unv], None )
         # act[s] = response to s to follow shortest path  
         act = dict.fromkeys( [frozenset(s) for s in unv], None )
         # start from current stimulus:
@@ -555,7 +604,7 @@ class TolmanMechanism(Mechanism):
                 if guess < dis[k]:
                     dis[k] = guess
                     act[k] = con['with']
-                    # print( "update:", con )
+                    pre[k] = con['from']
             unv.remove( cur )
             # stop if path found:
             if goal not in unv: 
@@ -569,57 +618,37 @@ class TolmanMechanism(Mechanism):
             if mindis == math.inf: # no path
                 break
 
+        if goal not in unv: # found path to goal
+            shortest_path = list()
+            x = frozenset(goal)
+            while x is not None:
+                shortest_path.insert( 0, x )
+                x = pre[ frozenset(x) ]
+            best_response = act[ frozenset(shortest_path[1]) ]
+        else:
+            best_response = None
+        
+        # to choose a response, we still use softmax, with the value
+        # of the goal as the v for self.response. the value is spread
+        # equally across elements of 'stimulus'
+        ugoal = max(usums)
+        n = len( stimulus.keys() )
+        for e in stimulus.keys():
+            for b in behaviors:
+                self.v[ (e,b) ] = 0 
+            if best_response != None: # path to goal found
+                self.v[ (e,best_response) ] = ugoal / n
+
+        self.response = self._get_response(stimulus)
+        self.prev_stimulus = dict(stimulus)
+
+        # print( "sti:", stimulus )
+        # print( "bes:", best_response )
+        # print( "res:", self.response )
         # print( "dis:", dis )
         # print( "act:", act )
-
-        # we don't want to pick the current stimulus:
-        del dis[frozenset(stimulus)]
         
-        self.response = act[ min(dis, key=dis.get) ]
-        if self.response == None: # no path to goal
-            # print( "res: None" )
-            self.response = self._get_response(stimulus)
-
-        # print( "res:", self.response )
-        
-        self.prev_stimulus = dict(stimulus)
         return self.response
 
     
-    def learn(self, stimulus):
-        # shortcuts:
-        alpha_z = self.parameters.get(kw.ALPHA_Z)
-        b = self.response
-
-        # loop over all stimulus elements to update their prediction
-        # based on elements in pre_stimulus:
-        for e2 in self.parameters.get(kw.STIMULUS_ELEMENTS):
-            # the correct z is 1 if e2 is present, 0 otherwise:
-            if e2 in stimulus.keys(): zcorrect = 1
-            else:                     zcorrect = 0
-            # set intensity of e2 for learning rate purposes, which
-            # means i2=1 if e2 is absent:
-            if e2 in stimulus.keys(): i2 = stimulus[ e2 ]
-            else:                     i2 = 1
-            # calculate prediction for this element
-            zsum = 0
-            for e1, i1 in self.prev_stimulus.items():
-                zsum += self.z[ (e1,b,e2) ] * i1
-            # now we can update the prediction of e2 for all elements
-            # in prev_stimulus:
-            for e1, i1 in self.prev_stimulus.items():
-                self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
-
-                
-    def has_v(self):
-        return True
-
-    def has_w(self):
-        return False
-
-    def has_vss(self):
-        return False
-
-    def has_z(self):
-        return True
 

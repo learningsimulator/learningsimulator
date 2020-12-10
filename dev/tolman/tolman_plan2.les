@@ -1,0 +1,59 @@
+n_subjects        = 1
+mechanism         = tolman
+behaviors         = b1, b2, b3, b4, b5, b6, b7, b8, b9, b10
+stimulus_elements = s1, s2, s3, r
+alpha_z = .1
+alpha_v = .1
+alpha_w = .1
+start_z = 0
+start_v = 0
+start_w = 0
+beta = 1
+u = r:5, default:0
+
+@variables p=.5
+
+@phase training1 stop: S1==200
+S1 s1 | b1:S2(p) | S1
+S2 s2 | b2:S3(p) | S2
+S3 s3 | b3:R(p)  | S3
+R  r  | S1
+
+@phase training2 stop: S1==200
+S1 s1 | b1:S2(p) | S1
+S2 s2 | b2:S3(p) | S2
+S3 s3 | b1:R(p)  | S3
+R  r  | S1
+
+@run training1, training2 runlabel:tolman
+
+@hexport tolman.csv
+
+mechanism = ga
+@run training1, training2 runlabel:alearning
+
+subject=average
+xscale=s1
+@figure
+@subplot 211 - {'xlabel':'Attempt'}
+runlabel=tolman
+@nplot r {'label':'Thinking', 'linewidth':4}
+runlabel=alearning
+@nplot r {'label':'Chaining', 'linewidth':4}
+@legend
+# @subplot 212
+# runlabel=tolman
+# @pplot s1->b1 {'label':'1 Thinking'}
+# @pplot s2->b2 {'label':'2 Thinking'}
+# @pplot s3->b3 {'label':'3 Thinking'}
+# runlabel=alearning
+# @pplot s1->b1 {'label':'1 Chaining'}
+# @pplot s2->b2 {'label':'2 Chaining'}
+# @pplot s3->b3 {'label':'3 Chaining'}
+# @legend
+@subplot 212
+runlabel=tolman
+@zplot s1->b1->s2
+@zplot s2->b2->s3
+@zplot s3->b3->r
+@legend
