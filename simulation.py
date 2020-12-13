@@ -163,8 +163,10 @@ class Run():
                             for behavior in behaviors:
                                 out.write_y(subject_ind, prev_stimulus, prev_response, step, self.mechanism_obj)
                         if self.has_z:
-                            for element2 in stimulus_elements:
-                                out.write_z(subject_ind, prev_stimulus, prev_response, stimulus, step, self.mechanism_obj)
+                            # Loop over *all* S->B->*
+                            for e in stimulus_elements:
+                                out.write_z(subject_ind, prev_stimulus, prev_response, {e: 1}, step,
+                                            self.mechanism_obj)
 
                         out.write_history(subject_ind, prev_stimulus, prev_response)
                         phase_step = step
