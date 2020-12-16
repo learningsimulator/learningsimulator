@@ -485,6 +485,7 @@ class MapLearner(Mechanism):
     def learn(self, stimulus):
         # shortcuts:
         alpha_z = self.parameters.get(kw.ALPHA_Z)
+        print( "alpha_z:", alpha_z )
         b = self.response
 
         # loop over all stimulus elements to update their prediction
@@ -504,8 +505,8 @@ class MapLearner(Mechanism):
             # now we can update the prediction of e2 for all elements
             # in prev_stimulus:
             for e1, i1 in self.prev_stimulus.items():
-                self.z[ (e1,b,e2) ] += alpha_z * ( zcorrect - zsum ) * i1 * i2
-
+                self.z[ (e1,b,e2) ] += alpha_z[ (e1,b,e2) ] * ( zcorrect - zsum ) * i1 * i2
+        
     def has_v(self):
         return True
 
@@ -520,40 +521,43 @@ class MapLearner(Mechanism):
 
 
 class TolmanMechanism(MapLearner):
-    def __init__(self, parameters):
-        super().__init__(parameters)
-        self.seen_stimuli = list()
-        
-    def subject_reset(self):
-        super().subject_reset()
-        self.z = dict(self.parameters.get(kw.START_Z))  # Indexed by element-behavior-element triples
-        self.seen_stimuli = list()
         
     def learn_and_respond(self, stimulus, omit=False):        
 
+        #print( "stimulus is", stimulus )
+        
+        # learn if we are told to and have enough experience:
         if self.prev_stimulus and self.response and not omit:
             self.learn(stimulus)
 
-        # print( "-"*20, "\nsti:", stimulus )
-
+        # possibly add stimulus to seen_stimuli:
         if stimulus not in self.seen_stimuli:
             self.seen_stimuli.append( stimulus )
-
+            
+        # reset v values
+        self.v = self.parameters.get(kw.START_V)
+            
         # shortcuts
         u = self.parameters.get(kw.U)
         behaviors = self.parameters.get(kw.BEHAVIORS)
+        behavior_cost = self.parameters.get(kw.BEHAVIOR_COST)
 
-        # goal = highest valued stimulus in seen_stimuli
+        # set goal to highest valued stimulus in seen_stimuli
         # (XXX finds only one even if there are more)
         usums = list()
         for s in self.seen_stimuli:
             usums.append( sum( u[e] for e in s.keys() ) )
-        goal = self.seen_stimuli[ usums.index( max(usums) ) ]
+        goal = format( self.seen_stimuli[ usums.index( max(usums) ) ] )
 
-        if stimulus == goal:
+        # if we are already at goal or no goal is found, return random
+        # behavior
+        if format(stimulus) == goal or max(usums)==0:
+            #print( "stimulus:", stimulus, "max usums:", max(usums) ) 
             self.response = self._get_response(stimulus)
             self.prev_stimulus = dict(stimulus)  # dict ok?
             return self.response
+
+        #print( "setting goal to", goal )
         
         # build transition graph between seen_stimuli. probabilities
         # are transformed into distances for Dijkstra's algorithm:
@@ -570,25 +574,27 @@ class TolmanMechanism(MapLearner):
                             zsum += self.z.get( (e1,b,e2), 0 )
                     zsum = min( zsum, 1 ) # XXX overprediction
                     if zsum>0: # possible transition: add
-                        graph.append({ 'from':s1,'to':s2,'with':b,'prob':zsum })
+                        graph.append({ 'from':format(s1),'to':format(s2),'with':b,'prob':zsum })
                         
-        # print( "graph:", graph )
+        #print( "graph:", graph )
         
         # use Dijkstra's algorithm to find a shortest path from
         # stimulus to goal, if one exists
 
         # data setup:
-        # unvisited nodes:
-        unv = self.seen_stimuli.copy()
+
+        # string representation of unvisited nodes, used both for
+        # accounting and for indexing:
+        unv = [format(s) for s in self.seen_stimuli]
         # dis[s] = distance between node and goal: 
-        dis = dict.fromkeys( [frozenset(s) for s in unv], math.inf )
+        dis = dict.fromkeys( unv, math.inf )
         # previous node on the shortest path
-        pre = dict.fromkeys( [frozenset(s) for s in unv], None )
+        pre = dict.fromkeys( unv, None )
         # act[s] = response to s to follow shortest path  
-        act = dict.fromkeys( [frozenset(s) for s in unv], None )
+        act = dict.fromkeys( unv, None )
         # start from current stimulus:
-        cur = stimulus
-        dis[ frozenset(cur) ] = 0
+        cur = format(stimulus)
+        dis[ cur ] = 0
 
         # algorithm loops while there are unvisited nodes:
         while len(unv):
@@ -598,9 +604,9 @@ class TolmanMechanism(MapLearner):
                 if con['from'] != cur or con['to'] not in unv:
                     continue
                 # new estimate for distance:
-                guess = -math.log( con['prob'] ) + dis[ frozenset(cur) ]
+                guess = -math.log( con['prob'] ) + dis[cur]
                 # update if better than existing estimate:
-                k = frozenset(con['to'])
+                k = con['to']
                 if guess < dis[k]:
                     dis[k] = guess
                     act[k] = con['with']
@@ -612,35 +618,54 @@ class TolmanMechanism(MapLearner):
             ## set closest (estimated) unv node as cur: 
             mindis = math.inf
             for u in unv:
-                if dis[frozenset(u)] < mindis:
-                    mindis = dis[frozenset(u)]
+                if dis[format(u)] < mindis:
+                    mindis = dis[format(u)]
                     cur = u
             if mindis == math.inf: # no path
                 break
 
-        if goal not in unv: # found path to goal
-            shortest_path = list()
-            x = frozenset(goal)
-            while x is not None:
-                shortest_path.insert( 0, x )
-                x = pre[ frozenset(x) ]
-            best_response = act[ frozenset(shortest_path[1]) ]
-        else:
-            best_response = None
+        # if no path to the goal is found, return random behavior
+        if goal in unv:
+            #print( "no path to goal" )
+            self.response = self._get_response(stimulus)
+            self.prev_stimulus = dict(stimulus)  # dict ok?
+            return self.response
+
+        #print( "dis:", dis )
+        #print( "act:", act )
+        #print( "pre:", pre )
+        
+        # build shortest path to goal
+        shortest_path = list()
+        response_path = list()
+        distance_path = list()
+        x = goal
+        #print( "building path" )
+        while x != format(stimulus):
+            #print( "x:", x )
+            shortest_path.insert( 0, x )
+            response_path.insert( 0, act[x] )
+            distance_path.insert( 0, dis[x] )
+            x = pre[x]
+            #print( "shortest path:", shortest_path )
+            #print( "response path:", response_path )
+            #print( "distance path:", distance_path )
+        
+        ## path value = ( goal value - cost ) * success prob
+        path = { 'value':0, 'cost':0, 'prob':0 }
+        path['cost'] = sum( [behavior_cost[b] for b in response_path] )
+        path['prob'] = exp( - sum( distance_path ) )
+        path['value'] = ( max(usums) - path['cost'] ) * path['prob']
         
         # to choose a response, we still use softmax, with the value
         # of the goal as the v for self.response. the value is spread
         # equally across elements of 'stimulus'
-        ugoal = max(usums)
         n = len( stimulus.keys() )
         for e in stimulus.keys():
-            for b in behaviors:
-                self.v[ (e,b) ] = 0 
-            if best_response != None: # path to goal found
-                self.v[ (e,best_response) ] = ugoal / n
-
+            self.v[ (e,response_path[0]) ] = path['value'] / n
         self.response = self._get_response(stimulus)
         self.prev_stimulus = dict(stimulus)
+        #print( self.v )
 
         # print( "sti:", stimulus )
         # print( "bes:", best_response )
@@ -650,5 +675,43 @@ class TolmanMechanism(MapLearner):
         
         return self.response
 
-    
 
+class MentalSimulator(MapLearner):
+
+    def learn_and_respond(self, stimulus, omit=False):        
+
+        if self.prev_stimulus and self.response and not omit:
+            self.learn(stimulus)
+
+        if stimulus not in self.seen_stimuli:
+            self.seen_stimuli.append( stimulus )
+
+        # shortcuts
+        u = self.parameters.get(kw.U)
+        behaviors = self.parameters.get(kw.BEHAVIORS)
+        s_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
+
+        # reset v's for responding to current stimulus
+        for e in stimulus.keys():
+            for b in behaviors:
+                self.v[ (e,b) ] = 0 
+            
+        # do a number of simulations and assign v values to behaviors
+        # according to what the simulations find
+        n_simulations = 10
+        n_steps = 10
+        sims = list()
+        current = stimulus
+        for n in range(n_simulations):
+            path = list()
+            for i in range(n_steps):
+                # find out which stimuli can be reached from the current one
+                zsum = dict.fromkeys( behaviors, 0 )
+                b = choice( behaviors )
+                path.append( b )
+                for e1 in current.keys():
+                    for maybe_next in self.seen_stimuli:
+                        for e2 in maybe_next.keys():
+                            zsum[b] += self.z[ (e1,b,e2) ]
+                
+                

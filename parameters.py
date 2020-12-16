@@ -13,7 +13,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.START_VSS: 0,                   # Scalar or list of se->se:val or default:val  ,
       kw.START_Z: 0,                     # Scalar or list of se->b->se:val or default:val ,
       kw.ALPHA_V: 1,                     # -"-                                          ,
-      kw.ALPHA_Z: 0.1,                     # -"-                                          ,
+      kw.ALPHA_Z: 1,                     # -"-                                          ,
       kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
@@ -810,21 +810,25 @@ class Parameters():
                 self.val[kw.BEHAVIOR_COST][behavior] = scalar
 
         # Check START_Z
-        expected_sb_keys = set()
+        expected_sbs_keys = set()
         for stimulus_element1 in stimulus_elements:
             for behavior in behaviors:
                 for stimulus_element2 in stimulus_elements:
                     key = (stimulus_element1, behavior, stimulus_element2)
-                    expected_sb_keys.add(key)
+                    expected_sbs_keys.add(key)
 
         self._scalar_expand_element_behavior_element(kw.START_Z, stimulus_elements, behaviors,
-                                                     expected_sb_keys)
+                                                     expected_sbs_keys)
 
+        # Check ALPHA_Z
+        self._scalar_expand_element_behavior_element(kw.ALPHA_Z, stimulus_elements, behaviors,
+                                                     expected_sbs_keys)
+        
     def _scalar_expand_element_behavior(self, param_name, stimulus_elements, behaviors,
-                                        expected_sb_keys):
+                                        expected_sbs_keys):
         val = self.val[param_name]
         if type(val) is dict:
-            if set(val.keys()) != expected_sb_keys:
+            if set(val.keys()) != expected_sbs_keys:
                 self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
         else:  # scalar expand
             self.val[param_name] = dict()
