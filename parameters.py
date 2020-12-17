@@ -98,7 +98,7 @@ class Parameters():
             return self._parse_stimulus_response_values(prop, v_str, variables,
                                                         to_be_continued, is_appending)
 
-        elif prop in (kw.START_Z):
+        elif prop in (kw.START_Z, kw.ALPHA_Z):
             return self._parse_stimulus_response_stimulus_values(prop, v_str, variables,
                                                                  to_be_continued, is_appending)
 
@@ -823,7 +823,7 @@ class Parameters():
         # Check ALPHA_Z
         self._scalar_expand_element_behavior_element(kw.ALPHA_Z, stimulus_elements, behaviors,
                                                      expected_sbs_keys)
-        
+
     def _scalar_expand_element_behavior(self, param_name, stimulus_elements, behaviors,
                                         expected_sbs_keys):
         val = self.val[param_name]
