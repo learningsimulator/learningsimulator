@@ -485,7 +485,6 @@ class MapLearner(Mechanism):
     def learn(self, stimulus):
         # shortcuts:
         alpha_z = self.parameters.get(kw.ALPHA_Z)
-        print( "alpha_z:", alpha_z )
         b = self.response
 
         # loop over all stimulus elements to update their prediction
@@ -533,9 +532,6 @@ class TolmanMechanism(MapLearner):
         # possibly add stimulus to seen_stimuli:
         if stimulus not in self.seen_stimuli:
             self.seen_stimuli.append( stimulus )
-            
-        # reset v values
-        self.v = self.parameters.get(kw.START_V)
             
         # shortcuts
         u = self.parameters.get(kw.U)
@@ -656,6 +652,7 @@ class TolmanMechanism(MapLearner):
         path['cost'] = sum( [behavior_cost[b] for b in response_path] )
         path['prob'] = exp( - sum( distance_path ) )
         path['value'] = ( max(usums) - path['cost'] ) * path['prob']
+        #print( "path:", path )
         
         # to choose a response, we still use softmax, with the value
         # of the goal as the v for self.response. the value is spread
@@ -674,44 +671,5 @@ class TolmanMechanism(MapLearner):
         # print( "act:", act )
         
         return self.response
-
-
-class MentalSimulator(MapLearner):
-
-    def learn_and_respond(self, stimulus, omit=False):        
-
-        if self.prev_stimulus and self.response and not omit:
-            self.learn(stimulus)
-
-        if stimulus not in self.seen_stimuli:
-            self.seen_stimuli.append( stimulus )
-
-        # shortcuts
-        u = self.parameters.get(kw.U)
-        behaviors = self.parameters.get(kw.BEHAVIORS)
-        s_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
-
-        # reset v's for responding to current stimulus
-        for e in stimulus.keys():
-            for b in behaviors:
-                self.v[ (e,b) ] = 0 
-            
-        # do a number of simulations and assign v values to behaviors
-        # according to what the simulations find
-        n_simulations = 10
-        n_steps = 10
-        sims = list()
-        current = stimulus
-        for n in range(n_simulations):
-            path = list()
-            for i in range(n_steps):
-                # find out which stimuli can be reached from the current one
-                zsum = dict.fromkeys( behaviors, 0 )
-                b = choice( behaviors )
-                path.append( b )
-                for e1 in current.keys():
-                    for maybe_next in self.seen_stimuli:
-                        for e2 in maybe_next.keys():
-                            zsum[b] += self.z[ (e1,b,e2) ]
                 
                 
