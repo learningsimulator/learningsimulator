@@ -1,0 +1,14 @@
+g = {
+    's1': {'b1':'s2'},
+    's1': {'b2':'s1'},
+    's2': {'b1':'s1'},
+    's2': {'b2':'s1'}
+}
+
+for b in g[s1].keys():
+    path.append( b )
+    for s2 in g[s1][b].keys():
+        if s2 == destination:
+            path.append( (b,s2) )
+            continue
+        elese

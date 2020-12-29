@@ -1,0 +1,70 @@
+# algorithm from https://www.baeldung.com/cs/simple-paths-between-two-vertices
+
+# store graph object as adjacency list
+class Graph: 
+
+    def __init__( self ): 
+        # graph is stored as adjacency list: self.graph[x] is a list
+        # of neighbors of x.
+        self.graph = dict()
+        # edge properties 
+        self.props = dict()
+        # the path we are working on: 
+        self.currentPath = list()
+        # all paths found so far:
+        self.simplePaths = list()
+        # whether a node has already been visited:
+        self.visited = dict()
+
+    def addEdge( self, sour, dest, properties=None ): 
+        if not sour in self.graph:
+            self.graph[ sour ] = list()
+        if not dest in self.graph[ sour ]:
+            self.graph[ sour ].append( dest )
+        self.props[ (sour,dest) ] = properties
+        self.visited[ sour ] = False
+        self.visited[ dest ] = False
+
+    def find_paths_internal( self, sour, dest ):
+        if self.visited[ sour ]:
+            return
+
+        self.visited[sour] = True
+        self.currentPath.append( sour )
+        
+        if sour == dest:
+            self.simplePaths.append( self.currentPath.copy() )
+            self.visited[ sour ] = False
+            self.currentPath.pop()
+            return
+
+        for neighbor in self.graph[ sour ]:
+            self.find_paths_internal( neighbor, dest )
+
+        self.currentPath.pop()
+        self.visited[ sour ] = False
+        
+    def find_paths( self, sour, dest ):
+        # all nodes are initially marked unvisited:
+        self.visited = dict.fromkeys( self.visited, False )
+        self.currentPath = []
+        self.simplePaths = []
+        self.find_paths_internal( sour, dest )
+        return self.simplePaths
+        
+# Create a graph given in the above diagram 
+g = Graph() 
+g.addEdge("s0", "s1", {'p':1, 'r':"b1"}) 
+g.addEdge("s0", "s2") 
+g.addEdge("s0", "s3") 
+g.addEdge("s2", "s0") 
+g.addEdge("s2", "s1") 
+g.addEdge("s1", "s3") 
+
+print( g.graph )
+
+s = "s0"
+d = "s3"
+print ("Simple paths:")
+print( g.find_paths(s, d) )
+

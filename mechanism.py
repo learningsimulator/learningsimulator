@@ -6,6 +6,8 @@ from util import dict_inv, ParseUtil
 
 import math
 
+import graph
+
 seed()
 
 
@@ -520,11 +522,39 @@ class MapLearner(Mechanism):
 
 
 class TolmanMechanism(MapLearner):
-        
+
+    # build transition graph between seen_stimuli. the graph is just a
+    # list of connections, which requires some looping later on when
+    # we need to find a specific connection
+    def build_graph( self, z ):
+        g = graph.Graph()
+        u = self.parameters.get(kw.U)
+        c = self.parameters.get(kw.BEHAVIOR_COST)
+        for b in self.parameters.get(kw.BEHAVIORS):
+            for s1 in self.seen_stimuli:
+                for s2 in self.seen_stimuli:
+                    zsum = 0
+                    usum = 0
+                    for e1 in s1.keys():
+                        for e2 in s2.keys():
+                            zsum += z.get( (e1,b,e2), 0 )
+                            usum += u[ e2 ]
+                    zsum = min( zsum, 1 ) # XXX overprediction
+                    if zsum>0: # possible transition: add
+                        g.addEdge(
+                            format(s1),
+                            format(s2),
+                            b,
+                            {
+                                'probability':zsum,
+                                'value':usum,
+                                'cost':c[b]
+                            }
+                        )
+        return g
+                        
     def learn_and_respond(self, stimulus, omit=False):        
 
-        #print( "stimulus is", stimulus )
-        
         # learn if we are told to and have enough experience:
         if self.prev_stimulus and self.response and not omit:
             self.learn(stimulus)
@@ -533,133 +563,39 @@ class TolmanMechanism(MapLearner):
         if stimulus not in self.seen_stimuli:
             self.seen_stimuli.append( stimulus )
             
-        # shortcuts
-        u = self.parameters.get(kw.U)
-        behaviors = self.parameters.get(kw.BEHAVIORS)
-        behavior_cost = self.parameters.get(kw.BEHAVIOR_COST)
+        ## reset v
+        self.v = self.parameters.get(kw.START_V)
 
-        # set goal to highest valued stimulus in seen_stimuli
-        # (XXX finds only one even if there are more)
-        usums = list()
-        for s in self.seen_stimuli:
-            usums.append( sum( u[e] for e in s.keys() ) )
-        goal = format( self.seen_stimuli[ usums.index( max(usums) ) ] )
+        g = self.build_graph( self.z )
+        paths = []
+        for dest in self.seen_stimuli:
+            if dest != stimulus:
+                paths = paths + g.find_simple_paths(
+                    format(stimulus),
+                    format(dest)
+                )
 
-        # if we are already at goal or no goal is found, return random
-        # behavior
-        if format(stimulus) == goal or max(usums)==0:
-            #print( "stimulus:", stimulus, "max usums:", max(usums) ) 
-            self.response = self._get_response(stimulus)
-            self.prev_stimulus = dict(stimulus)  # dict ok?
-            return self.response
+        # calculate path value and first behavior on each path
+        path_values = []
+        responses = []
+        for p in paths:
+            value = g.path_sum_property( p, 'value' )
+            cost = g.path_sum_property( p, 'cost' )
+            prob = g.path_product_property( p, 'probability' )
+            path_values.append( (value - cost)*prob / (len(p)-1) )
+            responses.append( p[1][1] )
 
-        #print( "setting goal to", goal )
+        # print( "path values:", path_values )
+        # print( "responses:", responses )
         
-        # build transition graph between seen_stimuli. probabilities
-        # are transformed into distances for Dijkstra's algorithm:
-        # dist = -log( prob ). the graph is just a list of
-        # connections, which requires some looping later on when we
-        # need to find a specific connection
-        graph = list()
-        for b in behaviors:
-            for s1 in self.seen_stimuli:
-                for s2 in self.seen_stimuli:
-                    zsum = 0
-                    for e1 in s1.keys():
-                        for e2 in s2.keys():
-                            zsum += self.z.get( (e1,b,e2), 0 )
-                    zsum = min( zsum, 1 ) # XXX overprediction
-                    if zsum>0: # possible transition: add
-                        graph.append({ 'from':format(s1),'to':format(s2),'with':b,'prob':zsum })
-                        
-        #print( "graph:", graph )
-        
-        # use Dijkstra's algorithm to find a shortest path from
-        # stimulus to goal, if one exists
+        # to use softmax, the value of the goal as the v for self
+        # .response. the value is spread equally across elements of
+        # 'stimulus'
+        n = len( stimulus )
+        for i in range(len(path_values)):
+            for e in stimulus.keys():
+                self.v[ (e,responses[i]) ] += path_values[i]
 
-        # data setup:
-
-        # string representation of unvisited nodes, used both for
-        # accounting and for indexing:
-        unv = [format(s) for s in self.seen_stimuli]
-        # dis[s] = distance between node and goal: 
-        dis = dict.fromkeys( unv, math.inf )
-        # previous node on the shortest path
-        pre = dict.fromkeys( unv, None )
-        # act[s] = response to s to follow shortest path  
-        act = dict.fromkeys( unv, None )
-        # start from current stimulus:
-        cur = format(stimulus)
-        dis[ cur ] = 0
-
-        # algorithm loops while there are unvisited nodes:
-        while len(unv):
-            # loop over all connections in graph:
-            for con in graph: 
-                # con must lead from cur to an unv node:
-                if con['from'] != cur or con['to'] not in unv:
-                    continue
-                # new estimate for distance:
-                guess = -math.log( con['prob'] ) + dis[cur]
-                # update if better than existing estimate:
-                k = con['to']
-                if guess < dis[k]:
-                    dis[k] = guess
-                    act[k] = con['with']
-                    pre[k] = con['from']
-            unv.remove( cur )
-            # stop if path found:
-            if goal not in unv: 
-                break
-            ## set closest (estimated) unv node as cur: 
-            mindis = math.inf
-            for u in unv:
-                if dis[format(u)] < mindis:
-                    mindis = dis[format(u)]
-                    cur = u
-            if mindis == math.inf: # no path
-                break
-
-        # if no path to the goal is found, return random behavior
-        if goal in unv:
-            #print( "no path to goal" )
-            self.response = self._get_response(stimulus)
-            self.prev_stimulus = dict(stimulus)  # dict ok?
-            return self.response
-
-        #print( "dis:", dis )
-        #print( "act:", act )
-        #print( "pre:", pre )
-        
-        # build shortest path to goal
-        shortest_path = list()
-        response_path = list()
-        distance_path = list()
-        x = goal
-        #print( "building path" )
-        while x != format(stimulus):
-            #print( "x:", x )
-            shortest_path.insert( 0, x )
-            response_path.insert( 0, act[x] )
-            distance_path.insert( 0, dis[x] )
-            x = pre[x]
-            #print( "shortest path:", shortest_path )
-            #print( "response path:", response_path )
-            #print( "distance path:", distance_path )
-        
-        ## path value = ( goal value - cost ) * success prob
-        path = { 'value':0, 'cost':0, 'prob':0 }
-        path['cost'] = sum( [behavior_cost[b] for b in response_path] )
-        path['prob'] = exp( - sum( distance_path ) )
-        path['value'] = ( max(usums) - path['cost'] ) * path['prob']
-        #print( "path:", path )
-        
-        # to choose a response, we still use softmax, with the value
-        # of the goal as the v for self.response. the value is spread
-        # equally across elements of 'stimulus'
-        n = len( stimulus.keys() )
-        for e in stimulus.keys():
-            self.v[ (e,response_path[0]) ] = path['value'] / n
         self.response = self._get_response(stimulus)
         self.prev_stimulus = dict(stimulus)
         #print( self.v )

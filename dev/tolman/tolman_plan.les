@@ -1,13 +1,13 @@
 n_subjects        = 1
 mechanism         = tolman
-behaviors         = b1, b2, b3, b4, b5, b6, b7, b8, b9, b10
+behaviors         = b1, b2
 stimulus_elements = s1, r
 alpha_z = .1
 start_z = 0
 u = r:1, default:0
 
-@PHASE training stop: S1==100
-S1 s1 | b1:R(.9) | b2:R(.5) | S1
+@phase training stop: S1==100
+S1 s1 | b1:R | b2:R(.5) | S1
 R  r  | S1
 
 @run training
