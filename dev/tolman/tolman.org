@@ -8,10 +8,11 @@
 * Rationale
 
 - The Tolman mechanism implements a learning mechanism that formalizes
-  "latent-learning" and "cognitive map" models in animal cognition.
+  "latent-learning" and "cognitive map" models in animal cognition and
+  cognitive psychology.
 - The mechanism builds a mental model of its environment.
-- The model is used to plan how to reach a single goal state, defined
-  as the state with the highest value.
+- The model is used to plan the best response (with some limitations
+  highlighted below).
  
 * Variables
 

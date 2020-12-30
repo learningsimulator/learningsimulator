@@ -1,25 +1,35 @@
 n_subjects        = 1
-mechanism         = tolman
 behaviors         = b1, b2
-stimulus_elements = s1, r
+stimulus_elements = s0, s1, r
 alpha_z = .1
+alpha_v = .1
+alpha_w = 0
 start_z = 0
+start_v = 0
 u = r:1, default:0
 
-@phase training stop: S1==100
-S1 s1 | b1:R | b2:R(.5) | S1
-R  r  | S1
+@phase training stop: S0==50
+S0 s0 | @omit_learn, S1
+S1 s1 | b1:R | S0
+R  r  | S0
 
-@run training
+mechanism         = tolman
+@run training runlabel:thinking
 
-xscale=s1
+mechanism = ga
+@run training runlabel:chaining
+
+xscale=s0
 @figure
-@subplot 211
-@zplot s1->b1->r
-@zplot s1->b2->r
+@subplot 121 {'title':'Rewards'}
+runlabel=thinking
+@nplot r {'label':'thinking'}
+runlabel=chaining
+@nplot r {'label':'chaining'}
 @legend
-@subplot 212
-@nplot r
-@nplot s1->b1
-@nplot s1->b2
+@subplot 122 {'title':'V'}
+runlabel=thinking
+@vplot s1->b1 {'label':'thinking'}
+runlabel=chaining
+@vplot s1->b1 {'label':'chaining'}
 @legend
