@@ -562,13 +562,22 @@ class TolmanMechanism(MapLearner):
         # possibly add stimulus to seen_stimuli:
         if stimulus not in self.seen_stimuli:
             self.seen_stimuli.append( stimulus )
-            
-        ## reset v
-        self.v = self.parameters.get(kw.START_V)
 
+        # define "goal" stimuli as those with more than minimum value
+        u = self.parameters.get(kw.U)
+        stimulus_values = [0] * len(self.seen_stimuli)
+        for i in range(len(self.seen_stimuli)):
+            for e in self.seen_stimuli[i].keys():
+                stimulus_values[i] += u[e]
+        min_value = min( stimulus_values )
+        goal_stimuli = []
+        for i in range(len(self.seen_stimuli)):
+            if stimulus_values[i] > min_value:
+                goal_stimuli.append( self.seen_stimuli[i] )
+        
         g = self.build_graph( self.z )
         paths = []
-        for dest in self.seen_stimuli:
+        for dest in goal_stimuli:
             if dest != stimulus:
                 paths = paths + g.find_simple_paths(
                     format(stimulus),
@@ -579,12 +588,10 @@ class TolmanMechanism(MapLearner):
         path_values = []
         responses = []
         for p in paths:
-            value = g.path_sum_property( p, 'value' )
-            cost = g.path_sum_property( p, 'cost' )
-            prob = g.path_product_property( p, 'probability' )
-            path_values.append( (value - cost)*prob / (len(p)-1) )
+            path_values.append( g.expected_path_value( p ) )
             responses.append( p[1][1] )
 
+        # print( "stimulus:", stimulus )
         # print( "path values:", path_values )
         # print( "responses:", responses )
         
@@ -594,11 +601,11 @@ class TolmanMechanism(MapLearner):
         n = len( stimulus )
         for i in range(len(path_values)):
             for e in stimulus.keys():
-                self.v[ (e,responses[i]) ] += path_values[i]
+                self.v[ (e,responses[i]) ] = path_values[i] / n
 
         self.response = self._get_response(stimulus)
         self.prev_stimulus = dict(stimulus)
-        #print( self.v )
+        # print( self.v )
 
         # print( "sti:", stimulus )
         # print( "bes:", best_response )
