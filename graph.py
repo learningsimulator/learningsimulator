@@ -3,31 +3,33 @@
 # we added a "color" properties to edges to track the behavior that
 # connects nodes
 
+from collections import defaultdict
+
 class Graph: 
 
     def __init__( self ): 
         # graph is stored as adjacency list: self.graph[x] is a list
         # of neighbors of x.
-        self.graph = dict()
+        self.graph = defaultdict( list )
         # the path we are working on: 
         self.currentPath = list()
         # all paths found so far:
         self.simplePaths = list()
         # whether a node has already been visited:
-        self.visited = dict()
+        self.visited = defaultdict( lambda: False )
         # properties associated with each edge
-        self.properties = dict()
+        self.properties = defaultdict( dict )
         
     def addEdge( self, source, destination, color, properties=None ): 
-        if source not in self.graph.keys():
-            self.graph[ source ] = list()
-        if destination not in self.graph.keys():
-            self.graph[ destination ] = list()
+        # if not source in self.graph.keys():
+        #     self.graph[ source ] = list()
+        # if not destination in self.graph.keys():
+        #     self.graph[ destination ] = list()
         if (destination,color) not in self.graph[ source ]:
             self.graph[ source ].append( (destination,color) )
         self.properties[ (source,destination,color) ] = properties
-        self.visited[ source      ] = False
-        self.visited[ destination ] = False
+        # self.visited[ source      ] = False
+        # self.visited[ destination ] = False
         
     def find_simple_paths_help( self, source_color, destination_color ):
         if self.visited[ source_color[0] ]:
@@ -55,22 +57,21 @@ class Graph:
         if len( self.graph.keys() ) < 2:
             return []
         # all nodes are initially marked unvisited:
-        self.visited = dict.fromkeys( self.visited, False )
+        self.visited = defaultdict( lambda: False )
         self.currentPath = []
         self.simplePaths = []
         self.find_simple_paths_help( (source,None), (destination,None) )
         return self.simplePaths
 
-    def path_sum_property( self, path, property_name ):
-        property_sum = 0
+    def expected_path_value( self, path ):
+        probability = 1
+        path_value = 0
         for i in range(1,len(path)):
             x = ( path[i-1][0], path[i][0], path[i][1] )
-            property_sum += self.properties[ x ][ property_name ]
-        return property_sum
+            properties = self.properties[ x ]
+            net_value = properties['value'] - properties['cost']
+            probability *= properties['probability']
+            path_value += net_value * probability
+        path_value /= len(path) - 1
+        return path_value
 
-    def path_product_property( self, path, property_name ):
-        property_product = 1
-        for i in range(1,len(path)):
-            x = ( path[i-1][0], path[i][0], path[i][1] )
-            property_product *= self.properties[ x ][ property_name ]
-        return property_product
