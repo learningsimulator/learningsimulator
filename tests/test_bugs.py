@@ -142,7 +142,7 @@ class TestGitHubIssues(LsTestCase):
         for x, y1, y2 in zip(plot_data['n=1']['x'], plot_data['n=1']['y'], plot_data['n=2']['y']):
             if x > 40:
                 self.assertGreater(y1 - y2, 9)
-                self.assertGreater(y2, -0.2)
+                self.assertGreater(y2, -0.21)
                 self.assertLess(y2, 0)
                 self.assertGreater(y1, 9.5)
                 self.assertLess(y1, 10)
