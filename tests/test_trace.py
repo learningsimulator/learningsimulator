@@ -176,6 +176,11 @@ runlabel: trace
         self.assertIncreasing(plot_data['no trace']['y'][0:50])
         self.assertIncreasing(plot_data['trace']['y'][0:50])
 
+        # Check that trace line is almost straight after 50
+        ref = plot_data['trace']['y'][50]
+        for y in plot_data['trace']['y'][50:]:
+            self.assertLess(abs(y - ref), 0.0005)
+
         self.assertGreater(plot_data['trace']['y'][-1], 6.5)
         self.assertLess(plot_data['trace']['y'][-1], 6.7)
 
