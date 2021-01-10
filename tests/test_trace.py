@@ -173,8 +173,8 @@ runlabel: trace
         script_obj, script_output = run(script)
         plot_data = get_plot_data()
 
-        self.assertIncreasing(plot_data['no trace']['y'])
-        self.assertIncreasing(plot_data['trace']['y'])
+        self.assertIncreasing(plot_data['no trace']['y'][0:50])
+        self.assertIncreasing(plot_data['trace']['y'][0:50])
 
         self.assertGreater(plot_data['trace']['y'][-1], 6.5)
         self.assertLess(plot_data['trace']['y'][-1], 6.7)
