@@ -67,7 +67,7 @@ class Script():
         return self.script_parser.runs.run(progress)
 
     def postproc(self, simulation_data, progress=None):
-        if progress is not None:
+        if (progress is not None) and (progress.dlg is not None):
             progress.dlg.set_visibility2(False)
             progress.dlg.set_title("Plot/Export Progress")
 

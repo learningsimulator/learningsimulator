@@ -3,6 +3,8 @@ A Small Usage Example
 *********************
 
 Below follows a script for simulating simple instrumental training, where the subject learns to respond to a single stimulus.
+For additional scripts, please see the `script database <https://www.learningsimulator.org/script-database>`_ on the
+`Learning Simulator Project website <http://learningsimulator.org/>`_.
 
 ::
 

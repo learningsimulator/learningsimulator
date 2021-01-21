@@ -51,13 +51,15 @@ def create_exported_files_folder():
 def delete_exported_files_folder():
     exported_files_folder = os.path.join('.', 'tests', 'exported_files')
 
-    # Delete all files in the folder
-    for filename in os.listdir(exported_files_folder):
-        file_path = os.path.join(exported_files_folder, filename)
-        os.remove(file_path)
+    if os.path.exists(exported_files_folder):
 
-    # Delete the folder itself
-    os.rmdir(exported_files_folder)
+        # Delete all files in the folder
+        for filename in os.listdir(exported_files_folder):
+            file_path = os.path.join(exported_files_folder, filename)
+            os.remove(file_path)
+
+        # Delete the folder itself
+        os.rmdir(exported_files_folder)
 
 
 def remove_exported_files(filenames):

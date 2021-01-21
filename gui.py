@@ -1,6 +1,7 @@
 import threading
 import traceback
 import os
+import platform
 import sys
 import webbrowser
 import pathlib
@@ -250,8 +251,10 @@ class Gui():
             return
 
         self.progress = Progress(self.script_obj)
-        self.progress.start()
-        # self.start_progress_job = self.root.after(1000, self.progress.start)
+        isMac = platform.system().lower() == "darwin"
+        if not isMac:
+            self.progress.start()
+            # self.start_progress_job = self.root.after(1000, self.progress.start)
 
         self.simulation_thread = threading.Thread(target=self.simulate)
         self.simulation_thread.daemon = True  # So that the thread dies if main program exits
@@ -267,7 +270,7 @@ class Gui():
                 if not isinstance(self.progress.exception, InterruptedSimulation):
                     self.progress.close_dlg()
                     self.handle_exception(self.progress.exception, self.progress.exception_traceback)
-            elif self.progress.done:
+            else:
                 # This will also close the progress dialog box
                 try:
                     self.script_obj.plot(progress=self.progress)
@@ -573,7 +576,7 @@ class Progress():
         self.done = done
 
     def close_dlg(self):
-        if self.dlg:
+        if self.dlg is not None:
             self.dlg.destroy()
             self.dlg = None
 
@@ -585,9 +588,11 @@ class Progress():
 
     def increment2(self, run_label):
         if self.nsteps2[run_label] == 1:
-            self.dlg.set_visibility2(False)
+            if self.dlg is not None:
+                self.dlg.set_visibility2(False)
         else:
-            self.dlg.set_visibility2(True)
+            if self.dlg is not None:
+                self.dlg.set_visibility2(True)
             self.progress2.set(self.progress2.get() + self.nsteps2_percent[run_label])
 
     def reset1(self):

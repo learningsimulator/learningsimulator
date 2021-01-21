@@ -35,7 +35,7 @@ This section describes the basic syntax in the scripting language used in these 
 Stimulus specification
 ----------------------
 
-Stimuli are specified in various parts of the script, mainly on a :ref:`phase line<phase-line>` in a :doc:`phase block<phase>`,
+Stimuli are specified in various parts of the script, most commonly on a :ref:`phase line<phase-line>` in a :doc:`phase block<phase>`,
 where it tells the simulator which stimulus to present to the subject.
 
 A stimulus consists of one or several stimulus elements. (The stimulus elements are specified with the parameter :doc:`stimulus_elements`.)
@@ -43,7 +43,10 @@ A stimulus that consists of more than one element is called a *compound stimulus
 In a stimulus specification, each stimulus element has an *intensity* (which is any number).
 If no intensity is specified, the intensity 1 is assumed.
 
-A stimulus is specified as a comma-separated list of stimulus elements, optionally with the intensity in brackets after the stimulus element name,
+Note that the parameter :doc:`stimulus_elements <stimulus_elements>` lists the names of the stimulus elements and should
+not include any intensities.
+
+In a :doc:`phase block<phase>`, a stimulus is specified as a comma-separated list of stimulus elements, optionally with the intensity in brackets after the stimulus element name,
 for example ``e1,e2``, or ``e1[0.3],e2,e3[0.9]``.
 
 .. note::
