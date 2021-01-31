@@ -1,3 +1,4 @@
+import platform
 import re
 import copy
 import matplotlib.pyplot as plt
@@ -77,6 +78,9 @@ class Script():
         self.script_parser.postcmds.plot()
         if progress is not None:
             progress.close_dlg()
+        isMac = platform.system().lower() == "darwin"
+        if isMac:
+            block = False
         plt.show(block=block)
 
 
