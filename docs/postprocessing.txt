@@ -166,7 +166,7 @@ Syntax::
   @subplot pos subplot_title
   @subplot pos subplot_title subplot_parameters
 
-- ``pos`` describes the position of the subplot within the figure. It is a 3-digit integer: (*nrows*)(*ncols*)(*index*). The subplot will take the position *index* on a grid with *nrows* rows and *ncols* columns. *index* starts at 1 in the upper left corner and increases to the right.
+- ``pos`` describes the position of the subplot within the figure. It is either a 3-digit integer (*nrows*)(*ncols*)(*index*) (for example 223), or three comma-separated integers in parenthesis (*nrows*, *ncols*, *index*) (for example (2,2,3)). The subplot will take the position *index* on a grid with *nrows* rows and *ncols* columns. *index* starts at 1 in the upper left corner and increases to the right.
 - ``subplot_parameters`` is an optional specification of `Matplotlib <https://matplotlib.org>`_ ``Subplot`` parameters controlling for example the background color, in the format ``{param1:value1, param2:value2, ...}``. See `subplot parameters <https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.subplot>`_ for the supported subplot parameters.
 
 Useful Subplot parameters to control the appearance of the subplot include

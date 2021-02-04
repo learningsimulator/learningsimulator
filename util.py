@@ -351,15 +351,36 @@ class ParseUtil():
         else:
             return i
 
+    @staticmethod
     def is_dict(string):
         try:
-            d = ast.literal_eval(string)
+            d = ast.literal_eval(string.strip())
             if type(d) is dict:
                 return True, d
             else:
                 return False, None
         except Exception:
             return False, None
+
+    @staticmethod
+    def is_tuple(string):
+        try:
+            val = ast.literal_eval(string.strip())
+        except Exception:
+            return False, None
+        if type(val) != tuple:
+            return False, None
+        return True, val
+
+    @staticmethod
+    def is_tuple_of_str(input):
+        input_type = type(input)
+        if input_type is not tuple:
+            return False
+        for i in input:
+            if type(i) is not str:
+                return False
+        return True
 
     @staticmethod
     def parse_chain(v_str, all_stimulus_elements, all_behaviors):
@@ -413,7 +434,30 @@ class ParseUtil():
             if is_dict:
                 preceeding_dict = string[0: i].rstrip()  # Strip spaces separating string from dict
                 return preceeding_dict, d
-        return string, None
+        return string.rstrip(), None
+
+    @staticmethod
+    def parse_initial_tuple(string):
+        """
+        Return the tuple in the beginning of the specified string, and the lstripped substring that
+        follows the tuple. If there is no tuple in the beginning of the string, return (None, string).
+
+        Example:
+           parse_initial_tuple(" (10,20,  30)    foo bar ")
+           returns (10, 20, 30), "foo bar"
+
+        Example:
+            parse_initial_tuple(" foo bar    ")
+            returns None, "foo bar"
+        """
+        string_len = len(string)
+        for i in range(string_len):
+            candidate = string[0: i + 1]
+            is_tuple, t = ParseUtil.is_tuple(candidate)
+            if is_tuple:
+                succeeding_tuple = string[(i + 1):].lstrip()
+                return t, succeeding_tuple
+        return None, string.lstrip()
 
     @staticmethod
     def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables):
@@ -645,26 +689,6 @@ def is_posint(string):
     if val <= 0:
         return False, None
     return True, val
-
-
-def is_tuple(string):
-    try:
-        val = ast.literal_eval(string)
-    except ValueError:
-        return False, None
-    if type(val) != tuple:
-        return False, None
-    return True, val
-
-
-def is_tuple_of_str(input):
-    input_type = type(input)
-    if input_type is not tuple:
-        return False
-    for i in input:
-        if type(i) is not str:
-            return False
-    return True
 
 
 def is_number(string):

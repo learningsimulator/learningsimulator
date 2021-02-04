@@ -45,7 +45,8 @@ def check_run_output_subject_vw(test_obj, output_vw):
 def create_exported_files_folder():
     exported_files_folder = os.path.join('.', 'tests', 'exported_files')
     if not os.path.exists(exported_files_folder):
-        os.makedirs(exported_files_folder)
+        access_rights = 0o777
+        os.mkdir(exported_files_folder, access_rights)
 
 
 def delete_exported_files_folder():

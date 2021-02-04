@@ -318,8 +318,8 @@ class ScriptParser():
                 self.postcmds.add(figure_cmd)
 
             elif line_parser.line_type == LineParser.SUBPLOT:
-                subplotspec, subplot_title, mpl_prop = self._parse_subplot(lineno, linesplit_space)
-                subplot_cmd = SubplotCmd(subplotspec, subplot_title, mpl_prop)
+                subplotspec_list, subplot_title, mpl_prop = self._parse_subplot(lineno, linesplit_space)
+                subplot_cmd = SubplotCmd(subplotspec_list, subplot_title, mpl_prop)
                 self.postcmds.add(subplot_cmd)
 
             elif line_parser.line_type == LineParser.PLOT:
@@ -458,22 +458,61 @@ class ScriptParser():
         @subplot subplotspec {mpl_prop}
         @subplot subplotspec title {mpl_prop}
         """
+        def _parse_subplotspec(spec):
+            if len(spec) != 3:
+                return None
+            spec_intlist = []
+            if type(spec) is str:
+                for s in spec:
+                    if not s.isdigit():
+                        return None
+                    elif s == '0':
+                        return None
+                    spec_intlist.append(int(s))
+            elif type(spec) is tuple:
+                for s in spec:
+                    if type(s) is not int:
+                        return None
+                    if s <= 0:
+                        return None
+                    spec_intlist.append(s)
+            else:
+                return None
+
+            if spec_intlist[2] > spec_intlist[0] * spec_intlist[1]:
+                return None
+            return spec_intlist
+
+        def _parse_subplotspec_and_title(args):
+            subplotspec, title = ParseUtil.parse_initial_tuple(args)
+            if subplotspec is not None:
+                subplotspec_list = _parse_subplotspec(subplotspec)
+                return subplotspec_list, subplotspec, title
+            else:
+                subplotspec_str, title = ParseUtil.split1_strip(args)
+                subplotspec_list = _parse_subplotspec(subplotspec_str)
+                return subplotspec_list, subplotspec_str, title
+
         title_param = self.parameters.get(kw.SUBPLOTTITLE)
 
         if len(linesplit_space) == 1:  # @subplot
-            subplotspec = '111'
+            subplotspec_list = [1, 1, 1]
             title = title_param
             mpl_prop = dict()
-        elif len(linesplit_space) == 2:  # @subplot ...
+        elif len(linesplit_space) == 2:  # @subplot subplotspec ...
+            assert(linesplit_space[0] == kw.SUBPLOT)
             args, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
             if mpl_prop is None:
                 mpl_prop = dict()
-            subplotspec, title_line = ParseUtil.split1_strip(args)
+            subplotspec_list, subplotspec_str, title_line = _parse_subplotspec_and_title(args)
+            if subplotspec_list is None:
+                raise ParseException(lineno, f"Invalid @subplot argument {subplotspec_str}.")
+
             if title_line is None:  # @subplot subplotspec
                 title = title_param
             else:
                 title = title_line
-        return subplotspec, title, mpl_prop
+        return subplotspec_list, title, mpl_prop
 
     def _parse_figure(self, lineno, linesplit_space):
         """
@@ -832,15 +871,15 @@ class FigureCmd(PostCmd):
 
 
 class SubplotCmd(PostCmd):
-    def __init__(self, spec, title, mpl_prop):
+    def __init__(self, spec_list, title, mpl_prop):
         super().__init__()
-        self.spec = spec  # Subplot specification, e.g. 211 or (2,1,1)
+        self.spec_list = spec_list  # Subplot specification, e.g. [2,1,1]
         self.mpl_prop = mpl_prop
         if kw.TITLE not in mpl_prop:
             self.mpl_prop[kw.TITLE] = title
 
     def plot(self):
-        plt.subplot(self.spec, **self.mpl_prop)
+        plt.subplot(*self.spec_list, **self.mpl_prop)
 
     def progress_label(self):
         return kw.SUBPLOT

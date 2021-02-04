@@ -274,7 +274,7 @@ class Gui():
                 # This will also close the progress dialog box
                 try:
                     self.script_obj.plot(progress=self.progress)
-                except AttributeError as ex:
+                except Exception as ex:
                     self.progress.close_dlg()
                     self.handle_exception(ex, traceback.format_exc())
         else:

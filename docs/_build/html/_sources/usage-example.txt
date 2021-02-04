@@ -37,3 +37,4 @@ responding to the stimulus starts at -1 (as specified in the parameter ``start_v
    :width: 1000
    
    :alt: @vplot stimulus->response
+
