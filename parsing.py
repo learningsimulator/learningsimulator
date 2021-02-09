@@ -82,6 +82,8 @@ class Script():
         if isMac:
             block = False
         plt.show(block=block)
+        if isMac:
+            plt.draw()  # Issue with subplots on Mac (10.15 (Catalina))
 
 
 class LineParser():

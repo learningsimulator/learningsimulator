@@ -127,7 +127,7 @@ class Gui():
             self.file_menu.delete(OPEN_RECENT)
         self.recent_files_menu = tk.Menu(self.file_menu, tearoff=0)
         self.file_menu.insert_cascade(2, label=OPEN_RECENT, menu=self.recent_files_menu,
-                                      underline=0, command=self.file_open_recent)
+                                      underline=0)
 
     def _create_widgets(self):
         # The frame containing the widgets
