@@ -3,6 +3,7 @@
 ![Build](https://github.com/learningsimulator/learningsimulator/workflows/Learning%20Simulator/badge.svg)
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/315901441.svg)](https://zenodo.org/badge/latestdoi/315901441)
 
 <img src="learningsimulator.png" width="200" height="200" />
 
