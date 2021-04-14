@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>trace &#8212; Learning Simulator 1.0 documentation</title>
+    <title>discount &#8212; Learning Simulator 1.0 documentation</title>
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -26,7 +26,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">trace</a></li> 
+        <li class="nav-item nav-item-this"><a href="">discount</a></li> 
       </ul>
     </div>  
 
@@ -35,37 +35,40 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="trace">
-<h1>trace<a class="headerlink" href="#trace" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="discount">
+<h1>discount<a class="headerlink" href="#discount" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Memory traces are only implemented in the <em>Stimulus-response learning</em> and <em>Guided associative learning</em> mechanisms.</p>
+<p>Discount factors are only implemented in the learning mechanisms <em>Guided associative learning</em>, <em>Expected SARSA</em>, <em>Q-learning</em>, and <em>Actor-critic</em>.</p>
 </div>
-<p>Specifies the decay factor of fading memory traces. The value is a number between 0 and 1. The higher value, the longer the
-memory trace of each stimulus stays with the subject. A low value means it fades fast. The default is 0.</p>
-<p>The value of the parameter <code class="docutils literal notranslate"><span class="pre">trace</span></code> is used in <a class="reference internal" href="background.html#the-decision-function"><span class="std std-ref">the decision function</span></a>.</p>
+<p>Specifies the discount factor, written as <span class="math notranslate nohighlight">\(\gamma\)</span> in <a class="reference internal" href="background.html#the-mechanisms"><span class="std std-ref">the equations for memory updates</span></a>, that tells how important future rewards are to the current state.
+The discount factor is a value between 0 and 1.
+A reinforcement value <span class="math notranslate nohighlight">\(u\)</span> that occurs <span class="math notranslate nohighlight">\(N\)</span> steps in the future from the current state, is multiplied by <span class="math notranslate nohighlight">\(\gamma^N\)</span> to describe its importance to the current state.
+For example, consider <span class="math notranslate nohighlight">\(\gamma=0.9\)</span> and a reinforcement value <span class="math notranslate nohighlight">\(u=10\)</span> that is 3 steps ahead of the current state.
+The importance of this reward to the subject from where it stands is equal to <span class="math notranslate nohighlight">\(10 \cdot 0.9^3 = 7.29\)</span>.</p>
+<p>The value of the parameter <code class="docutils literal notranslate"><span class="pre">discount</span></code> is used in the updating equations described in <a class="reference internal" href="background.html#the-mechanisms"><span class="std std-ref">the mechanisms</span></a>.</p>
 <div class="section" id="syntax">
 <h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>trace = v
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>discount = v
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">v</span></code> is a <a class="reference internal" href="scripting-language.html#scalar-expressions"><span class="std std-ref">scalar expression</span></a>.</p>
 </div>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">trace</span> <span class="pre">=</span> <span class="pre">v</span></code> sets the decay factor to <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">discount</span> <span class="pre">=</span> <span class="pre">v</span></code> sets the discount factor to <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>trace = 0.5
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>discount = 0.5
 </pre></div>
 </div>
-<p>sets the decay factor to 0.5.</p>
+<p>sets the discount factor to 0.5.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@variables x = 0.5
-trace = x + 0.1
+discount = x + 0.1
 </pre></div>
 </div>
-<p>sets the decay factor to 0.6.</p>
+<p>sets the discount factor to 0.6.</p>
 </div>
 </div>
 
@@ -78,7 +81,7 @@ trace = x + 0.1
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">trace</a><ul>
+<li><a class="reference internal" href="#">discount</a><ul>
 <li><a class="reference internal" href="#syntax">Syntax</a></li>
 <li><a class="reference internal" href="#description">Description</a></li>
 <li><a class="reference internal" href="#examples">Examples</a></li>
@@ -89,7 +92,7 @@ trace = x + 0.1
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/trace.txt"
+      <li><a href="_sources/discount.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -114,7 +117,7 @@ trace = x + 0.1
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="nav-item nav-item-0"><a href="index.html">Learning Simulator 1.0 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">trace</a></li> 
+        <li class="nav-item nav-item-this"><a href="">discount</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

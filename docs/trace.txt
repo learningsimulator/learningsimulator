@@ -34,7 +34,7 @@ Examples
 
   trace = 0.5
 
-sets the weight for v(element1->behavior1) to 0.5, and for the remaining possible element-behavior pairs to 3.
+sets the decay factor to 0.5.
 
 ::
 

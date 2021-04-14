@@ -52,11 +52,11 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <h2>Simulation parameters<a class="headerlink" href="#simulation-parameters" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 23%" />
+<col style="width: 22%" />
 <col style="width: 15%" />
 <col style="width: 13%" />
 <col style="width: 38%" />
-<col style="width: 11%" />
+<col style="width: 12%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
@@ -153,7 +153,14 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p>All except
 <code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="lambda.html"><span class="doc">lambda</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="discount.html"><span class="doc">discount</span></a></p></td>
+<td><p>Discount factor</p></td>
+<td><p>0</p></td>
+<td><p>A number between 0 and 1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code>, <code class="docutils literal notranslate"><span class="pre">es</span></code>
+<code class="docutils literal notranslate"><span class="pre">ac</span></code>, <code class="docutils literal notranslate"><span class="pre">ql</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="lambda.html"><span class="doc">lambda</span></a></p></td>
 <td><p>Reinforcement</p></td>
 <td><p>0</p></td>
 <td><div class="line-block">
@@ -163,13 +170,13 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 </td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mechanism.html"><span class="doc">mechanism</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="mechanism.html"><span class="doc">mechanism</span></a></p></td>
 <td><p>Learning mechanism</p></td>
 <td><p><em>Required</em></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code>, <code class="docutils literal notranslate"><span class="pre">sr</span></code>, <code class="docutils literal notranslate"><span class="pre">es</span></code>, <code class="docutils literal notranslate"><span class="pre">ql</span></code>, <code class="docutils literal notranslate"><span class="pre">ac</span></code>, or <code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mu.html"><span class="doc">mu</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="mu.html"><span class="doc">mu</span></a></p></td>
 <td><div class="line-block">
 <div class="line">Genetic</div>
 <div class="line">predisposition</div>
@@ -184,7 +191,7 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p>All except
 <code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="n_subjects.html"><span class="doc">n_subjects</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="n_subjects.html"><span class="doc">n_subjects</span></a></p></td>
 <td><div class="line-block">
 <div class="line">Number of</div>
 <div class="line">subjects</div>
@@ -194,7 +201,7 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p>Positive integer</p></td>
 <td><p>All</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="response_requirements.html"><span class="doc">response_requirements</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="response_requirements.html"><span class="doc">response_requirements</span></a></p></td>
 <td><div class="line-block">
 <div class="line">Possible stimuli</div>
 <div class="line">per behavior</div>
@@ -215,13 +222,13 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p>All except
 <code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="stimulus_elements.html"><span class="doc">stimulus_elements</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="stimulus_elements.html"><span class="doc">stimulus_elements</span></a></p></td>
 <td><p>Stimulus elements</p></td>
 <td><p><em>Required</em></p></td>
 <td><p>List of stimulus element names</p></td>
 <td><p>All</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="start_v.html"><span class="doc">start_v</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="start_v.html"><span class="doc">start_v</span></a></p></td>
 <td><p>Intial v-values</p></td>
 <td><p>0</p></td>
 <td><div class="line-block">
@@ -232,7 +239,7 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p>All except
 <code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="start_vss.html"><span class="doc">start_vss</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="start_vss.html"><span class="doc">start_vss</span></a></p></td>
 <td><div class="line-block">
 <div class="line">Initial vss-</div>
 <div class="line">values</div>
@@ -246,7 +253,7 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 </td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rw</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="start_w.html"><span class="doc">start_w</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="start_w.html"><span class="doc">start_w</span></a></p></td>
 <td><p>Initial w-values</p></td>
 <td><p>0</p></td>
 <td><div class="line-block">
@@ -257,14 +264,14 @@ For a detailed description, syntax, and examples, click the parameter name.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code> and
 <code class="docutils literal notranslate"><span class="pre">ac</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="trace.html"><span class="doc">trace</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="trace.html"><span class="doc">trace</span></a></p></td>
 <td><p>Memory trace</p></td>
 <td><p>0</p></td>
 <td><p>A number between 0 and 1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ga</span></code> and
 <code class="docutils literal notranslate"><span class="pre">sr</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="u.html"><span class="doc">u</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="u.html"><span class="doc">u</span></a></p></td>
 <td><p>Reinforcement</p></td>
 <td><p>0</p></td>
 <td><div class="line-block">

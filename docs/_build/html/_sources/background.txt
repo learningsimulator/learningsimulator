@@ -128,6 +128,12 @@ and
 |                              |         |                        | | :math:`\Delta v_{E\to X} = -\alpha_{E\to X} v_{E\to X} \; \forall X\ne E'`                                |                           |
 +------------------------------+---------+------------------------+-------------------------------------------------------------------------------------------------------------+---------------------------+
 
+| The parameter :math:`\alpha_{E\to B}` is described in :doc:`alpha_v`.
+| The parameter :math:`\alpha_{E}` is described in :doc:`alpha_w`.
+| The parameter :math:`\alpha_{E\to E'}` is described in :doc:`alpha_vss`.
+| The parameter :math:`\gamma` is described in :doc:`discount`.
+| The parameter :math:`\beta_{E\to B}` is described in :doc:`beta`.
+| The parameter :math:`\lambda_{E'}` is described in :doc:`lambda`.
 
 .. _the-decision-function:
 
