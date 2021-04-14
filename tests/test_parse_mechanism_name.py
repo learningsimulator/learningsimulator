@@ -19,65 +19,65 @@ class TestBasic(LsTestCase):
         mechanism: ga
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, GA)
+        self.assertTrue(mechanism_name in GA)
 
         text = '''
-        mechanism: GA
+        mechanism: Alearning
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, GA)
+        self.assertTrue(mechanism_name in GA)
 
     def test_sr(self):
         text = '''
         mechanism: sr
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, SR)
+        self.assertTrue(mechanism_name in SR)
 
         text = '''
-        mechanism: Sr
+        mechanism: StimulusResponse
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, SR)
+        self.assertTrue(mechanism_name in SR)
 
     def test_es(self):
         text = '''
         mechanism: es
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, ES)
+        self.assertTrue(mechanism_name in ES)
 
         text = '''
-        mechanism: eS
+        mechanism: expectedSARSA
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, ES)
+        self.assertTrue(mechanism_name in ES)
 
     def test_ql(self):
         text = '''
         mechanism:ql
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, QL)
+        self.assertTrue(mechanism_name in QL)
 
         text = '''
-        mechanism:  QL
+        mechanism:  Qlearning
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, QL)
+        self.assertTrue(mechanism_name in QL)
 
     def test_ac(self):
         text = '''
         mechanism:    ac
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, AC)
+        self.assertTrue(mechanism_name in AC)
 
         text = '''
-        mechanism:aC
+        mechanism:aCtorcritiC
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, AC)
+        self.assertTrue(mechanism_name in AC)
 
     def test_redefinition(self):
         text = '''
@@ -85,7 +85,7 @@ class TestBasic(LsTestCase):
         mechanism:GA
         '''
         mechanism_name = parse(text)
-        self.assertEqual(mechanism_name, GA)
+        self.assertTrue(mechanism_name in GA)
 
 
 class TestParseMechanismNameErrors(LsTestCase):
@@ -116,21 +116,21 @@ class TestParseMechanismNameErrors(LsTestCase):
         text = '''
         mechanism: foo
         '''
-        msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
+        msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: a, ac, actorcritic, alearning, es, expectedsarsa, ga, ql, qlearning, rescorlawagner, rw, sr, stimulusresponse."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         mechanism: 1+1
         '''
-        msg = "Error on line 2: Invalid mechanism name '1+1'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
+        msg = "Error on line 2: Invalid mechanism name '1+1'. Mechanism name must be one of the following: a, ac, actorcritic, alearning, es, expectedsarsa, ga, ql, qlearning, rescorlawagner, rw, sr, stimulusresponse."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         mechanism: ga, sr, ES, QL, AC
         '''
-        msg = "Error on line 2: Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: ac, es, ga, ql, rw, sr."
+        msg = "Error on line 2: Invalid mechanism name 'ga, sr, ES, QL, AC'. Mechanism name must be one of the following: a, ac, actorcritic, alearning, es, expectedsarsa, ga, ql, qlearning, rescorlawagner, rw, sr, stimulusresponse."
         with self.assertRaisesMsg(msg):
             parse(text)
 

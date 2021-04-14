@@ -119,8 +119,8 @@ and
 |                              |         | |                      | |                                                                                                           |                           |
 |                              |         | |                      | | where :math:`\delta = u_{S'}+\gamma w_{S'}-w_{S}-c_B`                                                     |                           |
 +------------------------------+---------+------------------------+-------------------------------------------------------------------------------------------------------------+---------------------------+
-| Guided associative learning  | GA      | | :math:`v_{E\to B}`   | | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+\gamma w_{S'}-v_{S\to B})`                                | :math:`\forall E\in S`    |
-| [7]_                         |         | | :math:`w_E`          | | :math:`\Delta w_{E}=\alpha_E (u_{S'}+\gamma w_{S'}-c_{B}-w_{S})`                                          |                           |
+| A-learning (Guided           | A, GA   | | :math:`v_{E\to B}`   | | :math:`\Delta v_{E\to B}=\alpha_{E\to B}(u_{S'}+\gamma w_{S'}-v_{S\to B})`                                | :math:`\forall E\in S`    |
+| associative learning) [7]_   |         | | :math:`w_E`          | | :math:`\Delta w_{E}=\alpha_E (u_{S'}+\gamma w_{S'}-c_{B}-w_{S})`                                          |                           |
 +------------------------------+---------+------------------------+-------------------------------------------------------------------------------------------------------------+---------------------------+
 | Rescorla-Wagner              | RW      | :math:`v_{E_1\to E_2}` | | Only implemented for single-element stimuli :math:`S=\{E\}`.                                              |                           |
 |                              |         |                        | |                                                                                                           |                           |

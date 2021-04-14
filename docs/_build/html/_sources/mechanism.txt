@@ -14,12 +14,12 @@ Syntax
 
 where name is one of the following:
 
-- ``ga`` (`Guided associative learning`)
-- ``sr`` (`Stimulus-response learning`)
-- ``es`` (`Expected SARSA`)
-- ``ql`` (`Q-learning`)
-- ``ac`` (`Actor-critic`)
-- ``rw`` (`Rescorla-Wagner`)
+- ``alearning``, ``ga``, or ``a`` (`A-learning (Guided associative learning)`)
+- ``stimulusresponse`` or ``sr`` (`Stimulus-response learning`)
+- ``expectedsarsa`` or ``es`` (`Expected SARSA`)
+- ``qlearning`` or ``ql`` (`Q-learning`)
+- ``actorcritic`` or ``ac`` (`Actor-critic`)
+- ``rescorlawagner`` or ``rw`` (`Rescorla-Wagner`)
 
 See :ref:`the-mechanisms` for a description of the mechanisms.
 

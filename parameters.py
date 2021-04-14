@@ -196,19 +196,19 @@ class Parameters():
 
         self.scalar_expand()
 
-        if mechanism_name == mn.SR:
+        if mechanism_name in mn.SR:
             mechanism_obj = mechanism.StimulusResponse(self)
-        elif mechanism_name == mn.QL:
+        elif mechanism_name in mn.QL:
             mechanism_obj = mechanism.Qlearning(self)
         # elif mechanism_name == SARSA:
         #     mechanism_obj = LsMechanism.SARSA(**self.parameters)
-        elif mechanism_name == mn.ES:
+        elif mechanism_name in mn.ES:
             mechanism_obj = mechanism.EXP_SARSA(self)
-        elif mechanism_name == mn.AC:
+        elif mechanism_name in mn.AC:
             mechanism_obj = mechanism.ActorCritic(self)
-        elif mechanism_name == mn.GA:
+        elif mechanism_name in mn.GA:
             mechanism_obj = mechanism.Enquist(self)
-        elif mechanism_name == mn.RW:
+        elif mechanism_name in mn.RW:
             mechanism_obj = mechanism.OriginalRescorlaWagner(self)
         else:
             raise Exception(f"Internal error. Unknown mechanism {mechanism_name}.")
@@ -615,7 +615,7 @@ class Parameters():
     def _parse_xscale(self, xscale, phases):
         if not self.val[kw.STIMULUS_ELEMENTS]:
             return f"The parameter 'stimulus_elements' must be assigned before the parameter '{kw.XSCALE}'."
-        if not self.val[kw.BEHAVIORS] and self.val[kw.MECHANISM_NAME] != mn.RW:
+        if not self.val[kw.BEHAVIORS] and self.val[kw.MECHANISM_NAME] not in mn.RW:
             return f"The parameter 'behaviors' must be assigned before the parameter '{kw.XSCALE}'."
 
         if phases.is_phase_label(xscale):
