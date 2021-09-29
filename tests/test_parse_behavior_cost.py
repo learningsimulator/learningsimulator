@@ -262,7 +262,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}:
         '''.format(name)
-        msg = "Parameter '{}' is not specified.".format(name)
+        msg = "Error on line 3: Parameter '{}' is not specified.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -281,7 +281,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3, b4
         {}: b1:0.123, b2:4.56, b3:99, b1:-22, b18:knas
         '''.format(name)
-        msg = "Duplicate of b1 in '{}'.".format(name)
+        msg = "Error on line 3: Duplicate of b1 in '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -289,7 +289,7 @@ class TestExceptions(LsTestCase):
         behaviors: eb1, b2, b3, b4
         {}: eb1:0.123, b2:4.56, eb1:99, foo->bar:1, default:Blaps
         '''.format(name)
-        msg = "Duplicate of eb1 in '{}'.".format(name)
+        msg = "Error on line 3: Duplicate of eb1 in '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -297,7 +297,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3, b4
         {}: b1:0.123, b2:4.56, foo:1, b1:99, default:-22
         '''.format(name)
-        msg = "'foo' is an invalid behavior name."
+        msg = "Error on line 3: Error in parameter '{}': 'foo' is an invalid behavior name.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -306,7 +306,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: e1, e2
         {}: Blaps mortisaga
         '''.format(name)
-        msg = "The parameter 'behaviors' must be assigned before the parameter '{}'.".format(name)
+        msg = "Error on line 3: The parameter 'behaviors' must be assigned before the parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -314,14 +314,14 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}:
         '''.format(name)
-        msg = "Parameter '{}' is not specified.".format(name)
+        msg = "Error on line 3: Parameter '{}' is not specified.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         {}: foo
         '''.format(name)
-        msg = "The parameter 'behaviors' must be assigned before the parameter '{}'.".format(name)
+        msg = "Error on line 2: The parameter 'behaviors' must be assigned before the parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -331,7 +331,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: foo,>>>>////
         '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got 'foo'.".format(name)
+        msg = "Error on line 4: Expected 'element:value' or 'default:value' in '{}', got 'foo'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -340,21 +340,21 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: foo>>>>////
         '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got 'foo>>>>////'.".format(name)
+        msg = "Error on line 4: Expected 'element:value' or 'default:value' in '{}', got 'foo>>>>////'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''behaviors: b1, b2
                   {}: default::111
                '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got 'default::111'.".format(name)
+        msg = "Error on line 2: Expected 'element:value' or 'default:value' in '{}', got 'default::111'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''behaviors: b1, b2
                   {}: b1->b1:1, blabla
                '''.format(name)
-        msg = "Error in parameter '{}': 'b1->b1' is an invalid behavior name.".format(name)
+        msg = "Error on line 2: Error in parameter '{}': 'b1->b1' is an invalid behavior name.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -371,7 +371,7 @@ class TestExceptions(LsTestCase):
                   behaviors: b1, b2
                   {}: fo o ->bar:foobar, blabla
                '''.format(name)
-        msg = "Invalid value 'foobar' for 'fo o ->bar' in parameter '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'foobar' for 'fo o ->bar' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -379,7 +379,7 @@ class TestExceptions(LsTestCase):
                   behaviors: b1, b2
                   {}: blaps:foobar, blabla
                '''.format(name)
-        msg = "Invalid value 'foobar' for 'blaps' in parameter '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'foobar' for 'blaps' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -388,7 +388,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: 1, 2
         '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got '1'.".format(name)
+        msg = "Error on line 3: Expected 'element:value' or 'default:value' in '{}', got '1'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -397,7 +397,7 @@ class TestExceptions(LsTestCase):
         {}: 18,
                  42
         '''.format(name)
-        msg = "A single value for '{}' cannot be followed by other values.".format(name)
+        msg = "Error on line 3: A single value for '{}' cannot be followed by other values.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -407,7 +407,7 @@ class TestExceptions(LsTestCase):
                  oipoipoi,
                  dfldfjlkdj
         '''.format(name)
-        msg = "A single value for '{}' cannot be followed by other values.".format(name)
+        msg = "Error on line 3: A single value for '{}' cannot be followed by other values.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -415,7 +415,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: b1:3.22, 42
         '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
+        msg = "Error on line 3: Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -423,7 +423,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: b1:3.22, 42, 8.3
         '''.format(name)
-        msg = "Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
+        msg = "Error on line 3: Expected 'element:value' or 'default:value' in '{}', got '42'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -432,7 +432,7 @@ class TestExceptions(LsTestCase):
         {}: b2:3.22,
                  42
         '''.format(name)
-        msg = "A single value for '{}' cannot follow other values.".format(name)
+        msg = "Error on line 4: A single value for '{}' cannot follow other values.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -441,7 +441,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: b1:3.22, default:12, b2:18, default:42
         '''.format(name)
-        msg = "Default value for '{}' can only be stated once.".format(name)
+        msg = "Error on line 3: Default value for '{}' can only be stated once.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -451,7 +451,7 @@ class TestExceptions(LsTestCase):
         {}: b1:3.22, default:12,
                  b2:18, default:42
         '''.format(name)
-        msg = "Default value for '{}' can only be stated once.".format(name)
+        msg = "Error on line 5: Default value for '{}' can only be stated once.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -460,7 +460,7 @@ class TestExceptions(LsTestCase):
         {}: b1:3.22, default:12, b2:18,
                  default:42
         '''.format(name)
-        msg = "Default value for '{}' can only be stated once.".format(name)
+        msg = "Error on line 4: Default value for '{}' can only be stated once.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -469,7 +469,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: b1:3.22, default:12, b2->b2:18
         '''.format(name)
-        msg = "'b2->b2' is an invalid behavior name."
+        msg = "Error on line 3: Error in parameter '{}': 'b2->b2' is an invalid behavior name.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -477,7 +477,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: B1:3.22, default:12
         '''.format(name)
-        msg = "'B1' is an invalid behavior name."
+        msg = "Error on line 3: Error in parameter '{}': 'B1' is an invalid behavior name.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -486,7 +486,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: default:12, b1:22, kajsa:13, Klklklk***
         '''.format(name)
-        msg = "Error in parameter '{}': 'kajsa' is an invalid behavior name.".format(name)
+        msg = "Error on line 3: Error in parameter '{}': 'kajsa' is an invalid behavior name.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -494,7 +494,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: default:12, b1:22, kajsa:freja
         '''.format(name)
-        msg = "Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -503,7 +503,7 @@ class TestExceptions(LsTestCase):
         {}: default:12, b1:22,
                  kajsa:freja
         '''.format(name)
-        msg = "Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
+        msg = "Error on line 4: Invalid value 'freja' for 'kajsa' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -512,7 +512,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         {}: b1:22
         '''.format(name)
-        msg = "Missing default value for parameter '{}'.".format(name)
+        msg = "Error on line 3: Missing default value for parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -520,7 +520,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3
         {}: b1:22, b2:1.32
         '''.format(name)
-        msg = "Missing default value for parameter '{}'.".format(name)
+        msg = "Error on line 3: Missing default value for parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -531,7 +531,7 @@ class TestExceptions(LsTestCase):
             b3: 333
             b4: 444
         '''.format(name)
-        msg = "Missing default value for parameter '{}'.".format(name)
+        msg = "Error on line 3: Missing default value for parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -543,6 +543,6 @@ class TestExceptions(LsTestCase):
                  b3: 10-1/2,
                  b4: 0+0**1+0-0
         '''.format(name)
-        msg = "Error in parameter 'behavior_cost': 'b3' is an invalid behavior name."
+        msg = "Error on line 6: Error in parameter 'behavior_cost': 'b3' is an invalid behavior name."
         with self.assertRaisesMsg(msg):
             parse(text)

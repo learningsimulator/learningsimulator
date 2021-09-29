@@ -93,7 +93,7 @@ class LsTestCase(unittest.TestCase):
         super().__init__(*args, **kwargs)
 
     def assertRaisesMsg(self, msg):
-        return super().assertRaisesRegex(Exception, re.escape(msg))
+        return super().assertRaisesRegex(Exception, '^' + re.escape(msg))
 
     def assertAlmostEqualList(self, list1, list2, places=7):
         self.assertEqual(len(list1), len(list2))

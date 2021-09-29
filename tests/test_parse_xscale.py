@@ -129,7 +129,7 @@ class TestExceptions(LsTestCase):
         xscale: s1->b
         stimulus_elements : s1, s2
         '''
-        msg = "The parameter 'stimulus_elements' must be assigned before the parameter 'xscale'."
+        msg = "Error on line 3: The parameter 'stimulus_elements' must be assigned before the parameter 'xscale'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -139,7 +139,7 @@ class TestExceptions(LsTestCase):
         xscale: s1->b
         behaviors         : b
         '''
-        msg = "The parameter 'behaviors' must be assigned before the parameter 'xscale'."
+        msg = "Error on line 3: The parameter 'behaviors' must be assigned before the parameter 'xscale'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -149,7 +149,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         xscale:
         '''
-        msg = "Parameter 'xscale' is not specified."
+        msg = "Error on line 4: Parameter 'xscale' is not specified."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -159,7 +159,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements : s1, s2, s3
         xscale: s1->b1->s2->s1->s3
         '''
-        msg = "Expected behavior name, got 's1'."
+        msg = "Error on line 4: Expected behavior name, got 's1'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -169,7 +169,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements : s1, s2, s3
         xscale: s1->b1->b3->foo->bar
         '''
-        msg = "Expected stimulus element, got 'b3'."
+        msg = "Error on line 4: Expected stimulus element, got 'b3'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -196,6 +196,6 @@ class TestExceptions(LsTestCase):
         @figure
         xscale: XfooSTIMULUS
         '''
-        msg = "Expected stimulus element(s) or a behavior, got XfooSTIMULUS."
+        msg = "Error on line 21: Expected stimulus element(s) or a behavior, got XfooSTIMULUS."
         with self.assertRaisesMsg(msg):
             parse(text)

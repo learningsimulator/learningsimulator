@@ -96,7 +96,7 @@ class TestExceptions(LsTestCase):
         trace:
         mechanism: foo
         '''
-        msg = "Parameter 'trace' is not specified."
+        msg = "Error on line 4: Parameter 'trace' is not specified."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -107,7 +107,7 @@ class TestExceptions(LsTestCase):
         trace
         mechanism: foo
         '''
-        msg = "Parameter 'trace' is not specified."
+        msg = "Error on line 4: Parameter 'trace' is not specified."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -117,7 +117,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         trace: foo,>>>>////
         '''
-        msg = "Error in expression 'foo,>>>>////': invalid syntax."
+        msg = "Error on line 4: Error in expression 'foo,>>>>////': invalid syntax."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -126,7 +126,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2
         trace: 2*rand(4,Blaps)
         '''
-        msg = "Unknown variable 'Blaps'."
+        msg = "Error on line 4: Unknown variable 'Blaps'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -134,20 +134,20 @@ class TestExceptions(LsTestCase):
         text = '''
         trace: rand(1.2, 3)
         '''
-        msg = "First argument to 'rand' must be integer."
+        msg = "Error on line 2: Cannot evaluate expression 'rand(1.2, 3)': First argument to 'rand' must be integer."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         trace: rand(1, 3.3)
         '''
-        msg = "Second argument to 'rand' must be integer."
+        msg = "Error on line 2: Cannot evaluate expression 'rand(1, 3.3)': Second argument to 'rand' must be integer."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         trace: rand(3, 1)
         '''
-        msg = "The first argument to 'rand' must be less than or equal to the second argument."
+        msg = "Error on line 2: Cannot evaluate expression 'rand(3, 1)': The first argument to 'rand' must be less than or equal to the second argument."
         with self.assertRaisesMsg(msg):
             parse(text)

@@ -685,6 +685,6 @@ class TestErrors(LsTestCase):
         @figure Probability
         @pplot s1->b1
         '''
-        msg = "Behavior 'b1' is not a possible response to 's1'."
+        msg = "Error in @pplot: Behavior 'b1' is not a possible response to 's1'."
         with self.assertRaisesMsg(msg):
             run(text)

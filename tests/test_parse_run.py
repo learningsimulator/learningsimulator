@@ -294,7 +294,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "@RUN line must have the form '@RUN phases [runlabel:label]."
+        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, '_')
 
@@ -317,7 +317,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L1
         @run phase4, phase1
         '''
-        msg = "Redefinition of phase 'phase3'."
+        msg = "Error on line 15: Redefinition of phase 'phase3'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
@@ -331,7 +331,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         @run foo runlabel:run1
         '''
-        msg = "Phase foo undefined."
+        msg = "Error on line 8: Phase foo undefined."
         with self.assertRaisesMsg(msg):
             parse(text, 'run1')
 
@@ -345,7 +345,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         @run phase1 runlabel:run1
         '''
-        msg = "Parameter 'mechanism' is not specified."
+        msg = "Error on line 2: Parameter 'mechanism' is not specified."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
@@ -363,7 +363,7 @@ class TestExceptions(LsTestCase):
         @run phase1 runlabel:mylabel
         @run phase2 runlabel:    mylabel
         '''
-        msg = "Duplication of run label 'mylabel'."
+        msg = "Error on line 12: Duplication of run label 'mylabel'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
@@ -381,7 +381,7 @@ class TestExceptions(LsTestCase):
         @run phase1 runlabel:run1
         @run phase2 runlabel:run1 runlabel:run2
         '''
-        msg = "Maximum one instance of 'runlabel:' on a @run line."
+        msg = "Error on line 12: Maximum one instance of 'runlabel:' on a @run line."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 

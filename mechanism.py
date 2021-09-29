@@ -173,7 +173,7 @@ def probability_of_response(stimulus, behavior, behaviors,
     if behavior not in feasible_behaviors:
         stimulus = [e for e in stimulus if e != 0]
         csse = ','.join(stimulus)  # Comma-separated stimulus elements
-        raise Exception(f"Behavior '{behavior}' is not a possible response to '{csse}'.")
+        raise Exception(f"Error in @pplot: Behavior '{behavior}' is not a possible response to '{csse}'.")
     index = feasible_behaviors.index(behavior)
     p = x[index] / sum(x)
     return p

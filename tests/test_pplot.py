@@ -133,7 +133,7 @@ class TestExceptions(LsTestCase):
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "There is no @RUN."
+        msg = "Error on line 8: There is no @RUN."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -166,17 +166,17 @@ trace: 0.25
 '''
 
     def test_pplot_errors(self):
-        pplot_exprs = [("plant[[0.25],berry -> eat", "Invalid expression plant[[0.25]."),
-                       ("plant0.25],berry -> eat", "Expected a stimulus element, got plant0.25]."),
-                       ("plant[0.25,berry -> eat", "Invalid expression plant[0.25."),
-                       ("plant[0.25]],berry -> eat", "Invalid expression plant[0.25]]."),
-                       ("plant[x],berry -> eat", "Invalid expression plant[x]."),
-                       ("plant(0.25),berry -> eat", "Expected a stimulus element, got plant(0.25)."),
-                       ("plant(0.25),berry eat", "Expression must include a '->'."),
-                       ("plant(0.25),berry -> eat -> approach", "Expression must include only one '->'."),
-                       ("-> eat -> approach", "Expression must include only one '->'."),
-                       ("-> eat", "Expected a stimulus element, got ."),
-                       ("plant[0.2]->  foo", "Expected a behavior name, got foo.")]
+        pplot_exprs = [("plant[[0.25],berry -> eat", "Error on line 24: Invalid expression plant[[0.25]."),
+                       ("plant0.25],berry -> eat", "Error on line 24: Expected a stimulus element, got plant0.25]."),
+                       ("plant[0.25,berry -> eat", "Error on line 24: Invalid expression plant[0.25."),
+                       ("plant[0.25]],berry -> eat", "Error on line 24: Invalid expression plant[0.25]]."),
+                       ("plant[x],berry -> eat", "Error on line 24: Invalid expression plant[x]."),
+                       ("plant(0.25),berry -> eat", "Error on line 24: Expected a stimulus element, got plant(0.25)."),
+                       ("plant(0.25),berry eat", "Error on line 24: Expression must include a '->'."),
+                       ("plant(0.25),berry -> eat -> approach", "Error on line 24: Expression must include only one '->'."),
+                       ("-> eat -> approach", "Error on line 24: Expression must include only one '->'."),
+                       ("-> eat", "Error on line 24: Expected a stimulus element, got ."),
+                       ("plant[0.2]->  foo", "Error on line 24: Expected a behavior name, got foo.")]
         for pplot_expr in pplot_exprs:
             script = self.get_pplot_errors_script(pplot_expr[0])
             err_msg = pplot_expr[1]

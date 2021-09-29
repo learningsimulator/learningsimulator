@@ -81,6 +81,6 @@ class TestExceptions(LsTestCase):
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "There is no @RUN."
+        msg = "Error on line 8: There is no @RUN."
         with self.assertRaisesMsg(msg):
             run(text)

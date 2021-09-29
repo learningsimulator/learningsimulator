@@ -532,7 +532,7 @@ class TestExceptions(LsTestCase):
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "There is no @RUN."
+        msg = "Error on line 8: There is no @RUN."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -579,7 +579,7 @@ class TestExceptions(LsTestCase):
 
         @run foo
         """
-        msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
+        msg = "Error on line 9: Stop condition cannot depend on behavior in mechanism 'rw'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -627,7 +627,7 @@ class TestExceptions(LsTestCase):
 
         @run foo, bar
         """
-        msg = "Stop condition cannot depend on behavior in mechanism 'rw'."
+        msg = "Error on line 9: Stop condition cannot depend on behavior in mechanism 'rw'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -646,7 +646,7 @@ class TestExceptions(LsTestCase):
 
         @run bar
         """
-        msg = "Phase line logic cannot depend on behavior in mechanism 'rw'."
+        msg = "Error on line 10: Phase line logic cannot depend on behavior in mechanism 'rw'."
         with self.assertRaisesMsg(msg):
             run(text)
 

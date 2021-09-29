@@ -139,7 +139,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @variables
         '''
-        msg = "@VARIABLES not specified."
+        msg = "Error on line 2: @VARIABLES not specified."
         with self.assertRaisesMsg(msg):
             parse(text)
 

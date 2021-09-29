@@ -244,7 +244,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Invalid phase label 'foofel'."
+        msg = "Error on line 8: Invalid phase label 'foofel'."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -261,7 +261,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Redefinition of phase 'foo'."
+        msg = "Error on line 8: Redefinition of phase 'foo'."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -278,7 +278,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 8: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -295,7 +295,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Invalid phase label '(foo)'."
+        msg = "Error on line 8: Invalid phase label '(foo)'."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -312,7 +312,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Phase label 'bar(foo)baz' is not a valid identifier."
+        msg = "Error on line 8: Phase label 'bar(foo)baz' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -329,7 +329,7 @@ class TestInheritance(LsTestCase):
 
         xscale: all  # Just to finish the parsing of bar
         '''
-        msg = "Phase label 'barbazfoo)' is not a valid identifier."
+        msg = "Error on line 8: Phase label 'barbazfoo)' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'bar')
 
@@ -357,7 +357,7 @@ class TestInheritance(LsTestCase):
         stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
 
-        msg = "Unknown variable 'local_var'."
+        msg = "Error on line 12: Unknown variable 'local_var'."
         with self.assertRaisesMsg(msg):
             stimulus = phase.next_stimulus('b2')[0]
 
@@ -1567,7 +1567,7 @@ class TestMultipleActions(LsTestCase):
         E2 e2      | E0
         E3 e3      | E0
         '''
-        msg = "Invalid condition 'E1,E2,E3'."
+        msg = "Error on line 9: Invalid condition 'E1,E2,E3'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1640,7 +1640,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'b1: x1:1, x2:2, B' was met for response 'b2'."
+        msg = "Error on line 8: No condition in 'b1: x1:1, x2:2, B' was met for response 'b2'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1757,7 +1757,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | b1=6: x1:1, x2:2, x3:3
         B e2       | A
         '''
-        msg = "Last action must be a row label, found 'x3:3'."
+        msg = "Error on line 8: Last action must be a row label, found 'x3:3'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1775,7 +1775,7 @@ class TestMultipleActions(LsTestCase):
         A          | x==2:1, B
         B e2       | A
         '''
-        msg = "Unknown action '1'."
+        msg = "Error on line 8: Unknown action '1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1866,7 +1866,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
+        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1879,7 +1879,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
+        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1892,7 +1892,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "No condition in 'x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
+        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2012,7 +2012,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @PHASE
         '''
-        msg = "@PHASE line must have the form '@PHASE label stop:condition'."
+        msg = "Error on line 2: @PHASE line must have the form '@PHASE label stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, '_')
 
@@ -2025,7 +2025,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Unknown variable 'e11'."
+        msg = "Error on line 4: Unknown variable 'e11'."
         phase.next_stimulus(None)
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
@@ -2038,7 +2038,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Condition 'e1' is not a boolean expression."
+        msg = "Error on line 4: Condition 'e1' is not a boolean expression."
         phase.next_stimulus(None)
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
@@ -2053,7 +2053,7 @@ class TestExceptions(LsTestCase):
         L2 e2 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Unknown variable 'count'."
+        msg = "Error on line 4: Unknown variable 'count'."
         phase.next_stimulus(None)
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
@@ -2066,7 +2066,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L2
         L2 e2 | L1
         '''
-        msg = "@PHASE line must have the form '@PHASE label stop:condition'."
+        msg = "Error on line 4: @PHASE line must have the form '@PHASE label stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2078,7 +2078,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L2
         L2 e2 | L1
         '''
-        msg = "Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 4: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2089,7 +2089,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L2
         L2 e2 | L1
         '''
-        msg = "Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 4: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2100,7 +2100,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | L2
         L2 e2 | L1
         '''
-        msg = "Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 4: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2112,7 +2112,7 @@ class TestExceptions(LsTestCase):
         L1 e1 | H
         H     | b1:L1 | L1
         '''
-        msg = "Condition on help line cannot depend on response."
+        msg = "Error on line 6: Condition on help line cannot depend on response."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2126,7 +2126,7 @@ class TestExceptions(LsTestCase):
         H1 var1:var1+1 | L2
         L2 e2          | L1
         '''
-        msg = "Cannot modify global variable inside a phase."
+        msg = "Error on line 7: Cannot modify global variable inside a phase."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2141,7 +2141,7 @@ class TestExceptions(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Unknown variable 'y'."
+        msg = "Error on line 5: Unknown variable 'y'."
         with self.assertRaisesMsg(msg):
             phase.next_stimulus(None)
 
@@ -2156,7 +2156,7 @@ class TestExceptions(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Error in expression '1+/1': invalid syntax."
+        msg = "Error on line 5: Error in expression '1+/1': invalid syntax."
         with self.assertRaisesMsg(msg):
             phase.next_stimulus(None)
 
@@ -2171,7 +2171,7 @@ class TestExceptions(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Cannot evaluate expression 'rand(1,)': rand() missing 1 required positional argument: 'stop'."
+        msg = "Error on line 5: Cannot evaluate expression 'rand(1,)': rand() missing 1 required positional argument: 'stop'."
         with self.assertRaisesMsg(msg):
             phase.next_stimulus(None)
 
@@ -2186,7 +2186,7 @@ class TestExceptions(LsTestCase):
         H1 local_var:local_var+1 | L1
         '''
         phase = parse(text, 'phase_label')
-        msg = "Error in expression ''foo''."
+        msg = "Error on line 5: Error in expression ''foo''."
         with self.assertRaisesMsg(msg):
             phase.next_stimulus(None)
 
@@ -2200,7 +2200,7 @@ class TestExceptions(LsTestCase):
         H  count_reset(e1X) | L3
         L3 e2               | L1
         '''
-        msg = "Unknown event 'e1X' in count_reset."
+        msg = "Error on line 7: Unknown event 'e1X' in count_reset."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2214,7 +2214,7 @@ class TestExceptions(LsTestCase):
         XH  count_reset(b1) | L3
         XL3 e2              | L1
         '''
-        msg = "Unknown action 'H'."
+        msg = "Error on line 5: Unknown action 'H'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -2228,7 +2228,7 @@ class TestExceptions(LsTestCase):
         XH  count_reset(b1) | L3
         XL3 e2              | L1
         '''
-        msg = "Phase line contains only label."
+        msg = "Error on line 6: Phase line contains only label."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2242,7 +2242,7 @@ class TestExceptions(LsTestCase):
         H  count_reset(b1) | L3
         L3 e2              | L1
         '''
-        msg = "The phase line label 'FOO' coincides with the name of a stimulus element."
+        msg = "Error on line 5: The phase line label 'FOO' coincides with the name of a stimulus element."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2256,7 +2256,7 @@ class TestExceptions(LsTestCase):
         BAR count_reset(b1) | L3
         L3  e2              | L1
         '''
-        msg = "The phase line label 'b1' coincides with the name of a behavior."
+        msg = "Error on line 6: The phase line label 'b1' coincides with the name of a behavior."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2270,7 +2270,7 @@ class TestExceptions(LsTestCase):
         BAR count_reset(b1) | H
         L1  e2              | L1
         '''
-        msg = "Duplicate of phase line label 'L1'."
+        msg = "Error on line 8: Duplicate of phase line label 'L1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2299,7 +2299,7 @@ class TestExceptions(LsTestCase):
         L1  e1 | L2
         L2  e2
         '''
-        msg = "Missing separator '|' on phase line."
+        msg = "Error on line 6: Missing separator '|' on phase line."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2311,7 +2311,7 @@ class TestExceptions(LsTestCase):
         L1  e11 | L2
         L2  e2  | L1
         '''
-        msg = "Unknown action 'e11'."
+        msg = "Error on line 5: Unknown action 'e11'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2322,7 +2322,7 @@ class TestExceptions(LsTestCase):
         L1  coun_reset(e1) | L2
         L2  e2             | L1
         '''
-        msg = "Unknown action 'coun_reset(e1)'."
+        msg = "Error on line 5: Unknown action 'coun_reset(e1)'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2334,7 +2334,7 @@ class TestExceptions(LsTestCase):
         L1  e1,e11 | L2
         L2  e2     | L1
         '''
-        msg = "Expected a stimulus element, got 'e11'."
+        msg = "Error on line 5: Expected a stimulus element, got 'e11'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2346,7 +2346,7 @@ class TestExceptions(LsTestCase):
         L1  e1   | L2
         L2  e2   |
         '''
-        msg = "Line with label 'L2' has no conditions."
+        msg = "Error on line 6: Line with label 'L2' has no conditions."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2358,7 +2358,7 @@ class TestExceptions(LsTestCase):
         L1  e1                 | L2
         L2  count_reset(foo)   |
         '''
-        msg = "Unknown event 'foo' in count_reset."
+        msg = "Error on line 6: Unknown event 'foo' in count_reset."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2373,7 +2373,7 @@ class TestExceptions(LsTestCase):
         phase = parse(text, 'thelabel')
         stimulus = phase.next_stimulus(None)[0]
         self.assertEqual(stimulus, {'e1': 1})
-        msg = "No condition in 'b3=7:L2 | b2=42:L2' was met for response 'b1'."
+        msg = "Error on line 5: No condition in 'b3=7:L2 | b2=42:L2' was met for response 'b1'."
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
 
@@ -2392,7 +2392,7 @@ class TestExceptions(LsTestCase):
         """
         phase = parse(text, 'vi')
         stimulus = phase.next_stimulus(None)[0]
-        msg = "No condition in 'ON(1/6),FI2(1/6),FI3(1/6)' was met for response 'R'."
+        msg = "Error on line 10: No condition in 'ON(1/6),FI2(1/6),FI3(1/6)' was met for response 'R'."
         with self.assertRaisesMsg(msg):
             for _ in range(100):
                 phase.next_stimulus('R')
@@ -2411,7 +2411,7 @@ class TestExceptions(LsTestCase):
 
         @run vi
         """
-        msg = "Sum of probabilities is 1.5>1."
+        msg = "Error on line 10: Sum of probabilities is 1.5>1."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2438,7 +2438,7 @@ class TestExceptions(LsTestCase):
 
         @run thelabel
         '''
-        msg = "Condition '42' is not a boolean expression."
+        msg = "Error on line 6: Condition '42' is not a boolean expression."
         with self.assertRaisesMsg(msg):
             run(text)
             # phase = parse(text, 'thelabel')
@@ -2450,7 +2450,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | e1:L2 | L1
         L2  e2  | L1
         '''
-        msg = "Variable name 'e1' equals a stimulus element name."
+        msg = "Error on line 5: Variable name 'e1' equals a stimulus element name."
         with self.assertRaisesMsg(msg):
             phase = parse(text, 'thelabel')
 
@@ -2497,7 +2497,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.5),L1 | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2(0.5),L1'."
+        msg = "Error on line 5: Invalid condition 'L2(0.5),L1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2509,7 +2509,7 @@ class TestExceptions(LsTestCase):
         L2  e2  | L1
         '''
         # msg = "Unknown action 'L2((0.5)),L1(0.1)'."
-        msg = "Unknown action 'L2((0.5))'."
+        msg = "Error on line 5: Unknown action 'L2((0.5))'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2520,7 +2520,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2)0.5(,L1(0.1) | L1
         L2  e2  | L1
         '''
-        msg = "Unknown action 'L2)0.5('."
+        msg = "Error on line 5: Unknown action 'L2)0.5('."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2531,7 +2531,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.5), LL1(0.1) | L1
         L2  e2  | L1
         '''
-        msg = "Unknown action 'LL1(0.1)'."
+        msg = "Error on line 5: Unknown action 'LL1(0.1)'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2542,7 +2542,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.5), L1(1.1) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2(0.5),L1(1.1)'. Expected a probability, got '1.1'."
+        msg = "Error on line 5: Invalid condition 'L2(0.5),L1(1.1)'. Expected a probability, got '1.1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2553,7 +2553,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.2),L1(-0.9) | L1
         L2  e2  | L1
         '''
-        msg = "Invalid condition 'L2(0.2),L1(-0.9)'. Expected a probability, got '-0.9'."
+        msg = "Error on line 5: Invalid condition 'L2(0.2),L1(-0.9)'. Expected a probability, got '-0.9'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2565,7 +2565,7 @@ class TestExceptions(LsTestCase):
         L2  e2  | L1
         L3  e1  | L2
         '''
-        msg = "Invalid condition 'L2(0.5),L1(0.2),L2(0.01)'. Label 'L2' duplicated."
+        msg = "Error on line 5: Invalid condition 'L2(0.5),L1(0.2),L2(0.01)'. Label 'L2' duplicated."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2576,7 +2576,7 @@ class TestExceptions(LsTestCase):
         L1  e1  | L22 | L1
         L2  e2  | L1
         '''
-        msg = "Unknown action 'L22'."
+        msg = "Error on line 5: Unknown action 'L22'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2591,7 +2591,7 @@ class TestExceptions(LsTestCase):
 
         @run thelabel
         '''
-        msg = "Sum of probabilities is 1.1>1."
+        msg = "Error on line 7: Sum of probabilities is 1.1>1."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2603,6 +2603,6 @@ class TestExceptions(LsTestCase):
         L1  e1  | L2(0.2),L1(0.9) | L1
         L2  e2  | L1
         '''
-        msg = "Phase label '123thelabel' is not a valid identifier."
+        msg = "Error on line 4: Phase label '123thelabel' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')

@@ -181,7 +181,7 @@ class TestPlots(LsTestCase):
 
             @{vwnp}export
             '''
-            msg = f"Invalid @{vwnp}export command."
+            msg = f"Error on line 9: Invalid @{vwnp}export command."
             with self.assertRaisesMsg(msg):
                 run(script)
 

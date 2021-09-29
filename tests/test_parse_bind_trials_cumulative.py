@@ -113,14 +113,14 @@ class TestExceptions(LsTestCase):
         text = f'''
         {name}:
         '''
-        msg = f"Parameter '{name}' is not specified."
+        msg = f"Error on line 2: Parameter '{name}' is not specified."
         with self.assertRaisesMsg(msg):
             parse(text, name)
 
         text = '''
         {}   :
         '''.format(name)
-        msg = "Parameter '{}' is not specified.".format(name)
+        msg = "Error on line 2: Parameter '{}' is not specified.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 
@@ -132,7 +132,7 @@ class TestExceptions(LsTestCase):
         text = '''
         {}
         '''.format(name)
-        msg = "Parameter '{}' is not specified.".format(name)
+        msg = "Error on line 2: Parameter '{}' is not specified.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 
@@ -144,6 +144,6 @@ class TestExceptions(LsTestCase):
         text = '''
         {}: galopp
         '''.format(name)
-        msg = "Parameter '{}' must be 'on' or 'off'.".format(name)
+        msg = "Error on line 2: Parameter '{}' must be 'on' or 'off'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)

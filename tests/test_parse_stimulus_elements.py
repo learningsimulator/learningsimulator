@@ -85,7 +85,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         text = '''
         stimulus_elements: b1, , b2, b3
         '''
-        msg = "Found empty stimulus element name."
+        msg = "Error on line 2: Found empty stimulus element name."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -93,7 +93,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         text = '''
         stimulus_elements: b1, b2, b3, b4, b2, b1
         '''
-        msg = "The stimulus element name 'b2' occurs more than once."
+        msg = "Error on line 2: The stimulus element name 'b2' occurs more than once."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -101,7 +101,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3,
                    b4, b2, b1
         '''
-        msg = "The stimulus element name 'b2' occurs more than once."
+        msg = "Error on line 3: The stimulus element name 'b2' occurs more than once."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -110,7 +110,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         behaviors: e1, e2, e3
         stimulus_elements: b1, b2, b3, b4, e2
         '''
-        msg = "The stimulus element name 'e2' is invalid, since it is a behavior name."
+        msg = "Error on line 3: The stimulus element name 'e2' is invalid, since it is a behavior name."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -119,7 +119,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4,
                    e2, b1
         '''
-        msg = "The stimulus element name 'e2' is invalid, since it is a behavior name."
+        msg = "Error on line 4: The stimulus element name 'e2' is invalid, since it is a behavior name."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -128,7 +128,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         @variables v1:1.2, v2:2.3, v3:3.4
         stimulus_elements: b1, b2, b3, b4, v2, v3, v1
         '''
-        msg = "The stimulus element name 'v2' is invalid, since it is a variable name."
+        msg = "Error on line 3: The stimulus element name 'v2' is invalid, since it is a variable name."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -137,7 +137,7 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         stimulus_elements: b1, b2, b3, b4,
                    v2
         '''
-        msg = "The stimulus element name 'v2' is invalid, since it is a variable name."
+        msg = "Error on line 4: The stimulus element name 'v2' is invalid, since it is a variable name."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -146,6 +146,6 @@ class TestParsestimulus_elementsErrors(LsTestCase):
         @variables v1:1.2, v2:2.3, v3:3.4
         stimulus_elements: b1, b2, b3, b4, v2. v3, v1
         '''
-        msg = "Stimulus element name 'v2. v3' is not a valid identifier."
+        msg = "Error on line 3: Stimulus element name 'v2. v3' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text)

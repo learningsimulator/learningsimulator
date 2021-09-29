@@ -51,7 +51,7 @@ class TestMisc(LsTestCase):
         PL2    E2  |  PL0
         """
         world, _ = parse(script)
-        msg = "Unknown variable 'E00'."
+        msg = "Error on line 9: Unknown variable 'E00'."
         world.next_stimulus(None)
         with self.assertRaisesMsg(msg):
             world.next_stimulus('R0')

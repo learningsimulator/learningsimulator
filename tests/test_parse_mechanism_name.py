@@ -116,7 +116,7 @@ class TestParseMechanismNameErrors(LsTestCase):
         text = '''
         mechanism: foo
         '''
-        msg = "Invalid mechanism name 'foo'. Mechanism name must be one of the following: a, ac, actorcritic, alearning, es, expectedsarsa, ga, ql, qlearning, rescorlawagner, rw, sr, stimulusresponse."
+        msg = "Error on line 2: Invalid mechanism name 'foo'. Mechanism name must be one of the following: a, ac, actorcritic, alearning, es, expectedsarsa, ga, ql, qlearning, rescorlawagner, rw, sr, stimulusresponse."
         with self.assertRaisesMsg(msg):
             parse(text)
 
