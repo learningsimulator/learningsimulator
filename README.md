@@ -1,6 +1,7 @@
 # Learning Simulator: A simulation software for animal and human learning
 
 ![Build](https://github.com/learningsimulator/learningsimulator/workflows/Learning%20Simulator/badge.svg)
+![Coverage](https://github.com/learningsimulator/learningsimulator/workflows/Learning%20Simulator/coverage.svg)
 [![Read the Docs](https://readthedocs.org/projects/learningsimulator/badge/?version=latest)](https://learningsimulator.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.02891/status.svg)](https://doi.org/10.21105/joss.02891)
