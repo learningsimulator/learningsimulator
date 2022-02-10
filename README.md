@@ -75,3 +75,4 @@ written in a simple and well-documented scripting language, is the only input to
 Simulator, facilitating reproducible workflows. The script also specifies how to visualize the
 simulation data, for example how a memory state variable changes during the simulation.
 Learning Simulator can also export results to CSV files.
+
