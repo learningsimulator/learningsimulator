@@ -48,7 +48,7 @@ will make the plotting commands render 10 lines, one per subject.
 ::
 
   n_subjects = 10
-  subject = all
+  subject = average
 
 will make the plotting commands render one line showing the average of all subjects.
 
