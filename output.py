@@ -21,10 +21,10 @@ class ScriptOutput():
         '''stimulus is a tuple.'''
         self.run_outputs[run_label].write_w(subject_ind, stimulus, step, mechanism)
 
-    def vwpn_eval(self, vwph, expr, parameters):
+    def vwpn_eval(self, vwph, expr, parameters, run_parameters):
         # self._evalparse(parameters)
         run_label = parameters.get(kw.RUNLABEL)
-        return self.run_outputs[run_label].vwpn_eval(vwph, expr, parameters)
+        return self.run_outputs[run_label].vwpn_eval(vwph, expr, parameters, run_parameters)
 
     def printout(self):
         for run_label, run_output in self.run_outputs.items():
@@ -136,7 +136,7 @@ class RunOutput():
         self.output_subjects[subject_ind].write_phase_line_label(phase_line_label, step,
                                                                  preceeding_help_lines)
 
-    def vwpn_eval(self, vwpn, expr, parameters):
+    def vwpn_eval(self, vwpn, expr, parameters, run_parameters):
         if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
             raise EvalException("Used mechanism does not have variable 'v'.")
         if vwpn == 'w' and not self.mechanism_obj.has_w():
@@ -148,17 +148,17 @@ class RunOutput():
         if subject_ind == kw.EVAL_AVERAGE:
             eval_subjects = list()
             for i in range(self.n_subjects):
-                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters))
+                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters, run_parameters))
             return util.eval_average(eval_subjects)
         elif subject_ind == kw.EVAL_ALL:
             eval_subjects = list()
             for i in range(self.n_subjects):
-                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters))
+                eval_subjects.append(self.output_subjects[i].vwpn_eval(vwpn, expr, parameters, run_parameters))
             return eval_subjects
         else:
             if subject_ind >= len(self.output_subjects):
                 raise EvalException(f"The value ({subject_ind + 1}) for the parameter '{kw.EVAL_SUBJECT}' exceeds the number of subjects ({len(self.output_subjects)}).")
-            return self.output_subjects[subject_ind].vwpn_eval(vwpn, expr, parameters)
+            return self.output_subjects[subject_ind].vwpn_eval(vwpn, expr, parameters, run_parameters)
 
     def printout(self):
         i = 0
@@ -246,7 +246,7 @@ class RunOutputSubject():
                 self.w[key] = Val()
             self.w[key].write(mechanism.w[key], step)
 
-    def vwpn_eval(self, vwpn, expr, parameters):
+    def vwpn_eval(self, vwpn, expr, parameters, run_parameters):
         if vwpn == 'n':
             _, history, phase_line_labels, _ = self._phasefilter(None, parameters)
             return RunOutputSubject.n_eval(expr, history, phase_line_labels, parameters)
@@ -255,7 +255,7 @@ class RunOutputSubject():
                 # expr is a tuple ({'e1':i1, 'e2':i2, ...}, behavior)
                 stimulus = expr[0]
                 behavior = expr[1]
-                funout = self.p_eval(stimulus, behavior, parameters)
+                funout = self.p_eval(stimulus, behavior, parameters, run_parameters)
             else:
                 switcher = {
                     'v': self.v_eval,
@@ -263,7 +263,7 @@ class RunOutputSubject():
                     'w': self.w_eval
                 }
                 fun = switcher[vwpn]
-                funout = fun(expr, parameters)
+                funout = fun(expr)
             funout, history, phase_line_labels, phase_line_labels_steps = self._phasefilter(funout, parameters)
             return self._xscalefilter(funout, history, phase_line_labels, phase_line_labels_steps, parameters)
 
@@ -394,16 +394,16 @@ class RunOutputSubject():
             pattern_len = 1
         return pattern_len
 
-    def v_eval(self, er, parameters):
-        return self.v[er].evaluate(parameters)
+    def v_eval(self, er):
+        return self.v[er].evaluate()
 
-    def vss_eval(self, ss, parameters):
-        return self.vss[ss].evaluate(parameters)
+    def vss_eval(self, ss):
+        return self.vss[ss].evaluate()
 
-    def w_eval(self, element, parameters):
-        return self.w[element].evaluate(parameters)
+    def w_eval(self, element):
+        return self.w[element].evaluate()
 
-    def p_eval(self, stimulus, response, parameters):
+    def p_eval(self, stimulus, response, parameters, run_parameters):
         """stimulus is a dict with intensities for stimulus elements. response is a string."""
         nonzero_intensity_stimulus = {e: i for e, i in stimulus.items() if i != 0}
 
@@ -416,7 +416,7 @@ class RunOutputSubject():
         behaviors = list()
         nval = 0
         for er in v_val:
-            v_val[er] = self.v_eval(er, parameters)
+            v_val[er] = self.v_eval(er)
             if nval == 0:
                 nval = len(v_val[er])
             behavior = er[1]
@@ -427,8 +427,8 @@ class RunOutputSubject():
         for i in range(nval):
             v_local = util.dict_of_list_ind(v_val, i)
             out[i] = probability_of_response(nonzero_intensity_stimulus, response, behaviors,
-                                             self.stimulus_req, parameters.get(kw.BETA),
-                                             parameters.get(kw.MU), v_local)
+                                             self.stimulus_req, run_parameters.get(kw.BETA),
+                                             run_parameters.get(kw.MU), v_local)
         return out
 
     @staticmethod
@@ -488,7 +488,7 @@ class Val():
         self.steps.append(step)
         # self.phase_labels.append(phase_label)
 
-    def evaluate(self, evalprops):
+    def evaluate(self):
         '''Assumes that self.steps is increasing and that self.steps[0]=0.'''
         max_step = self.steps[-1]
         outlen = max_step + 1
@@ -504,15 +504,6 @@ class Val():
             out[max_step] = self.values[nchunks]  # Last point
         return out
 
-        # max_step = self.steps[-1]
-        # out = list()
-        # curr_ind = 0
-        # out.append(self.values[curr_ind])  # Start value
-        # for i in range(1, max_step + 1):
-        #     if i in self.steps:  # XXX can be optimized
-        #         curr_ind += 1
-        #     out.append(self.values[curr_ind])
-        # return out
 
     def printout(self):
         print(f"values: {self.values}")

@@ -111,6 +111,54 @@ subject: average
         self.assertGreater(y_bg, 0.7)
         self.assertLess(y_bg, 0.8)
 
+    def test_beta_mu_not_post_params(self):
+        ''''
+        Tests that beta, mu, and response_requirements are not postprocessing parameters,
+        in other words that the values for these parameters used in the postprocessing
+        should come from the run that is being postprocessed.
+        '''
+        text = '''
+        n_subjects        : 10
+        mechanism         : sr
+        behaviors         : response, no_response
+        stimulus_elements : background, stimulus, reward
+        start_v           : default:-1
+        alpha_v           : 0.1
+        u                 : reward:5, default:0
+        beta              : 1
+        mu                : 1
+
+        @PHASE training stop: stimulus=20
+        start_trial  stimulus   | response: REWARD | NO_REWARD
+        REWARD      reward     | start_trial
+        NO_REWARD   background | start_trial
+
+        @run training
+
+        xscale: stimulus
+        subject: average        
+
+        @pplot stimulus->response {'label':'orig'}
+
+        beta:10
+        @pplot stimulus->response {'label':'beta'}
+
+        mu = stimulus->response:0.1, default:2
+        @pplot stimulus->response {'label':'mu'}
+        '''
+        run(text)
+        plot_data = get_plot_data()
+
+        orig = plot_data['orig']['y']
+        beta = plot_data['beta']['y']
+        mu = plot_data['mu']['y']
+        for o, b, m in zip(orig, beta, mu):
+            o_rounded = round(o, 5)
+            b_rounded = round(b, 5)
+            m_rounded = round(m, 5)
+            self.assertEqual(o_rounded, b_rounded)
+            self.assertEqual(b_rounded, m_rounded)
+
 
 class TestExceptions(LsTestCase):
     @classmethod

@@ -294,7 +294,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]."
+        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, '_')
 
