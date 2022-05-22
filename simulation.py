@@ -20,6 +20,10 @@ class Runs():
     def get(self, label):
         return self.runs[label]
 
+    def get_last_run_obj(self):
+        last_run_label = self.run_labels[-1]
+        return self.runs[last_run_label]
+
     def get_n_subjects(self):
         """Return a list containing the number of subjects in each run."""
         return [self.runs[run_label].n_subjects for run_label in self.run_labels]

@@ -266,7 +266,7 @@ class ScriptParser():
 
             elif line_parser.line_type == LineParser.RUN:
                 if len(linesplit_space) == 1:
-                    raise ParseException(lineno, "@RUN line must have the form '@RUN phases [runlabel:label].")
+                    raise ParseException(lineno, "@RUN line must have the form '@RUN phases [runlabel:label]'.")
                 after_run = linesplit_space[1].strip()
                 run_label, run_phase_labels = self._parse_run(after_run, lineno)
                 world = self.phases.make_world(run_phase_labels)
@@ -329,7 +329,14 @@ class ScriptParser():
                 cmd = linesplit_space[0].lower()
                 plot_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, plot_parameters)
-                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, mpl_prop)
+
+                runlabel = self.parameters.get(kw.RUNLABEL)
+                if runlabel:
+                    run_parameters = self.runs.get(runlabel).mechanism_obj.parameters
+                else:
+                    run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
+
+                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, run_parameters, mpl_prop)
                 self.postcmds.add(plot_cmd)
 
             elif line_parser.line_type == LineParser.LEGEND:
@@ -342,8 +349,15 @@ class ScriptParser():
                 cmd = linesplit_space[0].lower()
                 export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen exports
                 self._evalparse(lineno, export_parameters)
+
+                runlabel = self.parameters.get(kw.RUNLABEL)
+                if runlabel:
+                    run_parameters = self.runs.get(runlabel).mechanism_obj.parameters
+                else:
+                    run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
+
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
-                export_cmd = ExportCmd(lineno, cmd, expr, expr0, export_parameters)
+                export_cmd = ExportCmd(lineno, cmd, expr, expr0, export_parameters, run_parameters)
                 self.postcmds.add(export_cmd)
 
             else:
@@ -630,12 +644,13 @@ class PostCmd():
 
 
 class PlotCmd(PostCmd):
-    def __init__(self, cmd, expr, expr0, parameters, mpl_prop):
+    def __init__(self, cmd, expr, expr0, parameters, run_parameters, mpl_prop):
         super().__init__()
         self.cmd = cmd
         self.expr = expr
         self.expr0 = expr0
         self.parameters = parameters
+        self.run_parameters = run_parameters
         self.mpl_prop = mpl_prop
 
     def run(self, simulation_data):
@@ -644,19 +659,19 @@ class PlotCmd(PostCmd):
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
         if self.cmd == kw.VPLOT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
             default_label = f"v({self.expr0})"
         elif self.cmd == kw.VSSPLOT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
             default_label = f"vss({self.expr0})"
         elif self.cmd == kw.WPLOT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
             default_label = f"w({self.expr0})"
         elif self.cmd == kw.PPLOT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
             default_label = f"p({self.expr0})"
         elif self.cmd == kw.NPLOT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
             default_label = f"n({self.expr0})"
             start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
                           (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
@@ -719,13 +734,14 @@ class PlotData():
 
 
 class ExportCmd(PostCmd):
-    def __init__(self, lineno, cmd, expr, expr0, parameters):
+    def __init__(self, lineno, cmd, expr, expr0, parameters, run_parameters):
         super().__init__()
         self.lineno = lineno
         self.cmd = cmd
         self.expr = expr
         self.expr0 = expr0
         self.parameters = parameters
+        self.run_parameters = run_parameters
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
@@ -801,19 +817,19 @@ class ExportCmd(PostCmd):
     def _vwpn_export(self, file, simulation_data):
         label_expr = self.expr0  # beautify_expr_for_label(self.expr)
         if self.cmd == kw.VEXPORT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
             legend_label = f"v({label_expr})"
         if self.cmd == kw.VSSEXPORT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
             legend_label = f"vss({label_expr})"
         elif self.cmd == kw.WEXPORT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
             legend_label = f"w({label_expr})"
         elif self.cmd == kw.PEXPORT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
             legend_label = f"p({label_expr})"
         elif self.cmd == kw.NEXPORT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters)
+            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
             legend_label = f"n({label_expr})"
 
         n_ydata = len(ydata)
