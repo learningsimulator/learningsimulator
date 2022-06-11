@@ -319,7 +319,7 @@ class TestPlotProperties(LsTestCase):
         self.assertEqual(plot_data_s['both_phase1s_and_phase2s'],
                          plot_data_nt['both_phase1nt_and_phase2nt'])
 
-    def test_phase_order_not_run_order1(self):
+    def test_phase_order_not_run_order(self):
         text = '''
         mechanism: ga
         stimulus_elements: s1, s2
@@ -334,9 +334,9 @@ class TestPlotProperties(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4])
+        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4, 5])
 
-    def test_phase_order_not_run_order2(self):
+    def test_phase_order_not_run_order(self):
         """
         Test that the first value in plot (x=0) is
         - inital value if the first phase in 'phases' is the first run phase,
@@ -359,8 +359,8 @@ class TestPlotProperties(LsTestCase):
         phases: phase2, phase1
         @nplot s1
         '''
-        # assert(False)  # Test all plot types and that y(0) is last value in previous phase
-        #  (or start value if first phase)
+        #assert(False)  # Test all plot types and that y(0) is last value in previous phase
+        # (or start value if first phase)
 
     def test_run_phases(self):
         """
@@ -421,6 +421,70 @@ class TestExceptions(LsTestCase):
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "Error on line 8: There is no @RUN."
+        msg = "There is no @RUN."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_wrong_subplot(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: s1, s2
+        behaviors: b1  # Only one behavior to make plots deterministic
+        u: s2:1, default:0
+        start_v: default:0
+
+        @phase phase1 stop:s1=10
+        new_trial s1 | b1:S2 | new_trial
+        S2        s2 | new_trial
+        
+        @run phase1
+
+        @figure
+        @subplot 1111
+        @vplot s1->b1 {'label':'run_both_plot_first'}
+        '''
+        msg = "Error on line 15: Subplot specification must be 3-digit integer, got '1111'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: s1, s2
+        behaviors: b1  # Only one behavior to make plots deterministic
+        u: s2:1, default:0
+        start_v: default:0
+
+        @phase phase1 stop:s1=10
+        new_trial s1 | b1:S2 | new_trial
+        S2        s2 | new_trial
+        
+        @run phase1
+
+        @figure
+        @subplot foo
+        @vplot s1->b1 {'label':'run_both_plot_first'}
+        '''
+        msg = "Error on line 15: Subplot specification must be 3-digit integer, got 'foo'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: s1, s2
+        behaviors: b1  # Only one behavior to make plots deterministic
+        u: s2:1, default:0
+        start_v: default:0
+
+        @phase phase1 stop:s1=10
+        new_trial s1 | b1:S2 | new_trial
+        S2        s2 | new_trial
+        
+        @run phase1
+
+        @figure
+        @subplot 1.2
+        @vplot s1->b1 {'label':'run_both_plot_first'}
+        '''
+        msg = "Error on line 15: Subplot specification must be 3-digit integer, got '1.2'."
         with self.assertRaisesMsg(msg):
             run(text)
