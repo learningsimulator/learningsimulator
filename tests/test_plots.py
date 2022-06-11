@@ -334,7 +334,7 @@ class TestPlotProperties(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4, 5])
+        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4])
 
     def test_phase_order_not_run_order2(self):
         """
@@ -421,7 +421,7 @@ class TestExceptions(LsTestCase):
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "There is no @RUN."
+        msg = "Error on line 8: There is no @RUN."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -443,7 +443,7 @@ class TestExceptions(LsTestCase):
         @subplot 1111
         @vplot s1->b1 {'label':'run_both_plot_first'}
         '''
-        msg = "Error on line 15: Subplot specification must be 3-digit integer, got '1111'."
+        msg = "Error on line 15: Invalid @subplot argument 1111."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -464,7 +464,7 @@ class TestExceptions(LsTestCase):
         @subplot foo
         @vplot s1->b1 {'label':'run_both_plot_first'}
         '''
-        msg = "Error on line 15: Subplot specification must be 3-digit integer, got 'foo'."
+        msg = "Error on line 15: Invalid @subplot argument foo."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -485,6 +485,6 @@ class TestExceptions(LsTestCase):
         @subplot 1.2
         @vplot s1->b1 {'label':'run_both_plot_first'}
         '''
-        msg = "Error on line 15: Subplot specification must be 3-digit integer, got '1.2'."
+        msg = "Error on line 15: Invalid @subplot argument 1.2."
         with self.assertRaisesMsg(msg):
             run(text)
