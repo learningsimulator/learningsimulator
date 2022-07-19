@@ -326,7 +326,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: e1, e2, e3, e4
         {}: e1:0.123, e2:4.56, e3:99, e1:-22, e18:knas
         '''.format(name)
-        msg = "Error on line 3: Duplicate of e1 in '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'knas' for 'e18' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 
@@ -334,7 +334,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: ee1, e2, e3, e4
         {}: ee1:0.123, e2:4.56, ee1:99, foo->bar:1, default:Blaps
         '''.format(name)
-        msg = "Error on line 3: Duplicate of ee1 in '{}'.".format(name)
+        msg = "Error on line 3: Error in parameter '{}': 'foo->bar' is an invalid stimulus element.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 

@@ -281,15 +281,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3, b4
         {}: b1:0.123, b2:4.56, b3:99, b1:-22, b18:knas
         '''.format(name)
-        msg = "Error on line 3: Duplicate of b1 in '{}'.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text)
-
-        text = '''
-        behaviors: eb1, b2, b3, b4
-        {}: eb1:0.123, b2:4.56, eb1:99, foo->bar:1, default:Blaps
-        '''.format(name)
-        msg = "Error on line 3: Duplicate of eb1 in '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'knas' for 'b18' in parameter 'behavior_cost'."
         with self.assertRaisesMsg(msg):
             parse(text)
 

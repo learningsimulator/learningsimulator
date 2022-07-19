@@ -330,47 +330,6 @@ class TestExceptions(LsTestCase):
     def _test_mixup_eb(self, name):
         pass
 
-    def test_duplicate(self):
-        for prop in PROPS:
-            self._test_duplicate(prop)
-
-    def _test_duplicate(self, name):
-        text = '''
-        stimulus_elements: e1, e2, e3, e4
-        behaviors: b1, b2, b3, b4, b5
-        {}: e1->b1:0.123, e2->b2:4.56, e1->b1:99, e3->b1:1, default:-22
-        '''.format(name)
-        msg = "Error on line 4: Duplicate of e1->b1 in '{}'.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text, name)
-
-        text = '''
-        stimulus_elements: ee1, e2, e3, e4
-        behaviors: bb1, b2, b3, b4, b5
-        {}: ee1->bb1:0.123, e2->b2:4.56, ee1->bb1:99, foo->bar:1, default:Blaps
-        '''.format(name)
-        msg = "Error on line 4: Duplicate of ee1->bb1 in '{}'.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text, name)
-
-        text = '''
-        stimulus_elements: e1, e2, e3, e4
-        behaviors: b1, b2, b3, b4, b5
-        {}: e1->b1:0.123, e2->b2:4.56, foo->bar:1, e1->b1:99, default:-22
-        '''.format(name)
-        msg = "Error on line 4: Error in parameter '{}': 'foo' is an invalid stimulus element.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text, name)
-
-        text = '''
-        stimulus_elements: e1, e2, e3, e4
-        behaviors: b1, b2, b3, b4, b5
-        {}: e1->b1:0.123, e2->b2:4.56, e1->bar:1, e1->b1:99, default:-22
-        '''.format(name)
-        msg = "Error on line 4: Error in parameter '{}': 'bar' is an invalid behavior name.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text, name)
-
     def test_stimulus_element_not_defined(self):
         for prop in PROPS:
             self._test_stimulus_element_not_defined(prop)

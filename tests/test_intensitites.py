@@ -393,7 +393,7 @@ runlabel: reward=10,reward[1]
         # Test that u5 is increasing
         self.assertIncreasing(u5)
 
-        self.assertGreater(u10[-1], 1.35)
+        self.assertGreater(u10[-1], 1.3)
         self.assertLess(u10[-1], 2)
 
         self.assertGreater(u5[-1], 0)
