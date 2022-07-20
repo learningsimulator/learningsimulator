@@ -10,7 +10,7 @@ used in the updating of ``vss``-values.
 
 The parameter ``alpha_vss`` can be set to certain values for certain particular element-element pairs.
 It can also be specified as a single value, in which case the same learning rate is used for all
-element-element pairs.
+element-element pairs. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -19,8 +19,11 @@ Syntax
 
   alpha_vss = e1->e2: v1, e3->e4: v2, ..., default: d
   alpha_vss = v1
+  alpha_vss = e1->*: v1
+  alpha_vss = *->e1: v1
+  alpha_vss = *->*: v1
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
