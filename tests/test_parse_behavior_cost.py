@@ -253,6 +253,40 @@ class TestWithFunctions(LsTestCase):
         self.assertEqual(b4, 11)
 
 
+class TestWithWildcard(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def test_simple(self):
+        text = '''
+        behaviors: b1, b2
+        {}: *:2
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 2, 'b2': 2}
+        self.assertEqual(c, expected)
+
+        text = '''
+        behaviors: b1, b2, b3
+        {}: default:1, b2:2, *:42
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 42, 'b2': 42, 'b3': 42}
+        self.assertEqual(c, expected)
+
+        text = '''
+        behaviors: b1, b2, b3
+        {}: b2 : 2,    *  :    42
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 42, 'b2': 42, 'b3': 42}
+        self.assertEqual(c, expected)
+
+
 class TestExceptions(LsTestCase):
     def setUp(self):
         pass
@@ -281,15 +315,7 @@ class TestExceptions(LsTestCase):
         behaviors: b1, b2, b3, b4
         {}: b1:0.123, b2:4.56, b3:99, b1:-22, b18:knas
         '''.format(name)
-        msg = "Error on line 3: Duplicate of b1 in '{}'.".format(name)
-        with self.assertRaisesMsg(msg):
-            parse(text)
-
-        text = '''
-        behaviors: eb1, b2, b3, b4
-        {}: eb1:0.123, b2:4.56, eb1:99, foo->bar:1, default:Blaps
-        '''.format(name)
-        msg = "Error on line 3: Duplicate of eb1 in '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'knas' for 'b18' in parameter 'behavior_cost'."
         with self.assertRaisesMsg(msg):
             parse(text)
 

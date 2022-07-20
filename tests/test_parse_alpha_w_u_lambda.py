@@ -203,6 +203,52 @@ class TestWithVariables(LsTestCase):
         self.assertEqual(w, expected)
 
 
+class TestWithWildcard(LsTestCase):
+    def setUp(self):
+        pass
+
+    def test_simple(self):
+        for name in prop_names:
+            self._test_simple(name)
+
+    def _test_simple(self, name):
+        text = '''
+        stimulus_elements: e1, e2, e3, e4
+        {} = *: 42
+        '''.format(name)
+        w = parse(text, name)
+        expected = {'e1': 42, 'e2': 42, 'e3': 42, 'e4': 42}
+        self.assertEqual(w, expected)
+
+        text = '''
+        stimulus_elements: e1, e2, e3, e4
+        {} = *: 42, *:2
+        '''.format(name)
+        w = parse(text, name)
+        expected = {'e1': 2, 'e2': 2, 'e3': 2, 'e4': 2}
+        self.assertEqual(w, expected)
+
+        text = '''
+        stimulus_elements: e1, e2, e3, e4
+        {} = *: 1+2*3, e2: 4-3  *   2, e3: 10-1/2
+        '''.format(name)
+        w = parse(text, name)
+        expected = {'e1': 7, 'e2': -2, 'e3': 9.5, 'e4': 7}
+        self.assertEqual(w, expected)
+
+        text = '''
+        stimulus_elements: e1, e2, e3, e4
+        behaviors: b1, b2
+        {}: e1: 1+2*3,
+                 e2: 4**2-3  *   2,
+                 e3: 10-1/2,
+                 *: 0+0**1+0-0
+        '''.format(name)
+        w = parse(text, name)
+        expected = {'e1': 0, 'e2': 0, 'e3': 0, 'e4': 0}
+        self.assertEqual(w, expected)
+
+
 class TestWithExpressions(LsTestCase):
     def setUp(self):
         pass
@@ -326,7 +372,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: e1, e2, e3, e4
         {}: e1:0.123, e2:4.56, e3:99, e1:-22, e18:knas
         '''.format(name)
-        msg = "Error on line 3: Duplicate of e1 in '{}'.".format(name)
+        msg = "Error on line 3: Invalid value 'knas' for 'e18' in parameter '{}'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 
@@ -334,7 +380,7 @@ class TestExceptions(LsTestCase):
         stimulus_elements: ee1, e2, e3, e4
         {}: ee1:0.123, e2:4.56, ee1:99, foo->bar:1, default:Blaps
         '''.format(name)
-        msg = "Error on line 3: Duplicate of ee1 in '{}'.".format(name)
+        msg = "Error on line 3: Error in parameter '{}': 'foo->bar' is an invalid stimulus element.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text, name)
 

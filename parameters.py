@@ -327,11 +327,16 @@ class Parameters():
                 if b == kw.DEFAULT:
                     if self.val[kw.BEHAVIOR_COST][kw.DEFAULT] is not None:
                         return "Default value for '{}' can only be stated once.".format(kw.BEHAVIOR_COST)
-                elif b not in self.val[kw.BEHAVIORS]:
-                    return f"Error in parameter '{kw.BEHAVIOR_COST}': '{b}' is an invalid behavior name."
-                if self.val[kw.BEHAVIOR_COST][b] is not None:
-                    return "Duplicate of {} in '{}'.".format(b, kw.BEHAVIOR_COST)
-                self.val[kw.BEHAVIOR_COST][b] = c
+                    self.val[kw.BEHAVIOR_COST][kw.DEFAULT] = c
+                else:
+                    if b == "*":
+                        bs = self.val[kw.BEHAVIORS]
+                    else:
+                        bs = [b]
+                        if b not in self.val[kw.BEHAVIORS]:
+                            return f"Error in parameter '{kw.BEHAVIOR_COST}': '{b}' is an invalid behavior name."
+                    for b in bs:
+                        self.val[kw.BEHAVIOR_COST][b] = c
 
             if not to_be_continued:
                 # Set the default value for non-set behaviors
@@ -394,13 +399,24 @@ class Parameters():
                     self.val[NAME][kw.DEFAULT] = v
                 elif eb.count('->') == 1:
                     e, b = eb.split('->')
-                    if e not in self.val[kw.STIMULUS_ELEMENTS]:
-                        return f"Error in parameter '{NAME}': '{e}' is an invalid stimulus element."
-                    if b not in self.val[kw.BEHAVIORS]:
-                        return f"Error in parameter '{NAME}': '{b}' is an invalid behavior name."
-                    if self.val[NAME][(e, b)] is not None:
-                        return f"Duplicate of {e}->{b} in '{NAME}'."
-                    self.val[NAME][(e, b)] = v
+                    e = e.strip()
+                    b = b.strip()
+                    if e == "*":
+                        es = self.val[kw.STIMULUS_ELEMENTS]
+                    else:
+                        es = [e]
+                        if e not in self.val[kw.STIMULUS_ELEMENTS]:
+                            return f"Error in parameter '{NAME}': '{e}' is an invalid stimulus element."
+
+                    if b == "*":
+                        bs = self.val[kw.BEHAVIORS]
+                    else:
+                        bs = [b]
+                        if b not in self.val[kw.BEHAVIORS]:
+                            return f"Error in parameter '{NAME}': '{b}' is an invalid behavior name."
+                    for e in es:
+                        for b in bs:
+                            self.val[NAME][(e, b)] = v
                 else:
                     return f"Invalid string '{eb}' in parameter '{NAME}'."
 
@@ -461,13 +477,23 @@ class Parameters():
                     self.val[NAME][kw.DEFAULT] = v
                 elif ee.count('->') == 1:
                     e1, e2 = ee.split('->')
-                    if e1 not in self.val[kw.STIMULUS_ELEMENTS]:
-                        return f"Error in parameter '{NAME}': '{e1}' is an invalid stimulus element."
-                    if e2 not in self.val[kw.STIMULUS_ELEMENTS]:
-                        return f"Error in parameter '{NAME}': '{e2}' is an invalid stimulus element."
-                    if self.val[NAME][(e1, e2)] is not None:
-                        return f"Duplicate of {e1}->{e2} in '{NAME}'."
-                    self.val[NAME][(e1, e2)] = v
+                    e1 = e1.strip()
+                    e2 = e2.strip()
+                    if e1 == "*":
+                        e1s = self.val[kw.STIMULUS_ELEMENTS]
+                    else:
+                        e1s = [e1]
+                        if e1 not in self.val[kw.STIMULUS_ELEMENTS]:
+                            return f"Error in parameter '{NAME}': '{e1}' is an invalid stimulus element."
+                    if e2 == "*":
+                        e2s = self.val[kw.STIMULUS_ELEMENTS]
+                    else:
+                        e2s = [e2]
+                        if e2 not in self.val[kw.STIMULUS_ELEMENTS]:
+                            return f"Error in parameter '{NAME}': '{e2}' is an invalid stimulus element."
+                    for e1 in e1s:
+                        for e2 in e2s:
+                            self.val[NAME][(e1, e2)] = v
                 else:
                     return f"Invalid string '{ee}' in parameter '{NAME}'."
 
@@ -585,11 +611,16 @@ class Parameters():
                 if e == kw.DEFAULT:
                     if self.val[NAME][kw.DEFAULT] is not None:
                         return "Default value for '{}' can only be stated once.".format(NAME)
-                elif e not in self.val[kw.STIMULUS_ELEMENTS]:
-                    return f"Error in parameter '{NAME}': '{e}' is an invalid stimulus element."
-                if self.val[NAME][e] is not None:
-                    return "Duplicate of {} in '{}'.".format(e, NAME)
-                self.val[NAME][e] = w
+                    self.val[NAME][kw.DEFAULT] = w
+                else:
+                    if e == "*":
+                        es = self.val[kw.STIMULUS_ELEMENTS]
+                    else:
+                        es = [e]
+                        if e not in self.val[kw.STIMULUS_ELEMENTS]:
+                            return f"Error in parameter '{NAME}': '{e}' is an invalid stimulus element."
+                    for e in es:
+                        self.val[NAME][e] = w
 
             if not to_be_continued:
                 # Set the default value for non-set stimulus elements
