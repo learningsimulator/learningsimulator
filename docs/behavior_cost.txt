@@ -8,7 +8,7 @@ See :ref:`the-mechanisms`.
 
 The parameter ``behavior_cost`` can be set to certain values for certain particular behaviors.
 It can also be specified as a single value, in which case the same cost is used for all
-behaviors.
+behaviors. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -17,8 +17,9 @@ Syntax
 
   behavior_cost = e1: v1, e2: v2, ..., en: vn, default: d
   behavior_cost = v1
+  behavior_cost = *:v1  # Same as above
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
