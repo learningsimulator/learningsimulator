@@ -10,7 +10,7 @@ used in the updating of w-values. See :ref:`the-mechanisms`.
 
 The parameter ``alpha_w`` can be set to certain values for certain particular stimulus elements.
 It can also be specified as a single value, in which case the same learning rate is used for all
-stimulus elements.
+stimulus elements. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -19,8 +19,9 @@ Syntax
 
   alpha_w = e1: v1, e2: v2, ..., en: vn, default: d
   alpha_w = v1
+  alpha_w = *:v1  # Same as above
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
