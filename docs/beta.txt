@@ -10,7 +10,7 @@ A low value for ``beta`` means high exploration.
 The value of the parameter ``beta`` is used in :ref:`the decision function<the-decision-function>`. See also :doc:`mu`.
 
 The parameter ``beta`` can be either a single value, in which case the same weight is placed on all v-values, or
-specified per element-behavior pair.
+specified per element-behavior pair. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -19,8 +19,11 @@ Syntax
 
   beta = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d
   beta = v1
+  beta = *->*:v1  # Same as above
+  beta = e1->*:v1
+  beta = *->b1:v1
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
