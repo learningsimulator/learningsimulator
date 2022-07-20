@@ -7,7 +7,7 @@ Specifies the initial v-values (the associative strength between stimulus elemen
 
 The parameter ``start_v`` can be set to certain values for certain particular element-behavior pairs.
 It can also be specified as a single value, in which case the same initial value is used for all
-element-behavior pairs.
+element-behavior pairs. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -16,8 +16,11 @@ Syntax
 
   start_v = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d
   start_v = v1
+  start_v = *->*: v1  # Same as the above
+  start_v = e1->*: v1
+  start_v = *->b1: v1
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
