@@ -253,6 +253,40 @@ class TestWithFunctions(LsTestCase):
         self.assertEqual(b4, 11)
 
 
+class TestWithWildcard(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def test_simple(self):
+        text = '''
+        behaviors: b1, b2
+        {}: *:2
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 2, 'b2': 2}
+        self.assertEqual(c, expected)
+
+        text = '''
+        behaviors: b1, b2, b3
+        {}: default:1, b2:2, *:42
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 42, 'b2': 42, 'b3': 42}
+        self.assertEqual(c, expected)
+
+        text = '''
+        behaviors: b1, b2, b3
+        {}: b2 : 2,    *  :    42
+        '''.format(name)
+        c = parse(text)
+        expected = {'b1': 42, 'b2': 42, 'b3': 42}
+        self.assertEqual(c, expected)
+
+
 class TestExceptions(LsTestCase):
     def setUp(self):
         pass
