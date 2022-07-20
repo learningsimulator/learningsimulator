@@ -9,7 +9,7 @@ Specifies the initial vss-values (the associative strength between pairs of stim
 
 The parameter ``start_vss`` can be set to certain values for certain particular stimulus element-element pairs.
 It can also be specified as a single value, in which case the same initial value is used for all
-stimulus element-element pairs.
+stimulus element-element pairs. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -18,8 +18,11 @@ Syntax
 
   start_vss = e1->e2: v1, e3->e4: v2, ..., default: d
   start_vss = v1
+  start_vss = *->*: v1  # Same as above
+  start_vss = e1->*: v1
+  start_vss = *->e1: v1
 
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
