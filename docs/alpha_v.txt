@@ -8,7 +8,7 @@ used in the updating of the v-values. See :ref:`the-mechanisms`.
 
 The parameter ``alpha_v`` can be set to certain values for certain particular element-behavior pairs.
 It can also be specified as a single value, in which case the same learning rate is used for all
-element-behavior pairs.
+element-behavior pairs. Wildcards (*) may be used to set several values at once.
 
 Syntax
 ------
@@ -17,8 +17,11 @@ Syntax
 
   alpha_v = e1->b1: v1, e1->b2: v2, ..., en->bn: vn, default: d
   alpha_v = v1
-
-where ``v1,v2,...,vn`` are :ref:`scalar expressions<scalar-expressions>`.
+  alpha_v = e1->*: v1, default: d
+  alpha_v = *->b1: v1, default: d
+  alpha_v = *->*: v1
+  
+where ``v1,v2,...,vn`` and ``d`` are :ref:`scalar expressions<scalar-expressions>`.
 
 Description
 -----------
@@ -27,7 +30,7 @@ Description
 
 - v(e1->b1) to v1,
 - v(e1->b2) to v2, ...,
-- v(en->bn) to v2,
+- v(en->bn) to vn,
 
 and the learning rate for all other v-values to d.
 
