@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dataset details
+{% endblock %} 
+
+{% block content %}
+
+<script type="text/javascript"
+    src="{{ url_for('static', filename='editable_table.js') }}">
+</script>
+
+<h2>Dataset added {{ dataset.date }}</h2>
+{% for key in ['label', 'description', 'legend', 'data_unit', 'data_is_qualitative'] %}
+    {{ form[key].label }}<br />
+    <div style="border:1px solid black;">
+        {{ dataset[key] }}
+    </div>
+    <p></p>
+{% endfor %}
+
+
+<div class="card">
+    <div class="card-body">
+        <div id="table" class="table-editable">
+            <table class="table table-bordered table-responsive-md table-striped text-center">
+                <thead>
+                    <tr>
+                        <th class="text-center">Time values</th>
+                        <th class="text-center">Data values</th>
+                        <th class="text-center">Annotation (optional)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set time_values = dataset['time_values'].split(',') %}
+                    {% set data_values = dataset['data_values'].split(',') %}
+                    {% for i in range(time_values|length) %}
+                    <tr>
+                        <td class="pt-3-half" contenteditable="false">{{ time_values[i][1:-1] }}</td>
+                        <td class="pt-3-half" contenteditable="false">{{ data_values[i][1:-1] }}</td>
+                        <td class="pt-3-half" contenteditable="false"> </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<div align="center">
+    <a href="{{ url_for('views.home') }}" class="btn btn-primary" role="button" aria-pressed="true">Back</a>
+</div>
+
+
+{% endblock %}

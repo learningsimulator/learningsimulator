@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}
+Update dataset
+{% endblock %} 
+
+{% block content %}
+
+<script type="text/javascript"
+    src="{{ url_for('static', filename='editable_table.js') }}">
+</script>
+
+<div class="content-section">
+    <form method="POST" action="{{ url_for('views.update_dataset', id=dataset.id) }}">
+        {{ form.hidden_tag() }}  <!-- form.csrf_token -->
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Update dataset</legend>
+
+            <!-- <div class="form-group">
+                {{ form.data_unit.label(class="form-control-label") }} 
+                {% if form.data_unit.errors %}
+                    {{ form.data_unit.label(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.data_unit.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.data_unit(class="form-control form-control-lg") }}
+                {% endif %}
+            </div> -->
+            
+            <!-- {% for error in form.label.errors %}
+                <span style="color:red;"><br />[{{ error }}]</span>
+            {% endfor %} -->
+            
+            <!-- 'time_values', 'data_values', -->
+            {% for key in ['label', 'description', 'legend', 'data_unit'] %}
+                <div class="form-group">
+                    {{ form[key].label(class="form-control-label") }}
+                    {% if form[key].errors %}
+                        {{ form[key](class="form-control form-control-sm is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form[key].errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form[key](class="form-control form-control-sm") }}
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+
+            <!-- Special treatment of key 'data_is_qualitative' -->
+            {% set key = 'data_is_qualitative' %}
+            <div class="form-group">
+                {% if form[key].errors %}
+                    {{ form[key](class="form-control form-control-sm is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form[key].errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form[key] }}
+                {% endif %}
+                {{ form[key].label(class="form-control-label") }}
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="table" class="table-editable">
+                        <span class="table-add float-right mb-3 mr-2">
+                            <a href="#!" class="text-success">
+                                <i class="fa fa-plus fa-2x" aria-hidden="true"></i>
+                            </a>
+                        </span>
+                        <table class="table table-bordered table-responsive-md table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Time values</th>
+                                    <th class="text-center">Data values</th>
+                                    <th class="text-center">Annotation (optional)</th>
+                                    <th class="text-center">Sort</th>
+                                    <th class="text-center">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set time_values = dataset['time_values'].split(',') %} 
+                                {% set data_values = dataset['data_values'].split(',') %}
+                                {% set time_value_name = "time_value" %}
+                                {% set data_value_name = "data_value" %}
+                                {% set data_annotation_name = "data_annotation" %}
+                                {% for i in range(time_values|length) %}
+                                    <tr>
+                                        <td class="pt-3-half" contenteditable="false">
+                                            <input type="text" name="{{ time_value_name }}" value="{{ time_values[i][1:-1] }}"
+                                                style="display:table-cell; width:100%">
+                                        </td>
+                                        <td class="pt-3-half" contenteditable="false">
+                                            <input type="text" name="{{ data_value_name }}" value="{{ data_values[i][1:-1] }}"
+                                                style="display:table-cell; width:100%">
+                                        </td>
+                                        <td class="pt-3-half" contenteditable="false">
+                                            <input type="text" name="{{ data_annotation_name }}" value=" "
+                                                style="display:table-cell; width:100%">
+                                        </td>
+                                        <td class="pt-3-half">
+                                            <span class="table-up">
+                                                <a href="#!" class="indigo-text">
+                                                    <i class="fa fa-long-arrow-alt-up" aria-hidden="true"></i>
+                                                </a>
+                                            </span>
+                                            <span class="table-down">
+                                                <a href="#!" class="indigo-text">
+                                                    <i class="fa fa-long-arrow-alt-down" aria-hidden="true"></i>
+                                                </a>
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <span class="table-remove">
+                                                <button type="button" class="btn btn-danger btn-rounded btn-sm my-0">
+                                                    Remove
+                                                </button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </fieldset>
+
+        <div align="center">
+            <a href="{{ url_for('views.home') }}" class="btn btn-secondary" role="button" aria-pressed="true">Cancel</a>
+            <!-- <button class="btn btn-secondary">Cancel</button> -->
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+        
+    </form>
+</div>
+
+{% endblock %}

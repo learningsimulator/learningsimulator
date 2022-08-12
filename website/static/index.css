@@ -1,0 +1,55 @@
+body {
+    font-family:'Courier New', Courier, monospace;
+}
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 5px;
+  box-sizing: border-box;  /* Include the padding and border in a column's total width and height */
+}
+.left {
+  width: 20%;
+}
+.middle {
+  width: 40%;
+}
+.right {
+  width: 40%;
+}
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#textarea-script {
+  height: 400px;
+  width: 100%;
+  box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
+}
+
+/* Font in list of script names */
+select {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* To make script label input field fill 100% od remaining place */
+#div-scriptlabel {
+  display: flex;
+  flex-direction: row
+}
+#input-scriptlabel {
+  flex: 1
+}
+
+/* To make a href links appear as buttons */
+/* a.button { */
+    /* appearance: button; */  /* Doesn't seem to work */
+    /* background-color: #199319;
+    color: white;
+    padding: 15px 25px;
+    text-decoration: none;
+} */

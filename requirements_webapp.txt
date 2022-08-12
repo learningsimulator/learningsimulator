@@ -1,0 +1,17 @@
+click
+Flask
+Flask-Cors
+Flask-Login
+Flask-SQLAlchemy
+Flask-WTF
+greenlet
+itsdangerous
+Jinja2
+MarkupSafe
+python-dotenv
+six
+SQLAlchemy
+Werkzeug
+wtf
+WTForms
+email_validator

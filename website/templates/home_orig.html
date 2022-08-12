@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Human Timelines{% endblock %}
+{% block content %}
+
+<h1 align="center">Datasets</h1>
+
+<!--
+<p></p>
+<form action="/action_page.php">  
+  <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike">
+  <label for="vehicle1"> I have a bike</label><br>
+  <input type="checkbox" id="vehicle2" name="vehicle2" value="Car">
+  <label for="vehicle1"> I have a car</label><br>
+</form>
+-->
+
+<hr />
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+
+      <h2>My datasets</h2>
+      <ul class="list-group list-group-flush overflow-auto" id="datasets">
+
+        {% for dataset in user.datasets %}
+        <li class="list-group-item">
+
+          <input type="checkbox" id="{{dataset.id}}" name="{{dataset.id}}" value="{{dataset.id}}">
+          <label for="{{dataset.id}}"> {{ dataset.label }} </label>
+
+          <!-- {{ dataset.data }} (Added {{ dataset.date }}) 
+          <button type="button" class="close" onClick="deleteNote({{ dataset.id }})">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          -->
+          <div class="float-right">
+            <!-- (Added {{ dataset.date }}) -->
+            <a href="{{ url_for('views.view_dataset', id=dataset.id) }}" class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a>
+            <a href="/delete/{{dataset.id}}">&times;</a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      <a href="{{ url_for('views.add') }}" class="btn btn-primary btn-lg btn-block active" role="button" aria-pressed="true">Add dataset</a>
+
+    </div>
+    <div class="col-sm">
+      <h2>Plot</h2>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

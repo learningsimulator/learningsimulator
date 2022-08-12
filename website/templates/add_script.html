@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}
+Sign Up
+{% endblock %} 
+
+{% block content %}
+
+<form method="POST" action="{{ url_for('views.add') }}">
+    {{ form.hidden_tag() }}  <!-- form.csrf_token -->
+    <h2>Add new script</h2>
+    {% for key in ['label', 'script'] %}
+        <div>
+            {{ form[key].label() }}<br>
+            {% if form[key].errors %}
+                {{ form[key]() }}
+                <div>
+                    {% for error in form[key].errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form[key]() }}
+            {% endif %}
+        </div>
+    {% endfor %}
+
+
+    <div>
+        <a href="{{ url_for('views.home') }}">Cancel</a>
+        <button type="submit">Add</button>
+    </div>
+
+</form>
+
+{% endblock %}
