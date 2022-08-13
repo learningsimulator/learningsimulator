@@ -3,7 +3,6 @@ import os
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
 from .models import Script
-from .forms import AddScriptForm
 from . import db
 from .util import to_bool, list_to_csv, csv_to_list
 from .webrunner import run_simulation
@@ -33,21 +32,20 @@ views = Blueprint('views', __name__)
 
 @views.route('/', methods=['GET'])
 def home():
-    form = AddScriptForm()
-    return render_template("home.html", user=current_user, form=form)
+    return render_template("home.html", user=current_user)
 
 
 @views.route('/run', methods=['POST'])
 def run():
-    form = AddScriptForm()
+    # form = AddScriptForm()
     # if request.method == 'POST':
-    if form.validate_on_submit():
-        script = request.form.get('script')
-        postcmds = run_simulation(script)
-        return render_template("home.html", user=current_user, form=form, postcmds=postcmds.cmds)
-        # return f"Script {script} finished successfully."
-    else:
-        return render_template("home.html", user=current_user, form=form, postcmds=None)
+    # if form.validate_on_submit():
+    script = request.json['script']
+    postcmds = run_simulation(script)
+    return render_template("home.html", user=current_user, postcmds=postcmds.cmds)
+    # return f"Script {script} finished successfully."
+    # else:
+    #     return render_template("home.html", user=current_user, form=form, postcmds=None)
 
 
 # @views.route('/get_for_plot/<ids>')
@@ -115,7 +113,7 @@ def validate(name, id=None):
             id = int(id)
             users_scripts = Script.query.filter(Script.user_id == current_user.id).all()
             for script in users_scripts:
-                if script.label == name and script.id != id:
+                if script.name == name and script.id != id:
                     err = f"There is already a script with the name '{name}'."
                     break
     return err
@@ -125,7 +123,7 @@ def validate(name, id=None):
 @login_required
 def get_script(id):
     script = Script.query.get_or_404(id)    
-    return {'name': script.label, 'script': script.script}
+    return {'name': script.name, 'code': script.code}
 
 
 # @views.route('/save/<int:id>', methods=['POST', 'GET'])
@@ -133,15 +131,15 @@ def get_script(id):
 @login_required
 def save_script():
     id = request.json['id']
-    label = request.json['name']
-    script = request.json['script']
+    name = request.json['name']
+    code = request.json['code']
     script_to_update = Script.query.get_or_404(id)
-    err = validate(label, id)
+    err = validate(name, id)
     if err:
         return {'error': err}
     else:
-        script_to_update.label = label
-        script_to_update.script = script
+        script_to_update.name = name
+        script_to_update.code = code
         err = None
         try:
             db.session.commit()
@@ -155,57 +153,16 @@ def save_script():
 @views.route('/add', methods=['POST'])
 @login_required
 def add():
-    label = request.json['name']
-    script = request.json['script']
-    err = validate(label)
-    new_script = Script(label=label,
-                        script=script,
+    name = request.json['name']
+    code = request.json['code']
+    err = validate(name)
+    new_script = Script(name=name,
+                        code=code,
                         user_id=current_user.id)
     db.session.add(new_script)
     db.session.commit()
     # flash('Script added!', category='success')
     return {'id': new_script.id, 'errors': err}
-
-    # XXX
-    # for i in range(1, 50):
-    #     sc = Script.query.get(i)
-    #     if sc is not None:
-    #         if i >= 2:
-    #             db.session.delete(sc)
-    #             db.session.commit()
-    #         print(sc.id)
-    #     else:
-    #         print("No " + str(i))    
-
-
-# @views.route('/add', methods=['POST'])
-# @login_required
-# def add():
-#     label = request.form['input-scriptlabel']
-#     script = request.form['textarea-script']
-    
-#     form = AddScriptForm(formdata=None)
-#     form.label = label
-#     form.script = script
-    
-#     # if request.method == 'POST':
-#     print(label)
-#     print(script)
-#     print(form.validate())
-#     if form.validate_on_submit():
-#         # label = form.get('label')
-#         # script = form.get('script')
-#         new_script = Script(label=label,
-#                             script=script,
-#                             user_id=current_user.id)
-#         db.session.add(new_script)
-#         db.session.commit()
-#         flash('Script added!', category='success')
-#         return {'aa': 1, 'bb': 2}
-#         # return render_template("home.html", user=current_user)
-#     else:
-#         return {'a': 1, 'b': 2}
-#         # return render_template("add_script.html", user=current_user, form=form)
 
 
 @views.route('/delete/<int:id>')

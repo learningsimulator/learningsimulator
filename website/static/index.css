@@ -24,7 +24,7 @@ body {
   clear: both;
 }
 
-#textarea-script {
+#textarea-code {
   height: 400px;
   width: 100%;
   box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
@@ -34,15 +34,28 @@ body {
 select {
     width: 100%;
     font-family: 'Courier New', Courier, monospace;
+    margin-bottom: 4px;
 }
 
-/* To make script label input field fill 100% od remaining place */
-#div-scriptlabel {
+#button-deletescript {
+    float: right;
+}
+
+/* To make script name input field fill 100% of remaining place */
+#div-scriptname {
   display: flex;
   flex-direction: row
 }
-#input-scriptlabel {
+#input-scriptname {
   flex: 1
+}
+
+.form-error {
+  color: red;
+}
+
+.form-field-signup {
+  width: 300px;
 }
 
 /* To make a href links appear as buttons */

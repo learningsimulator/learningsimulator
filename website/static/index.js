@@ -2,21 +2,33 @@ document.addEventListener("DOMContentLoaded", onLoad);
 
 function onLoad() { // DOM is loaded and ready
 
+    // Check that this is home.html
+    homeDiv = document.getElementById('div-home');
+    if (!homeDiv) {
+        return;
+    }
+
     // Set event listener to "My scripts" list
-    const myScriptsSelect = document.getElementById('select-my_scripts');
+    const myScriptsSelect = document.getElementById('select-myscripts');
     myScriptsSelect.addEventListener('change', myScriptsSelectionChanged);
 
     // Set event listener to button for creating new script
     const newScriptButton = document.getElementById('button-newscript');
-    newScriptButton.addEventListener('click', newScriptButtonClicked);
+    if (newScriptButton) {  // This button is only displayed when logged in
+        newScriptButton.addEventListener('click', newScriptButtonClicked);
+    }
 
     // Set event listener to button for deleting script
     const deleteScriptButton = document.getElementById('button-deletescript');
-    deleteScriptButton.addEventListener('click', deleteScriptButtonClicked);
+    if (deleteScriptButton) {  // This button is only displayed when logged in
+        deleteScriptButton.addEventListener('click', deleteScriptButtonClicked);
+    }
 
     // Set event listener to button for saving script
     const saveScriptButton = document.getElementById('button-savescript');
     saveScriptButton.addEventListener('click', saveScriptButtonClicked);
+
+    handleEmptySelection();
 
     /* Listener. */
     function myScriptsSelectionChanged() {
@@ -27,12 +39,32 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url, get_arg)
             .then(response => response.json())
             .then(data => {
-                // const jsonString = JSON.stringify(data);
                 const name = data['name'];
-                const script = data['script'];
-                document.getElementById('input-scriptlabel').value = name;
-                document.getElementById('textarea-script').value = script;
+                const code = data['code'];
+                document.getElementById('input-scriptname').value = name;
+                document.getElementById('textarea-code').value = code;
+                handleEmptySelection();
             });
+                
+    }
+
+
+    function handleEmptySelection() {
+        var scriptDiv = document.getElementById('div-script');
+        const selectedValue = myScriptsSelect.value;
+        // alert("deleteScriptButton.style.display: " + deleteScriptButton.style.display);
+        if (selectedValue.length == 0) {  // Empty selection or empty list
+            scriptDiv.style.display = "none";
+            if (deleteScriptButton) {
+                deleteScriptButton.style.display = "none";
+            }
+        }
+        else {
+            scriptDiv.style.display = "block";
+            if (deleteScriptButton) {
+                deleteScriptButton.style.display = "";
+            }
+        }
     }
 
     /* Utility. */
@@ -45,7 +77,7 @@ function onLoad() { // DOM is loaded and ready
     }
 
     /* Utility. */
-    function getNewScriptNameAndValue() {
+    function getNewScriptName() {
         let currentNames = [];
         for (var option of myScriptsSelect.options) {
             currentNames.push(option.text);
@@ -96,9 +128,9 @@ function onLoad() { // DOM is loaded and ready
             return;
         }
         
-        const newScriptName = document.getElementById('input-scriptlabel').value;
-        const newScriptContents = document.getElementById('textarea-script').value;
-        const dataSend = {'id': selectedValue, 'name': newScriptName, 'script': newScriptContents};
+        const newScriptName = document.getElementById('input-scriptname').value;
+        const newScriptContents = document.getElementById('textarea-code').value;
+        const dataSend = {'id': selectedValue, 'name': newScriptName, 'code': newScriptContents};
 
         const save_url = "/save";  // XXX use Jinja2: {{ url_for("save") | tojson }}
         const save_arg = {"method": "POST",
@@ -137,6 +169,7 @@ function onLoad() { // DOM is loaded and ready
                 else {
                     removeOptionFromMyScriptsSelect(selectedValue);
                 }
+                handleEmptySelection();
             });
     }
 
@@ -150,9 +183,9 @@ function onLoad() { // DOM is loaded and ready
                         intToTwoNumberString(today.getSeconds());
         const fullDateStr = today.getFullYear() + "-" + monthStr + "-" + dateStr + ", " + timeStr;
 
-        const newScriptName = getNewScriptNameAndValue();
+        const newScriptName = getNewScriptName();
         const newScriptContents = "# Learning simulator script\n# Created " + fullDateStr;
-        const dataSend = {'name': newScriptName, 'script': newScriptContents}
+        const dataSend = {'name': newScriptName, 'code': newScriptContents};
 
         const add_url = "/add";  // XXX use Jinja2: {{ url_for("add") | tojson }}
         const add_arg = {"method": "POST",

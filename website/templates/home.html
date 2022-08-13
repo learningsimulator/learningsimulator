@@ -5,46 +5,46 @@ Sign Up
 
 {% block content %}
 
-<div class="row">
+<div class="row" id="div-home">
   
   <div class="column left" style="background-color:#aaa;">
     My scripts
 
+    <select size="10" id="select-myscripts">
     {% if user.is_authenticated %}
-    <select size="10" id="select-my_scripts">
-    {% for script in user.scripts %}
-      <option value={{ script.id }}>{{ script.label }}</option>
-    {% endfor %}
+      {% for script in user.scripts %}
+        <option value={{ script.id }}>{{ script.name }}</option>
+      {% endfor %}    
+    {% endif %}
     </select>
     
-    <button type="button" id="button-newscript">Create New Script</button>
-    <button type="button" id="button-deletescript">Delete Selected</button>
-    
+    {% if user.is_authenticated %}
+      <button type="button" id="button-newscript">Create New Script</button>
+      <button type="button" id="button-deletescript">Delete Selected</button>  
     {% else %}
-    <a href="/login">Login</a> to be able to add your own datasets here.
+      <a href="/login">Login</a> to be able to create your own scripts here.
     {% endif %}
     
     <p>Example scripts</p>
   </div>
 
-  <div class="column middle" style="background-color:#bbb;">
+  <div class="column middle">
     <div id="div-script">
 
       <!-- <form id="form-script" method="POST"> -->
-        {{ form.hidden_tag() }}
+        <!-- form punkt hidden_tag() -->
 
-        <div id="div-scriptlabel">
-          <label for="input-scriptlabel">Name of script:&nbsp;</label>
-          <input id="input-scriptlabel" name="input-scriptlabel" maxlength="50" minlength="3" type="text" value="" required>
+        <div id="div-scriptname">
+          <label for="input-scriptname">Name of script:&nbsp;</label>
+          <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="" required>
         </div>
         
         <div>
-          <label for="textarea-script">Script:</label><br>              
-          <textarea id="textarea-script" name="textarea-script" maxlength="10000"></textarea>
+          <label for="textarea-code">Code:</label><br>              
+          <textarea id="textarea-code" maxlength="10000"></textarea>
         </div>
 
         <div>
-            <a href="/">Cancel</a>
             <button type="button" id="button-savescript">Save</button>
         </div>
       <!-- </form> -->

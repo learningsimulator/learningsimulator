@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from os import path
 from flask_login import LoginManager
 from werkzeug.routing import BaseConverter
@@ -9,18 +10,7 @@ from werkzeug.routing import BaseConverter
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
-
-# class ListConverter(BaseConverter):
-#     # regex = r'\d+(?:,\d+)*,?'
-
-#     def to_python(self, value):
-#         # return [int(x) for x in value.split(',')]
-#         return value.split(',')
-
-#     def to_url(self, values):
-#         # return ','.join(str(x) for x in value)
-#         # return '+'.join([BaseConverter.to_url(value) for value in values])
-#         return ','.join(values)
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)  # __name__ is 'website'
@@ -37,6 +27,13 @@ def create_app():
     # CORS(app)
 
     db.init_app(app)
+
+    # Workaround for SQLite not handling ALTER/DROP: use render_as_batch=True
+    with app.app_context():
+        if db.engine.url.drivername == 'sqlite':  
+            migrate.init_app(app, db, render_as_batch=True)
+        else:
+            migrate.init_app(app, db)
 
     from .views import views
     from .auth import auth
