@@ -30,6 +30,12 @@ body {
   box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
 }
 
+#textarea-code-example {
+  height: 400px;
+  width: 100%;
+  box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
+}
+
 /* Font in list of script names */
 select {
     width: 100%;
@@ -56,6 +62,11 @@ select {
 
 .form-field-signup {
   width: 300px;
+}
+
+/* To align checkboxes with its label (at least a little better) */
+input[type=checkbox] {
+  vertical-align: middle;
 }
 
 /* To make a href links appear as buttons */

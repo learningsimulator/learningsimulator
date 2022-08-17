@@ -24,11 +24,11 @@
   <body>
     <div>
         {% if user.is_authenticated %}
-        <a href="/">Home</a>
-        <a href="/logout">Logout</a>
+          <a href="/">Home</a>
+          <a href="/logout">Logout</a>
         {% else %}
-        <a href="/login">Login</a>
-        <a href="/sign-up">Sign Up</a>
+          <a href="/login">Login</a>
+          <a href="/register">Register</a>
         {% endif %}
     </div>
     <hr>

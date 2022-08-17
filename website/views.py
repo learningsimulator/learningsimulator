@@ -6,6 +6,7 @@ from .models import Script
 from . import db
 from .util import to_bool, list_to_csv, csv_to_list
 from .webrunner import run_simulation
+from .example_scripts import example_scripts
 
 views = Blueprint('views', __name__)
 
@@ -32,7 +33,8 @@ views = Blueprint('views', __name__)
 
 @views.route('/', methods=['GET'])
 def home():
-    return render_template("home.html", user=current_user)
+    example_script_names = [script['name'] for script in example_scripts]
+    return render_template("home.html", user=current_user, example_script_names=example_script_names)
 
 
 @views.route('/run', methods=['POST'])
@@ -104,7 +106,7 @@ def run():
 #     return jsonify(xydata=xydata, legends=legends, data_is_qualitative=data_is_qualitative)
 
 
-def validate(name, id=None):
+def validate_script(name, id=None):
     err = None
     if len(name) == 0:
         err = "Script name must not be empty."
@@ -122,11 +124,16 @@ def validate(name, id=None):
 @views.route('/get/<int:id>')
 @login_required
 def get_script(id):
-    script = Script.query.get_or_404(id)    
+    script = Script.query.get_or_404(id)
     return {'name': script.name, 'code': script.code}
 
 
-# @views.route('/save/<int:id>', methods=['POST', 'GET'])
+@views.route('/get_example/<int:index>')
+def get_example_script(index):
+    script = example_scripts[index - 1]
+    return {'name': script['name'], 'code': script['code']}
+
+
 @views.route('/save', methods=['POST'])
 @login_required
 def save_script():
@@ -134,7 +141,7 @@ def save_script():
     name = request.json['name']
     code = request.json['code']
     script_to_update = Script.query.get_or_404(id)
-    err = validate(name, id)
+    err = validate_script(name, id)
     if err:
         return {'error': err}
     else:
@@ -155,7 +162,7 @@ def save_script():
 def add():
     name = request.json['name']
     code = request.json['code']
-    err = validate(name)
+    err = validate_script(name)
     new_script = Script(name=name,
                         code=code,
                         user_id=current_user.id)
@@ -165,13 +172,16 @@ def add():
     return {'id': new_script.id, 'errors': err}
 
 
-@views.route('/delete/<int:id>')
-def delete(id):
-    script_to_delete = Script.query.get_or_404(id)
-    err = None
-    try:
-        db.session.delete(script_to_delete)
-        db.session.commit()
-    except Exception as e:
-        err = "There was a problem deleting that dataset: " + str(e)
-    return {'errors': err}
+@views.route('/delete', methods=['POST'])
+def delete():
+    ids_to_delete = request.json['ids']
+    print(ids_to_delete)
+    for id in ids_to_delete:
+        script_to_delete = Script.query.get_or_404(id)
+        try:
+            db.session.delete(script_to_delete)
+            db.session.commit()
+        except Exception as e:
+            err = "There was a problem deleting that script: " + str(e)
+            return {'errors': err}
+    return {'errors': None}
