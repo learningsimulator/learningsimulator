@@ -1,4 +1,5 @@
 import os
+import json
 
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
@@ -37,75 +38,6 @@ def home():
     return render_template("home.html", user=current_user, example_script_names=example_script_names)
 
 
-@views.route('/run', methods=['POST'])
-def run():
-    # form = AddScriptForm()
-    # if request.method == 'POST':
-    # if form.validate_on_submit():
-    script = request.json['script']
-    postcmds = run_simulation(script)
-    return render_template("home.html", user=current_user, postcmds=postcmds.cmds)
-    # return f"Script {script} finished successfully."
-    # else:
-    #     return render_template("home.html", user=current_user, form=form, postcmds=None)
-
-
-# @views.route('/get_for_plot/<ids>')
-# def get_for_plot(ids):
-#     ids_list = ids.split(',')
-#     return _get_for_plot(ids_list)
-
-
-# @views.route('/get_for_plot_predef/<csv_list:ids_predef>')
-# @login_required
-# def get_for_plot_predef(ids_predef):
-#     print(ids_predef)
-#     return _get_for_plot(ids_predef, is_predef=True)
-
-
-# @views.route('/get_for_plot_user/<csv_list:ids>')
-# @login_required
-# def get_for_plot_user(ids):
-#     return _get_for_plot(ids, is_predef=False)
-
-
-# def _get_for_plot(ids):
-#     # ids is a list of integers (for user's data (id)) and strings (predefined data (id_predef))
-#     xydata = []  # List of dicts
-#     legends = []  # List of strings
-#     data_is_qualitative = []
-#     ind = 0
-#     for id in ids:
-#         if str.isdigit(id):
-#             dataset = DataSet.query.get_or_404(int(id))
-#         else:
-#             dataset = DataSet.query.filter(DataSet.id_predef == id).first_or_404()
-#         times = csv_to_list(dataset.time_values)
-#         datas = csv_to_list(dataset.data_values)
-
-#         for x, y in zip(times, datas):
-#             if dataset.data_is_qualitative:
-#                 xydata.append({"time" + str(ind): x,
-#                                "value" + str(ind): "0",
-#                                "text" + str(ind): y})
-#             elif len(y) > 0:
-#                 xydata.append({"time" + str(ind): x,
-#                                "value" + str(ind): y})
-#             else:  # amCharts interprets empty string as zero - for "no value" we need to omit the key "value"
-#                 xydata.append({"time" + str(ind): x})
-#         ind += 1
-#         legend = dataset.legend
-#         if dataset.data_scale is not None:
-#             legend = legend + " (10^" + str(dataset.data_scale) + " " + dataset.data_unit + ")"
-#         elif dataset.data_unit is not None:
-#             legend = legend + " (" + dataset.data_unit + ")"
-#         legends.append(legend)
-#         data_is_qualitative.append(dataset.data_is_qualitative)
-
-#     # Cannot return the list, must return a json
-#     return jsonify(xydata=xydata, legends=legends, data_is_qualitative=data_is_qualitative)
-
-
 def validate_script(name, id=None):
     err = None
     if len(name) == 0:
@@ -128,8 +60,8 @@ def get_script(id):
     return {'name': script.name, 'code': script.code}
 
 
-@views.route('/get_example/<int:index>')
-def get_example_script(index):
+@views.route('/get_example/<int:index>', methods=['GET'])
+def get_example(index):
     script = example_scripts[index - 1]
     return {'name': script['name'], 'code': script['code']}
 
@@ -185,3 +117,21 @@ def delete():
             err = "There was a problem deleting that script: " + str(e)
             return {'errors': err}
     return {'errors': None}
+
+
+@views.route('/run', methods=['POST'])
+def run():
+    code = request.json['code']
+    postcmds = run_simulation(code)
+
+    out = []
+    for cmd in postcmds.cmds:
+        out.append(cmd.to_dict())
+    return jsonify(out)
+
+
+# @views.route('/run', methods=['POST'])
+# def run():
+#     script = request.json['script']
+#     postcmds = run_simulation(script)
+#     return render_template("home.html", user=current_user, postcmds=postcmds.cmds)

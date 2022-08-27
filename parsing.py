@@ -3,6 +3,7 @@ import re
 import copy
 import matplotlib.pyplot as plt
 import csv
+import json
 
 import keywords as kw
 from parameters import Parameters
@@ -642,6 +643,9 @@ class PostCmd():
     def progress_label(self):
         return ""
 
+    def to_dict(self):
+        return dict()
+
 
 class PlotCmd(PostCmd):
     def __init__(self, cmd, expr, expr0, parameters, run_parameters, mpl_prop):
@@ -706,6 +710,9 @@ class PlotCmd(PostCmd):
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
 
+    def to_dict(self):
+        return self.plot_data.to_dict()
+
 
 class PlotData():
     """
@@ -731,6 +738,12 @@ class PlotData():
         # plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem) when ProgressDlg has been up
         # plt.get_current_fig_manager().set_window_title("FOO")
         plt.gcf().show()
+
+    def to_dict(self):
+        return {'type': 'plot',
+                'ydatas': json.dumps(self.ydata_list),
+                'plot_args': json.dumps(self.plot_args_list),
+                'start_at_1': json.dumps(self.start_at_1)}
 
 
 class ExportCmd(PostCmd):
@@ -887,6 +900,9 @@ class FigureCmd(PostCmd):
     def progress_label(self):
         return kw.FIGURE
 
+    def to_dict(self):
+        return {'type': 'figure', 'title': self.title, 'mpl_prop': json.dumps(self.mpl_prop)}
+
 
 class SubplotCmd(PostCmd):
     def __init__(self, spec_list, title, mpl_prop):
@@ -901,6 +917,10 @@ class SubplotCmd(PostCmd):
 
     def progress_label(self):
         return kw.SUBPLOT
+
+    def to_dict(self):
+        return {'type': 'subplot', 'spec_list': json.dumps(self.spec_list), 'mpl_prop': json.dumps(self.mpl_prop)}
+
 
 
 class LegendCmd(PostCmd):
@@ -917,3 +937,6 @@ class LegendCmd(PostCmd):
 
     def progress_label(self):
         return kw.LEGEND
+
+    def to_dict(self):
+        return {'type': 'legend', 'mpl_prop': json.dumps(self.mpl_prop)}

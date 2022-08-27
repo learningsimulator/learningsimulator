@@ -12,36 +12,33 @@ function onLoad() { // DOM is loaded and ready
     const USERSCRIPT_NAME = 'input-scriptname';
     const USERSCRIPT_CODE = 'textarea-code';
     const EXAMPLESCRIPTS = 'select-examplescripts';
+    const EXAMPLESCRIPTS_CODE = 'textarea-code-example';
     const CREATE = 'button-createscript';
     const DELETE = 'button-deletescript';
     const SAVE = 'button-savescript';
-    
+    const USER_RUN = 'button-run';
+
     const usersScripts = document.getElementById(USERSCRIPTS);
     const usersScriptName = document.getElementById(USERSCRIPT_NAME);
     const usersScriptCode = document.getElementById(USERSCRIPT_CODE);
     const exampleScripts = document.getElementById(EXAMPLESCRIPTS);
+    const exampleScriptCode = document.getElementById(EXAMPLESCRIPTS_CODE);
     const createButton = document.getElementById(CREATE);
     const deleteButton = document.getElementById(DELETE);
     const saveButton = document.getElementById(SAVE);
+    const userRunButton = document.getElementById(USER_RUN);
+    const plotArea = document.getElementById("plotarea");
 
     class UIScript {
         constructor(id, name, code) {
+            this.set(id, name, code);
+        }
+
+        set(id, name, code) {
             this.id = id;
             this.name = name
             this.code = code;
         }
-
-        // set(id, name, code) {
-        //     this.id = id;
-        //     this.name = name;
-        //     this.code = code;
-        // }
-
-        // setCurrent() {
-        //     this.id = getSelectedUserScripts()[0];
-        //     this.name = usersScriptName.value;
-        //     this.code = usersScriptCode.value;    
-        // }
 
         getName() {
             return this.name;
@@ -50,20 +47,16 @@ function onLoad() { // DOM is loaded and ready
         getCode() {
             return this.code;
         }
-
-        // equals(name, code) {
-        //     return (this.name === name && this.code === code);
-        // }
     }
 
     // A dictionary of UIScript objects, keyed by id. For caching to avoid hitting the db so often
-    var displayedScripts = {};
-    function updateDisplayedScripts(id, name, code) {
-        if (id in Object.entries(displayedScripts)) {
-            displayedScripts[id].set(id, name, code);
+    var cachedScripts = {};
+    function updateCachedScripts(id, name, code) {
+        if (Object.hasOwn(cachedScripts, id)) {
+            cachedScripts[id].set(id, name, code);
         }
         else {
-            displayedScripts[id] = new UIScript(id, name, code);
+            cachedScripts[id] = new UIScript(id, name, code);
         }
     }
 
@@ -72,13 +65,6 @@ function onLoad() { // DOM is loaded and ready
     script need to be saved, by comparing with the cache.
     */
     var currentSelUserScripts = null;
-    // var currentSettings = {USERSCRIPTS: null, USERSCRIPT_NAME: null, USERSCRIPT_CODE: null};
-    // function updateCurrentSettings() {
-    //     currentSettings[USERSCRIPTS] = getSelectedUserScripts();
-    //     currentSettings[USERSCRIPT_NAME] = usersScriptName.value;
-    //     currentSettings[USERSCRIPT_CODE] = usersScriptCode.value;
-    // }
-    // currentSettings = new UIScript();
 
     // Set event listener to "My scripts" list
     usersScripts.addEventListener('change', userScriptsSelectionChanged);
@@ -93,6 +79,11 @@ function onLoad() { // DOM is loaded and ready
         deleteButton.addEventListener('click', deleteScriptButtonClicked);
     }
 
+    // Set event listener to button for deleting script
+    if (userRunButton) {  // This button is only displayed when logged in
+        userRunButton.addEventListener('click', userRunButtonClicked);
+    }
+
     // Set event listener to button for saving script
     saveButton.addEventListener('click', saveScriptButtonClicked);
 
@@ -100,6 +91,7 @@ function onLoad() { // DOM is loaded and ready
     exampleScripts.addEventListener('change', exampleScriptsSelectionChanged);
 
     handleVisibility();
+
 
     /* Get the current sleection in the users scripts list. */
     function getSelectedUserScripts() {
@@ -113,54 +105,74 @@ function onLoad() { // DOM is loaded and ready
 
     /* Listener. */
     function userScriptsSelectionChanged() {
-        previousSelection = currentSelUserScripts;
-        if (previousSelection) {
-            if (previousSelection.length == 1) {
-                // Compare cached version of previously displayed script
-                // with currently displayed content. If not same, ask user
-                // to save.
-                msg = null;
-                lastDisplayed = displayedScripts[previousSelection[0]];
+        const previousSelection = currentSelUserScripts;
+        if (previousSelection && previousSelection.length == 1) {
+            // Compare cached version of previously displayed script
+            // with currently displayed content. If not same, ask user
+            // to save.
+            askUser = false;
+            msg = null;
+
+            if (Object.hasOwn(cachedScripts, previousSelection[0])) {  // If selecting in list quickly, cachedScripts
+                                                                       // may not have been updated wrt last selection
+                                                                       // before this line is reached
+                lastDisplayed = cachedScripts[previousSelection[0]];
                 if (lastDisplayed.getName() != usersScriptName.value) {
+                    askUser = true;
                     const oldName = lastDisplayed.getName();
                     const newName = usersScriptName.value;
-                    msg = `The name change from '${oldName}' to '${newName}' has not been saved.`;
-                } 
+                    msg = `The name change from '${oldName}' to '${newName}' has not been saved. ` +
+                        "Do you want to save?";
+                }
                 else if (lastDisplayed.getCode() != usersScriptCode.value) {
-                    msg = `The code for '${lastDisplayed.getName()}' has not been saved.`;
+                    askUser = true;
+                    msg = `The code for '${lastDisplayed.getName()}' has not been saved. ` + 
+                        "Do you want to save?";
                 }
-                if (msg) {
-                    alert(msg);
+                if (askUser) {
+                    const doSave = confirm(msg);
+                    if (doSave) {
+                        saveScript(previousSelection[0], usersScriptName.value, usersScriptCode.value);
+                    }
+                    else {
+                        usersScripts.value = previousSelection;
+                        return;
+                    }
                 }
+
             }
         }
 
         currentSelUserScripts = getSelectedUserScripts();
+        const selectedValues = currentSelUserScripts;
 
-        const selectedValues = getSelectedUserScripts();
         if (selectedValues.length != 1) {  // Multiple or empty selection or empty list
-            // updateCurrentSettings();
-            // currentSelUserScripts = getSelectedUserScripts();
-            handleVisibility();            
+            handleVisibility();
             return;
         }
         const selectedValue = selectedValues[0];
 
-        const get_url = "/get/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
-        // const get_arg = {"method": "GET"};
-        fetch(get_url)
-            .then(response => response.json())
-            .then(data => {
-                const name = data['name'];
-                const code = data['code'];
-                usersScriptName.value = name;
-                usersScriptCode.value = code;
-                updateDisplayedScripts(selectedValue, name, code);
-                // updateCurrentSettings();
-                // currentSelUserScripts = getSelectedUserScripts();
-                handleVisibility();
-            });
-
+        // Use cache if possible - otherwise fetch from database on sever
+        if (Object.hasOwn(cachedScripts, selectedValue)) {
+            const name = cachedScripts[selectedValue].getName();
+            const code = cachedScripts[selectedValue].getCode();
+            usersScriptName.value = name;
+            usersScriptCode.value = code;
+            handleVisibility();
+        }
+        else {
+            const get_url = "/get/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
+            fetch(get_url)
+                .then(response => response.json())
+                .then(data => {
+                    const name = data['name'];
+                    const code = data['code'];
+                    usersScriptName.value = name;
+                    usersScriptCode.value = code;
+                    updateCachedScripts(selectedValue, name, code);
+                    handleVisibility();
+                });
+            }
     }
 
     /* Listener. */
@@ -170,29 +182,46 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url)
             .then(response => response.json())
             .then(data => {
-                const name = data['name'];
                 const code = data['code'];
-                exampleScripts.value = code;
+                exampleScriptCode.value = code;
             });
     }
 
     function handleVisibility() {
         const nSelectedValues = getSelectedUserScripts().length;
-        let showScript = (nSelectedValues == 1);
+        const showScript = (nSelectedValues == 1);
         if (!showScript) {
             usersScriptName.value = "";
             usersScriptCode.value = "";
         }
-        const deleteScriptButton = deleteButton;
-        if (deleteScriptButton) {
-            let showDeleteScriptButton = (nSelectedValues >= 1);
-            if (showDeleteScriptButton) {
-                deleteScriptButton.style.display = "";
+        if (deleteButton) {
+            const showDeleteButton = (nSelectedValues >= 1);
+            if (showDeleteButton) {
+                deleteButton.style.display = "";
             }
             else {
-                deleteScriptButton.style.display = "none";
+                deleteButton.style.display = "none";
             }
         }
+        if (saveButton) {
+            const showSaveButton = (nSelectedValues == 1);
+            if (showSaveButton) {
+                saveButton.style.display = "";
+            }
+            else {
+                saveButton.style.display = "none";
+            }
+        }
+        if (userRunButton) {
+            const showRunButton = (nSelectedValues == 1);
+            if (showRunButton) {
+                userRunButton.style.display = "";
+            }
+            else {
+                userRunButton.style.display = "none";
+            }
+        }
+
     }
 
     /* Utility. */
@@ -249,17 +278,8 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    /* Listener. */
-    function saveScriptButtonClicked() {
-        const selectedValue = usersScripts.value;
-        if (selectedValue.length == 0) {  // Empty selection or empty list
-            return;
-        }
-        
-        const name = usersScriptName.value;
-        const code = usersScriptCode.value;
-        const dataSend = {'id': selectedValue, 'name': name, 'code': code};
-
+    function saveScript(id, name, code) {
+        const dataSend = {'id': id, 'name': name, 'code': code};
         const save_url = "/save";  // XXX use Jinja2: {{ url_for("save") | tojson }}
         const save_arg = {"method": "POST",
                           "headers": {"Content-Type": "application/json"},
@@ -272,11 +292,21 @@ function onLoad() { // DOM is loaded and ready
                     alert(error);
                 }
                 else {
-                    updateOptionInUsersScripts(selectedValue, name);
-                    updateDisplayedScripts(selectedValue, name, code)
+                    updateOptionInUsersScripts(id, name);
+                    updateCachedScripts(id, name, code)
                 }
             });
-        
+    }
+
+    /* Listener. */
+    function saveScriptButtonClicked() {
+        const selectedValue = usersScripts.value;
+        if (selectedValue.length == 0) {  // Empty selection or empty list
+            return;
+        }
+        const name = usersScriptName.value;
+        const code = usersScriptCode.value;
+        saveScript(selectedValue, name, code);
     }
 
     /* Listener. */
@@ -335,5 +365,230 @@ function onLoad() { // DOM is loaded and ready
 
     }
 
+    function userRunButtonClicked() {
+        const code = usersScriptCode.value;
+        const dataSend = {'code': code};
+        const run_url = "/run";  // XXX use Jinja2: {{ url_for("run") | tojson }}
+        const run_arg = {"method": "POST",
+                         "headers": {"Content-Type": "application/json"},
+                         "body": JSON.stringify(dataSend)};
+        fetch(run_url, run_arg)
+            .then(response => response.json())
+            .then(data => {
+                postproc(data);
+            });
+    }
+
+
+// =================================================================================
+// PLOTTING
+// =================================================================================
+
+    function postproc(postcmds) {
+        removeAllChartDivs();
+        let currSubplot = null;
+        let collectingSubplots = false;
+        let collectedSubplots = [];
+        let currFig = null;
+        for (let i = 0; i < postcmds.length; i++)  {
+            let cmd = postcmds[i];
+            let createSubplots = false;
+            let createFigure = false;
+            const type = cmd['type'];
+            if (type === 'figure') {
+                currFig = cmd;
+                createFigure = true;
+            }
+            else if (type === 'subplot') {
+                currSubplot = cmd;
+                createFigure = (currFig === null);
+                collectingSubplots = true;
+            }
+            else if (type === 'plot') {
+                createFigure = (currFig === null && currSubplot === null);
+                if (collectingSubplots) {
+                    let plotArgs = getPlotArgs(cmd, currFig);
+                    plotArgs['subplot'] = currSubplot;
+                    collectedSubplots.push(plotArgs);
+                }
+
+                createSubplots = collectingSubplots && isLastPlotForSubplot(postcmds, i);
+                if (createSubplots) {
+                    collectingSubplots = false;
+                }
+                
+            }
+
+            if (createFigure) {
+                let chartDiv = document.createElement('div');
+                let chartHr = document.createElement('hr');
+                chartDiv.dataset.containsPlot = "0";
+                chartDiv.dataset.title = "";
+                currFig = chartDiv;
+                // chartdiv.style.height = "300px";
+                plotArea.appendChild(chartDiv);
+                plotArea.appendChild(chartHr);
+            }
+
+            if (type === 'plot') {
+                if (!collectingSubplots) {
+                    if (createSubplots) {
+                        plotSubplots(currFig, collectedSubplots);
+                        collectedSubplots = [];
+                    }
+                    else {
+                        const plotArgs = getPlotArgs(cmd, currFig);
+                        plot(currFig, plotArgs);
+                    }
+                    currFig.dataset.containsPlot = "1";
+                }
+            }
+            else if (type === 'legend') {
+                alert("Doing the legend thing");
+                Plotly.relayout(currFig, {showlegend: true});
+            }
+            else if (type === 'figure') {
+                currFig.dataset.title = cmd['title'];
+            }
+        }
+    }
+
+    function plotSubplots(chartDiv, subplotPlots) {
+        let nRows;
+        let nCols;
+        let layout = {...subplotPlots[0]['layout']};  // Copy of first subplotplot
+        let traces = [];
+        for (plotCmd of subplotPlots) {
+            const subplotSpec = JSON.parse(plotCmd['subplot']['spec_list']);
+            const mpl_prop = JSON.parse(plotCmd['subplot']['mpl_prop']);
+            
+            nRows = subplotSpec[0];
+            nCols = subplotSpec[1];
+            const subplotNo = subplotSpec[2];
+            for (let line of plotCmd['plotlyData']) {
+                line['xaxis'] = 'x' + subplotNo;
+                line['yaxis'] = 'y' + subplotNo;
+                traces.push(line);
+            }
+            if (Object.hasOwn(mpl_prop, 'xlim')) {
+                layout['xaxis' + subplotNo] = {range: mpl_prop['xlim']};
+            }
+            if (Object.hasOwn(mpl_prop, 'ylim')) {
+                layout['yaxis' + subplotNo] = {range: mpl_prop['ylim']};
+            } 
+        }
+        // let gridSubplots = [];
+        // let cnt = 1;
+        // for (let col = 0; col < nCols; col++) {
+        //     let gridCol = [];
+        //     for (let row = 0; row < nRows; row++) {
+        //         gridCol.push('x' + cnt + 'y' + cnt);
+        //         cnt++;
+        //     }
+        //     gridSubplots.push(gridCol);
+        // }
+        const grid = {'rows': nRows,
+                      'columns': nCols,
+                    //   'subplots': gridSubplots};
+                      'pattern': 'independent'};
+        layout['grid'] = grid;
+        plot(chartDiv, {'plotlyData': traces, 'layout': layout});
+    }
+
+    function isLastPlotForSubplot(postcmds, ind) {
+        if (ind === postcmds.length - 1) {
+            return true;
+        }
+        for (let i = ind + 1; i < postcmds.length; i++) {
+            const cmd = postcmds[i];
+            if (cmd['type'] === 'plot') {
+                return false;
+            }
+            else if (cmd['type'] === 'figure') {
+                return true;
+            }
+            else if (cmd['type'] === 'subplot') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function getPlotArgs(cmd, chartDiv) {
+        const ydatas = JSON.parse(cmd['ydatas']);
+        const nLines = ydatas.length;        
+        plot_argss = JSON.parse(cmd['plot_args']);
+
+        let plotlyData = [];
+        for (let i = 0; i < nLines; i++)  {
+            const ydata = ydatas[i];
+            const plot_args = plot_argss[i];
+            const N = ydata.length;
+
+            // Create xdata = [1, 2, 3, ..., N]
+            let xdata = [];
+            for (let i = 1; i <= N; i++) {
+                xdata.push(i);
+            }
+
+            // label
+            let plotlyLabel = plot_args['label'];
+
+            // linewidth, color
+            let plotlyLineprops = {};
+            if (plot_args['linewidth']) {
+                plotlyLineprops['width'] = plot_args['linewidth'];
+            }
+            if (plot_args['color']) {
+                plotlyLineprops['color'] = plot_args['color'];
+            }
+
+            // marker, markersize
+            let plotlyMarker = {};
+            let plotlyMode = 'lines';
+            if (plot_args['marker']) {
+                plotlyMarker['symbol'] = plot_args['marker'];
+                plotlyMode = 'lines+markers';
+                if (plot_args['markersize']) {
+                    plotlyMarker['size'] = plot_args['markersize'];
+                }
+            }
+
+            let line = {
+                x: xdata,
+                y: ydata,
+                mode: plotlyMode,
+                name: plotlyLabel,
+                line: plotlyLineprops,
+                marker: plotlyMarker
+            };
+            plotlyData.push(line);
+        }
+        const layout = {
+            showlegend: false,
+            title: chartDiv.dataset.title
+        };
+        return {'plotlyData': plotlyData, 'layout': layout};
+    }
+
+    function plot(chartDiv, plotArgs) {
+        const plotlyData = plotArgs['plotlyData'];
+        const layout = plotArgs['layout'];
+        if (chartDiv.dataset.containsPlot === "1") {
+            Plotly.addTraces(chartDiv, plotlyData);    
+        }
+        else {
+            Plotly.react(chartDiv, plotlyData, layout);
+            // Plotly.newPlot(chartDiv, plotlyData, layout);
+        }
+    }
+
+    function removeAllChartDivs() {
+        Plotly.purge("plotarea");
+        while (plotArea.firstChild) {
+            plotArea.removeChild(plotArea.lastChild);
+        }
+    }
+      
 
 }
