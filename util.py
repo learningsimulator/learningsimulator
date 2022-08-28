@@ -1,8 +1,11 @@
+import traceback
 import ast
 import re
 import random
 import os
 import sys
+
+from exceptions import ParseException, EvalException
 
 
 def rand(start, stop):
@@ -1019,3 +1022,19 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+
+def get_errormsg(ex, stack_trace=None):
+    """Extract human readable error message and stack trace from specified Exception object."""
+    err_msg = str(ex)
+    if err_msg.startswith("[Errno "):
+        rindex = err_msg.index("] ")
+        err_msg = err_msg[(rindex + 2):]
+    elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
+        err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
+
+    if stack_trace is None:
+        stack_trace = traceback.format_exc()
+
+    return err_msg, stack_trace
+

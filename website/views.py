@@ -122,12 +122,17 @@ def delete():
 @views.route('/run', methods=['POST'])
 def run():
     code = request.json['code']
-    postcmds = run_simulation(code)
+    is_err, simulation_output = run_simulation(code)
 
-    out = []
-    for cmd in postcmds.cmds:
-        out.append(cmd.to_dict())
-    return jsonify(out)
+    if is_err:
+        err_msg, stack_trace = simulation_output
+        return jsonify({'err_msg': err_msg, 'stack_trace': stack_trace})
+    else:
+        postcmds = simulation_output
+        out = []
+        for cmd in postcmds.cmds:
+            out.append(cmd.to_dict())
+        return jsonify(out)
 
 
 # @views.route('/run', methods=['POST'])

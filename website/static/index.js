@@ -375,6 +375,11 @@ function onLoad() { // DOM is loaded and ready
         fetch(run_url, run_arg)
             .then(response => response.json())
             .then(data => {
+                if (Object.hasOwn(data, 'err_msg')) {
+                    alert(data.err_msg);
+                    // alert(data.err_msg + "\n\n" + data.stack_trace);
+                    return;
+                }
                 postproc(data);
             });
     }
@@ -444,7 +449,6 @@ function onLoad() { // DOM is loaded and ready
                 }
             }
             else if (type === 'legend') {
-                alert("Doing the legend thing");
                 Plotly.relayout(currFig, {showlegend: true});
             }
             else if (type === 'figure') {
@@ -470,12 +474,24 @@ function onLoad() { // DOM is loaded and ready
                 line['yaxis'] = 'y' + subplotNo;
                 traces.push(line);
             }
+            let xaxis = {};
             if (Object.hasOwn(mpl_prop, 'xlim')) {
-                layout['xaxis' + subplotNo] = {range: mpl_prop['xlim']};
+                xaxis.range = mpl_prop['xlim'];
             }
+            if (Object.hasOwn(mpl_prop, 'xlabel')) {
+                xaxis.title = {text: mpl_prop['xlabel']};
+            }
+            layout['xaxis' + subplotNo] = xaxis;
+
+            let yaxis = {};
             if (Object.hasOwn(mpl_prop, 'ylim')) {
-                layout['yaxis' + subplotNo] = {range: mpl_prop['ylim']};
-            } 
+                yaxis.range = mpl_prop['ylim'];
+            }
+            if (Object.hasOwn(mpl_prop, 'ylabel')) {
+                yaxis.title = {text: mpl_prop['ylabel']};
+            }
+            layout['yaxis' + subplotNo] = yaxis;
+
         }
         // let gridSubplots = [];
         // let cnt = 1;

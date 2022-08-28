@@ -1,5 +1,6 @@
 import time
 
+import util
 from parsing import Script
 
 
@@ -11,24 +12,12 @@ def fake_sim(s):
     print("Task completed")
 
 def run_simulation(script):
-    script_obj = Script(script)
-    print("Simluating...")
-    script_obj.parse()
-    simulation_data = script_obj.run()
-    script_obj.postproc(simulation_data)
-    # time.sleep(2)
-    # print(simulation_data.run_outputs.keys())
-
-    print("...done")
-    print("Script finished successfully.")
-
-    return script_obj.script_parser.postcmds
-    # for cmd in script_obj.script_parser.postcmds.cmds:
-    #     if cmd.plot_data is not None:
-    #         out += f"{cmd.plot_data.ydata_list}"
-    #     else:
-    #         out += "None"
-
-    
-
-    # return out
+    try:
+        script_obj = Script(script)
+        script_obj.parse()
+        simulation_data = script_obj.run()
+        script_obj.postproc(simulation_data)
+        return False, script_obj.script_parser.postcmds
+    except Exception as ex:
+        err_msg, stack_trace = util.get_errormsg(ex)
+        return True, (err_msg, stack_trace)

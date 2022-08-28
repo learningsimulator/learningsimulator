@@ -18,7 +18,7 @@ from tkinter import messagebox, filedialog
 
 from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg, WarningDlg
 from parsing import Script
-from exceptions import ParseException, EvalException, InterruptedSimulation
+from exceptions import ParseException, InterruptedSimulation
 
 from functools import partial
 
@@ -343,15 +343,7 @@ class Gui():
             self._select_line(ex.lineno)
         # self.close_figs()  # Fix for issue #83. If ok, remove this line
 
-        err_msg = str(ex)
-        if err_msg.startswith("[Errno "):
-            rindex = err_msg.index("] ")
-            err_msg = err_msg[(rindex + 2):]
-        elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
-            err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
-
-        if stack_trace is None:
-            stack_trace = traceback.format_exc()
+        err_msg, stack_trace = util.get_errormsg(ex, stack_trace)
         ErrorDlg("Error", err_msg, stack_trace)
 
     def handle_exception_old(self, ex):
