@@ -28,6 +28,41 @@ function onLoad() { // DOM is loaded and ready
     const saveButton = document.getElementById(SAVE);
     const userRunButton = document.getElementById(USER_RUN);
     const plotArea = document.getElementById("plotarea");
+    const lineCounter = document.getElementById('linecounter');
+
+    // To synchronise the scrolling of script textarea and linecounter textarea:
+    usersScriptCode.addEventListener('scroll', () => {
+        lineCounter.scrollTop = usersScriptCode.scrollTop;
+        lineCounter.scrollLeft = usersScriptCode.scrollLeft;
+    });
+
+    // Enable the tab key to be input into the script textarea:
+    usersScriptCode.addEventListener('keydown', (e) => {
+        let keyCode = e.key;
+        const { value, selectionStart, selectionEnd } = usersScriptCode;
+        if (keyCode === 'Tab') {
+            e.preventDefault();
+            usersScriptCode.value = value.slice(0, selectionStart) + '\t' + value.slice(selectionEnd);
+            usersScriptCode.setSelectionRange(selectionStart + 1, selectionStart + 1)
+        }
+    });
+
+    // To output the line counter display:
+    var lineCountCache = 0;
+    function updateLineCounter(e) {
+        const lineCount = usersScriptCode.value.split('\n').length;
+        if (lineCountCache != lineCount) {
+            var outarr = new Array();
+            for (let x = 0; x < lineCount; x++) {
+                outarr[x] = (x + 1) + '';
+            }
+            lineCounter.value = outarr.join('\n');
+            lineCountCache = lineCount;
+        }
+    }
+    usersScriptCode.addEventListener('input', () => {  // Fires for example when pasting by drag-and-dropp into the textarea
+        updateLineCounter();
+    });
 
     class UIScript {
         constructor(id, name, code) {
@@ -152,13 +187,14 @@ function onLoad() { // DOM is loaded and ready
         }
         const selectedValue = selectedValues[0];
 
-        // Use cache if possible - otherwise fetch from database on sever
+        // Use cache if possible - otherwise fetch from database on server
         if (Object.hasOwn(cachedScripts, selectedValue)) {
             const name = cachedScripts[selectedValue].getName();
             const code = cachedScripts[selectedValue].getCode();
             usersScriptName.value = name;
             usersScriptCode.value = code;
             handleVisibility();
+            updateLineCounter();
         }
         else {
             const get_url = "/get/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
@@ -171,8 +207,9 @@ function onLoad() { // DOM is loaded and ready
                     usersScriptCode.value = code;
                     updateCachedScripts(selectedValue, name, code);
                     handleVisibility();
+                    updateLineCounter();
                 });
-            }
+        }
     }
 
     /* Listener. */

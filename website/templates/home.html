@@ -35,9 +35,11 @@ Sign Up
         <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="" required>
       </div>
       
-      <div>
-        <label for="textarea-code">Code:</label><br>              
-        <textarea id="textarea-code" maxlength="10000"></textarea>
+      <!-- <div style="display: flex;"></div> -->
+      <div style="display: flex;">
+        <!-- <label for="textarea-code">Code:</label><br> -->
+        <textarea id='linecounter' wrap='off' readonly>1</textarea>
+        <textarea id="textarea-code" maxlength="10000" wrap="off"></textarea>
       </div>
 
       <div>

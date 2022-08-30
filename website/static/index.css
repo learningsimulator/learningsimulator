@@ -6,7 +6,9 @@ body {
 .column {
   float: left;
   padding: 5px;
-  box-sizing: border-box;  /* Include the padding and border in a column's total width and height */
+  -moz-box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
 }
 .left {
   width: 20%;
@@ -25,15 +27,14 @@ body {
 }
 
 #textarea-code {
-  height: 400px;
   width: 100%;
-  box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
+  height: 400px;
+  resize: none;
 }
 
 #textarea-code-example {
   height: 400px;
   width: 100%;
-  box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
 }
 
 /* Font in list of script names */
@@ -69,11 +70,26 @@ input[type=checkbox] {
   vertical-align: middle;
 }
 
-/* To make a href links appear as buttons */
-/* a.button { */
-    /* appearance: button; */  /* Doesn't seem to work */
-    /* background-color: #199319;
-    color: white;
-    padding: 15px 25px;
-    text-decoration: none;
-} */
+/* Remove the outline displayed for a Textarea upon selection */
+#linecounter:focus-visible,
+#textarea-code:focus-visible {
+    outline:none;
+}
+
+#textarea-code, #linecounter {
+  height: 400px;
+  resize: none;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+#linecounter {
+  float: left;
+  width: 20px;
+  overflow-y: hidden;
+  overflow-x: hidden;  /* To be on the safe side, for very large line numbers. */
+  text-align: right;
+  background-color:#ccc;
+  border-color: #ccc;
+  color: #909090;
+}
