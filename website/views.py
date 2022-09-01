@@ -1,7 +1,7 @@
 import os
 import json
 
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_from_directory
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
 from flask_login import login_required, current_user
 from .models import Script
 from . import db
@@ -82,7 +82,7 @@ def save_script():
         err = None
         try:
             db.session.commit()
-            flash('Script saved!', category='success')
+            # flash('Script saved!', category='success')
         except Exception as e:
             db.session.rollback()
             err = f"There was an error saving the script: {e}"
@@ -125,8 +125,8 @@ def run():
     is_err, simulation_output = run_simulation(code)
 
     if is_err:
-        err_msg, stack_trace = simulation_output
-        return jsonify({'err_msg': err_msg, 'stack_trace': stack_trace})
+        err_msg, lineno, stack_trace = simulation_output
+        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
     else:
         postcmds = simulation_output
         out = []

@@ -1,0 +1,23 @@
+Box for stack trace (for errors), or make my own error dialog with a "More" button.
+
+Demo scripts collapsable
+
+Resizable divs
+Make sure plots can resize
+
+("Retrieve last saved")
+
+Menu: Set font size, line height in box
+Menu: Search/Replace
+Menu: Insert parameter block, phase block, etc.
+
+Plot: "Close Figure" button for each plot
+Plot: "Close All Figures" button (like in Tk-frontend)
+Plot: "Keep figures" checkbox
+Plot parameters: Width, height of graph?
+Plot parameters: Legend on/off
+Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
+Plot parameters: line color, thicness, marker, marker size, color, etc.
+
+Plot: Range sliders?
+

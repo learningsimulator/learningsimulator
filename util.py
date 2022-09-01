@@ -1026,6 +1026,9 @@ def resource_path(relative_path):
 
 def get_errormsg(ex, stack_trace=None):
     """Extract human readable error message and stack trace from specified Exception object."""
+    lineno = None
+    if isinstance(ex, ParseException):
+        lineno = ex.lineno
     err_msg = str(ex)
     if err_msg.startswith("[Errno "):
         rindex = err_msg.index("] ")
@@ -1036,5 +1039,5 @@ def get_errormsg(ex, stack_trace=None):
     if stack_trace is None:
         stack_trace = traceback.format_exc()
 
-    return err_msg, stack_trace
+    return err_msg, lineno, stack_trace
 

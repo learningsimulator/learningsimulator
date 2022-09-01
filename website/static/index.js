@@ -29,6 +29,11 @@ function onLoad() { // DOM is loaded and ready
     const userRunButton = document.getElementById(USER_RUN);
     const plotArea = document.getElementById("plotarea");
     const lineCounter = document.getElementById('linecounter');
+    const errDlgDetailsButton = document.getElementById('button-errdlg-details');
+    const errDlgDetails = document.getElementById('textarea-errdlg-details');
+    const errDlgClose = document.getElementById("errdlg-close");
+    const modalBg = document.getElementById("modal-bg");
+    const errDlgMsg = document.getElementById("div-errmsg");
 
     // To synchronise the scrolling of script textarea and linecounter textarea:
     usersScriptCode.addEventListener('scroll', () => {
@@ -63,6 +68,32 @@ function onLoad() { // DOM is loaded and ready
     usersScriptCode.addEventListener('input', () => {  // Fires for example when pasting by drag-and-dropp into the textarea
         updateLineCounter();
     });
+
+    // ======================================= Error "dialog box" =======================================
+    errDlgDetailsButton.addEventListener('click', () => {
+        if (errDlgDetails.style.display === "none") {
+            errDlgDetails.style.display = "block";
+            errDlgDetailsButton.textContent = "<< Details";
+        }
+        else {
+            errDlgDetails.style.display = "none";
+            errDlgDetailsButton.textContent = "Details >>";
+        }
+    });
+
+    // When the user clicks on <span> (x), close the error dialog
+    errDlgClose.onclick = function() {
+        modalBg.style.display = "none";
+        usersScriptCode.focus();  // To see the selection of the failing line
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    // window.onclick = function(event) {
+    //     if (event.target == modalBg) {
+    //         modalBg.style.display = "none";
+    //     }
+    // }
+    // ==================================================================================================
 
     class UIScript {
         constructor(id, name, code) {
@@ -157,12 +188,12 @@ function onLoad() { // DOM is loaded and ready
                     const oldName = lastDisplayed.getName();
                     const newName = usersScriptName.value;
                     msg = `The name change from '${oldName}' to '${newName}' has not been saved. ` +
-                        "Do you want to save?";
+                          "Do you want to save?";
                 }
                 else if (lastDisplayed.getCode() != usersScriptCode.value) {
                     askUser = true;
                     msg = `The code for '${lastDisplayed.getName()}' has not been saved. ` + 
-                        "Do you want to save?";
+                          "Do you want to save?";
                 }
                 if (askUser) {
                     const doSave = confirm(msg);
@@ -227,6 +258,10 @@ function onLoad() { // DOM is loaded and ready
     function handleVisibility() {
         const nSelectedValues = getSelectedUserScripts().length;
         const showScript = (nSelectedValues == 1);
+
+        usersScriptName.readOnly = !showScript;
+        usersScriptCode.readOnly = !showScript;
+
         if (!showScript) {
             usersScriptName.value = "";
             usersScriptCode.value = "";
@@ -413,14 +448,57 @@ function onLoad() { // DOM is loaded and ready
             .then(response => response.json())
             .then(data => {
                 if (Object.hasOwn(data, 'err_msg')) {
-                    alert(data.err_msg);
-                    // alert(data.err_msg + "\n\n" + data.stack_trace);
+                    if (data.lineno) {
+                        selectLine(data.lineno);
+                    }
+                    displayRunError(data);
                     return;
                 }
                 postproc(data);
             });
     }
 
+    function displayRunError(data) {
+        errDlgMsg.textContent = data.err_msg;
+        errDlgDetails.value = data.stack_trace;
+        errDlgDetails.style.display = "none";
+        errDlgDetailsButton.textContent = "Details >>"
+        modalBg.style.display = "block";
+    }
+
+    function selectLine(lineNo) {
+        const code = usersScriptCode.value;
+        const lines = code.split('\n');
+        const nLines = lines.length;
+        if (lineNo <= nLines) {
+            let selectionStart;
+            let selectionEnd;
+            if (lineNo === 1) {
+                selectionStart = 0;
+            }
+            else {
+                selectionStart = code.split('\n', lineNo - 1).join('\n').length + 1;
+            }
+            if (lineNo === nLines) {
+                selectionEnd = code.length;
+            }
+            else {
+                selectionEnd = code.split('\n', lineNo).join('\n').length;
+            }
+
+            // Highlight the line
+            usersScriptCode.focus();
+            usersScriptCode.setSelectionRange(selectionStart, selectionEnd);
+
+            // Extra luxury: Try to scroll to make the highlighted line visible
+            try {
+                const lineHeight = parseInt(getComputedStyle(usersScriptCode).lineHeight);
+                usersScriptCode.scrollTop = (lineNo - 1) * lineHeight;
+            }
+            catch (error) {  // Do nothing
+            }
+        }
+    }
 
 // =================================================================================
 // PLOTTING

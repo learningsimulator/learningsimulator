@@ -19,5 +19,5 @@ def run_simulation(script):
         script_obj.postproc(simulation_data)
         return False, script_obj.script_parser.postcmds
     except Exception as ex:
-        err_msg, stack_trace = util.get_errormsg(ex)
-        return True, (err_msg, stack_trace)
+        err_msg, lineno, stack_trace = util.get_errormsg(ex)
+        return True, (err_msg, lineno, stack_trace)
