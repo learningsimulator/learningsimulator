@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}
-Sign Up
+Learning Simulator
 {% endblock %} 
 
 {% block content %}
 
 <div class="row" id="div-home">
-  
+
   <div class="column left" style="background-color:#aaa;">
     <b>My scripts</b>
 
@@ -50,7 +50,7 @@ Sign Up
     </div>
   </div>
   
-  <div class="column right" style="background-color:#ccc;">
+  <div class="column right">
     <div id="plotarea">
       <!-- This is where the plots appear -->
     </div>
@@ -62,38 +62,44 @@ Sign Up
 <!-- ======================================================================= -->
 <hr>
 
+<button id="button-showdemo">Demo scripts</button>
+<div id="div-demo">
 
-<div class="row">
-  
-  <div class="column left" style="background-color:#aaa;">
-    <b>Demo scripts</b>
-
-    <select size="10" id="select-examplescripts">
-      {% for name in example_script_names %}
-        <option value={{ loop.index }}>{{ name }}</option>
-      {% endfor %}
-    </select>
-
-  </div>
-
-  <div class="column middle">
-    <div id="div-script">
+    <div class="row">
       
-      <div>
-        <label for="textarea-code-example">Code:</label><br>              
-        <textarea id="textarea-code-example" readonly></textarea>
+      <div class="column left" style="background-color:#aaa;">
+        <!-- <b>Demo scripts</b> -->
+
+        <select size="10" id="select-demoscripts">
+          {% for name in demo_script_names %}
+            <option value={{ loop.index }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
       </div>
 
-      <div>
-          <button type="button" id="button-run-example">Run</button>
+      <div class="column middle">
+        <div id="div-script">
+          
+          <div>
+            <label for="textarea-code-demo">Code:</label><br>              
+            <textarea id="textarea-code-demo" readonly></textarea>
+          </div>
+
+          <div>
+              <button type="button" id="button-run-demo">Run</button>
+          </div>
+
+        </div>
+      </div>
+      
+      <div class="column right">
+        <div id="plotarea-demo">
+          <!-- This is where the plots for demo scripts appear -->
+        </div>
       </div>
 
     </div>
-  </div>
-  
-  <div class="column right" style="background-color:#ccc;">
-    Right column 2
-  </div>
 
 </div>
 

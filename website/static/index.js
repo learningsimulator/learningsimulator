@@ -8,32 +8,40 @@ function onLoad() { // DOM is loaded and ready
         return;
     }
 
-    const USERSCRIPTS = 'select-userscripts';
-    const USERSCRIPT_NAME = 'input-scriptname';
     const USERSCRIPT_CODE = 'textarea-code';
-    const EXAMPLESCRIPTS = 'select-examplescripts';
-    const EXAMPLESCRIPTS_CODE = 'textarea-code-example';
-    const CREATE = 'button-createscript';
-    const DELETE = 'button-deletescript';
-    const SAVE = 'button-savescript';
-    const USER_RUN = 'button-run';
+    const DEMOSCRIPT_CODE = 'textarea-code-demo';
 
-    const usersScripts = document.getElementById(USERSCRIPTS);
-    const usersScriptName = document.getElementById(USERSCRIPT_NAME);
     const usersScriptCode = document.getElementById(USERSCRIPT_CODE);
-    const exampleScripts = document.getElementById(EXAMPLESCRIPTS);
-    const exampleScriptCode = document.getElementById(EXAMPLESCRIPTS_CODE);
-    const createButton = document.getElementById(CREATE);
-    const deleteButton = document.getElementById(DELETE);
-    const saveButton = document.getElementById(SAVE);
-    const userRunButton = document.getElementById(USER_RUN);
-    const plotArea = document.getElementById("plotarea");
+    const demoScriptCode = document.getElementById(DEMOSCRIPT_CODE);
+    const usersScripts = document.getElementById('select-userscripts');
+    const usersScriptName = document.getElementById('input-scriptname');
+    const demoScripts = document.getElementById('select-demoscripts');
+    const createButton = document.getElementById('button-createscript');
+    const deleteButton = document.getElementById('button-deletescript');
+    const saveButton = document.getElementById('button-savescript');
+    const userRunButton = document.getElementById('button-run');
+    const demoRunButton = document.getElementById('button-run-demo');
     const lineCounter = document.getElementById('linecounter');
     const errDlgDetailsButton = document.getElementById('button-errdlg-details');
     const errDlgDetails = document.getElementById('textarea-errdlg-details');
     const errDlgClose = document.getElementById("errdlg-close");
     const modalBg = document.getElementById("modal-bg");
     const errDlgMsg = document.getElementById("div-errmsg");
+    const divDemo = document.getElementById("div-demo");
+    const showDivDemoButton = document.getElementById("button-showdemo");
+
+    // Showing/hiding demo scripts
+    showDivDemoButton.addEventListener("click", toggleDivDemo);
+    function toggleDivDemo () {
+        showDivDemoButton.classList.toggle("active");
+        // var divDemo = this.nextElementSibling;
+        if (divDemo.style.maxHeight) {
+            divDemo.style.maxHeight = null;
+        }
+        else {
+            divDemo.style.maxHeight = divDemo.scrollHeight + "px";
+        } 
+    }
 
     // To synchronise the scrolling of script textarea and linecounter textarea:
     usersScriptCode.addEventListener('scroll', () => {
@@ -65,7 +73,7 @@ function onLoad() { // DOM is loaded and ready
             lineCountCache = lineCount;
         }
     }
-    usersScriptCode.addEventListener('input', () => {  // Fires for example when pasting by drag-and-dropp into the textarea
+    usersScriptCode.addEventListener('input', () => {  // Fires e.g. when pasting by drag-and-drop into the textarea
         updateLineCounter();
     });
 
@@ -145,16 +153,19 @@ function onLoad() { // DOM is loaded and ready
         deleteButton.addEventListener('click', deleteScriptButtonClicked);
     }
 
-    // Set event listener to button for deleting script
+    // Set event listener to button for running script
     if (userRunButton) {  // This button is only displayed when logged in
         userRunButton.addEventListener('click', userRunButtonClicked);
     }
 
+    // Set event listener to button for running demo script
+    demoRunButton.addEventListener('click', demoRunButtonClicked);
+
     // Set event listener to button for saving script
     saveButton.addEventListener('click', saveScriptButtonClicked);
 
-    // Set event listener to "Example scripts" list
-    exampleScripts.addEventListener('change', exampleScriptsSelectionChanged);
+    // Set event listener to "Demo scripts" list
+    demoScripts.addEventListener('change', demoScriptsSelectionChanged);
 
     handleVisibility();
 
@@ -165,8 +176,8 @@ function onLoad() { // DOM is loaded and ready
     }
 
     /* Get the current sleection in the users scripts list. */
-    function getSelectedExampleScript() {
-        return exampleScripts.value;
+    function getSelectedDemoScript() {
+        return demoScripts.value;
     }
 
     /* Listener. */
@@ -244,14 +255,14 @@ function onLoad() { // DOM is loaded and ready
     }
 
     /* Listener. */
-    function exampleScriptsSelectionChanged() {
-        const selectedValue = getSelectedExampleScript();
-        const get_url = "/get_example/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
+    function demoScriptsSelectionChanged() {
+        const selectedValue = getSelectedDemoScript();
+        const get_url = "/get_demo/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
         fetch(get_url)
             .then(response => response.json())
             .then(data => {
                 const code = data['code'];
-                exampleScriptCode.value = code;
+                demoScriptCode.value = code;
             });
     }
 
@@ -438,7 +449,15 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function userRunButtonClicked() {
-        const code = usersScriptCode.value;
+        runButtonClicked(USERSCRIPT_CODE, "plotarea");
+    }
+
+    function demoRunButtonClicked() {
+        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo");
+    }
+
+    function runButtonClicked(textareaID, plotlyDivID) {
+        const code = document.getElementById(textareaID).value;
         const dataSend = {'code': code};
         const run_url = "/run";  // XXX use Jinja2: {{ url_for("run") | tojson }}
         const run_arg = {"method": "POST",
@@ -454,8 +473,13 @@ function onLoad() { // DOM is loaded and ready
                     displayRunError(data);
                     return;
                 }
-                postproc(data);
-            });
+                try {
+                    postproc(data, plotlyDivID);
+                }
+                catch (err) {
+                    alert(err);
+                }
+            });        
     }
 
     function displayRunError(data) {
@@ -504,10 +528,12 @@ function onLoad() { // DOM is loaded and ready
 // PLOTTING
 // =================================================================================
 
-    function postproc(postcmds) {
-        removeAllChartDivs();
+    function postproc(postcmds, plotlyDivID) {
+        let plotArea = document.getElementById(plotlyDivID);
+        removeAllChartDivs(plotlyDivID);
         let currSubplot = null;
         let collectingSubplots = false;
+        let createSubplotLegend = false;
         let collectedSubplots = [];
         let currFig = null;
         for (let i = 0; i < postcmds.length; i++)  {
@@ -536,7 +562,6 @@ function onLoad() { // DOM is loaded and ready
                 if (createSubplots) {
                     collectingSubplots = false;
                 }
-                
             }
 
             if (createFigure) {
@@ -548,12 +573,16 @@ function onLoad() { // DOM is loaded and ready
                 // chartdiv.style.height = "300px";
                 plotArea.appendChild(chartDiv);
                 plotArea.appendChild(chartHr);
+                createSubplotLegend = false;
             }
 
             if (type === 'plot') {
                 if (!collectingSubplots) {
                     if (createSubplots) {
                         plotSubplots(currFig, collectedSubplots);
+                        if (createSubplotLegend) {
+                            Plotly.relayout(currFig, {showlegend: true});
+                        }
                         collectedSubplots = [];
                     }
                     else {
@@ -564,7 +593,14 @@ function onLoad() { // DOM is loaded and ready
                 }
             }
             else if (type === 'legend') {
-                Plotly.relayout(currFig, {showlegend: true});
+                if (currFig !== null) {  // If null, @legend is before @figure
+                    if (!collectingSubplots && currFig.dataset.containsPlot === "1") {  // If "0", @legend is before @plot
+                        Plotly.relayout(currFig, {showlegend: true});
+                    }
+                    else {
+                        createSubplotLegend = true;
+                    }
+                }
             }
             else if (type === 'figure') {
                 currFig.dataset.title = cmd['title'];
@@ -714,8 +750,10 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    function removeAllChartDivs() {
-        Plotly.purge("plotarea");
+    function removeAllChartDivs(plotlyDivID) {
+        // Plotly.purge("plotarea");
+        Plotly.purge(plotlyDivID);
+        let plotArea = document.getElementById(plotlyDivID);
         while (plotArea.firstChild) {
             plotArea.removeChild(plotArea.lastChild);
         }

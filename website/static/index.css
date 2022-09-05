@@ -32,7 +32,7 @@ body {
   resize: none;
 }
 
-#textarea-code-example {
+#textarea-code-demo {
   height: 400px;
   width: 100%;
 }
@@ -96,12 +96,7 @@ input[type=checkbox] {
   color: #909090;
 }
 
-
-
-
-
-
-
+/* ============================================================================= */
 /* The Modal (background) */
 #modal-bg {
   display: none; /* Hidden by default */
@@ -152,3 +147,42 @@ input[type=checkbox] {
 #textarea-errdlg-details:focus-visible {
     outline:none;
 }
+
+/* ============================================================================= */
+/* For showing/hiding the demo scripts */
+#button-showdemo {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active, #button-showdemo:hover {
+  background-color: #555;
+}
+
+#button-showdemo:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  /* margin-left: 5px; */
+}
+
+.active:after {
+  content: "\2212";
+}
+
+#div-demo {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  background-color: #f1f1f1;
+}
+
+/* ============================================================================= */

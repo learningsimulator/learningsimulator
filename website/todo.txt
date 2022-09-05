@@ -1,23 +1,46 @@
-Box for stack trace (for errors), or make my own error dialog with a "More" button.
-
-Demo scripts collapsable
+Simplest syntax highlighting: Comments in different color
 
 Resizable divs
-Make sure plots can resize
+Make sure plots can resize: https://plotly.com/javascript/responsive-fluid-layout/
 
-("Retrieve last saved")
+start_at_1
 
-Menu: Set font size, line height in box
+Export Matplotlib plot
+
+Automatic save when clicking on another script.
+"Script ... saved" flash
+Make "Name of script" read-only but with an "Edit" button that makes it editable and shows "Save" and "Cancel"
+=> "Cache" can be removed?
+=> But keep "Save" button
+=> "Retrieve last saved" not needed
+
+Redis Queue
+Progress bar
+
+Menu: Set font size, line height, font color, bg color in box
 Menu: Search/Replace
 Menu: Insert parameter block, phase block, etc.
 
 Plot: "Close Figure" button for each plot
 Plot: "Close All Figures" button (like in Tk-frontend)
-Plot: "Keep figures" checkbox
+Plot: "Keep figures" checkbox (If an error occuers, dont delete current figs)
 Plot parameters: Width, height of graph?
 Plot parameters: Legend on/off
 Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
 Plot parameters: line color, thicness, marker, marker size, color, etc.
 
 Plot: Range sliders?
+
+Plots: Responsive layout for plots: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_two_columns_responsive
+
+Plot: Subplot titles workaround
+(https://stackoverflow.com/questions/51592730/how-to-add-title-to-each-subplot-in-plotly-js, 
+https://codepen.io/mdnasirfardoush/pen/gjovjO?editors=1010)
+
+Test accessibility bugs:
+https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
+
+Fontend testing: ContentWhitepaperFrontendTestingGuide.pdf (i test i repot)
+
+favicon
 

@@ -1,4 +1,4 @@
-example_scripts = [
+demo_scripts = [
 {
     "name": "Basic Pavlovian learning",
     "code": '''# Learning mechanism: Rescola Wagner 

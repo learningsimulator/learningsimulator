@@ -7,7 +7,7 @@ from .models import Script
 from . import db
 from .util import to_bool, list_to_csv, csv_to_list
 from .webrunner import run_simulation
-from .example_scripts import example_scripts
+from .demo_scripts import demo_scripts
 
 views = Blueprint('views', __name__)
 
@@ -34,8 +34,8 @@ views = Blueprint('views', __name__)
 
 @views.route('/', methods=['GET'])
 def home():
-    example_script_names = [script['name'] for script in example_scripts]
-    return render_template("home.html", user=current_user, example_script_names=example_script_names)
+    demo_script_names = [script['name'] for script in demo_scripts]
+    return render_template("home.html", user=current_user, demo_script_names=demo_script_names)
 
 
 def validate_script(name, id=None):
@@ -60,9 +60,9 @@ def get_script(id):
     return {'name': script.name, 'code': script.code}
 
 
-@views.route('/get_example/<int:index>', methods=['GET'])
-def get_example(index):
-    script = example_scripts[index - 1]
+@views.route('/get_demo/<int:index>', methods=['GET'])
+def get_demo(index):
+    script = demo_scripts[index - 1]
     return {'name': script['name'], 'code': script['code']}
 
 
@@ -123,7 +123,6 @@ def delete():
 def run():
     code = request.json['code']
     is_err, simulation_output = run_simulation(code)
-
     if is_err:
         err_msg, lineno, stack_trace = simulation_output
         return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
