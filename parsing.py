@@ -629,6 +629,28 @@ class PostCmds():
         #         ax_average.legend()
         #     ax_average.grid()
 
+    def plot_js(self):
+        def _extract_draw_figure(html, figind):
+            lines = html.split('\n')
+            for line in lines:
+                linestrip = line.strip()
+                if linestrip.startswith("mpld3.draw_figure"):
+                    first_comma_ind = linestrip.find(',')
+                    div_id = linestrip[19: (first_comma_ind - 1)]
+                    # linestrip = linestrip.replace('"width": 640.0, "height": 480.0', '"width": 2280.0, "height": 960.0')
+                    return linestrip.replace(div_id, "div-mpld3_" + str(figind))
+
+        import mpld3
+        self.plot()
+        figs = list(map(plt.figure, plt.get_fignums()))
+        out = []
+        plt.close('all')
+        for figind, fig in enumerate(figs):
+            html = mpld3.fig_to_html(fig, template_type="simple")
+            mpld3_draw_figure_cmd = _extract_draw_figure(html, figind)
+            out.append(mpld3_draw_figure_cmd)
+        return out
+
 
 class PostCmd():
     def __init__(self):
@@ -920,7 +942,6 @@ class SubplotCmd(PostCmd):
 
     def to_dict(self):
         return {'type': 'subplot', 'spec_list': json.dumps(self.spec_list), 'mpl_prop': json.dumps(self.mpl_prop)}
-
 
 
 class LegendCmd(PostCmd):

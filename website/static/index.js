@@ -20,6 +20,7 @@ function onLoad() { // DOM is loaded and ready
     const deleteButton = document.getElementById('button-deletescript');
     const saveButton = document.getElementById('button-savescript');
     const userRunButton = document.getElementById('button-run');
+    const userRunButtonMpl = document.getElementById('button-run-mpl');
     const demoRunButton = document.getElementById('button-run-demo');
     const lineCounter = document.getElementById('linecounter');
     const errDlgDetailsButton = document.getElementById('button-errdlg-details');
@@ -75,6 +76,23 @@ function onLoad() { // DOM is loaded and ready
     }
     usersScriptCode.addEventListener('input', () => {  // Fires e.g. when pasting by drag-and-drop into the textarea
         updateLineCounter();
+    });
+
+
+    // For resizing the resizable divs where the Plotly plots are rendered
+    var chartDivResizeObserver = new ResizeObserver(entries => {
+        if (entries.length > 1) {  // This is run once right after all observed divs are created
+            return;
+        }
+        const entry = entries[0];
+        const chartDiv = entry.target;
+        const newWidth = chartDiv.clientWidth;
+        const newHeight = chartDiv.clientHeight;
+        const update = {
+            width: newWidth,
+            height: newHeight
+        };
+        Plotly.relayout(chartDiv, update);
     });
 
     // ======================================= Error "dialog box" =======================================
@@ -156,6 +174,11 @@ function onLoad() { // DOM is loaded and ready
     // Set event listener to button for running script
     if (userRunButton) {  // This button is only displayed when logged in
         userRunButton.addEventListener('click', userRunButtonClicked);
+    }
+
+    // Set event listener to button for running script with matplotlib plot
+    if (userRunButtonMpl) {  // This button is only displayed when logged in
+        userRunButtonMpl.addEventListener('click', userRunButtonMplClicked);
     }
 
     // Set event listener to button for running demo script
@@ -299,9 +322,11 @@ function onLoad() { // DOM is loaded and ready
             const showRunButton = (nSelectedValues == 1);
             if (showRunButton) {
                 userRunButton.style.display = "";
+                userRunButtonMpl.style.display = "";
             }
             else {
                 userRunButton.style.display = "none";
+                userRunButtonMpl.style.display = "none";
             }
         }
 
@@ -449,17 +474,28 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function userRunButtonClicked() {
-        runButtonClicked(USERSCRIPT_CODE, "plotarea");
+        runButtonClicked(USERSCRIPT_CODE, "plotarea", "plotly");
+    }
+
+    function userRunButtonMplClicked() {
+        runButtonClicked(USERSCRIPT_CODE, "plotarea", "matplotlib");
     }
 
     function demoRunButtonClicked() {
-        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo");
+        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo", "plotly");
     }
 
-    function runButtonClicked(textareaID, plotlyDivID) {
+    function runButtonClicked(textareaID, divID, graphLib) {
         const code = document.getElementById(textareaID).value;
         const dataSend = {'code': code};
-        const run_url = "/run";  // XXX use Jinja2: {{ url_for("run") | tojson }}
+        const isMpl = (graphLib === "matplotlib");
+        let run_url;
+        if (isMpl) {
+            run_url = "/run_mpl";  // XXX use Jinja2: {{ url_for("run_mpl") | tojson }}
+        }
+        else {
+            run_url = "/run";  // XXX use Jinja2: {{ url_for("run") | tojson }}
+        }
         const run_arg = {"method": "POST",
                          "headers": {"Content-Type": "application/json"},
                          "body": JSON.stringify(dataSend)};
@@ -474,12 +510,16 @@ function onLoad() { // DOM is loaded and ready
                     return;
                 }
                 try {
-                    postproc(data, plotlyDivID);
+                    if (isMpl)
+                        postproc_mpl(data, divID);
+                    else {
+                        postproc(data, divID);
+                    }
                 }
                 catch (err) {
                     alert(err);
                 }
-            });        
+            });
     }
 
     function displayRunError(data) {
@@ -566,13 +606,18 @@ function onLoad() { // DOM is loaded and ready
 
             if (createFigure) {
                 let chartDiv = document.createElement('div');
-                let chartHr = document.createElement('hr');
+                // let chartHr = document.createElement('hr');
                 chartDiv.dataset.containsPlot = "0";
                 chartDiv.dataset.title = "";
                 currFig = chartDiv;
                 // chartdiv.style.height = "300px";
+                chartDiv.style.resize = "both";
+                chartDiv.style.overflow = "hidden";
+                chartDiv.style.border = "3px solid green";
+                chartDivResizeObserver.observe(chartDiv);
+
                 plotArea.appendChild(chartDiv);
-                plotArea.appendChild(chartHr);
+                // plotArea.appendChild(chartHr);
                 createSubplotLegend = false;
             }
 
@@ -605,6 +650,21 @@ function onLoad() { // DOM is loaded and ready
             else if (type === 'figure') {
                 currFig.dataset.title = cmd['title'];
             }
+        }
+    }
+
+    function postproc_mpl(data, divID) {
+        let plotArea = document.getElementById(divID);
+        removeAllChartDivs(divID);
+        for (let i = 0; i < data.length; i++)  {
+            let chartDiv = document.createElement('div');
+            chartDiv.id = "div-mpld3_" + i;
+            currFig = chartDiv;
+            chartDiv.style.resize = "both";
+            chartDiv.style.overflow = "hidden";
+            chartDiv.style.border = "3px solid blue";
+            plotArea.appendChild(chartDiv);
+            Function(data[i])();  // Better than "eval(data[i])""
         }
     }
 
@@ -724,6 +784,7 @@ function onLoad() { // DOM is loaded and ready
             let line = {
                 x: xdata,
                 y: ydata,
+                type: 'line',
                 mode: plotlyMode,
                 name: plotlyLabel,
                 line: plotlyLineprops,
@@ -731,9 +792,21 @@ function onLoad() { // DOM is loaded and ready
             };
             plotlyData.push(line);
         }
-        const layout = {
+        let layout = {
             showlegend: false,
-            title: chartDiv.dataset.title
+            // plot_bgcolor: '#444',
+            paper_bgcolor: '#eee',
+            title: chartDiv.dataset.title            
+            // xaxis: {  // XXX remember that for subplots, the axes are called xaxis2, etc.
+            //     zeroline: true,
+            //     zerolinewidth: 1,
+            //     zerolinecolor: 'black'
+            // },
+            // yaxis: {
+            //     zeroline: true,
+            //     zerolinewidth: 1,
+            //     zerolinecolor: 'red'
+            // },
         };
         return {'plotlyData': plotlyData, 'layout': layout};
     }

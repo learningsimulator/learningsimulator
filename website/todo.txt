@@ -1,8 +1,5 @@
 Simplest syntax highlighting: Comments in different color
 
-Resizable divs
-Make sure plots can resize: https://plotly.com/javascript/responsive-fluid-layout/
-
 start_at_1
 
 Export Matplotlib plot
@@ -10,12 +7,14 @@ Export Matplotlib plot
 Automatic save when clicking on another script.
 "Script ... saved" flash
 Make "Name of script" read-only but with an "Edit" button that makes it editable and shows "Save" and "Cancel"
-=> "Cache" can be removed?
+=> "Cache" can be removed? No
 => But keep "Save" button
 => "Retrieve last saved" not needed
 
 Redis Queue
 Progress bar
+
+Border around plotly figure? https://community.plotly.com/t/how-to-show-border-around-the-entire-plotly-figure/51551
 
 Menu: Set font size, line height, font color, bg color in box
 Menu: Search/Replace
@@ -24,8 +23,8 @@ Menu: Insert parameter block, phase block, etc.
 Plot: "Close Figure" button for each plot
 Plot: "Close All Figures" button (like in Tk-frontend)
 Plot: "Keep figures" checkbox (If an error occuers, dont delete current figs)
-Plot parameters: Width, height of graph?
-Plot parameters: Legend on/off
+Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
+Plot parameters: Legend on/off, legend positioning
 Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
 Plot parameters: line color, thicness, marker, marker size, color, etc.
 

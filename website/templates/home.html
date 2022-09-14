@@ -7,10 +7,10 @@ Learning Simulator
 
 <div class="row" id="div-home">
 
-  <div class="column left" style="background-color:#aaa;">
+  <div class="column left" style="border: 2px solid red; resize: both; overflow: hidden;">
     <b>My scripts</b>
 
-    <select multiple size="10" id="select-userscripts">
+    <select multiple id="select-userscripts">
     {% if user.is_authenticated %}
       {% for script in user.scripts %}
         <option value={{ script.id }}>{{ script.name }}</option>
@@ -27,27 +27,27 @@ Learning Simulator
 
   </div>
 
-  <div class="column middle">
-    <div>
+  <!-- <div class="column" id="div-resize">
+  </div> -->
 
-      <div id="div-scriptname">
-        <label for="input-scriptname">Name of script:&nbsp;</label>
-        <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="" required>
-      </div>
-      
-      <!-- <div style="display: flex;"></div> -->
-      <div style="display: flex;">
-        <!-- <label for="textarea-code">Code:</label><br> -->
-        <textarea id='linecounter' wrap='off' readonly>1</textarea>
-        <textarea id="textarea-code" maxlength="10000" wrap="off"></textarea>
-      </div>
+  <div class="column middle", style="border: 2px solid red; resize: both; overflow: hidden;">
 
-      <div>
-          <button type="button" id="button-savescript">Save</button>
-          <button type="button" id="button-run">Run</button>
-      </div>
-      
+    <div id="div-scriptname">
+      <label for="input-scriptname">Name of script:&nbsp;</label>
+      <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="" required>
     </div>
+    
+    <div id="editor">
+      <textarea id='linecounter' wrap='off' readonly>1</textarea>
+      <textarea id="textarea-code" maxlength="10000" wrap="off"></textarea>
+    </div>
+
+    <div>
+        <button type="button" id="button-savescript">Save</button>
+        <button type="button" id="button-run">Run P</button>
+        <button type="button" id="button-run-mpl">Run M</button>
+    </div>
+      
   </div>
   
   <div class="column right">
@@ -59,8 +59,14 @@ Learning Simulator
 </div>
 
 
-<!-- ======================================================================= -->
+
 <hr>
+<div id="mpld3_0"></div>
+<hr>
+<div id="mpld3_1"></div>
+<hr>
+
+<!-- ======================================================================= -->
 
 <button id="button-showdemo">Demo scripts</button>
 <div id="div-demo">
@@ -118,5 +124,8 @@ Learning Simulator
         </p>
     </div>
 </div>
+
+
+
 
 {% endblock %}

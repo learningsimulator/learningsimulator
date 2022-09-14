@@ -134,6 +134,18 @@ def run():
         return jsonify(out)
 
 
+@views.route('/run_mpl', methods=['POST'])
+def run_mpl():
+    code = request.json['code']
+    is_err, simulation_output = run_simulation(code)
+    if is_err:
+        err_msg, lineno, stack_trace = simulation_output
+        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
+    else:
+        postcmds = simulation_output
+        out = postcmds.plot_js()
+        return jsonify(out)
+
 # @views.route('/run', methods=['POST'])
 # def run():
 #     script = request.json['script']

@@ -2,6 +2,18 @@ body {
     font-family:'Courier New', Courier, monospace;
 }
 
+.row {
+  height: 450px;
+  border: #000;
+  border-style: solid;
+  /* overflow-x: auto; */
+  /* overflow-y: hidden; */
+  /* display: inline-block;  */
+  /* white-space: nowrap; */
+  /* float:left; */
+  /* display:flex; */
+}
+
 /* Create three unequal columns that floats next to each other */
 .column {
   float: left;
@@ -11,13 +23,16 @@ body {
   box-sizing: border-box;
 }
 .left {
-  width: 20%;
+  width: 300px;
+  height: 90%;
 }
 .middle {
-  width: 40%;
+  width: 400px;
+  height: 90%;
 }
 .right {
-  width: 40%;
+  width: 900px;
+  border: 3px solid green;
 }
 /* Clear floats after the columns */
 .row:after {
@@ -28,8 +43,7 @@ body {
 
 #textarea-code {
   width: 100%;
-  height: 400px;
-  resize: none;
+  padding: 0 0 0 5px;
 }
 
 #textarea-code-demo {
@@ -40,6 +54,7 @@ body {
 /* Font in list of script names */
 select {
     width: 100%;
+    height: calc(100% - 70px);
     font-family: 'Courier New', Courier, monospace;
     margin-bottom: 4px;
 }
@@ -51,10 +66,10 @@ select {
 /* To make script name input field fill 100% of remaining place */
 #div-scriptname {
   display: flex;
-  flex-direction: row
+  flex-direction: row;
 }
 #input-scriptname {
-  flex: 1
+  flex: 1;
 }
 
 .form-error {
@@ -77,15 +92,16 @@ input[type=checkbox] {
 }
 
 #textarea-code, #linecounter {
-  height: 400px;
+  height: 100%;
   resize: none;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  /* margin-top: 5px; */
+  /* margin-bottom: 5px; */
   line-height: 18px;
   font-size: 15px
 }
 
 #linecounter {
+  padding: 0;
   float: left;
   width: 20px;
   overflow-y: hidden;
@@ -96,7 +112,17 @@ input[type=checkbox] {
   color: #909090;
 }
 
+#editor {
+  display: flex;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  height: calc(100% - 70px);
+  border: 2px solid blue;
+
+}
+
 /* ============================================================================= */
+/* The error "dialog box". */
 /* The Modal (background) */
 #modal-bg {
   display: none; /* Hidden by default */
@@ -155,6 +181,7 @@ input[type=checkbox] {
   color: white;
   cursor: pointer;
   padding: 10px;
+  margin-top: 10px;
   width: 100%;
   border: none;
   text-align: left;
@@ -186,3 +213,13 @@ input[type=checkbox] {
 }
 
 /* ============================================================================= */
+/* For resizing. */
+/* #div-resize {
+  background: #444857;
+  height: 100%;
+  width: 14px;
+  cursor: col-resize;
+     flex-shrink: 0;
+     position: relative;
+  z-index: 10;
+} */
