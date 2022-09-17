@@ -17,22 +17,27 @@ body {
 /* Create three unequal columns that floats next to each other */
 .column {
   float: left;
-  padding: 5px;
   -moz-box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
 .left {
+  padding: 5px;
   width: 300px;
-  height: 90%;
+  height: 900px;
 }
 .middle {
-  width: 400px;
-  height: 90%;
+  padding: 5px;
+  height: 900px;
+  width: 600px;
 }
 .right {
+  padding: 5px;
   width: 900px;
   border: 3px solid green;
+}
+.preview {
+  margin-left: 5px;
 }
 /* Clear floats after the columns */
 .row:after {
@@ -51,6 +56,15 @@ body {
   width: 100%;
 }
 
+#textarea-code-preview {
+  height: 900px;
+  width: 600px;
+  -moz-box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color:gray;
+}
+
 /* Font in list of script names */
 select {
     width: 100%;
@@ -61,6 +75,11 @@ select {
 
 #button-deletescript {
     float: right;
+}
+
+#button-createscript {
+  float: right;
+  margin-bottom: 4pt;
 }
 
 /* To make script name input field fill 100% of remaining place */
@@ -117,7 +136,7 @@ input[type=checkbox] {
   margin-top: 5px;
   margin-bottom: 5px;
   height: calc(100% - 70px);
-  border: 2px solid blue;
+  /* border: 2px solid blue; */
 
 }
 

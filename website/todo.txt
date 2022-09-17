@@ -2,9 +2,18 @@ Simplest syntax highlighting: Comments in different color
 
 start_at_1
 
-Export Matplotlib plot
+Export Matplotlib plot as pdf
 
-Automatic save when clicking on another script.
+Left navbar with
+"My Scripts"
+"Demo Scripts"
+
+"You sure you want to delete script ...?"
+
+Inspiration:
+https://plotly.com/javascript/configuration-options/
+https://plotly.com/javascript/custom-buttons/
+
 "Script ... saved" flash
 Make "Name of script" read-only but with an "Edit" button that makes it editable and shows "Save" and "Cancel"
 => "Cache" can be removed? No

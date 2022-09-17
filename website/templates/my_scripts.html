@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block js %}
+<script type="text/javascript" src="{{ url_for('static', filename='my_scripts.js') }}"></script>
+{% endblock %}
+
+{% block title %}Learning Simulator{% endblock %}
+
+{% block content %}
+
+<div class="column left" style="border: 1px solid black; resize: both; overflow: hidden;">
+  <b>My scripts</b>
+  <button type="button" id="button-createscript">Create New</button>
+
+  <select multiple id="select-userscripts">
+  {% if user.is_authenticated %}
+    {% for script in user.scripts %}
+      <option value={{ script.id }}>{{ script.name }}</option>
+    {% endfor %}
+  {% endif %}
+  </select>
+
+  {% if user.is_authenticated %}
+    <button type="button" id="button-deletescript">Delete Selected</button>
+    <button type="button" id="button-openscript">Open</button>
+  {% else %}
+    <a href="/login">Login</a> to be able to create your own scripts here.
+  {% endif %}
+
+</div>
+
+
+<div class="column preview">
+  <!-- <div id="div-script"> -->
+    
+    <div>
+      <!-- <label for="textarea-code-preview">Preview</label><br> -->
+      <textarea id="textarea-code-preview" readonly></textarea>
+    </div>
+
+  <!-- </div> -->
+</div>
+
+
+{% endblock %}

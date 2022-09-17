@@ -13,7 +13,6 @@ function onLoad() { // DOM is loaded and ready
 
     const usersScriptCode = document.getElementById(USERSCRIPT_CODE);
     const demoScriptCode = document.getElementById(DEMOSCRIPT_CODE);
-    const usersScripts = document.getElementById('select-userscripts');
     const usersScriptName = document.getElementById('input-scriptname');
     const demoScripts = document.getElementById('select-demoscripts');
     const createButton = document.getElementById('button-createscript');
@@ -30,6 +29,8 @@ function onLoad() { // DOM is loaded and ready
     const errDlgMsg = document.getElementById("div-errmsg");
     const divDemo = document.getElementById("div-demo");
     const showDivDemoButton = document.getElementById("button-showdemo");
+
+    // usersScriptCode.value = {{ script.code }};
 
     // Showing/hiding demo scripts
     showDivDemoButton.addEventListener("click", toggleDivDemo);
@@ -152,15 +153,6 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    /*
-    To keep track of previously displayed script, to check whether or not that
-    script need to be saved, by comparing with the cache.
-    */
-    var currentSelUserScripts = null;
-
-    // Set event listener to "My scripts" list
-    usersScripts.addEventListener('change', userScriptsSelectionChanged);
-
     // Set event listener to button for creating new script
     if (createButton) {  // This button is only displayed when logged in
         createButton.addEventListener('click', newScriptButtonClicked);
@@ -190,91 +182,10 @@ function onLoad() { // DOM is loaded and ready
     // Set event listener to "Demo scripts" list
     demoScripts.addEventListener('change', demoScriptsSelectionChanged);
 
-    handleVisibility();
-
-
-    /* Get the current sleection in the users scripts list. */
-    function getSelectedUserScripts() {
-        return Array.from(usersScripts.querySelectorAll("option:checked"), e => e.value);
-    }
 
     /* Get the current sleection in the users scripts list. */
     function getSelectedDemoScript() {
         return demoScripts.value;
-    }
-
-    /* Listener. */
-    function userScriptsSelectionChanged() {
-        const previousSelection = currentSelUserScripts;
-        if (previousSelection && previousSelection.length == 1) {
-            // Compare cached version of previously displayed script
-            // with currently displayed content. If not same, ask user
-            // to save.
-            askUser = false;
-            msg = null;
-
-            if (Object.hasOwn(cachedScripts, previousSelection[0])) {  // If selecting in list quickly, cachedScripts
-                                                                       // may not have been updated wrt last selection
-                                                                       // before this line is reached
-                lastDisplayed = cachedScripts[previousSelection[0]];
-                if (lastDisplayed.getName() != usersScriptName.value) {
-                    askUser = true;
-                    const oldName = lastDisplayed.getName();
-                    const newName = usersScriptName.value;
-                    msg = `The name change from '${oldName}' to '${newName}' has not been saved. ` +
-                          "Do you want to save?";
-                }
-                else if (lastDisplayed.getCode() != usersScriptCode.value) {
-                    askUser = true;
-                    msg = `The code for '${lastDisplayed.getName()}' has not been saved. ` + 
-                          "Do you want to save?";
-                }
-                if (askUser) {
-                    const doSave = confirm(msg);
-                    if (doSave) {
-                        saveScript(previousSelection[0], usersScriptName.value, usersScriptCode.value);
-                    }
-                    else {
-                        usersScripts.value = previousSelection;
-                        return;
-                    }
-                }
-
-            }
-        }
-
-        currentSelUserScripts = getSelectedUserScripts();
-        const selectedValues = currentSelUserScripts;
-
-        if (selectedValues.length != 1) {  // Multiple or empty selection or empty list
-            handleVisibility();
-            return;
-        }
-        const selectedValue = selectedValues[0];
-
-        // Use cache if possible - otherwise fetch from database on server
-        if (Object.hasOwn(cachedScripts, selectedValue)) {
-            const name = cachedScripts[selectedValue].getName();
-            const code = cachedScripts[selectedValue].getCode();
-            usersScriptName.value = name;
-            usersScriptCode.value = code;
-            handleVisibility();
-            updateLineCounter();
-        }
-        else {
-            const get_url = "/get/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
-            fetch(get_url)
-                .then(response => response.json())
-                .then(data => {
-                    const name = data['name'];
-                    const code = data['code'];
-                    usersScriptName.value = name;
-                    usersScriptCode.value = code;
-                    updateCachedScripts(selectedValue, name, code);
-                    handleVisibility();
-                    updateLineCounter();
-                });
-        }
     }
 
     /* Listener. */
@@ -286,107 +197,12 @@ function onLoad() { // DOM is loaded and ready
             .then(data => {
                 const code = data['code'];
                 demoScriptCode.value = code;
-            });
+            }
+        );
     }
 
-    function handleVisibility() {
-        const nSelectedValues = getSelectedUserScripts().length;
-        const showScript = (nSelectedValues == 1);
-
-        usersScriptName.readOnly = !showScript;
-        usersScriptCode.readOnly = !showScript;
-
-        if (!showScript) {
-            usersScriptName.value = "";
-            usersScriptCode.value = "";
-        }
-        if (deleteButton) {
-            const showDeleteButton = (nSelectedValues >= 1);
-            if (showDeleteButton) {
-                deleteButton.style.display = "";
-            }
-            else {
-                deleteButton.style.display = "none";
-            }
-        }
-        if (saveButton) {
-            const showSaveButton = (nSelectedValues == 1);
-            if (showSaveButton) {
-                saveButton.style.display = "";
-            }
-            else {
-                saveButton.style.display = "none";
-            }
-        }
-        if (userRunButton) {
-            const showRunButton = (nSelectedValues == 1);
-            if (showRunButton) {
-                userRunButton.style.display = "";
-                userRunButtonMpl.style.display = "";
-            }
-            else {
-                userRunButton.style.display = "none";
-                userRunButtonMpl.style.display = "none";
-            }
-        }
-
-    }
-
-    /* Utility. */
-    function intToTwoNumberString(x) {
-        let xStr = x + "";  // Add "" to convert to string
-        if (xStr.length == 1) {
-            xStr = "0" + xStr;
-        }
-        return xStr;
-    }
-
-    /* Utility. */
-    function getNewScriptName() {
-        let currentNames = [];
-        for (var option of usersScripts.options) {
-            currentNames.push(option.text);
-        }
-        let n = 1;
-        let suggestedName;
-        while (true) {
-            suggestedName = "MyScript" + n;
-            if (currentNames.indexOf(suggestedName) < 0) {
-                break;
-            }
-            else {
-                n = n + 1;
-            }
-        }
-        return suggestedName;
-    }
-
-    function addOptionToUsersScripts(text, value) {
-        let option = document.createElement("option");
-        option.text = text;
-        option.value = value;
-        usersScripts.appendChild(option);
-    }
-
-    function removeOptionFromUsersScripts(value) {
-        for (var i = 0; i < usersScripts.length; i++) {
-            if (usersScripts.options[i].value == value) {
-                usersScripts.remove(i);
-                break;
-            }
-        }
-    }
-
-    function updateOptionInUsersScripts(value, name) {
-        for (var i = 0; i < usersScripts.length; i++) {
-            if (usersScripts.options[i].value == value) {
-                usersScripts.options[i].text = name;
-                break;
-            }
-        }
-    }
-
-    function saveScript(id, name, code) {
+    function saveScript(name, code) {
+        const id = usersScriptCode.dataset.scriptid;  // The is of the current script is stored in the attribute "data-scriptid" of the textbox
         const dataSend = {'id': id, 'name': name, 'code': code};
         const save_url = "/save";  // XXX use Jinja2: {{ url_for("save") | tojson }}
         const save_arg = {"method": "POST",
@@ -399,78 +215,15 @@ function onLoad() { // DOM is loaded and ready
                 if (error) {
                     alert(error);
                 }
-                else {
-                    updateOptionInUsersScripts(id, name);
-                    updateCachedScripts(id, name, code)
-                }
-            });
+            }
+        );
     }
 
     /* Listener. */
     function saveScriptButtonClicked() {
-        const selectedValue = usersScripts.value;
-        if (selectedValue.length == 0) {  // Empty selection or empty list
-            return;
-        }
         const name = usersScriptName.value;
         const code = usersScriptCode.value;
-        saveScript(selectedValue, name, code);
-    }
-
-    /* Listener. */
-    function deleteScriptButtonClicked() {
-        const selectedValues = getSelectedUserScripts();
-        if (selectedValues.length == 0) {  // Empty selection or empty list
-            return;
-        }
-
-        const dataSend = {'ids': selectedValues};
-        const delete_url = "/delete";  // XXX use Jinja2: {{ url_for("delete") | tojson }}
-        const delete_arg = {"method": "POST",
-                            "headers": {"Content-Type": "application/json"},
-                            "body": JSON.stringify(dataSend)};
-        fetch(delete_url, delete_arg)
-            .then(response => response.json())
-            .then(data => {
-                const error = data['error'];
-                if (error) {
-                    alert(error);
-                }
-                else {
-                    for (let selectedValue of selectedValues) {
-                        removeOptionFromUsersScripts(selectedValue);
-                    }
-                }
-                handleVisibility();
-            });
-    }
-
-    /* Listener. */
-    function newScriptButtonClicked() {
-        const today = new Date();
-        const monthStr = intToTwoNumberString(today.getMonth() + 1);
-        const dateStr = intToTwoNumberString(today.getDate());
-        const timeStr = intToTwoNumberString(today.getHours()) + ":" +
-                        intToTwoNumberString(today.getMinutes()) + ":" +
-                        intToTwoNumberString(today.getSeconds());
-        const fullDateStr = today.getFullYear() + "-" + monthStr + "-" + dateStr + ", " + timeStr;
-
-        const newScriptName = getNewScriptName();
-        const newScriptCode = "# Learning simulator script\n# Created " + fullDateStr;
-        const dataSend = {'name': newScriptName, 'code': newScriptCode};
-
-        const add_url = "/add";  // XXX use Jinja2: {{ url_for("add") | tojson }}
-        const add_arg = {"method": "POST",
-                         "headers": {"Content-Type": "application/json"},
-                         "body": JSON.stringify(dataSend)};
-
-        fetch(add_url, add_arg)
-            .then(response => response.json())
-            .then(data => {
-                const newScriptValue = data['id'];
-                addOptionToUsersScripts(newScriptName, newScriptValue);
-            });
-
+        saveScript(name, code);
     }
 
     function userRunButtonClicked() {

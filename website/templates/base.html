@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    {% block js %}
+
     <!-- Required external Javascript -->
     <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
 
@@ -14,11 +16,13 @@
       src="{{ url_for('static', filename='mpld3.v0.5.9-dev.min.js') }}">
     </script>
 
-    <!-- Our own js-file-->
+    <!-- Our own js-file -->
     <script
       type="text/javascript"
       src="{{ url_for('static', filename='index.js') }}">
     </script>
+
+    {% endblock %}
 
     <!-- Our own css-file-->
     <link rel="stylesheet" 
@@ -31,11 +35,14 @@
   <body>
     <div>
         {% if user.is_authenticated %}
-          <a href="/">Home</a>
+          <!-- <a href="/">Home</a> -->
+          <a href="/my_scripts">My Scripts</a>
+          <!-- <a href="/demo_scripts">Demo Scripts</a> -->
           <a href="/logout">Logout</a>
         {% else %}
           <a href="/login">Login</a>
           <a href="/register">Register</a>
+          <!-- <a href="/demo_scripts">Demo Scripts</a> -->
         {% endif %}
     </div>
     <hr>

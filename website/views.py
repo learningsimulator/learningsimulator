@@ -53,6 +53,12 @@ def validate_script(name, id=None):
     return err
 
 
+@views.route('/my_scripts')
+@login_required
+def my_scripts():
+    return render_template("my_scripts.html", user=current_user)
+
+
 @views.route('/get/<int:id>')
 @login_required
 def get_script(id):
@@ -107,7 +113,6 @@ def add():
 @views.route('/delete', methods=['POST'])
 def delete():
     ids_to_delete = request.json['ids']
-    print(ids_to_delete)
     for id in ids_to_delete:
         script_to_delete = Script.query.get_or_404(id)
         try:
@@ -145,6 +150,14 @@ def run_mpl():
         postcmds = simulation_output
         out = postcmds.plot_js()
         return jsonify(out)
+
+
+@views.route('/open/<int:id>', methods=['GET'])
+def open(id):
+    script = Script.query.get_or_404(id)
+    demo_script_names = [ds['name'] for ds in demo_scripts]
+    return render_template("home.html", user=current_user, script=script, demo_script_names=demo_script_names)
+
 
 # @views.route('/run', methods=['POST'])
 # def run():
