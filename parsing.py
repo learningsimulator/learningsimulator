@@ -266,7 +266,8 @@ class ScriptParser():
 
             elif line_parser.line_type == LineParser.RUN:
                 if len(linesplit_space) == 1:
-                    raise ParseException(lineno, "@RUN line must have the form '@RUN phases [runlabel:label]'.")
+                    raise ParseException(lineno,
+                        "@RUN line must have the form '@RUN phases [runlabel:label]' or '@RUN label phases'.")
                 after_run = linesplit_space[1].strip()
                 run_label, run_phase_labels = self._parse_run(after_run, lineno)
                 world = self.phases.make_world(run_phase_labels)
@@ -548,21 +549,37 @@ class ScriptParser():
 
     def _parse_run(self, after_run, lineno):
         """
-        Parses a @RUN line ("@RUN  phase1,phase2,... [runlabel:lbl]") and returns the run label and
-        a list of phase labels.
+        Parses a @RUN line
+            @RUN  phase1,phase2,... [runlabel:lbl]  or
+            @RUN  runlbl  phase1,phase2,...
+        and returns the run label and a list of phase labels.
         """
+        words = after_run.replace(',', ' ').split()
+        got_label = not self.phases.contains(words[0])
+        if got_label:  # Then we interpret the first word (after @run) as run label
+            label = words[0]
+
         match_objs_iterator = re.finditer(r' runlabel[\s]*:', after_run)
         match_objs = tuple(match_objs_iterator)
-        n_matches = len(match_objs)
-        if n_matches == 0:
-            label = f'run{self.unnamed_run_cnt}'
-            self.unnamed_run_cnt += 1
-            phases_str = after_run
-        elif n_matches == 1:
+        n_runlabel = len(match_objs)
+
+        if n_runlabel == 0:
+            if not got_label:
+                label = f'run{self.unnamed_run_cnt}'
+                self.unnamed_run_cnt += 1
+                phases_str = after_run
+            else:
+                label_ind1 = after_run.index(label)
+                label_ind2 = label_ind1 + len(label)
+                phases_str = after_run[label_ind2:]
+        elif n_runlabel == 1:
             match_obj = match_objs[0]
             start_index = match_obj.start() + 1  # Index of "l" in "label"
             end_index = match_obj.end()  # Index of character after ":"
-            label = after_run[end_index:].strip()
+            label2 = after_run[end_index:].strip()
+            if got_label:
+                raise ParseException(lineno, f"Duplicate run labels {label} and {label2} on a {kw.RUN} line.")
+            label = label2
             phases_str = after_run[0: start_index].strip()
         else:
             raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")

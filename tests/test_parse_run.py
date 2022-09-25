@@ -294,7 +294,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]'."
+        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]' or '@RUN label phases'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, '_')
 
@@ -329,11 +329,50 @@ class TestExceptions(LsTestCase):
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run foo runlabel:run1
+        @run phase1, foo runlabel:run1
         '''
         msg = "Error on line 8: Phase foo undefined."
         with self.assertRaisesMsg(msg):
             parse(text, 'run1')
+
+        text = '''
+        mechanism: ac
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @run foo runlabel:myrun1
+        '''
+        msg = "Error on line 8: Duplicate run labels foo and myrun1 on a @run line."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'myrun1')
+
+        text = '''
+        mechanism: ac
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @run phase1 runlabel:myrun1    runlabel: myrun42
+        '''
+        msg = "Error on line 8: Maximum one instance of 'runlabel:' on a @run line."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'myrun1')
+
+        text = '''
+        mechanism: ac
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @run foo runlabel:myrun1    runlabel: myrun42
+        '''
+        msg = "Error on line 8: Maximum one instance of 'runlabel:' on a @run line."
+        with self.assertRaisesMsg(msg):
+            parse(text, 'myrun1')
 
     def test_empty_mechanism_name(self):
         text = '''
