@@ -11,9 +11,9 @@ class Runs():
         # The run labels respecting the order in which they were added
         self.run_labels = list()
 
-    def add(self, run_obj, label, lineno):  # , world, mechanism_obj, n_subjects):
-        if label in self.runs:
-            raise ParseException(lineno, f"Run label {label} is duplicated.")
+    def add(self, run_obj, label):  # , world, mechanism_obj, n_subjects):
+        # if label in self.runs:
+        #     raise ParseException(lineno, f"Run label {label} is duplicated.")
         self.run_labels.append(label)
         self.runs[label] = run_obj  # ScriptRun(label, world, mechanism_obj, n_subjects)
 

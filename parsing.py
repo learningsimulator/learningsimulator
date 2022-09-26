@@ -175,6 +175,7 @@ class ScriptParser():
         in_prop = False
         in_variables = False
         in_phase = False
+        in_run = False
 
         for lineno0, line_orig in enumerate(self.lines):
             line = line_orig
@@ -194,7 +195,7 @@ class ScriptParser():
             linesplit_equal = line_parser.linesplit_equal
             linesplit_space = line_parser.linesplit_space
 
-            if in_prop or in_variables or in_phase:
+            if in_prop or in_variables or in_phase or in_run:  # Possible multiline elements
                 parse_this_line_done = True
                 err = None
                 if in_prop:
@@ -212,7 +213,15 @@ class ScriptParser():
                         parse_this_line_done = False
                         # Phase with label curr_phase_label is complete, parse it
                         self.phases.parse_phase(curr_phase_label, self.parameters, self.variables)
-
+                elif in_run:
+                    in_run = line_parser.line_type is None  # Because the line is just a phase name
+                    if in_run:
+                        run_lines.append((line, lineno))
+                        parse_this_line_done = True
+                    else:
+                        run, run_label = self._parse_run_lines(run_lines)
+                        self.runs.add(run, run_label)
+                        parse_this_line_done = False
                 if err:
                     raise ParseException(lineno, err)
                 if parse_this_line_done:
@@ -265,23 +274,8 @@ class ScriptParser():
                     continue
 
             elif line_parser.line_type == LineParser.RUN:
-                if len(linesplit_space) == 1:
-                    raise ParseException(lineno,
-                        "@RUN line must have the form '@RUN phases [runlabel:label]' or '@RUN label phases'.")
-                after_run = linesplit_space[1].strip()
-                run_label, run_phase_labels = self._parse_run(after_run, lineno)
-                world = self.phases.make_world(run_phase_labels)
-                run_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen runs
-                mechanism_obj, err = run_parameters.make_mechanism_obj()
-                if err:
-                    raise ParseException(lineno, err)
-                n_subjects = run_parameters.get(kw.N_SUBJECTS)
-                bind_trials = run_parameters.get(kw.BIND_TRIALS)
-                is_ok, err, err_lineno = mechanism_obj.check_compatibility_with_world(world)
-                if err:
-                    raise ParseException(err_lineno, err)
-                run = Run(run_label, world, mechanism_obj, n_subjects, bind_trials)
-                self.runs.add(run, run_label, lineno)
+                in_run = True
+                run_lines = [(line, lineno)]
                 continue
 
             elif line_parser.line_type == LineParser.PHASE:
@@ -362,7 +356,13 @@ class ScriptParser():
                 self.postcmds.add(export_cmd)
 
             else:
-                raise ParseException(lineno, f"Invalid expression '{line}'.")
+                raise ParseException(lineno, f"Invalid expression '{line}'. {line_parser.line_type}")
+                # raise ParseException(lineno, f"Invalid expression '{line}'.")
+
+        # If @run is the last statement in the script, finishe the parsing of this
+        if in_run:
+            run, run_label = self._parse_run_lines(run_lines)
+            self.runs.add(run, run_label)
 
     def check_deprecated_syntax(self):
         return self.phases.check_deprecated_syntax()
@@ -547,55 +547,88 @@ class ScriptParser():
                 mpl_prop = dict()
         return title, mpl_prop
 
-    def _parse_run(self, after_run, lineno):
-        """
-        Parses a @RUN line
-            @RUN  phase1,phase2,... [runlabel:lbl]  or
-            @RUN  runlbl  phase1,phase2,...
-        and returns the run label and a list of phase labels.
-        """
-        words = after_run.replace(',', ' ').split()
-        got_label = not self.phases.contains(words[0])
-        if got_label:  # Then we interpret the first word (after @run) as run label
-            label = words[0]
+    def _parse_run_lines(self, run_lines):
+        # First line is of the form
+        #    @run
+        #    @run [myrunlabel]
+        #    @run [myrunlabel]  phase1,phase2,...,phasen [,]  [runlabel:myrunlabel]  # Both runlabels not allowed
 
-        match_objs_iterator = re.finditer(r' runlabel[\s]*:', after_run)
-        match_objs = tuple(match_objs_iterator)
-        n_runlabel = len(match_objs)
+        # Each other line is of the form
+        #     phase1,phase2,...,phasen  [,]    [runlabel:myrunlabel]
 
-        if n_runlabel == 0:
-            if not got_label:
-                label = f'run{self.unnamed_run_cnt}'
-                self.unnamed_run_cnt += 1
-                phases_str = after_run
+        run_phase_labels = []
+
+        # Parse first line
+        line, lineno = run_lines[0]
+        linesplit_space = line.split(' ', 1)  # Has length 1 or 2
+        assert(linesplit_space[0] == kw.RUN)
+        got_run_label = False
+        first_line_after_run_and_lbl = ''
+        if len(linesplit_space) == 2:
+            after_run = linesplit_space[1].strip()
+            words = after_run.replace(',', ' ').split()
+            got_run_label = not self.phases.contains(words[0])
+            if got_run_label:  # Then we interpret the first word (after @run) as run label
+                run_label = words[0]
+                first_line_after_run_and_lbl = line.split(run_label, 1)[1]
             else:
-                label_ind1 = after_run.index(label)
-                label_ind2 = label_ind1 + len(label)
-                phases_str = after_run[label_ind2:]
-        elif n_runlabel == 1:
-            match_obj = match_objs[0]
-            start_index = match_obj.start() + 1  # Index of "l" in "label"
-            end_index = match_obj.end()  # Index of character after ":"
-            label2 = after_run[end_index:].strip()
-            if got_label:
-                raise ParseException(lineno, f"Duplicate run labels {label} and {label2} on a {kw.RUN} line.")
-            label = label2
-            phases_str = after_run[0: start_index].strip()
-        else:
-            raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")
+                first_line_after_run_and_lbl = after_run
 
-        if label in self.all_run_labels:
-            raise ParseException(lineno, f"Duplication of run label '{label}'.")
-        else:
-            self.all_run_labels.append(label)
+        # Remove @run (and possibly runlbl) from first line so that the first line can be parsed like all others
+        run_lines[0] = (first_line_after_run_and_lbl, lineno)
 
-        phase_labels = phases_str.strip(',').split(',')
-        phase_labels = [phase_label.strip() for phase_label in phase_labels]
-        for phase_label in phase_labels:
+        # Parse all lines
+        for line, lineno in run_lines:
+            match_objs_iterator = re.finditer(r' runlabel[\s]*:', line)
+            match_objs = tuple(match_objs_iterator)
+            n_runlabel = len(match_objs)
+
+            if n_runlabel == 0:
+                phases_str = line.strip()
+            elif n_runlabel == 1:
+                match_obj = match_objs[0]
+                start_index = match_obj.start() + 1  # Index of "r" in "runlabel"
+                end_index = match_obj.end()  # Index of character after ":"
+                run_label2 = line[end_index:].strip()
+                if got_run_label:
+                    raise ParseException(lineno, f"Duplicate run labels {run_label} and {run_label2} on a {kw.RUN} line.")
+                run_label = run_label2
+                got_run_label = True
+                phases_str = line[0: start_index].strip()
+            else:
+                raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")
+            if len(phases_str) > 0:
+                run_phase_labels_line = phases_str.strip(',').split(',')
+                run_phase_labels_line = [lbl.strip() for lbl in run_phase_labels_line]
+                run_phase_labels.extend(run_phase_labels_line)
+
+        if not got_run_label:
+            run_label = f'run{self.unnamed_run_cnt}'
+            self.unnamed_run_cnt += 1
+
+        if run_label in self.all_run_labels:
+            raise ParseException(lineno, f"Duplication of run label '{run_label}'.")
+        else:
+            self.all_run_labels.append(run_label)
+
+        for phase_label in run_phase_labels:
             if not self.phases.contains(phase_label):
                 raise ParseException(lineno, f"Phase {phase_label} undefined.")
 
-        return label, phase_labels
+        # Now that we have a run-label and phases to run, create Run object
+        world = self.phases.make_world(run_phase_labels)
+        run_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen runs
+        mechanism_obj, err = run_parameters.make_mechanism_obj()
+        if err:
+            raise ParseException(lineno, err)
+        n_subjects = run_parameters.get(kw.N_SUBJECTS)
+        bind_trials = run_parameters.get(kw.BIND_TRIALS)
+        err, err_lineno = mechanism_obj.check_compatibility_with_world(world)
+        if err:
+            raise ParseException(err_lineno, err)
+        run = Run(run_label, world, mechanism_obj, n_subjects, bind_trials)
+
+        return run, run_label
 
 
 # -----------------------------------------------------------

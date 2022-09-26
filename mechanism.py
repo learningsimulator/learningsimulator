@@ -115,7 +115,7 @@ class Mechanism():
                                      self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
-        return True, None, None  # To be overridden where necessary
+        return None, None  # To be overridden where necessary
 
     def has_v(self):
         return True
@@ -440,7 +440,7 @@ class OriginalRescorlaWagner(Mechanism):
                     mech_name = self.parameters.get(kw.MECHANISM_NAME)
                     err = f"Stop condition cannot depend on behavior in mechanism '{mech_name}'."
                     lineno = phase.stop_condition.lineno
-                    return False, err, lineno
+                    return err, lineno
 
         # Check that phase line logics do not depend on behavior
         for phase in world.phases:
@@ -450,9 +450,9 @@ class OriginalRescorlaWagner(Mechanism):
                         mech_name = self.parameters.get(kw.MECHANISM_NAME)
                         err = f"Phase line logic cannot depend on behavior in mechanism '{mech_name}'."
                         lineno = condition_obj.lineno
-                        return False, err, lineno
+                        return err, lineno
 
-        return True, None, None
+        return None, None
 
     def has_vss(self):
         return True

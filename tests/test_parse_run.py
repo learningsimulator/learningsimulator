@@ -1,4 +1,4 @@
-from .testutil import LsTestCase
+from .testutil import LsTestCase, run, get_plot_data
 from parsing import Script
 from mechanism import Enquist, StimulusResponse, ActorCritic, Qlearning, EXP_SARSA
 import keywords as kw
@@ -148,6 +148,217 @@ class TestBasic(LsTestCase):
         self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
         self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
 
+    def test_multiphase_with_one_phase_per_line(self):
+        text = '''
+        mechanism: ga
+        n_subjects: 100
+        stimulus_elements: e1, e2,
+                           e3
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:False
+        X1 e3 | X2
+        X2 e3 | X1
+        @run phase1
+             phase2
+        '''
+        run, parameters = parse(text, 'run1')
+        self.assertEqual(run.world.nphases, 2)
+        self.assertEqual(run.world.curr_phaseind, 0)
+        self.assertTrue(isinstance(run.mechanism_obj, Enquist))
+        self.assertTrue(run.has_w)
+        self.assertEqual(run.n_subjects, 100)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2,
+                           e3
+        behaviors: b1,
+                   b2, b3
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:False
+        X1 e3 | X2
+        X2 e3 | X1
+        @PHASE phase3 stop:e1=100
+        L1 e1 | L1
+        @PHASE phase4 stop:e1=100
+        L1 e1 | L1
+        @run phase4
+             phase1
+        '''
+        run, parameters = parse(text, 'run1')
+        self.assertEqual(run.world.nphases, 2)
+        self.assertEqual(run.world.curr_phaseind, 0)
+        self.assertTrue(isinstance(run.mechanism_obj, StimulusResponse))
+        self.assertFalse(run.has_w)
+        self.assertEqual(run.n_subjects, 1)
+
+        text = '''
+        mechanism: ga
+        n_subjects: 100
+        stimulus_elements: e1, e2,
+                           e3
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:False
+        X1 e3 | X2
+        X2 e3 | X1
+        @run myrunlbl phase1
+                      phase2
+                      phase1
+                      phase2
+        '''
+        run, parameters = parse(text, 'myrunlbl')
+        self.assertEqual(run.world.nphases, 4)
+        self.assertEqual(run.world.curr_phaseind, 0)
+        self.assertTrue(isinstance(run.mechanism_obj, Enquist))
+        self.assertTrue(run.has_w)
+        self.assertEqual(run.n_subjects, 100)
+
+        text = '''
+        mechanism: ga
+        n_subjects: 100
+        stimulus_elements: e1, e2,
+                           e3, e4, e5, e6, e7,
+                           e8
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:e3=20
+        X1 e3 | X2
+        X2 e4 | X1
+        @PHASE phase3 stop:e5=30
+        L1 e5 | L2
+        L2 e6 | L1
+        @PHASE phase4 stop:e7=40
+        L1 e7 | L2
+        L2 e8 | L1
+
+        @run myrunlbl1 phase1
+                      phase2
+                      phase3,
+                      phase4
+
+        @run           phase1,
+                       phase4           runlabel:myrunlbl2
+
+        @run myrunlbl3 phase1, phase2
+        phase3,
+        phase4
+
+        @run
+        phase1
+        phase1
+        phase1
+        phase2         runlabel:myrunlbl4
+        phase3,
+        phase4     ,
+
+        n_subjects = 42
+        '''
+        run, parameters = parse(text, 'myrunlbl1')
+        self.assertEqual(run.world.nphases, 4)
+        self.assertEqual(run.n_subjects, 100)
+
+        run, parameters = parse(text, 'myrunlbl2')
+        self.assertEqual(run.world.nphases, 2)
+        self.assertEqual(run.n_subjects, 100)
+
+        run, parameters = parse(text, 'myrunlbl3')
+        self.assertEqual(run.world.nphases, 4)
+        self.assertEqual(run.n_subjects, 100)
+
+        run, parameters = parse(text, 'myrunlbl4')
+        self.assertEqual(run.world.nphases, 6)
+        self.assertEqual(run.n_subjects, 100)
+        self.assertEqual(parameters.get(kw.N_SUBJECTS), 100)
+
+    def test_multiphase_with_one_phase_per_line_with_run(self):
+        text = '''
+        mechanism: ga
+        n_subjects: 1
+        stimulus_elements: e1, e2,
+                           e3, e4, e5
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:e1=20
+        X1 e1 | X2
+        X2 e3 | X1
+        @PHASE phase3 stop:e1=30
+        L1 e1 | L2
+        L2 e4 | L1
+        @PHASE phase4 stop:e1=40
+        L1 e1 | L2
+        L2 e5 | L1
+
+        @run myrunlbl1 phase1
+                       phase2
+                       phase3,
+                       phase4
+
+        @run   phase1,
+               phase4           runlabel:myrunlbl2
+
+        @run myrunlbl3 phase1, phase2
+                       phase3,
+                       phase4, phase4
+
+        @run myrunlbl4
+        phase1
+        phase1, phase1
+        phase1
+        phase3,
+        phase4     ,
+
+        xscale = e1
+        @figure 1
+        runlabel = myrunlbl1
+        @nplot e1
+
+        @figure 2
+        runlabel = myrunlbl2
+        @nplot e1
+
+        @figure 3
+        runlabel = myrunlbl3
+        @nplot e1
+
+        @figure 4
+        runlabel = myrunlbl4
+        @nplot e1
+        '''
+        run(text)
+
+        # Figure 1
+        plot_data = get_plot_data(1)
+        self.assertEqual(plot_data['x'], list(range(101)))
+        self.assertEqual(plot_data['y'], list(range(101)))
+
+        # Figure 2
+        plot_data = get_plot_data(2)
+        self.assertEqual(plot_data['x'], list(range(51)))
+        self.assertEqual(plot_data['y'], list(range(51)))
+
+        # Figure 3
+        plot_data = get_plot_data(3)
+        self.assertEqual(plot_data['x'], list(range(141)))
+        self.assertEqual(plot_data['y'], list(range(141)))
+
+        # Figure 4
+        plot_data = get_plot_data(4)
+        self.assertEqual(plot_data['x'], list(range(111)))
+        self.assertEqual(plot_data['y'], list(range(111)))
+
+
     def test_multiple_run_with_different_behaviors(self):
         text = '''
         mechanism:   ga
@@ -294,7 +505,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @run
         '''
-        msg = "Error on line 2: @RUN line must have the form '@RUN phases [runlabel:label]' or '@RUN label phases'."
+        msg = "Error on line 2: Parameter 'mechanism' is not specified."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, '_')
 
