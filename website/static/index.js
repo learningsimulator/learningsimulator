@@ -15,22 +15,23 @@ function onLoad() { // DOM is loaded and ready
     const demoScriptCode = document.getElementById(DEMOSCRIPT_CODE);
     const usersScriptName = document.getElementById('input-scriptname');
     const demoScripts = document.getElementById('select-demoscripts');
-    const createButton = document.getElementById('button-createscript');
-    const deleteButton = document.getElementById('button-deletescript');
     const saveButton = document.getElementById('button-savescript');
     const userRunButton = document.getElementById('button-run');
-    const userRunButtonMpl = document.getElementById('button-run-mpl');
     const demoRunButton = document.getElementById('button-run-demo');
     const lineCounter = document.getElementById('linecounter');
     const errDlgDetailsButton = document.getElementById('button-errdlg-details');
     const errDlgDetails = document.getElementById('textarea-errdlg-details');
     const errDlgClose = document.getElementById("errdlg-close");
-    const modalBg = document.getElementById("modal-bg");
+    const errorDlgModalBg = document.getElementById("div-errordlg-modal-bg");
     const errDlgMsg = document.getElementById("div-errmsg");
     const divDemo = document.getElementById("div-demo");
     const showDivDemoButton = document.getElementById("button-showdemo");
-
-    // usersScriptCode.value = {{ script.code }};
+    
+    // Settings
+    const settingsButton = document.getElementById("button-settings");
+    const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
+    const settingsDlgOK = document.getElementById("settingsdlg-ok");
+    const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
 
     // Showing/hiding demo scripts
     showDivDemoButton.addEventListener("click", toggleDivDemo);
@@ -46,25 +47,29 @@ function onLoad() { // DOM is loaded and ready
     }
 
     // To synchronise the scrolling of script textarea and linecounter textarea:
-    usersScriptCode.addEventListener('scroll', () => {
-        lineCounter.scrollTop = usersScriptCode.scrollTop;
-        lineCounter.scrollLeft = usersScriptCode.scrollLeft;
-    });
+    if (usersScriptCode) {
+        usersScriptCode.addEventListener('scroll', () => {
+            lineCounter.scrollTop = usersScriptCode.scrollTop;
+            lineCounter.scrollLeft = usersScriptCode.scrollLeft;
+        });
+    }
 
     // Enable the tab key to be input into the script textarea:
-    usersScriptCode.addEventListener('keydown', (e) => {
-        let keyCode = e.key;
-        const { value, selectionStart, selectionEnd } = usersScriptCode;
-        if (keyCode === 'Tab') {
-            e.preventDefault();
-            usersScriptCode.value = value.slice(0, selectionStart) + '\t' + value.slice(selectionEnd);
-            usersScriptCode.setSelectionRange(selectionStart + 1, selectionStart + 1)
-        }
-    });
+    if (usersScriptCode) {
+        usersScriptCode.addEventListener('keydown', (e) => {
+            let keyCode = e.key;
+            const { value, selectionStart, selectionEnd } = usersScriptCode;
+            if (keyCode === 'Tab') {
+                e.preventDefault();
+                usersScriptCode.value = value.slice(0, selectionStart) + '\t' + value.slice(selectionEnd);
+                usersScriptCode.setSelectionRange(selectionStart + 1, selectionStart + 1)
+            }
+        });
+    }
 
     // To output the line counter display:
     var lineCountCache = 0;
-    function updateLineCounter(e) {
+    function updateLineCounter() {
         const lineCount = usersScriptCode.value.split('\n').length;
         if (lineCountCache != lineCount) {
             var outarr = new Array();
@@ -75,9 +80,11 @@ function onLoad() { // DOM is loaded and ready
             lineCountCache = lineCount;
         }
     }
-    usersScriptCode.addEventListener('input', () => {  // Fires e.g. when pasting by drag-and-drop into the textarea
-        updateLineCounter();
-    });
+    if (usersScriptCode) {
+        usersScriptCode.addEventListener('input', () => {  // Fires e.g. when pasting by drag-and-drop into the textarea
+            updateLineCounter();
+        });
+    }
 
 
     // For resizing the resizable divs where the Plotly plots are rendered
@@ -110,14 +117,166 @@ function onLoad() { // DOM is loaded and ready
 
     // When the user clicks on <span> (x), close the error dialog
     errDlgClose.onclick = function() {
-        modalBg.style.display = "none";
+        errorDlgModalBg.style.display = "none";
         usersScriptCode.focus();  // To see the selection of the failing line
     }
 
     // When the user clicks anywhere outside of the modal, close it
     // window.onclick = function(event) {
-    //     if (event.target == modalBg) {
-    //         modalBg.style.display = "none";
+    //     if (event.target == errorDlgModalBg) {
+    //         errorDlgModalBg.style.display = "none";
+    //     }
+    // }
+    // ==================================================================================================
+
+    class Settings {
+        constructor() {
+            this.graph_lib = null;
+            this.plot_orientation = null;
+            this.plot_width = null;
+            this.plot_height = null;
+            this.legend_x = null;
+            this.legend_y = null;
+            this.legend_x_anchor = null;
+            this.legend_y_anchor = null;
+            this.legend_orientation = null;
+            this.paper_color = null;
+            this.plot_bgcolor = null;
+            this.mplpdf = null;
+            this.keep_plots = null;
+
+            // Read values from db
+
+            // The id of the settings for the current user is stored in the
+            // attribute "data-settingsid" of the textbox
+            const settingsId = usersScriptCode.dataset.settingsid;
+
+            const get_url = "/get_settings/" + settingsId;  // XXX use Jinja2: {{ url_for("get") | tojson }}
+            fetch(get_url)
+                .then(response => response.json())
+                .then(data => {
+                    this.graph_lib = data['graph_lib'];
+                    this.plot_orientation = data['plot_orientation'];
+                    this.plot_width = data['plot_width'];
+                    this.plot_height = data['plot_height'];
+                    this.legend_x = data['legend_x'];
+                    this.legend_y = data['legend_y'];
+                    this.legend_x_anchor = data['legend_x_anchor'];
+                    this.legend_y_anchor = data['legend_y_anchor'];
+                    this.legend_orientation = data['legend_orientation'];
+                    this.paper_color = data['paper_color'];
+                    this.plot_bgcolor = data['plot_bgcolor'];
+                    this.mplpdf = data['mplpdf'];
+                    this.keep_plots = data['keep_plots'];
+                }
+            );
+        }
+
+        validate() {
+            let err = null;
+            return err;
+        }
+
+        save() {
+            this.graph_lib = document.getElementById("settings-graphlib").value;
+            this.plot_orientation = document.getElementById("settings-plotorientation").value;
+            this.plot_width = document.getElementById("settings-plotwidth").value;
+            this.plot_height = document.getElementById("settings-plotheight").value;
+            this.legend_x = document.getElementById("settings-legendrelx").value;
+            this.legend_y = document.getElementById("settings-legendrely").value;
+            this.legend_x_anchor = document.getElementById("settings-legendanchorx").value;
+            this.legend_y_anchor = document.getElementById("settings-legendanchory").value;
+            this.legend_orientation = document.getElementById("settings-legendorientation").value;
+            this.paper_color = document.getElementById("settings-paperbgcolor").value;
+            this.plot_bgcolor = document.getElementById("settings-plotbgcolor").value;
+            this.mplpdf = document.getElementById("settings-mplpdf").checked;
+            this.keep_plots = document.getElementById("settings-keep").checked;
+
+            // Save to db
+            return this.writeToDB();;
+        }
+
+        writeToDB() {
+            // The id of the settings for the current user is stored in the
+            // attribute "data-settingsid" of the textbox
+            const settingsId = usersScriptCode.dataset.settingsid;
+
+            const dataSend = {'id': settingsId, 'settings': this};
+            const save_url = "/save_settings";  // XXX use Jinja2: {{ url_for("save") | tojson }}
+            const save_arg = {"method": "POST",
+                              "headers": {"Content-Type": "application/json"},
+                              "body": JSON.stringify(dataSend)};
+            fetch(save_url, save_arg)
+                .then(response => response.json())
+                .then(data => {
+                    const error = data['error'];
+                    if (error) {
+                        return error;
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            );
+        }
+
+        update_ui() {
+            document.getElementById("settings-graphlib").value = this.graph_lib;
+            document.getElementById("settings-plotorientation").value = this.plot_orientation;
+            document.getElementById("settings-plotwidth").value = this.plot_width;
+            document.getElementById("settings-plotheight").value = this.plot_height;
+            document.getElementById("settings-legendrelx").value = this.legend_x;
+            document.getElementById("settings-legendrely").value = this.legend_y;
+            document.getElementById("settings-legendanchorx").value = this.legend_x_anchor;
+            document.getElementById("settings-legendanchory").value = this.legend_y_anchor;
+            document.getElementById("settings-legendorientation").value = this.legend_orientation;
+            document.getElementById("settings-paperbgcolor").value = this.paper_color;
+            document.getElementById("settings-plotbgcolor").value = this.plot_bgcolor;
+            document.getElementById("settings-mplpdf").checked = this.mplpdf;
+            document.getElementById("settings-keep").checked = this.keep_plots;
+        }
+
+    }
+
+    var settings = new Settings();
+
+    // ======================================= Settings "dialog box" =======================================
+
+    // Open settings "dialog"
+    if (settingsButton) {
+        settingsButton.addEventListener('click', () => {
+            settings.update_ui();
+            settingsDlgModalBg.style.display = "block";
+        });
+    }
+
+    // When the user clicks on Cancel, close the settings dialog
+    settingsDlgCancel.onclick = function() {
+        settingsDlgModalBg.style.display = "none";
+    }
+
+    if (settingsDlgOK) {
+        settingsDlgOK.onclick = function() {
+            const err_client = settings.validate();
+            if (err_client) {
+                alert(err_client);
+                return;
+            }        
+            const err_server = settings.save();
+            if (err_server) {
+                alert(err_server);
+                return;
+            }
+            else {
+                settingsDlgModalBg.style.display = "none";
+            }
+        }
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    // window.onclick = function(event) {
+    //     if (event.target == errorDlgModalBg) {
+    //         errorDlgModalBg.style.display = "none";
     //     }
     // }
     // ==================================================================================================
@@ -153,31 +312,18 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    // Set event listener to button for creating new script
-    if (createButton) {  // This button is only displayed when logged in
-        createButton.addEventListener('click', newScriptButtonClicked);
-    }
-
-    // Set event listener to button for deleting script
-    if (deleteButton) {  // This button is only displayed when logged in
-        deleteButton.addEventListener('click', deleteScriptButtonClicked);
-    }
-
     // Set event listener to button for running script
     if (userRunButton) {  // This button is only displayed when logged in
         userRunButton.addEventListener('click', userRunButtonClicked);
-    }
-
-    // Set event listener to button for running script with matplotlib plot
-    if (userRunButtonMpl) {  // This button is only displayed when logged in
-        userRunButtonMpl.addEventListener('click', userRunButtonMplClicked);
     }
 
     // Set event listener to button for running demo script
     demoRunButton.addEventListener('click', demoRunButtonClicked);
 
     // Set event listener to button for saving script
-    saveButton.addEventListener('click', saveScriptButtonClicked);
+    if (saveButton) {
+        saveButton.addEventListener('click', saveScriptButtonClicked);
+    }
 
     // Set event listener to "Demo scripts" list
     demoScripts.addEventListener('change', demoScriptsSelectionChanged);
@@ -202,7 +348,7 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function saveScript(name, code) {
-        const id = usersScriptCode.dataset.scriptid;  // The is of the current script is stored in the attribute "data-scriptid" of the textbox
+        const id = usersScriptCode.dataset.scriptid;  // The id of the current script is stored in the attribute "data-scriptid" of the textbox
         const dataSend = {'id': id, 'name': name, 'code': code};
         const save_url = "/save";  // XXX use Jinja2: {{ url_for("save") | tojson }}
         const save_arg = {"method": "POST",
@@ -227,24 +373,20 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function userRunButtonClicked() {
-        runButtonClicked(USERSCRIPT_CODE, "plotarea", "plotly");
-    }
-
-    function userRunButtonMplClicked() {
-        runButtonClicked(USERSCRIPT_CODE, "plotarea", "matplotlib");
+        runButtonClicked(USERSCRIPT_CODE, "plotarea");
     }
 
     function demoRunButtonClicked() {
-        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo", "plotly");
+        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo");
     }
 
-    function runButtonClicked(textareaID, divID, graphLib) {
+    function runButtonClicked(textareaID, divID) {
         const code = document.getElementById(textareaID).value;
         const dataSend = {'code': code};
-        const isMpl = (graphLib === "matplotlib");
+        const isMpl = (settings.graph_lib === "mpld3");
         let run_url;
         if (isMpl) {
-            run_url = "/run_mpl";  // XXX use Jinja2: {{ url_for("run_mpl") | tojson }}
+            run_url = "/run_mpl_fig";  // XXX use Jinja2: {{ url_for("run_mpl") | tojson }}
         }
         else {
             run_url = "/run";  // XXX use Jinja2: {{ url_for("run") | tojson }}
@@ -264,7 +406,7 @@ function onLoad() { // DOM is loaded and ready
                 }
                 try {
                     if (isMpl)
-                        postproc_mpl(data, divID);
+                        postproc_mpl_fig(data, divID);
                     else {
                         postproc(data, divID);
                     }
@@ -280,7 +422,7 @@ function onLoad() { // DOM is loaded and ready
         errDlgDetails.value = data.stack_trace;
         errDlgDetails.style.display = "none";
         errDlgDetailsButton.textContent = "Details >>"
-        modalBg.style.display = "block";
+        errorDlgModalBg.style.display = "block";
     }
 
     function selectLine(lineNo) {
@@ -308,12 +450,14 @@ function onLoad() { // DOM is loaded and ready
             usersScriptCode.setSelectionRange(selectionStart, selectionEnd);
 
             // Extra luxury: Try to scroll to make the highlighted line visible
-            try {
-                const lineHeight = parseInt(getComputedStyle(usersScriptCode).lineHeight);
-                usersScriptCode.scrollTop = (lineNo - 1) * lineHeight;
-            }
-            catch (error) {  // Do nothing
-            }
+            // XXX: Seems to make line counter off
+            // try {
+            //     const lineHeight = parseInt(getComputedStyle(usersScriptCode).lineHeight);
+            //     usersScriptCode.scrollTop = (lineNo - 1) * lineHeight;
+            //     lineCounter.scrollTop = (lineNo - 1) * lineHeight;
+            // }
+            // catch (error) {  // Do nothing
+            // }
         }
     }
 
@@ -406,18 +550,35 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    function postproc_mpl(data, divID) {
+    // function postproc_mpl(data, divID) {
+    //     let plotArea = document.getElementById(divID);
+    //     removeAllChartDivs(divID);
+    //     for (let i = 0; i < data.length; i++)  {
+    //         let chartDiv = document.createElement('div');
+    //         chartDiv.id = "div-mpld3_" + i;
+    //         currFig = chartDiv;
+    //         chartDiv.style.resize = "both";
+    //         chartDiv.style.overflow = "hidden";
+    //         chartDiv.style.border = "3px solid blue";
+    //         plotArea.appendChild(chartDiv);
+    //         Function(data[i])();  // Better than "eval(data[i])""
+    //     }
+    // }
+
+    function postproc_mpl_fig(figImgs, divID) {
         let plotArea = document.getElementById(divID);
         removeAllChartDivs(divID);
-        for (let i = 0; i < data.length; i++)  {
+        for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
             chartDiv.id = "div-mpld3_" + i;
-            currFig = chartDiv;
-            chartDiv.style.resize = "both";
-            chartDiv.style.overflow = "hidden";
             chartDiv.style.border = "3px solid blue";
+
+            let chartImg = document.createElement('img');
+            chartImg.setAttribute("src", figImgs[i]);
+            chartImg.setAttribute("alt", "Matplotlib chart");
+            chartDiv.appendChild(chartImg);
+
             plotArea.appendChild(chartDiv);
-            Function(data[i])();  // Better than "eval(data[i])""
         }
     }
 

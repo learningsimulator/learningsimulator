@@ -6,6 +6,20 @@
 
 {% block title %}Learning Simulator{% endblock %}
 
+{% block navbar %}
+<div>
+    {% if user.is_authenticated %}
+      <a href="/">Home</a>
+      <a href="/my_scripts">My Scripts</a>
+      <a href="/logout">Logout</a>
+    {% else %}
+      <a href="/">Home</a>
+      <a href="/login">Login</a>
+      <a href="/sign_up">Register</a>
+    {% endif %}
+</div>
+{% endblock %}
+
 {% block content %}
 
 <div class="column left" style="border: 1px solid black; resize: both; overflow: hidden;">
@@ -32,7 +46,7 @@
 
 <div class="column preview">
   <!-- <div id="div-script"> -->
-    
+
     <div>
       <!-- <label for="textarea-code-preview">Preview</label><br> -->
       <textarea id="textarea-code-preview" readonly></textarea>

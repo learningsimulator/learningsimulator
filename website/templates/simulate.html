@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}
+Learning Simulator
+{% endblock %} 
+
+
+{% block content %}
+
+<div id="div-home"></div>
+
+{% if user.is_authenticated %}
+<div class="row">
+
+  <!-- <div class="column left" style="border: 2px solid red; resize: both; overflow: hidden;">
+    <b>My scripts</b>
+
+    <select multiple id="select-userscripts">
+    {% if user.is_authenticated %}
+      {% for script in user.scripts %}
+        <option value={{ script.id }}>{{ script.name }}</option>
+      {% endfor %}
+    {% endif %}
+    </select>
+    
+    {% if user.is_authenticated %}
+      <button type="button" id="button-createscript">Create New Script</button>
+      <button type="button" id="button-deletescript">Delete Selected</button>  
+    {% else %}
+      <a href="/login">Login</a> to be able to create your own scripts here.
+    {% endif %}
+
+  </div> -->
+
+  <div class="column middle", style="border: 1px solid black; resize: both; overflow: hidden;">
+
+    <div id="div-scriptname">
+      <label for="input-scriptname">Name of script:&nbsp;</label>
+      <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="{{ script.name }}" required>
+    </div>
+    
+    <div id="editor">
+      <textarea id='linecounter' wrap='off' readonly>1</textarea>
+      <textarea id="textarea-code" maxlength="10000" wrap="off"
+                data-scriptid="{{ script.id }}"
+                data-settingsid="{{ settings.id }}">{{ script.code }}</textarea>
+    </div>
+
+    <div>
+        <button type="button" id="button-savescript">Save</button>
+        <button type="button" id="button-run">Run</button>
+        <!-- <button type="button" id="button-run-mpl">Run M</button> -->
+    </div>
+      
+  </div>
+  
+  <div class="column right">
+    <div id="plotarea">
+      <!-- This is where the plots appear -->
+    </div>
+  </div>
+  
+</div>
+{% else %}
+    You are not logged in. <a href="/login">Login</a> to be able to create and edit your own scripts.
+{% endif %}
+
+
+<!-- ======================================================================= -->
+
+<button id="button-showdemo">Demo scripts</button>
+<div id="div-demo">
+
+    <div class="row">
+      
+      <div class="column left" style="background-color:#aaa;">
+        <!-- <b>Demo scripts</b> -->
+
+        <select size="10" id="select-demoscripts">
+          {% for name in demo_script_names %}
+            <option value={{ loop.index }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+
+      </div>
+
+      <div class="column middle">
+        <div id="div-script">
+          
+          <div>
+            <label for="textarea-code-demo">Code:</label><br>              
+            <textarea id="textarea-code-demo" readonly></textarea>
+          </div>
+
+          <div>
+              <button type="button" id="button-run-demo">Run</button>
+          </div>
+
+        </div>
+      </div>
+      
+      <div class="column right">
+        <div id="plotarea-demo">
+          <!-- This is where the plots for demo scripts appear -->
+        </div>
+      </div>
+
+    </div>
+
+</div>
+
+<!-- --------------------------- -->
+
+<div id="div-errordlg-modal-bg" class="modal-bg">
+    <!-- Modal content -->
+    <div id="div-errordlg" class="div-modaldlg">
+        <span id="errdlg-close" class="modaldlg-close">&times;</span>
+        <p>
+          <div id="div-errmsg"></div>
+        </p>
+        <button id="button-errdlg-details" value="Details >>">Details >></button>
+        <p>
+          <textarea id="textarea-errdlg-details"></textarea>
+        </p>
+    </div>
+</div>
+
+<!-- --------------------------- -->
+
+<div id="div-settingsdlg-modal-bg" class="modal-bg">
+  <!-- Modal content -->
+  <div id="div-settingsdlg" class="div-modaldlg">
+      <!-- <span id="settingsdlg-close" class="modaldlg-close">&times;</span> -->
+
+      <!-- Graphing library -->
+      <div style="margin-bottom: 5px">
+        <label style="float:left; width:150px">Graphing library:</label>
+        <select id="settings-graphlib" style="width:100px;">
+          <option value="plotly">Plotly</option>
+          <option value="mpld3">Mpld3</option>
+        </select>
+      </div>
+
+      <!-- Horizontal/vertical plot orientation -->
+      <div style="margin-bottom: 5px">
+        <label style="float:left; width:150px">Plot orientation:</label>
+        <select id="settings-plotorientation" style="width:100px;">
+          <option value="vertical">Vertical</option>
+          <option value="horizontal">Horizontal</option>
+        </select>
+      </div>
+
+      <!-- Plot size -->
+      <fieldset style="margin-left:0; margin-bottom: 5px;">
+        <legend>Plot size</legend>
+        <div style="margin-bottom: 5px">
+          <label style="float:left; width:55px">Width:</label>
+          <input id="settings-plotwidth" type="number" value="300" min="10" max="1000" style="width:50px;">
+        </div>
+        <div>
+          <label style="float:left; width:55px">Height:</label>
+          <input id="settings-plotheight" type="number" value="300" min="10" max="1000" style="width:50px;">
+        </div>
+      </fieldset>
+
+      <!-- Legend positioning -->
+      <fieldset style="margin-left:0; margin-bottom: 5px;">
+        <legend>Legend</legend>
+        <div style="margin-bottom: 5px">
+          <label style="float:left; width:150px">Relative x-coordinate:</label>
+          <input id="settings-legendrelx" type="text" style="width:40px;" />
+          <label>&nbsp;Anchor: </label>
+          <select id="settings-legendanchorx" style="width:70px;">
+            <option value="left">Left</option>
+            <option value="middle">Middle</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 5px">
+          <label style="float:left; width:150px">Relative y-coordinate:</label>
+          <input id="settings-legendrely" type="text" style="width:40px;" />
+          <label>&nbsp;Anchor: </label>
+          <select id="settings-legendanchory" style="width:70px;">
+            <option value="bottom">Bottom</option>
+            <option value="middle">Middle</option>
+            <option value="top">Top</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="float:left; width:150px">Orientation:</label>
+          <select id="settings-legendorientation" style="width:100px;">
+            <option value="vertical">Vertical</option>
+            <option value="horizontal">Horizontal</option>
+          </select>
+        </div>
+
+      </fieldset>
+
+      <!-- Colors -->
+      <fieldset style="margin-left:0; margin-bottom: 5px;">
+        <legend>Colors</legend>
+        <div style="margin-bottom: 5px">
+          <label style="float:left; width:150px">Paper:</label>
+          <input id="settings-paperbgcolor" type="color" value="#ffffff" style="vertical-align: middle;" />
+        </div>
+        <div>
+          <label style="float:left; width:150px">Plot background:</label>
+          <input id="settings-plotbgcolor" type="color" value="#ffffff" style="vertical-align: middle;" />
+        </div>
+      </fieldset>
+
+      <!-- Generate matplotlib pdfs -->
+      <div style="margin-bottom: 5px">
+        <input type="checkbox" id="settings-mplpdf" style="vertical-align: middle; margin-left: 0px">
+        <label for="settings-mplpdf" style="vertical-align: middle;"> Automatically generate Matplotlib pdfs</label><br>
+      </div>
+
+      <!-- Keep current plots -->
+      <div style="margin-bottom: 5px">
+        <input type="checkbox" id="settings-keep" style="vertical-align: middle; margin-left: 0px">
+        <label for="settings-keep" style="vertical-align: middle;"> Keep current plots when making new plots</label><br>
+      </div>
+
+      <div style="display:flex; justify-content: flex-end; margin-right: 2px;">
+        <button id="settingsdlg-ok">OK</button>
+        <button id="settingsdlg-cancel" style="margin-left: 5px;">Cancel</button>
+      </div>
+
+  </div>
+</div>
+
+
+
+{% endblock %}

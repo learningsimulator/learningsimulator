@@ -250,7 +250,7 @@ function onLoad() { // DOM is loaded and ready
             return;
         }
         const selectedValue = selectedValues[0];
-        window.location.pathname = ('/open/' + selectedValue);
+        window.location.pathname = ('/simulate/' + selectedValue);
 
         // // const dataSend = {'id': selectedValue};
         // const open_url = "/open/" + selectedValue;  // XXX use Jinja2: {{ url_for("delete") | tojson }}

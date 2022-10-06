@@ -1,9 +1,11 @@
 import os
 import json
+import sqlalchemy
+import random
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
+from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
 from flask_login import login_required, current_user
-from .models import Script
+from .models import Script, Settings
 from . import db
 from .util import to_bool, list_to_csv, csv_to_list
 from .webrunner import run_simulation
@@ -33,9 +35,16 @@ views = Blueprint('views', __name__)
 
 
 @views.route('/', methods=['GET'])
-def home():
-    demo_script_names = [script['name'] for script in demo_scripts]
-    return render_template("home.html", user=current_user, demo_script_names=demo_script_names)
+def landing():
+    return render_template("landing.html", user=current_user)
+
+
+# @views.route('/', methods=['GET'])
+# def home():
+#     demo_script_names = [script['name'] for script in demo_scripts]
+#     settings = Settings.query.get(current_user.settings_id)
+#     return render_template("home.html", user=current_user, settings=settings, script=None,
+#                            demo_script_names=demo_script_names)
 
 
 def validate_script(name, id=None):
@@ -66,8 +75,116 @@ def get_script(id):
     return {'name': script.name, 'code': script.code}
 
 
+@views.route('/get_settings/<int:settings_id>')
+@login_required
+def get_settings(settings_id):
+    settings = Settings.query.get_or_404(settings_id)
+    return settings.to_dict()
+
+
+def validate_settings(s):
+    def is_int(s):
+        try: 
+            int_s = int(s)
+            return (True, int_s)
+        except ValueError:
+            return (False, None)
+
+    def is_hex_color(c):
+        if len(c) != 4 and len(c) != 7:
+            return False
+        elif c[0] != '#':
+            return False
+        else:
+            for ch in c[1:]:
+                if ch.lower() not in ('0123456789abcdef'):
+                    return False
+        return True
+
+    PREFIX = "Invalid value for "
+
+    val = s['graph_lib']
+    if val not in ('mpld3', 'plotly'):
+        return PREFIX + "graphing library: " + str(val)
+
+    val = s['plot_orientation']
+    if val not in ('horizontal', 'vertical'):
+        return PREFIX + "plot orientation: " + str(val)
+
+    val = s['plot_width']
+    (val_is_int, int_val) = is_int(val)
+    if not val_is_int or int_val < 10 or int_val > 1000:
+        return PREFIX + "plot width: " + str(val)
+
+    val = s['plot_height']
+    (val_is_int, int_val) = is_int(val)
+    if not val_is_int or int_val < 10 or int_val > 1000:
+        return PREFIX + "plot height: " + str(val)
+
+    val = s['legend_x']
+    if not val.isnumeric():
+        return PREFIX + "legend relative x-coordinate: " + str(val)
+
+    val = s['legend_y']
+    if not val.isnumeric():
+        return PREFIX + "legend relative y-coordinate: " + str(val)
+
+    val = s['legend_x_anchor']
+    if val not in ('left', 'middle', 'right'):
+        return PREFIX + "legend x-anchor: " + str(val)
+
+    val = s['legend_y_anchor']
+    if val not in ('bottom', 'middle', 'top'):
+        return PREFIX + "legend y-anchor: " + str(val)
+
+    val = s['legend_orientation']
+    if val not in ('horizontal', 'vertical'):
+        return PREFIX + "legend orientation: " + str(val)
+
+    val = s['paper_color']
+    if not is_hex_color(val):
+        return PREFIX + "paper color: " + str(val)
+
+    val = s['plot_bgcolor']
+    if not is_hex_color(val):
+        return PREFIX + "plot background color: " + str(val)
+
+    val = s['mplpdf']
+    if val not in (True, False):
+        return PREFIX + "automatically generating Matplotlib pdfs: " + str(val)
+
+    val = s['keep_plots']
+    if val not in (True, False):
+        return PREFIX + "keep plots: " + str(val)
+    return None
+
+
+@views.route('/save_settings', methods=['POST'])
+@login_required
+def save_settings():
+    id = request.json['id']
+    settings = request.json['settings']
+
+    err = validate_settings(settings)
+    if err:
+        return {'error': err}
+    settings_to_update = Settings.query.get_or_404(id)
+    settings_to_update.save(settings)
+
+    err = None
+    try:
+        db.session.commit()
+        # flash('Settings saved!', category='success')
+    except sqlalchemy.exc.DataError as e:
+        db.session.rollback()
+        err = f"There was an error saving the settings:\n{e.args[0]}"
+    return {'error': err}
+
+
+
 @views.route('/get_demo/<int:index>', methods=['GET'])
 def get_demo(index):
+    print("FFO")
     script = demo_scripts[index - 1]
     return {'name': script['name'], 'code': script['code']}
 
@@ -139,8 +256,21 @@ def run():
         return jsonify(out)
 
 
-@views.route('/run_mpl', methods=['POST'])
-def run_mpl():
+# @views.route('/run_mpl', methods=['POST'])
+# def run_mpl():
+#     code = request.json['code']
+#     is_err, simulation_output = run_simulation(code)
+#     if is_err:
+#         err_msg, lineno, stack_trace = simulation_output
+#         return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
+#     else:
+#         postcmds = simulation_output
+#         out = postcmds.plot_js()
+#         return jsonify(out)
+
+
+@views.route('/run_mpl_fig', methods=['POST'])
+def run_mpl_fig():
     code = request.json['code']
     is_err, simulation_output = run_simulation(code)
     if is_err:
@@ -148,15 +278,49 @@ def run_mpl():
         return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
     else:
         postcmds = simulation_output
-        out = postcmds.plot_js()
+        figs = postcmds.plot_no_pyplot()
+        user_dirname, img_dir = get_user_img_dir()
+        os.makedirs(img_dir, exist_ok=True)
+        out = list()
+        for fig in figs:
+            # randstr = str(random.random())
+            randstr = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+            filename = f'figfile{randstr}.png'
+            abspath = os.path.join(img_dir, filename)
+            relpath = url_for('static', filename=f'mplfigimg/{user_dirname}/{filename}')
+            fig.savefig(abspath, format='png')
+            out.append(relpath)
+
+        # print(os.path.join(views.root_path, 'mplfigimg', 'figfile.png'))
         return jsonify(out)
 
 
-@views.route('/open/<int:id>', methods=['GET'])
-def open(id):
+@staticmethod
+def get_user_img_dir():
+    user_dirname = f'user{current_user.id}'
+    img_dir = os.path.join(views.root_path, 'static', 'mplfigimg', user_dirname)
+    return user_dirname, img_dir
+
+
+@staticmethod
+def delete_all_files_in(dir):
+    for f in os.listdir(dir):
+        os.remove(os.path.join(dir, f))
+
+
+@views.route('/simulate/<int:id>', methods=['GET'])
+@login_required
+def simulate(id):
     script = Script.query.get_or_404(id)
     demo_script_names = [ds['name'] for ds in demo_scripts]
-    return render_template("home.html", user=current_user, script=script, demo_script_names=demo_script_names)
+    settings = Settings.query.get(current_user.settings_id)
+
+    # Delete image files in users img dir
+    _, img_dir = get_user_img_dir()
+    delete_all_files_in(img_dir)
+
+    return render_template("simulate.html", user=current_user, settings=settings,
+                           script=script, demo_script_names=demo_script_names)
 
 
 # @views.route('/run', methods=['POST'])

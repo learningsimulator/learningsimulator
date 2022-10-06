@@ -33,18 +33,22 @@
   </head>
 
   <body>
+
+    {% block navbar %}
     <div>
         {% if user.is_authenticated %}
-          <!-- <a href="/">Home</a> -->
+          <a href="/">Home</a>
           <a href="/my_scripts">My Scripts</a>
-          <!-- <a href="/demo_scripts">Demo Scripts</a> -->
+          <button type="button" id="button-settings">Settings</button>
           <a href="/logout">Logout</a>
         {% else %}
+          <a href="/">Home</a>
           <a href="/login">Login</a>
-          <a href="/register">Register</a>
-          <!-- <a href="/demo_scripts">Demo Scripts</a> -->
+          <a href="/sign_up">Register</a>
         {% endif %}
     </div>
+    {% endblock %}
+    
     <hr>
 
     <!-- {% with messages = get_flashed_messages(with_categories=true) %}

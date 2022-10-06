@@ -1,6 +1,6 @@
-body {
+/* body {
     font-family:'Courier New', Courier, monospace;
-}
+} */
 
 .row {
   height: 450px;
@@ -66,7 +66,7 @@ body {
 }
 
 /* Font in list of script names */
-select {
+#select-userscripts, #select-demoscripts {
     width: 100%;
     height: calc(100% - 70px);
     font-family: 'Courier New', Courier, monospace;
@@ -140,10 +140,14 @@ input[type=checkbox] {
 
 }
 
+#button-settings {
+    margin-bottom: 5px;
+}
+
 /* ============================================================================= */
 /* The error "dialog box". */
 /* The Modal (background) */
-#modal-bg {
+.modal-bg {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
@@ -158,25 +162,34 @@ input[type=checkbox] {
 }
 
 /* Modal Content */
-#div-errordlg {
+.div-modaldlg {
   background-color: #fefefe;
   margin: auto;
   margin-top: 100px;
   padding: 20px;
-  border: 1px solid #888;
+  /* border: 1px solid #888; */
+  border: 3px solid black;
+}
+
+#div-errordlg {
   width: 60%;
 }
 
+#div-settingsdlg {
+  width: 450px;
+}
+
 /* The Close Button */
-#errdlg-close {
+.modaldlg-close {
   color: #aaaaaa;
   float: right;
   font-size: 28px;
   font-weight: bold;
+  margin-top: -10px;
 }
 
-#errdlg-close:hover,
-#errdlg-close:focus {
+.modaldlg-close:hover,
+.modaldlg-close:focus {
   color: #000;
   text-decoration: none;
   cursor: pointer;

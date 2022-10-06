@@ -1,6 +1,9 @@
-from . import db  # From current package ("website") import db
+import enum
+from sqlalchemy import Enum
 from flask_login import UserMixin
 from sqlalchemy.sql import func
+
+from . import db  # From current package ("website") import db
 
 SCRIPTNAME_MAXLENGTH = 50
 CODE_MAXLENGTH = 10000
@@ -20,3 +23,45 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     username = db.Column(db.String(150))
     scripts = db.relationship('Script')
+    # settings = db.relationship('Settings')
+    # settings_id = db.Column(db.Integer, unique=True)
+    settings_id = db.Column(db.Integer, db.ForeignKey('settings.id'), nullable=True, default=None)
+
+
+class Orientation(enum.Enum):
+    horizontal = 'horizontal'
+    vertical = 'vertical'
+
+
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    graph_lib = db.Column(db.String(6), default="plotly")  # plotly or mpld3
+    plot_orientation = db.Column(Enum(Orientation), default=Orientation.vertical)
+    plot_width = db.Column(db.Integer, default=300)
+    plot_height = db.Column(db.Integer, default=300)
+    legend_x = db.Column(db.Float, default=1)
+    legend_y = db.Column(db.Float, default=0)
+    legend_x_anchor = db.Column(db.String(6), default="right")  # left, middle or right
+    legend_y_anchor = db.Column(db.String(6), default="bottom")  # top, middle or bottom
+    legend_orientation = db.Column(Enum(Orientation), default=Orientation.vertical)
+    paper_color = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
+    plot_bgcolor = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
+    mplpdf = db.Column(db.Boolean, default=False)
+    keep_plots = db.Column(db.Boolean, default=False)
+
+    def save(self, settings):
+        for fn in settings:
+            val = settings[fn]
+            setattr(self, fn, val)
+
+
+    def to_dict(self):
+        out = dict()
+        for fn in vars(self):
+            if fn != '_sa_instance_state':
+                val = getattr(self, fn)
+                if isinstance(val, enum.Enum):
+                   out[fn] = val.value 
+                else:
+                    out[fn] = val
+        return(out)

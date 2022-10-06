@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import User
+from .models import User, Settings
 from .forms import RegistrationForm, LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
@@ -22,24 +22,39 @@ def login():
             if check_password_hash(user.password, password):
                 flash('Logged in successfully!', category='success')
                 login_user(user, remember=rememeber)
-                return redirect(url_for('views.home'))
+                # if not user.settings_id:
+                #     add_settings_to_user(user)
+                # return redirect(url_for('views.home'))
+                return render_template("my_scripts.html", user=current_user)
             else:
                 flash('Incorrect password, try again.', category='error')
         else:
             flash('Email does not exist.', category='error')
 
+        # return render_template("my_scripts.html", user=current_user)
     return render_template("login.html", user=current_user, form=form)
+
+
+def add_settings_to_user(user):
+    settings = Settings()
+    db.session.add(settings)
+    db.session.commit()
+
+    # After commit, settings has an id
+    user.settings_id = settings.id
+
+    db.session.commit()
 
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('views.landing'))
 
 
-@auth.route('/register', methods=['GET', 'POST'])
-def register():
+@auth.route('/sign_up', methods=['GET', 'POST'])
+def sign_up():
     form = RegistrationForm()
     if form.validate_on_submit():
         email = form.email.data
@@ -51,11 +66,12 @@ def register():
         
         try:
             db.session.commit()
+            add_settings_to_user(new_user)
             flash("Account created!", category='success')
             login_user(new_user, remember=True)
-            return redirect(url_for('views.home'))
+            return redirect(url_for('views.my_scripts'))
         except Exception as e:
             db.session.rollback()
-            flash(f"There was an error saving the script: {e}", category='error')
+            flash(f"There was an error adding the user: {e}", category='error')
 
     return render_template("sign_up.html", form=form, user=current_user)

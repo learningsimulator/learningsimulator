@@ -1,7 +1,14 @@
 import platform
 import re
 import copy
+
 import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
+
+from matplotlib.figure import Figure
+
 import csv
 import json
 
@@ -609,6 +616,16 @@ class PostCmds():
         for cmd in self.cmds:
             cmd.plot()
 
+    def plot_no_pyplot(self):
+        curr_fig = None
+        curr_ax = None
+        all_figs = []
+        for cmd in self.cmds:
+            curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax)
+            if is_new_fig:
+                all_figs.append(curr_fig)
+        return all_figs
+
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
         # ax_average = fig_average.add_subplot(1, 1, 1)
@@ -629,27 +646,27 @@ class PostCmds():
         #         ax_average.legend()
         #     ax_average.grid()
 
-    def plot_js(self):
-        def _extract_draw_figure(html, figind):
-            lines = html.split('\n')
-            for line in lines:
-                linestrip = line.strip()
-                if linestrip.startswith("mpld3.draw_figure"):
-                    first_comma_ind = linestrip.find(',')
-                    div_id = linestrip[19: (first_comma_ind - 1)]
-                    # linestrip = linestrip.replace('"width": 640.0, "height": 480.0', '"width": 2280.0, "height": 960.0')
-                    return linestrip.replace(div_id, "div-mpld3_" + str(figind))
+    # def plot_js(self):
+    #     def _extract_draw_figure(html, figind):
+    #         lines = html.split('\n')
+    #         for line in lines:
+    #             linestrip = line.strip()
+    #             if linestrip.startswith("mpld3.draw_figure"):
+    #                 first_comma_ind = linestrip.find(',')
+    #                 div_id = linestrip[19: (first_comma_ind - 1)]
+    #                 # linestrip = linestrip.replace('"width": 640.0, "height": 480.0', '"width": 2280.0, "height": 960.0')
+    #                 return linestrip.replace(div_id, "div-mpld3_" + str(figind))
 
-        import mpld3
-        self.plot()
-        figs = list(map(plt.figure, plt.get_fignums()))
-        out = []
-        plt.close('all')
-        for figind, fig in enumerate(figs):
-            html = mpld3.fig_to_html(fig, template_type="simple")
-            mpld3_draw_figure_cmd = _extract_draw_figure(html, figind)
-            out.append(mpld3_draw_figure_cmd)
-        return out
+    #     import mpld3
+    #     self.plot()  # Plotting on the server like this yields "UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail."
+    #     figs = list(map(plt.figure, plt.get_fignums()))
+    #     out = []
+    #     plt.close('all')
+    #     for figind, fig in enumerate(figs):
+    #         html = mpld3.fig_to_html(fig, template_type="simple")
+    #         mpld3_draw_figure_cmd = _extract_draw_figure(html, figind)
+    #         out.append(mpld3_draw_figure_cmd)
+    #     return out
 
 
 class PostCmd():
@@ -660,6 +677,9 @@ class PostCmd():
         pass  # All matplotlib commands should be done in plot()
 
     def plot(self):  # Matplotlib commands may be placed here
+        pass
+
+    def plot_no_pyplot(curr_fig, curr_ax):
         pass
 
     def progress_label(self):
@@ -729,6 +749,9 @@ class PlotCmd(PostCmd):
     def plot(self):
         self.plot_data.plot()
 
+    def plot_no_pyplot(self, curr_fig, curr_ax):
+        return self.plot_data.plot_no_pyplot(curr_fig, curr_ax)
+
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
 
@@ -760,6 +783,22 @@ class PlotData():
         # plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem) when ProgressDlg has been up
         # plt.get_current_fig_manager().set_window_title("FOO")
         plt.gcf().show()
+
+    def plot_no_pyplot(self, curr_fig, curr_ax):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        if curr_ax is None:
+            curr_ax = curr_fig.add_subplot(1, 1, 1)
+        for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
+            if self.start_at_1:  # XXX Can start_At_1 be different for different ydata?
+                xdata = list(range(len(ydata)))
+                curr_ax.plot(xdata[1:], ydata[1:], **plot_args)
+            else:
+                curr_ax.plot(ydata, **plot_args)
+        curr_ax.grid(True)
+        return curr_fig, curr_ax, create_new_figure
+
 
     def to_dict(self):
         return {'type': 'plot',
@@ -919,6 +958,12 @@ class FigureCmd(PostCmd):
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
 
+    def plot_no_pyplot(self, curr_fig, curr_ax):
+        f = Figure(**self.mpl_prop)
+        if self.title is not None:
+            f.suptitle(self.title)  # Figure title
+        return f, None, True
+
     def progress_label(self):
         return kw.FIGURE
 
@@ -936,6 +981,13 @@ class SubplotCmd(PostCmd):
 
     def plot(self):
         plt.subplot(*self.spec_list, **self.mpl_prop)
+
+    def plot_no_pyplot(self, curr_fig, curr_ax):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        curr_ax = curr_fig.add_subplot(*self.spec_list, **self.mpl_prop)
+        return curr_fig, curr_ax, create_new_figure
 
     def progress_label(self):
         return kw.SUBPLOT
@@ -955,6 +1007,11 @@ class LegendCmd(PostCmd):
         #     plt.legend(self.labels, **self.mpl_prop)
         # else:
         plt.legend(**self.mpl_prop)
+
+    def plot_no_pyplot(self, curr_fig, curr_ax):
+        if curr_ax is not None:
+            curr_ax.legend(**self.mpl_prop)
+        return curr_fig, curr_ax, False
 
     def progress_label(self):
         return kw.LEGEND

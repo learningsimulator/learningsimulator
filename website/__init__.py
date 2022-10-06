@@ -8,7 +8,7 @@ from werkzeug.routing import BaseConverter
 
 
 db = SQLAlchemy()
-DB_NAME = "database.db"
+# DB_NAME = "database.db"
 
 migrate = Migrate()
 
@@ -19,7 +19,11 @@ def create_app():
     # Used to encrypt the cookie and session data related to our web app
     app.config['SECRET_KEY'] = '410d1f4eb7412ee625ed5a3562ec1cc6'
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    # The SQLite db
+    # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+
+    # The MySQL db
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:hejsan123@localhost/db_weblesim'
 
     # To avoid warning. We do not use the Flask-SQLAlchemy event system, anyway.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -57,6 +61,10 @@ def create_app():
 
 
 def create_database(app):
-    if not path.exists('website/' + DB_NAME):
-        db.create_all(app=app)
-        print('Created Database!')
+    # SQLite
+    # if not path.exists('website/' + DB_NAME):
+    #     db.create_all(app=app)
+    #     print('Created Database!')
+
+    db.create_all(app=app)
+    print('Created Database!')

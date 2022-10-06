@@ -1,4 +1,6 @@
-Simplest syntax highlighting: Comments in different color
+Use settings
+
+(DB-)Admin page
 
 start_at_1
 
@@ -25,7 +27,7 @@ Progress bar
 
 Border around plotly figure? https://community.plotly.com/t/how-to-show-border-around-the-entire-plotly-figure/51551
 
-Menu: Set font size, line height, font color, bg color in box
+Menu: Set font size, line height, "color scheme": (font color, bg color, comment color)
 Menu: Search/Replace
 Menu: Insert parameter block, phase block, etc.
 
@@ -35,7 +37,7 @@ Plot: "Keep figures" checkbox (If an error occuers, dont delete current figs)
 Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
 Plot parameters: Legend on/off, legend positioning
 Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
-Plot parameters: line color, thicness, marker, marker size, color, etc.
+Plot parameters: line color, thickness, marker, marker size, color, etc.
 
 Plot: Range sliders?
 
@@ -48,7 +50,8 @@ https://codepen.io/mdnasirfardoush/pen/gjovjO?editors=1010)
 Test accessibility bugs:
 https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
-Fontend testing: ContentWhitepaperFrontendTestingGuide.pdf (i test i repot)
-
 favicon
 
+Hide db passwd, SECRET_KEY, etc.
+
+Investigate if use_pyplot=False can be used in Tk frontend.
