@@ -2606,3 +2606,32 @@ class TestExceptions(LsTestCase):
         msg = "Error on line 4: Phase label '123thelabel' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
+
+    def test_invalid_options_to_choice(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2, b3
+        @PHASE lbl stop : e1==4
+        L1  e1  | x=choice(1,2,[32,23,43]), L2(0.2),L1(0.7) | L1
+        L2  e2  | L1
+
+        @run lbl
+        '''
+        msg = "Error on line 6: Cannot evaluate expression 'choice(1,2,[32,23,43])': The number of weights does not match the population."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2, b3
+        @PHASE lbl stop : e1==4
+        L1  e1  | x=choice([1,2],[32,23,43]), L2(0.2),L1(0.7) | L1
+        L2  e2  | L1
+
+        @run lbl
+        '''
+        msg = "Error on line 6: Cannot evaluate expression 'choice([1,2],[32,23,43])': The number of weights does not match the population."
+        with self.assertRaisesMsg(msg):
+            run(text)

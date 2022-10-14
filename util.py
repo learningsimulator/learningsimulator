@@ -29,6 +29,7 @@ def choice(*args):
             raise Exception(ERRMSG)
         return random.choices(population=population, weights=weights, k=1)[0]
 
+    ERRMSG = "Invalid arguments to choice."
     nargs = len(args)
     if nargs == 0:
         raise Exception("The function 'choice' must have at least one argument.")
@@ -38,10 +39,15 @@ def choice(*args):
         else:
             raise Exception("Single input to 'choice' must be a list.")
     elif nargs == 2 and all(isinstance(x, list) for x in args):
-        return _choice_float(args[0], args[1])
+        return _choice_float(population=args[0], weights=args[1])
     else:
-        return _choice_float(args)
-
+        last_arg = args[-1]
+        if isinstance(last_arg, list):
+            population = args[:-1]
+            weights = last_arg
+            return _choice_float(population=population, weights=weights)
+        else:
+            return _choice_float(population=args)
 
 def count(event_counter, event):
     return event_counter.count[event]
