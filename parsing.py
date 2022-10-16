@@ -215,6 +215,10 @@ class ScriptParser():
                         self.phases.parse_phase(curr_phase_label, self.parameters, self.variables)
                 elif in_run:
                     in_run = line_parser.line_type is None  # Because the line is just a phase name
+                    # in_run = (
+                    #     line_parser.line_type is None or           # The line is just a phase name
+                    #     line_parser.param == kw.STIMULUS_ELEMENTS  # The line is stimulus_elements=...
+                    # )
                     if in_run:
                         run_lines.append((line, lineno))
                         parse_this_line_done = True
@@ -297,11 +301,13 @@ class ScriptParser():
                     raise ParseException(lineno, f"Redefinition of phase '{curr_phase_label}'.")
                 if not curr_phase_label.isidentifier():
                     raise ParseException(lineno, f"Phase label '{curr_phase_label}' is not a valid identifier.")
-                if stop_condition is None:
-                    raise ParseException(lineno, gen_err)
-                stop, condition = ParseUtil.split1_strip(stop_condition, ':')
-                if stop != "stop" or condition is None or len(condition) == 0:
-                    raise ParseException(lineno, "Phase stop condition must have the form 'stop:condition'.")
+                if stop_condition is not None:
+                    err, condition = self.parse_stop_colon_cond(stop_condition)
+                    if err:
+                        raise ParseException(lineno, err)
+                else:
+                    condition = None
+
                 in_phase = True
                 if inherited_from:
                     self.phases.inherit_from(inherited_from, curr_phase_label, condition, lineno)
@@ -363,6 +369,13 @@ class ScriptParser():
         if in_run:
             run, run_label = self._parse_run_lines(run_lines)
             self.runs.add(run, run_label)
+
+    def parse_stop_colon_cond(self, stop_colon_cond):
+        stop, condition = ParseUtil.split1_strip(stop_colon_cond, ':')
+        if stop != "stop" or condition is None or len(condition) == 0:
+            return "Phase stop condition must have the form 'stop:condition'.", None
+        else:
+            return None, condition
 
     def check_deprecated_syntax(self):
         return self.phases.check_deprecated_syntax()
@@ -566,10 +579,14 @@ class ScriptParser():
         first_line_after_run_and_lbl = ''
         if len(linesplit_space) == 2:
             after_run = linesplit_space[1].strip()
-            words = after_run.replace(',', ' ').split()
-            got_run_label = not self.phases.contains(words[0])
+            first_word = ParseUtil.space_split(after_run.replace(',', ' '))[0]  # To regard "phase( stop : COND )" as one word
+            err, phase_label, condition = self._parse_phase_with_cond(first_word)
+            if err:
+                raise ParseException(lineno, err)
+            got_run_label = not self.phases.contains(phase_label)
+
             if got_run_label:  # Then we interpret the first word (after @run) as run label
-                run_label = words[0]
+                run_label = first_word
                 first_line_after_run_and_lbl = line.split(run_label, 1)[1]
             else:
                 first_line_after_run_and_lbl = after_run
@@ -592,6 +609,8 @@ class ScriptParser():
                 run_label2 = line[end_index:].strip()
                 if got_run_label:
                     raise ParseException(lineno, f"Duplicate run labels {run_label} and {run_label2} on a {kw.RUN} line.")
+                elif run_label2 in self.all_run_labels:
+                    raise ParseException(lineno, f"Duplication of run label '{run_label2}'.")
                 run_label = run_label2
                 got_run_label = True
                 phases_str = line[0: start_index].strip()
@@ -599,24 +618,27 @@ class ScriptParser():
                 raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")
             if len(phases_str) > 0:
                 run_phase_labels_line = phases_str.strip(',').split(',')
-                run_phase_labels_line = [lbl.strip() for lbl in run_phase_labels_line]
+                run_phase_labels_line = [(lbl.strip(), lineno) for lbl in run_phase_labels_line]
                 run_phase_labels.extend(run_phase_labels_line)
 
         if not got_run_label:
             run_label = f'run{self.unnamed_run_cnt}'
             self.unnamed_run_cnt += 1
 
-        if run_label in self.all_run_labels:
-            raise ParseException(lineno, f"Duplication of run label '{run_label}'.")
-        else:
-            self.all_run_labels.append(run_label)
+        self.all_run_labels.append(run_label)
 
-        for phase_label in run_phase_labels:
+        phase_labels_with_cond = []
+        for phase_label_with_cond, lineno in run_phase_labels:
+            err, phase_label, condition = self._parse_phase_with_cond(phase_label_with_cond)
+            if err:
+                raise ParseException(lineno, err)
             if not self.phases.contains(phase_label):
                 raise ParseException(lineno, f"Phase {phase_label} undefined.")
+            phase_labels_with_cond.append((phase_label, condition, lineno))
 
         # Now that we have a run-label and phases to run, create Run object
-        world = self.phases.make_world(run_phase_labels)
+        world = self.phases.make_world(phase_labels_with_cond, lineno)
+
         run_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen runs
         mechanism_obj, err = run_parameters.make_mechanism_obj()
         if err:
@@ -629,6 +651,35 @@ class ScriptParser():
         run = Run(run_label, world, mechanism_obj, n_subjects, bind_trials)
 
         return run, run_label
+
+
+    def _parse_phase_with_cond(self, phase_with_cond):
+        n_left_par = phase_with_cond.count('(')
+        n_right_par = phase_with_cond.count(')')
+        if n_left_par == 0 and n_right_par == 0:
+            return None, phase_with_cond, None
+        elif n_left_par == 1 and n_right_par == 1:
+            index_left_par = phase_with_cond.index('(')
+            index_right_par = phase_with_cond.index(')')
+            if index_left_par > index_right_par:
+                return f"Invalid parenthesis in phase label with stop condition: {phase_with_cond}.", None, None
+            else:
+                if index_right_par == index_left_par + 1:
+                    return "Empty condition in phase label with stop condition.", None, None
+                elif index_right_par != len(phase_with_cond) - 1:
+                    return f"Malformed phase label with stop condition: {phase_with_cond}.", None, None
+                elif index_left_par == 0:
+                    return f"Empty phase label in phase with stop condition: {phase_with_cond}.", None, None
+                else:
+                    phase_label = phase_with_cond[0: index_left_par]
+                    stop_cond = phase_with_cond[index_left_par + 1: index_right_par]
+                    err, cond = self.parse_stop_colon_cond(stop_cond)
+                    if err:
+                        return err, None, None
+                    else:
+                        return None, phase_label.strip(), cond
+        else:
+            return f"Invalid parenthesis in phase label with stop condition: {phase_with_cond}.", None, None
 
 
 # -----------------------------------------------------------

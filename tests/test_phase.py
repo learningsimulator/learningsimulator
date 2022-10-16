@@ -2058,18 +2058,6 @@ class TestExceptions(LsTestCase):
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
 
-    def test_no_stopcond(self):
-        text = '''
-        stimulus_elements: e1, e2
-        behaviors: b1, b2
-        @PHASE phase_label
-        L1 e1 | L2
-        L2 e2 | L1
-        '''
-        msg = "Error on line 4: @PHASE line must have the form '@PHASE label stop:condition'."
-        with self.assertRaisesMsg(msg):
-            parse(text, 'phase_label')
-
     def test_empty_stopcond(self):
         text = '''
         stimulus_elements: e1, e2

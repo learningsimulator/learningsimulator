@@ -111,6 +111,14 @@ class ParseUtil():
         return re.split(r',\s*(?![^()]*\))', string)
 
     @staticmethod
+    def space_split(string):
+        '''
+        Split the specified string at each space ( ) except the spaces within parenthesis. For
+        example, split 'runlbl  phase( stop : A and B )  ' into ['runlbl', 'phase( stop : A and B )'].
+        '''
+        return re.split(r' \s*(?![^()]*\))', string)
+
+    @staticmethod
     def comma_split_strip(string):
         cs = ParseUtil.comma_split(string)
         for i, _ in enumerate(cs):

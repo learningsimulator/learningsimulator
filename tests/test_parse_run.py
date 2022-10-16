@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from .testutil import LsTestCase, run, get_plot_data
 from parsing import Script
 from mechanism import Enquist, StimulusResponse, ActorCritic, Qlearning, EXP_SARSA
@@ -497,6 +499,363 @@ class TestBasic(LsTestCase):
         self.assertEqual(parameters2.get(kw.N_SUBJECTS), 2)
 
 
+class TestStopCondInRun(LsTestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test1(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run phase1
+        '''
+        _, output1 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run phase1( stop : e1 = 10 )
+        '''
+        _, output2 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @PHASE phase2
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1
+        '''
+        _, output3 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @PHASE phase2
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1( stop : e1 = 10 )
+        '''
+        _, output4 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run runlbl
+            phase1( stop : e1 = 10 )
+        '''
+        _, output5 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run
+            phase1( stop : e1 = 10 )
+        '''
+        _, output6 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1  stop : e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run
+            phase1
+        '''
+        _, output7 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1  stop : e1 == 10 and e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run
+            phase1
+        '''
+        _, output8 = run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+        
+        @run
+            phase1(   stop : e1 == 10 and e1 < 100   )
+        '''
+        _, output9 = run(text)
+
+        output1_subject = output1.run_outputs['run1'].output_subjects[0]
+        output2_subject = output2.run_outputs['run1'].output_subjects[0]
+        output3_subject = output3.run_outputs['run1'].output_subjects[0]
+        output4_subject = output4.run_outputs['run1'].output_subjects[0]
+        output5_subject = output5.run_outputs['runlbl'].output_subjects[0]
+        output6_subject = output6.run_outputs['run1'].output_subjects[0]
+        output7_subject = output7.run_outputs['run1'].output_subjects[0]
+        output8_subject = output8.run_outputs['run1'].output_subjects[0]
+        output9_subject = output9.run_outputs['run1'].output_subjects[0]
+
+        self.is_equal_output_subjects(output1_subject, output2_subject)
+        self.is_equal_output_subjects(output1_subject, output3_subject)
+        self.is_equal_output_subjects(output1_subject, output4_subject)
+        self.is_equal_output_subjects(output1_subject, output5_subject)
+        self.is_equal_output_subjects(output1_subject, output6_subject)
+        self.is_equal_output_subjects(output1_subject, output7_subject)
+        self.is_equal_output_subjects(output1_subject, output8_subject)
+        self.is_equal_output_subjects(output1_subject, output9_subject)
+
+    def test_exceptions(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1        
+        '''
+        msg = "Error on line 10: Missing stop condition for phase 'phase1'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run xxx)yyy(
+        '''
+        msg = "Error on line 10: Invalid parenthesis in phase label with stop condition: xxx)yyy(."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run xxx()
+        '''
+        msg = "Error on line 10: Empty condition in phase label with stop condition."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run xxx(foo)yyy
+        '''
+        msg = "Error on line 10: Malformed phase label with stop condition: xxx(foo)yyy."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run (yyy)
+        '''
+        msg = "Error on line 10: Empty phase label in phase with stop condition: (yyy)."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1(stopp : e1 == 10)
+        '''
+        msg = "Error on line 10: Phase stop condition must have the form 'stop:condition'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1       e1 == 10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1(stopp : e1 == 10)
+        '''
+        msg = "Error on line 6: Phase stop condition must have the form 'stop:condition'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_run(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2(phase1)
+        @PHASE phase3(phase1)
+
+        @run myrunlbl
+            phase1(stop: e1=10)
+            phase2(stop: e1=20)
+            phase3(stop: e1=30)
+
+        runlabel: myrunlbl
+        xscale: e1
+        @nplot e1
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        self.assertEqual(len(plot_data['x']), 61)
+
+        plt.close('all')
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2 stop: e1==20
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase3
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run
+            phase1(stop: e1=10)
+            phase2
+            phase3(stop: e1=30) runlabel:myrunlbl
+
+        runlabel: myrunlbl
+        xscale: e1
+        @nplot e1
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        self.assertEqual(len(plot_data['x']), 61)
+
+        plt.close('all')
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: Blablah
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2 stop: Bliblahbloh
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase3 stop: Bliblahblohbleh
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run
+            phase1(stop: e1=30), phase2(stop: e1=20)
+            phase3(stop: e1=10) runlabel:myrunlbl
+
+        runlabel: myrunlbl
+        xscale: e1
+        @nplot e1
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        self.assertEqual(len(plot_data['x']), 61)
+
+    def is_equal_output_subjects(self, output1_subject, output2_subject):
+        self.assertEqual(output1_subject.history, output2_subject.history)
+        self.assertEqual(output1_subject.first_step_phase, output2_subject.first_step_phase)
+        self.assertEqual(output1_subject.phase_line_labels, output2_subject.phase_line_labels)
+        self.assertEqual(output1_subject.phase_line_labels_steps, output2_subject.phase_line_labels_steps)
+
+
 class TestExceptions(LsTestCase):
     def setUp(self):
         pass
@@ -616,6 +975,55 @@ class TestExceptions(LsTestCase):
         msg = "Error on line 12: Duplication of run label 'mylabel'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
+
+        text = '''
+        mechanism:  sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1 runlabel:mylabel
+        @run 
+        phase1
+        phase1 runlabel:mylabel
+        phase1
+        phase2 
+        '''
+        msg = "Error on line 17: Duplication of run label 'mylabel'."
+        with self.assertRaisesMsg(msg):
+            run, parameters = parse(text, 'run1')
+
+        text = '''
+        mechanism:  sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run phase1 runlabel:mylabel
+        @run phase2 runlabel:mylabel
+        phase1
+        phase1 
+        phase1
+        phase2 
+        '''
+        msg = "Error on line 15: Duplication of run label 'mylabel'."
+        with self.assertRaisesMsg(msg):
+            run, parameters = parse(text, 'run1')
+
 
     def test_multiple_labels(self):
         text = '''

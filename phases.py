@@ -26,8 +26,8 @@ class Phases():
 
         self.phases[label] = Phase(label, stop_condition_str, lineno)  # Not inherited_phase.copy()!
         self.phases[label].lines = copy.deepcopy(inherited_phase.lines)
-        self.phases[label].stop_condition_str = stop_condition_str
-        self.phases[label].lineno = lineno
+        # self.phases[label].stop_condition_str = stop_condition_str  # XXX Needed?
+        # self.phases[label].lineno = lineno
         self.phases[label].is_inherited = True
 
     def append_line(self, label, line, lineno):
@@ -49,8 +49,8 @@ class Phases():
     def contains(self, label):
         return label in self.phases
 
-    def make_world(self, labels):
-        return World(self.phases, labels)
+    def make_world(self, labels_with_cond, lineno):
+        return World(self.phases, labels_with_cond, lineno)
 
     def is_phase_label(self, name):
         for _, phase in self.phases.items():
@@ -92,6 +92,10 @@ class Phase():
         self.is_parsed = False
 
         self.first_stimulus_presented = False
+
+    def set_stop_condition_str(self, stop_condition_str, lineno):
+        self.stop_condition_str = stop_condition_str
+        self.stop_condition = EndPhaseCondition(lineno, self.stop_condition_str)
 
     def append_line(self, line, lineno):
         self.lines.append((line, lineno))
@@ -143,7 +147,9 @@ class Phase():
 
     def subject_reset(self):
         self.event_counter = PhaseEventCounter(self.linelabels, self.parameters)
-        self.stop_condition = EndPhaseCondition(self.lineno, self.stop_condition_str)
+        self.stop_condition = None
+        if self.stop_condition_str is not None:
+            self.stop_condition = EndPhaseCondition(self.lineno, self.stop_condition_str)
         self._make_current_line(self.first_label)
         self.prev_linelabel = None
         self.is_first_line = True
@@ -708,9 +714,17 @@ class World():
     the incoming sequence of responses.
     """
 
-    def __init__(self, phases_dict, phase_labels):
-        self.phases = [phases_dict[phase_label].copy() for phase_label in phase_labels]
-        self.nphases = len(phase_labels)
+    def __init__(self, phases_dict, phase_labels_with_cond, lineno):
+        self.phases = []
+        for phase_label, cond, lineno in phase_labels_with_cond:
+            phase_copy = phases_dict[phase_label].copy()
+            if cond is not None:  # Overwrite phase stop condition with the one from the @run command
+                phase_copy.set_stop_condition_str(cond, lineno)
+            elif phase_copy.stop_condition_str is None:  # @phase has no stop-condition and @run has no stop-condition
+                raise ParseException(lineno, f"Missing stop condition for phase '{phase_label}'.")
+            self.phases.append(phase_copy)
+
+        self.nphases = len(phase_labels_with_cond)
         self.curr_phaseind = 0  # Index into phase_labels
 
     def next_stimulus(self, response):
