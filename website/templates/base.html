@@ -24,6 +24,9 @@
 
     {% endblock %}
 
+    <!-- Fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <!-- Our own css-file-->
     <link rel="stylesheet" 
           type="text/css"
@@ -39,7 +42,7 @@
         {% if user.is_authenticated %}
           <a href="/">Home</a>
           <a href="/my_scripts">My Scripts</a>
-          <button type="button" id="button-settings">Settings</button>
+          <!-- <button type="button" id="button-settings">Settings</button> -->
           <a href="/logout">Logout</a>
         {% else %}
           <a href="/">Home</a>

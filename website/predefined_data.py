@@ -1,7 +1,7 @@
 from . import db  # From current package ("website") import db
 from .models import DataSet
 from .predefined_data_json import pd, primary_energy_use, fmt
-from .util import string_to_csv
+from .util_web import string_to_csv
 
 def add_predefined():
 

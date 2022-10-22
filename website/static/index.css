@@ -17,9 +17,6 @@
 /* Create three unequal columns that floats next to each other */
 .column {
   float: left;
-  -moz-box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
 }
 .left {
   padding: 5px;
@@ -30,10 +27,13 @@
   padding: 5px;
   height: 900px;
   width: 600px;
+  border: 1px solid red;
+  resize: both;
+  overflow: hidden;
 }
 .right {
   padding: 5px;
-  width: 900px;
+  width: auto;
   border: 3px solid green;
 }
 .preview {
@@ -102,6 +102,8 @@
 /* To align checkboxes with its label (at least a little better) */
 input[type=checkbox] {
   vertical-align: middle;
+  margin-right: -1px;
+  accent-color: #4CAF50;  /* Background color in checkbox when selected */
 }
 
 /* Remove the outline displayed for a textarea upon selection */
@@ -135,14 +137,65 @@ input[type=checkbox] {
   display: flex;
   margin-top: 5px;
   margin-bottom: 5px;
-  height: calc(100% - 70px);
-  /* border: 2px solid blue; */
+  height: calc(100% - 110px);
 
+  /* border: 2px solid blue; */
+}
+
+button {
+    cursor: pointer;
+    background-color: #4CAF50;
+}
+
+#button-run {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 13px 30px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 4px;
+  margin-left: 2px;
 }
 
 #button-settings {
-    margin-bottom: 5px;
+  margin-left: -3px;
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 4px;
 }
+
+#button-closeall {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+#button-savescript {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 20px;
+  margin-left: 4px;
+}
+
 
 /* ============================================================================= */
 /* The error "dialog box". */
@@ -255,3 +308,20 @@ input[type=checkbox] {
      position: relative;
   z-index: 10;
 } */
+
+/* ============================================================================= */
+/* For landing page. */
+.hvcenter { /* Horizontal and vertical centering. */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}
+.imglogo {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 200px;
+}

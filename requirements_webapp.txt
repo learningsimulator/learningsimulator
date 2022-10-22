@@ -16,3 +16,4 @@ wtf
 WTForms
 email_validator
 mpld3
+pymysql

@@ -1,15 +1,23 @@
 import os
-import json
+import sys
+# import json
 import sqlalchemy
 import random
 
 from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
 from flask_login import login_required, current_user
-from .models import Script, Settings
+from .models import Script, Settings, User
 from . import db
-from .util import to_bool, list_to_csv, csv_to_list
+# from .util_web import ParseUtil
 from .webrunner import run_simulation
 from .demo_scripts import demo_scripts
+
+# Import ParseUtil from parent directory learningsimulator/
+# (why so complicated to import from parent dir in Python?)
+currentdir = os.path.dirname(os.path.realpath(__file__))  # Path to learningsimulator/website/
+parentdir = os.path.dirname(currentdir)  # Path to learningsimulator/
+sys.path.append(parentdir)
+from util import ParseUtil
 
 views = Blueprint('views', __name__)
 
@@ -37,6 +45,14 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['GET'])
 def landing():
     return render_template("landing.html", user=current_user)
+
+
+@views.route('/dbadmin', methods=['GET'])
+def dbadmin():
+    all_users = User.query.all()
+    all_settings = Settings.query.all()
+    return render_template("dbadmin.html", all_users=all_users, all_settings=all_settings)
+
 
 
 # @views.route('/', methods=['GET'])
@@ -83,12 +99,6 @@ def get_settings(settings_id):
 
 
 def validate_settings(s):
-    def is_int(s):
-        try: 
-            int_s = int(s)
-            return (True, int_s)
-        except ValueError:
-            return (False, None)
 
     def is_hex_color(c):
         if len(c) != 4 and len(c) != 7:
@@ -103,34 +113,36 @@ def validate_settings(s):
 
     PREFIX = "Invalid value for "
 
-    val = s['graph_lib']
-    if val not in ('mpld3', 'plotly'):
-        return PREFIX + "graphing library: " + str(val)
+    val = s['plot_type']
+    if val not in ('plot', 'image'):
+        return PREFIX + "plot type: " + str(val)
+
+    val = s['file_type']
+    if val not in ('png', 'jpg', 'svg', 'pdf'):
+        return PREFIX + "file type: " + str(val)
 
     val = s['plot_orientation']
     if val not in ('horizontal', 'vertical'):
         return PREFIX + "plot orientation: " + str(val)
 
-    val = s['plot_width']
-    (val_is_int, int_val) = is_int(val)
-    if not val_is_int or int_val < 10 or int_val > 1000:
-        return PREFIX + "plot width: " + str(val)
+    val, _ = ParseUtil.is_int(s['plot_width'])
+    if val is None or (val < 10 or val > 1000):
+        return PREFIX + "plot width: " + str(s['plot_width'])
 
-    val = s['plot_height']
-    (val_is_int, int_val) = is_int(val)
-    if not val_is_int or int_val < 10 or int_val > 1000:
-        return PREFIX + "plot height: " + str(val)
+    val, _ = ParseUtil.is_int(s['plot_height'])
+    if val is None or (val < 10 or val > 1000):
+        return PREFIX + "plot height: " + str(s['plot_height'])
 
-    val = s['legend_x']
-    if not val.isnumeric():
-        return PREFIX + "legend relative x-coordinate: " + str(val)
+    val, _ = ParseUtil.is_float(s['legend_x'])
+    if val is None:
+        return PREFIX + "legend relative x-coordinate: " + str(s['legend_x'])
 
-    val = s['legend_y']
-    if not val.isnumeric():
-        return PREFIX + "legend relative y-coordinate: " + str(val)
+    val, _ = ParseUtil.is_float(s['legend_y'])
+    if val is None:
+        return PREFIX + "legend relative y-coordinate: " + str(s['legend_y'])
 
     val = s['legend_x_anchor']
-    if val not in ('left', 'middle', 'right'):
+    if val not in ('left', 'center', 'right'):
         return PREFIX + "legend x-anchor: " + str(val)
 
     val = s['legend_y_anchor']
@@ -138,7 +150,7 @@ def validate_settings(s):
         return PREFIX + "legend y-anchor: " + str(val)
 
     val = s['legend_orientation']
-    if val not in ('horizontal', 'vertical'):
+    if val not in ('h', 'v'):
         return PREFIX + "legend orientation: " + str(val)
 
     val = s['paper_color']
@@ -148,10 +160,6 @@ def validate_settings(s):
     val = s['plot_bgcolor']
     if not is_hex_color(val):
         return PREFIX + "plot background color: " + str(val)
-
-    val = s['mplpdf']
-    if val not in (True, False):
-        return PREFIX + "automatically generating Matplotlib pdfs: " + str(val)
 
     val = s['keep_plots']
     if val not in (True, False):
@@ -166,6 +174,8 @@ def save_settings():
     settings = request.json['settings']
 
     err = validate_settings(settings)
+    print("Hello")
+    print(err)
     if err:
         return {'error': err}
     settings_to_update = Settings.query.get_or_404(id)
@@ -272,23 +282,25 @@ def run():
 @views.route('/run_mpl_fig', methods=['POST'])
 def run_mpl_fig():
     code = request.json['code']
+    settings = request.json['settings']
+    file_type = settings['file_type']
     is_err, simulation_output = run_simulation(code)
     if is_err:
         err_msg, lineno, stack_trace = simulation_output
         return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
     else:
         postcmds = simulation_output
-        figs = postcmds.plot_no_pyplot()
+        figs = postcmds.plot_no_pyplot(settings)
         user_dirname, img_dir = get_user_img_dir()
         os.makedirs(img_dir, exist_ok=True)
         out = list()
         for fig in figs:
             # randstr = str(random.random())
             randstr = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-            filename = f'figfile{randstr}.png'
+            filename = f'figfile{randstr}.{file_type}'
             abspath = os.path.join(img_dir, filename)
             relpath = url_for('static', filename=f'mplfigimg/{user_dirname}/{filename}')
-            fig.savefig(abspath, format='png')
+            fig.savefig(abspath, format=file_type)
             out.append(relpath)
 
         # print(os.path.join(views.root_path, 'mplfigimg', 'figfile.png'))

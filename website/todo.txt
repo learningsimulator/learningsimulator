@@ -1,10 +1,24 @@
-Use settings
+Move "Default legend position", "Default colors", "Default plot size" to "My Preferences"?
+
+Restore to default settings?
+
+"Plot as" switch buttons
+
+Logga in uppe till höger
+
+Navbar Bg color
 
 (DB-)Admin page
 
+Possibility for user to delete account
+
 start_at_1
 
-Export Matplotlib plot as pdf
+Check that html element contraints (min, max values, string lengths, required, etc) match db
+-1 < legend_{x,y} < 2 kanske?
+
+Report problems - link to GH Issues, maybe landing page
+Link to project page (somewhere, maybe landing page)
 
 Left navbar with
 "My Scripts"
@@ -22,6 +36,8 @@ Make "Name of script" read-only but with an "Edit" button that makes it editable
 => But keep "Save" button
 => "Retrieve last saved" not needed
 
+@export should create download links to exported files
+
 Redis Queue
 Progress bar
 
@@ -32,8 +48,10 @@ Menu: Search/Replace
 Menu: Insert parameter block, phase block, etc.
 
 Plot: "Close Figure" button for each plot
+Plot: "Download" button for mpl image plots
 Plot: "Close All Figures" button (like in Tk-frontend)
 Plot: "Keep figures" checkbox (If an error occuers, dont delete current figs)
+Plot parameters: Grid on/off
 Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
 Plot parameters: Legend on/off, legend positioning
 Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
@@ -51,6 +69,8 @@ Test accessibility bugs:
 https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
 favicon
+
+Move inline styling to css
 
 Hide db passwd, SECRET_KEY, etc.
 

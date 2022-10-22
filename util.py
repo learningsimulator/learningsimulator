@@ -60,16 +60,29 @@ class ParseUtil():
     PHASE_LINE = 1
 
     @staticmethod
-    def is_float(expr):
+    def is_float(s):
         """
-        Check that the specified expression represents a number. Return the number (None if it
+        Check that the specified string represents a number. Return the number (None if it
         does not represent a number) and the error (None if it does represent a number).
         """
         try:
-            value = float(expr)
+            value = float(s)
             return value, None
         except ValueError:
-            err = "'{}' does not represent a number".format(expr)
+            err = "'{s}' does not represent a number"
+            return None, err
+
+    @staticmethod
+    def is_int(s):
+        """
+        Check that the specified string represents an integer. Return the integer (None if it
+        does not represent an integer) and the error (None if it does represent an integer).
+        """
+        try:
+            value = int(s)
+            return value, None
+        except ValueError:
+            err = f"'{s}' does not represent a number"
             return None, err
 
     # @staticmethod

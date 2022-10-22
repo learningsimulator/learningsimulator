@@ -343,7 +343,7 @@ class Gui():
             self._select_line(ex.lineno)
         # self.close_figs()  # Fix for issue #83. If ok, remove this line
 
-        err_msg, stack_trace = util.get_errormsg(ex, stack_trace)
+        err_msg, lineno, stack_trace = util.get_errormsg(ex, stack_trace)
         ErrorDlg("Error", err_msg, stack_trace)
 
     def handle_exception_old(self, ex):

@@ -616,15 +616,16 @@ class PostCmds():
         for cmd in self.cmds:
             cmd.plot()
 
-    def plot_no_pyplot(self):
+    def plot_no_pyplot(self, settings):
         curr_fig = None
         curr_ax = None
         all_figs = []
         for cmd in self.cmds:
-            curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax)
+            curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
             if is_new_fig:
                 all_figs.append(curr_fig)
         return all_figs
+
 
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
@@ -679,7 +680,7 @@ class PostCmd():
     def plot(self):  # Matplotlib commands may be placed here
         pass
 
-    def plot_no_pyplot(curr_fig, curr_ax):
+    def plot_no_pyplot(curr_fig, curr_ax, settings):
         pass
 
     def progress_label(self):
@@ -749,8 +750,8 @@ class PlotCmd(PostCmd):
     def plot(self):
         self.plot_data.plot()
 
-    def plot_no_pyplot(self, curr_fig, curr_ax):
-        return self.plot_data.plot_no_pyplot(curr_fig, curr_ax)
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        return self.plot_data.plot_no_pyplot(curr_fig, curr_ax, settings)
 
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
@@ -784,14 +785,14 @@ class PlotData():
         # plt.get_current_fig_manager().set_window_title("FOO")
         plt.gcf().show()
 
-    def plot_no_pyplot(self, curr_fig, curr_ax):
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
         create_new_figure = (curr_fig is None)
         if create_new_figure:
             curr_fig = Figure()
         if curr_ax is None:
             curr_ax = curr_fig.add_subplot(1, 1, 1)
         for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
-            if self.start_at_1:  # XXX Can start_At_1 be different for different ydata?
+            if self.start_at_1:  # XXX Can start_at_1 be different for different ydata?
                 xdata = list(range(len(ydata)))
                 curr_ax.plot(xdata[1:], ydata[1:], **plot_args)
             else:
@@ -958,8 +959,10 @@ class FigureCmd(PostCmd):
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
 
-    def plot_no_pyplot(self, curr_fig, curr_ax):
-        f = Figure(**self.mpl_prop)
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        figsize = (int(settings['plot_width']) / 100, int(settings['plot_height']) / 100)
+        args = {'figsize': figsize, **self.mpl_prop}  # mpl_prop overrides settings
+        f = Figure(**args)
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
         return f, None, True
@@ -982,7 +985,7 @@ class SubplotCmd(PostCmd):
     def plot(self):
         plt.subplot(*self.spec_list, **self.mpl_prop)
 
-    def plot_no_pyplot(self, curr_fig, curr_ax):
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
         create_new_figure = (curr_fig is None)
         if create_new_figure:
             curr_fig = Figure()
@@ -1008,7 +1011,7 @@ class LegendCmd(PostCmd):
         # else:
         plt.legend(**self.mpl_prop)
 
-    def plot_no_pyplot(self, curr_fig, curr_ax):
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
         if curr_ax is not None:
             curr_ax.legend(**self.mpl_prop)
         return curr_fig, curr_ax, False

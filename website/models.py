@@ -28,25 +28,30 @@ class User(db.Model, UserMixin):
     settings_id = db.Column(db.Integer, db.ForeignKey('settings.id'), nullable=True, default=None)
 
 
-class Orientation(enum.Enum):
+class PlotOrientation(enum.Enum):
     horizontal = 'horizontal'
     vertical = 'vertical'
 
 
+class LegendOrientation(enum.Enum):
+    h = 'h'  # Horizontal
+    v = 'v'  # Vertical
+
+
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    graph_lib = db.Column(db.String(6), default="plotly")  # plotly or mpld3
-    plot_orientation = db.Column(Enum(Orientation), default=Orientation.vertical)
+    plot_type = db.Column(db.String(5), default="plot")  # plot or image
+    file_type = db.Column(db.String(3), default="png")
+    plot_orientation = db.Column(Enum(PlotOrientation), default=PlotOrientation.vertical)
     plot_width = db.Column(db.Integer, default=300)
     plot_height = db.Column(db.Integer, default=300)
     legend_x = db.Column(db.Float, default=1)
     legend_y = db.Column(db.Float, default=0)
-    legend_x_anchor = db.Column(db.String(6), default="right")  # left, middle or right
-    legend_y_anchor = db.Column(db.String(6), default="bottom")  # top, middle or bottom
-    legend_orientation = db.Column(Enum(Orientation), default=Orientation.vertical)
+    legend_x_anchor = db.Column(db.String(6), default="right")  # left, center, or right
+    legend_y_anchor = db.Column(db.String(6), default="bottom")  # top, middle, or bottom
+    legend_orientation = db.Column(Enum(LegendOrientation), default=LegendOrientation.v)
     paper_color = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
     plot_bgcolor = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
-    mplpdf = db.Column(db.Boolean, default=False)
     keep_plots = db.Column(db.Boolean, default=False)
 
     def save(self, settings):

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Simulator{% endblock %}
+
+{% block navbar %}
+{% endblock %}
+
+
+{% block content %}  
+
+<div>    
+
+  <h2>Users</h2>
+  <table border=1>
+    <tr>
+        <th>id</th>
+        <th>username</th>
+        <th>settings_id</th>
+    </tr>
+    <tr>
+      {% for user in all_users %}
+        <th>{{ user.id }}</th>
+        <th>{{ user.username }}</th>
+        <th>{{ user.settings_id}}</th>
+      {% endfor %}
+    </tr>
+  </table>
+
+</div>
+
+<hr>
+
+<div>
+    <h2>Settings</h2>
+    <table border=1>
+        <tr>
+            <th>id</th>
+            <th>plot_type</th>
+            <th>file_type</th>
+            <th>plot_orientation</th>
+            <th>plot_width</th>
+            <th>plot_height</th>
+            <th>legend_x</th>
+            <th>legend_y</th>
+            <th>legend_x_anchor</th>
+            <th>legend_y_anchor</th>
+            <th>legend_orientation</th>
+            <th>paper_color</th>
+            <th>plot_bgcolor</th>
+            <th>keep_plots</th>
+        </tr>
+        <tr>
+        {% for settings in all_settings %}
+            <th>{{ settings.id }}</th>
+            <th>{{ settings.plot_type }}</th>
+            <th>{{ settings.file_type }}</th>
+            <th>{{ settings.plot_orientation }}</th>
+            <th>{{ settings.plot_width }}</th>
+            <th>{{ settings.plot_height }}</th>
+            <th>{{ settings.legend_x }}</th>
+            <th>{{ settings.legend_y }}</th>
+            <th>{{ settings.legend_x_anchor }}</th>
+            <th>{{ settings.legend_y_anchor }}</th>
+            <th>{{ settings.legend_orientation }}</th>
+            <th>{{ settings.paper_color }}</th>
+            <th>{{ settings.plot_bgcolor }}</th>
+            <th>{{ settings.keep_plots }}</th>
+        {% endfor %}
+        </tr>
+    </table>
+</div>
+
+{% endblock %}

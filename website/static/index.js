@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", onLoad);
 
+
+
 function onLoad() { // DOM is loaded and ready
 
     // Check that this is home.html
@@ -29,9 +31,39 @@ function onLoad() { // DOM is loaded and ready
     
     // Settings
     const settingsButton = document.getElementById("button-settings");
-    const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
-    const settingsDlgOK = document.getElementById("settingsdlg-ok");
-    const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
+    // const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
+    // const settingsDlgOK = document.getElementById("settingsdlg-ok");
+    // const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
+    const settingsDlgPlotType = document.getElementById("settings-plottype");
+    const settingsDiv = document.getElementById("div-settings");
+    // const settingsDlgFileType = document.getElementById("settings-div-filetype");
+
+    settingsDlgPlotType.addEventListener("change", plotlyMplVisibility);
+    plotlyMplVisibility();
+    function plotlyMplVisibility() {
+        if (settingsDlgPlotType.value === "image") {
+            for (const el of document.getElementsByClassName("settings-plotly")) {
+                // el.style.visibility = "hidden";
+                el.style.display = "none";
+            }
+            for (const el of document.getElementsByClassName("settings-mpl")) {
+                // el.style.visibility = "visible";
+                el.style.display = "block";
+            }
+            document.getElementById("settings-size").innerHTML = "Image size";
+        }
+        else {
+            for (const el of document.getElementsByClassName("settings-mpl")) {
+                // el.style.visibility = "hidden";
+                el.style.display = "none";
+            }
+            for (const el of document.getElementsByClassName("settings-plotly")) {
+                // el.style.visibility = "visible";
+                el.style.display = "block";
+            }
+            document.getElementById("settings-size").innerHTML = "Plot size";
+        }
+    }
 
     // Showing/hiding demo scripts
     showDivDemoButton.addEventListener("click", toggleDivDemo);
@@ -131,7 +163,7 @@ function onLoad() { // DOM is loaded and ready
 
     class Settings {
         constructor() {
-            this.graph_lib = null;
+            this.plot_type = null;
             this.plot_orientation = null;
             this.plot_width = null;
             this.plot_height = null;
@@ -142,20 +174,20 @@ function onLoad() { // DOM is loaded and ready
             this.legend_orientation = null;
             this.paper_color = null;
             this.plot_bgcolor = null;
-            this.mplpdf = null;
             this.keep_plots = null;
+        }
 
-            // Read values from db
-
+        readFromDB() {
             // The id of the settings for the current user is stored in the
-            // attribute "data-settingsid" of the textbox
+            // attribute "data-settingsid" of the script code textbox
             const settingsId = usersScriptCode.dataset.settingsid;
 
             const get_url = "/get_settings/" + settingsId;  // XXX use Jinja2: {{ url_for("get") | tojson }}
             fetch(get_url)
                 .then(response => response.json())
                 .then(data => {
-                    this.graph_lib = data['graph_lib'];
+                    this.plot_type = data['plot_type'];
+                    this.file_type = data['file_type'];
                     this.plot_orientation = data['plot_orientation'];
                     this.plot_width = data['plot_width'];
                     this.plot_height = data['plot_height'];
@@ -166,19 +198,26 @@ function onLoad() { // DOM is loaded and ready
                     this.legend_orientation = data['legend_orientation'];
                     this.paper_color = data['paper_color'];
                     this.plot_bgcolor = data['plot_bgcolor'];
-                    this.mplpdf = data['mplpdf'];
                     this.keep_plots = data['keep_plots'];
+                    this._updateUI();
                 }
             );
         }
 
-        validate() {
-            let err = null;
-            return err;
-        }
+        // _validate() {
+        //     let err = null;
+        //     return err;
+        // }
 
         save() {
-            this.graph_lib = document.getElementById("settings-graphlib").value;
+            // const err_client = this._validate();
+            // if (err_client) {
+            //     // alert(err_client);
+            //     return err_client;
+            // }
+
+            this.plot_type = document.getElementById("settings-plottype").value;
+            this.file_type = document.getElementById("settings-filetype").value;
             this.plot_orientation = document.getElementById("settings-plotorientation").value;
             this.plot_width = document.getElementById("settings-plotwidth").value;
             this.plot_height = document.getElementById("settings-plotheight").value;
@@ -189,14 +228,13 @@ function onLoad() { // DOM is loaded and ready
             this.legend_orientation = document.getElementById("settings-legendorientation").value;
             this.paper_color = document.getElementById("settings-paperbgcolor").value;
             this.plot_bgcolor = document.getElementById("settings-plotbgcolor").value;
-            this.mplpdf = document.getElementById("settings-mplpdf").checked;
             this.keep_plots = document.getElementById("settings-keep").checked;
 
             // Save to db
-            return this.writeToDB();;
+            this._writeToDB();
         }
 
-        writeToDB() {
+        _writeToDB() {
             // The id of the settings for the current user is stored in the
             // attribute "data-settingsid" of the textbox
             const settingsId = usersScriptCode.dataset.settingsid;
@@ -211,17 +249,19 @@ function onLoad() { // DOM is loaded and ready
                 .then(data => {
                     const error = data['error'];
                     if (error) {
-                        return error;
+                        alert(error);
+                        // return error;
                     }
-                    else {
-                        return null;
-                    }
+                    // else {
+                    //     return null;
+                    // }
                 }
             );
         }
 
-        update_ui() {
-            document.getElementById("settings-graphlib").value = this.graph_lib;
+        _updateUI() {
+            document.getElementById("settings-plottype").value = this.plot_type;
+            document.getElementById("settings-filetype").value = this.file_type;
             document.getElementById("settings-plotorientation").value = this.plot_orientation;
             document.getElementById("settings-plotwidth").value = this.plot_width;
             document.getElementById("settings-plotheight").value = this.plot_height;
@@ -232,46 +272,43 @@ function onLoad() { // DOM is loaded and ready
             document.getElementById("settings-legendorientation").value = this.legend_orientation;
             document.getElementById("settings-paperbgcolor").value = this.paper_color;
             document.getElementById("settings-plotbgcolor").value = this.plot_bgcolor;
-            document.getElementById("settings-mplpdf").checked = this.mplpdf;
             document.getElementById("settings-keep").checked = this.keep_plots;
         }
 
     }
 
     var settings = new Settings();
+    settings.readFromDB();
+    // settings.updateUI();
 
     // ======================================= Settings "dialog box" =======================================
 
     // Open settings "dialog"
     if (settingsButton) {
         settingsButton.addEventListener('click', () => {
-            settings.update_ui();
-            settingsDlgModalBg.style.display = "block";
+            // settings.update_ui();
+            toggleSettings();
+            // settingsDlgModalBg.style.display = "block";
         });
     }
 
-    // When the user clicks on Cancel, close the settings dialog
-    settingsDlgCancel.onclick = function() {
-        settingsDlgModalBg.style.display = "none";
-    }
-
-    if (settingsDlgOK) {
-        settingsDlgOK.onclick = function() {
-            const err_client = settings.validate();
-            if (err_client) {
-                alert(err_client);
-                return;
-            }        
-            const err_server = settings.save();
-            if (err_server) {
-                alert(err_server);
-                return;
-            }
-            else {
-                settingsDlgModalBg.style.display = "none";
-            }
+    function toggleSettings() {
+        if (settingsDiv.style.display == "block") {
+            settingsDiv.style.display = "none";
+            settingsButton.textContent = ">>";
+            document.getElementById('editor').setAttribute("style", "height:calc(100% - 110px);");
+        }
+        else {
+            settingsDiv.style.display = "block";
+            settingsButton.textContent = "<<";
+            document.getElementById('editor').setAttribute("style", "height:calc(100% - 500px);");
         }
     }
+
+    // // When the user clicks on Cancel, close the settings dialog
+    // settingsDlgCancel.onclick = function() {
+    //     settingsDlgModalBg.style.display = "none";
+    // }
 
     // When the user clicks anywhere outside of the modal, close it
     // window.onclick = function(event) {
@@ -328,7 +365,6 @@ function onLoad() { // DOM is loaded and ready
     // Set event listener to "Demo scripts" list
     demoScripts.addEventListener('change', demoScriptsSelectionChanged);
 
-
     /* Get the current sleection in the users scripts list. */
     function getSelectedDemoScript() {
         return demoScripts.value;
@@ -370,20 +406,35 @@ function onLoad() { // DOM is loaded and ready
         const name = usersScriptName.value;
         const code = usersScriptCode.value;
         saveScript(name, code);
+        settings.save();
     }
 
     function userRunButtonClicked() {
-        runButtonClicked(USERSCRIPT_CODE, "plotarea");
+        runButtonClicked(USERSCRIPT_CODE, false);  // "plotarea-vert");
     }
 
     function demoRunButtonClicked() {
-        runButtonClicked(DEMOSCRIPT_CODE, "plotarea-demo");
+        runButtonClicked(DEMOSCRIPT_CODE, true);  // "plotarea-demo");
     }
 
-    function runButtonClicked(textareaID, divID) {
+    function runButtonClicked(textareaID, isDemo) {
+        let plotArea;
+        if (isDemo) {
+            plotArea = document.getElementById('plotarea-demo');
+        }
+        else {
+            settings.save();
+            if (settings.plot_orientation === 'vertical') {
+                plotArea = document.getElementById('plotarea-vert');
+            }
+            else {
+                plotArea = document.getElementById('plotarea-horiz');
+            }
+        }
+
         const code = document.getElementById(textareaID).value;
-        const dataSend = {'code': code};
-        const isMpl = (settings.graph_lib === "mpld3");
+        const dataSend = {'code': code, 'settings': settings};
+        const isMpl = (settings.plot_type === "image");
         let run_url;
         if (isMpl) {
             run_url = "/run_mpl_fig";  // XXX use Jinja2: {{ url_for("run_mpl") | tojson }}
@@ -406,9 +457,9 @@ function onLoad() { // DOM is loaded and ready
                 }
                 try {
                     if (isMpl)
-                        postproc_mpl_fig(data, divID);
+                        postproc_mpl_fig(data, plotArea);
                     else {
-                        postproc(data, divID);
+                        postproc(data, plotArea);
                     }
                 }
                 catch (err) {
@@ -465,9 +516,8 @@ function onLoad() { // DOM is loaded and ready
 // PLOTTING
 // =================================================================================
 
-    function postproc(postcmds, plotlyDivID) {
-        let plotArea = document.getElementById(plotlyDivID);
-        removeAllChartDivs(plotlyDivID);
+    function postproc(postcmds, plotArea) {
+        removeAllChartDivs();
         let currSubplot = null;
         let collectingSubplots = false;
         let createSubplotLegend = false;
@@ -507,10 +557,16 @@ function onLoad() { // DOM is loaded and ready
                 chartDiv.dataset.containsPlot = "0";
                 chartDiv.dataset.title = "";
                 currFig = chartDiv;
-                // chartdiv.style.height = "300px";
+                chartDiv.style.width = settings.plot_width + "px";  // "300px";
+                chartDiv.style.height = settings.plot_height + "px";  // "300px";
                 chartDiv.style.resize = "both";
                 chartDiv.style.overflow = "hidden";
                 chartDiv.style.border = "3px solid green";
+
+                if (plotArea.id === 'plotarea-horiz') {
+                    chartDiv.style.float = "left";
+                }
+
                 chartDivResizeObserver.observe(chartDiv);
 
                 plotArea.appendChild(chartDiv);
@@ -523,7 +579,7 @@ function onLoad() { // DOM is loaded and ready
                     if (createSubplots) {
                         plotSubplots(currFig, collectedSubplots);
                         if (createSubplotLegend) {
-                            Plotly.relayout(currFig, {showlegend: true});
+                            Plotly.relayout(currFig, plotlylegendLayout());
                         }
                         collectedSubplots = [];
                     }
@@ -537,7 +593,7 @@ function onLoad() { // DOM is loaded and ready
             else if (type === 'legend') {
                 if (currFig !== null) {  // If null, @legend is before @figure
                     if (!collectingSubplots && currFig.dataset.containsPlot === "1") {  // If "0", @legend is before @plot
-                        Plotly.relayout(currFig, {showlegend: true});
+                        Plotly.relayout(currFig, plotlylegendLayout());
                     }
                     else {
                         createSubplotLegend = true;
@@ -546,6 +602,19 @@ function onLoad() { // DOM is loaded and ready
             }
             else if (type === 'figure') {
                 currFig.dataset.title = cmd['title'];
+            }
+        }
+    }
+
+    function plotlylegendLayout() {
+        return {
+            showlegend: true,
+            legend: {
+                x: settings.legend_x,
+                y: settings.legend_y,
+                xanchor: settings.legend_x_anchor,
+                yanchor: settings.legend_y_anchor,
+                orientation: settings.legend_orientation
             }
         }
     }
@@ -565,19 +634,39 @@ function onLoad() { // DOM is loaded and ready
     //     }
     // }
 
-    function postproc_mpl_fig(figImgs, divID) {
-        let plotArea = document.getElementById(divID);
-        removeAllChartDivs(divID);
+    function postproc_mpl_fig(figImgs, plotArea) {
+        removeAllChartDivs(plotArea);
         for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
             chartDiv.id = "div-mpld3_" + i;
             chartDiv.style.border = "3px solid blue";
 
-            let chartImg = document.createElement('img');
-            chartImg.setAttribute("src", figImgs[i]);
+            let chartImg;
+            if (settings.file_type === 'pdf') {
+                chartImg = document.createElement('iframe');
+                chartImg.setAttribute("src", figImgs[i] + "#toolbar=0");
+            }
+            else {
+                chartImg = document.createElement('img');
+                chartImg.setAttribute("src", figImgs[i]);
+            }
+
+            if (settings.file_type === 'pdf') {  // Very small default iframe
+                chartDiv.style.width = settings.plot_width + "px";
+                chartDiv.style.height = settings.plot_height + "px";
+                // chartDiv.classList.add('hvcenter');
+                chartImg.style.width = "100%";
+                chartImg.style.height = "100%";
+            }
+            else if (settings.file_type === 'svg') {  // Make div resizable, since svg is vector graphics
+                chartDiv.style.resize = "both";
+                chartDiv.style.overflow = "hidden";
+                chartImg.style.width = "100%";
+                chartImg.style.height = "100%";
+            }
+
             chartImg.setAttribute("alt", "Matplotlib chart");
             chartDiv.appendChild(chartImg);
-
             plotArea.appendChild(chartDiv);
         }
     }
@@ -587,7 +676,7 @@ function onLoad() { // DOM is loaded and ready
         let nCols;
         let layout = {...subplotPlots[0]['layout']};  // Copy of first subplotplot
         let traces = [];
-        for (plotCmd of subplotPlots) {
+        for (const plotCmd of subplotPlots) {
             const subplotSpec = JSON.parse(plotCmd['subplot']['spec_list']);
             const mpl_prop = JSON.parse(plotCmd['subplot']['mpl_prop']);
             
@@ -708,8 +797,8 @@ function onLoad() { // DOM is loaded and ready
         }
         let layout = {
             showlegend: false,
-            // plot_bgcolor: '#444',
-            paper_bgcolor: '#eee',
+            plot_bgcolor: settings.plot_bgcolor,
+            paper_bgcolor: settings.paper_color,
             title: chartDiv.dataset.title            
             // xaxis: {  // XXX remember that for subplots, the axes are called xaxis2, etc.
             //     zeroline: true,
@@ -737,12 +826,13 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    function removeAllChartDivs(plotlyDivID) {
-        // Plotly.purge("plotarea");
-        Plotly.purge(plotlyDivID);
-        let plotArea = document.getElementById(plotlyDivID);
-        while (plotArea.firstChild) {
-            plotArea.removeChild(plotArea.lastChild);
+    function removeAllChartDivs() {
+        for (plotAreaID of ['plotarea-vert', 'plotarea-horiz']) {
+            plotArea = document.getElementById(plotAreaID);
+            Plotly.purge(plotArea);
+            while (plotArea.firstChild) {
+                plotArea.removeChild(plotArea.lastChild);
+            }
         }
     }
       
