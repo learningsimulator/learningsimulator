@@ -147,6 +147,18 @@ button {
     background-color: #4CAF50;
 }
 
+#button-run:hover {
+    /* background-color:#002ead; */
+    background-color: green;
+    /* transition: 0.9s; */
+}
+
+#button-run:active {
+  background-color:#002ead;
+  /* background-color: green; */
+  /* transition: 0.9s; */
+}
+
 #button-run {
   background-color: #4CAF50;
   border: none;

@@ -20,6 +20,7 @@ function onLoad() { // DOM is loaded and ready
     const saveButton = document.getElementById('button-savescript');
     const userRunButton = document.getElementById('button-run');
     const demoRunButton = document.getElementById('button-run-demo');
+    const closeAllButton = document.getElementById('button-closeall');
     const lineCounter = document.getElementById('linecounter');
     const errDlgDetailsButton = document.getElementById('button-errdlg-details');
     const errDlgDetails = document.getElementById('textarea-errdlg-details');
@@ -28,7 +29,7 @@ function onLoad() { // DOM is loaded and ready
     const errDlgMsg = document.getElementById("div-errmsg");
     const divDemo = document.getElementById("div-demo");
     const showDivDemoButton = document.getElementById("button-showdemo");
-    
+
     // Settings
     const settingsButton = document.getElementById("button-settings");
     // const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
@@ -365,6 +366,8 @@ function onLoad() { // DOM is loaded and ready
     // Set event listener to "Demo scripts" list
     demoScripts.addEventListener('change', demoScriptsSelectionChanged);
 
+    closeAllButton.addEventListener('click', removeAllChartDivs)
+
     /* Get the current sleection in the users scripts list. */
     function getSelectedDemoScript() {
         return demoScripts.value;
@@ -523,6 +526,16 @@ function onLoad() { // DOM is loaded and ready
         let createSubplotLegend = false;
         let collectedSubplots = [];
         let currFig = null;
+
+        let exportCmds = []
+        for (let i = 0; i < postcmds.length; i++)  {
+            let cmd = postcmds[i];
+            const type = cmd['type'];
+            if (type === 'export') {
+                exportCmds.push(cmd);
+            }
+        }
+
         for (let i = 0; i < postcmds.length; i++)  {
             let cmd = postcmds[i];
             let createSubplots = false;
@@ -604,6 +617,28 @@ function onLoad() { // DOM is loaded and ready
                 currFig.dataset.title = cmd['title'];
             }
         }
+
+        // Add the download links to exported files at the bottom
+        addExportedFiles(exportCmds, plotArea);
+    }
+
+    function addExportedFiles(exportCmds, plotArea) {
+        if (exportCmds.length > 0) {
+            var exportDiv = document.createElement('div');
+            for (let i = 0; i < exportCmds.length; i++) {
+                const cmd = exportCmds[i];
+                const filename = cmd['filename'];
+                const filenameNoPath = cmd['filename_no_path'];
+                var a = document.createElement('a');
+                let link = document.createTextNode(filenameNoPath);
+                a.appendChild(link);
+                // a.download = filename;
+                a.href = filename;
+                exportDiv.appendChild(a);
+                exportDiv.appendChild(document.createElement('br'));
+            }
+            plotArea.appendChild(exportDiv);
+        }
     }
 
     function plotlylegendLayout() {
@@ -634,7 +669,10 @@ function onLoad() { // DOM is loaded and ready
     //     }
     // }
 
-    function postproc_mpl_fig(figImgs, plotArea) {
+    function postproc_mpl_fig(data, plotArea) {
+        figImgs = data['imgfiles'];
+        exportCmds = data['exportcmds'];
+
         removeAllChartDivs(plotArea);
         for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
@@ -669,6 +707,9 @@ function onLoad() { // DOM is loaded and ready
             chartDiv.appendChild(chartImg);
             plotArea.appendChild(chartDiv);
         }
+
+        addExportedFiles(exportCmds, plotArea);
+
     }
 
     function plotSubplots(chartDiv, subplotPlots) {

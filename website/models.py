@@ -9,7 +9,7 @@ SCRIPTNAME_MAXLENGTH = 50
 CODE_MAXLENGTH = 10000
 
 
-class Script(db.Model):
+class DBScript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_predef = db.Column(db.Integer, unique=True, nullable=True)  # Unique if not null
     name = db.Column(db.String(SCRIPTNAME_MAXLENGTH))
@@ -22,7 +22,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(150), unique=True)
     password = db.Column(db.String(150))
     username = db.Column(db.String(150))
-    scripts = db.relationship('Script')
+    scripts = db.relationship('DBScript')
     # settings = db.relationship('Settings')
     # settings_id = db.Column(db.Integer, unique=True)
     settings_id = db.Column(db.Integer, db.ForeignKey('settings.id'), nullable=True, default=None)

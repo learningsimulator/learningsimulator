@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from os import path
 from flask_login import LoginManager
 from werkzeug.routing import BaseConverter
 # from flask_cors import CORS

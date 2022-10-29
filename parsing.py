@@ -1,3 +1,4 @@
+import os
 import platform
 import re
 import copy
@@ -66,8 +67,8 @@ class Script():
         self.script = script
         self.script_parser = ScriptParser(self.script)
 
-    def parse(self, is_gui=False):
-        self.script_parser.parse()
+    def parse(self, is_webapp=False):  # is_webapp is True from webrunner
+        self.script_parser.parse(is_webapp)
 
     def check_deprecated_syntax(self):
         return self.script_parser.check_deprecated_syntax()
@@ -175,7 +176,7 @@ class ScriptParser():
         # Used to label unlabelled @phase-statements with "phase1", "phase2", ...
         self.unnamed_phase_cnt = 1
 
-    def parse(self):
+    def parse(self, is_webapp=False):
         if len(self.lines) == 0:
             raise ParseException(1, "Script is empty.")
         prop = None
@@ -248,6 +249,12 @@ class ScriptParser():
                     if not self.parameters.may_end_with_comma(prop):
                         raise ParseException(lineno, "Value for {} may not end by comma.".format(prop))
                     in_prop = self.parameters.is_csv(prop)
+
+                # Special treat filename, since it has different behavior depending on frontend
+                if prop == kw.FILENAME and is_webapp:
+                    # In web, filename cannot contain path
+                    self.check_is_filename_without_path(possible_val, lineno)
+
                 err = self.parameters.str_set(prop, possible_val, self.variables, self.phases,
                                               self.all_run_labels, line_endswith_comma)
                 if err:
@@ -364,12 +371,20 @@ class ScriptParser():
                 else:
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
+                # In web, filename cannot contain path
+                if is_webapp:
+                    self.check_is_filename_without_path(filename, lineno)
+
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
                 export_cmd = ExportCmd(lineno, cmd, expr, expr0, export_parameters, run_parameters)
                 self.postcmds.add(export_cmd)
 
             else:
                 raise ParseException(lineno, f"Invalid expression '{line}'.")
+
+    def check_is_filename_without_path(self, filename, lineno):
+        if os.sep in filename:
+            raise ParseException(lineno, f"Filename cannot contain path (when run in web browser).")
 
     def check_deprecated_syntax(self):
         return self.phases.check_deprecated_syntax()
@@ -419,8 +434,10 @@ class ScriptParser():
 
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
-        args = linesplit_space[1]
+        args = linesplit_space[1].strip()
         expr0, filename = ParseUtil.split1_strip(args)
+        print(expr0)
+        print(filename)
         expr = expr0
         if filename is None:
             if len(filename_param) == 0:
@@ -621,11 +638,18 @@ class PostCmds():
         curr_ax = None
         all_figs = []
         for cmd in self.cmds:
-            curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
-            if is_new_fig:
-                all_figs.append(curr_fig)
+            if isinstance(cmd, PlotCmd):
+                curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
+                if is_new_fig:
+                    all_figs.append(curr_fig)
         return all_figs
 
+    def get_export_cmds(self):
+        export_cmds = []
+        for cmd in self.cmds:
+            if isinstance(cmd, ExportCmd):
+                export_cmds.append(cmd)
+        return export_cmds
 
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
@@ -680,7 +704,7 @@ class PostCmd():
     def plot(self):  # Matplotlib commands may be placed here
         pass
 
-    def plot_no_pyplot(curr_fig, curr_ax, settings):
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
         pass
 
     def progress_label(self):
@@ -800,7 +824,6 @@ class PlotData():
         curr_ax.grid(True)
         return curr_fig, curr_ax, create_new_figure
 
-
     def to_dict(self):
         return {'type': 'plot',
                 'ydatas': json.dumps(self.ydata_list),
@@ -817,10 +840,11 @@ class ExportCmd(PostCmd):
         self.expr0 = expr0
         self.parameters = parameters
         self.run_parameters = run_parameters
+        self.filename_no_path = None  # Used from webapp
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
-        self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
+        self.parameters.scalar_expand()  # If beta (or other postprocessing parameters) is not specified, scalar_expand has not been run
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
@@ -946,6 +970,9 @@ class ExportCmd(PostCmd):
 
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
+
+    def to_dict(self):
+        return {'type': 'export', 'filename': self.parameters.get(kw.FILENAME), 'filename_no_path': self.filename_no_path}
 
 
 class FigureCmd(PostCmd):

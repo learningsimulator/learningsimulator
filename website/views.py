@@ -1,23 +1,23 @@
 import os
 import sys
-# import json
 import sqlalchemy
 import random
 
 from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
 from flask_login import login_required, current_user
-from .models import Script, Settings, User
+from .models import DBScript, Settings, User
 from . import db
-# from .util_web import ParseUtil
-from .webrunner import run_simulation
 from .demo_scripts import demo_scripts
 
-# Import ParseUtil from parent directory learningsimulator/
+# Import stuff (e.g. util) from parent directory learningsimulator/
 # (why so complicated to import from parent dir in Python?)
 currentdir = os.path.dirname(os.path.realpath(__file__))  # Path to learningsimulator/website/
 parentdir = os.path.dirname(currentdir)  # Path to learningsimulator/
 sys.path.append(parentdir)
+import util
 from util import ParseUtil
+from parsing import Script, ExportCmd
+import keywords as kw
 
 views = Blueprint('views', __name__)
 
@@ -47,12 +47,41 @@ def landing():
     return render_template("landing.html", user=current_user)
 
 
+def run_simulation(script):
+    try:
+        script_obj = Script(script)
+        script_obj.parse(is_webapp=True)  # Use is_webapp=True to discriminate Tkinter from browser frontend
+
+        amend_export_filenames(script_obj.script_parser.postcmds.cmds)
+
+        simulation_data = script_obj.run()
+        script_obj.postproc(simulation_data)
+        return False, script_obj.script_parser.postcmds
+    except Exception as ex:
+        err_msg, lineno, stack_trace = util.get_errormsg(ex)
+        return True, (err_msg, lineno, stack_trace)
+
+
+def amend_export_filenames(cmds):
+    '''
+    Change all ExportCmd's filename to the same filename but including the absolute path to the current
+    user's export directory. Filename is only a name (without path), enforced in the parsing.
+    '''
+    for cmd in cmds:
+        if isinstance(cmd, ExportCmd):
+            filename = cmd.parameters.get(kw.FILENAME)
+            cmd.filename_no_path = filename
+            export_dir = get_user_export_dir()
+            os.makedirs(export_dir, exist_ok=True)
+            abspath_filename = os.path.join(export_dir, filename)
+            cmd.parameters.set_filename(abspath_filename)
+
+
 @views.route('/dbadmin', methods=['GET'])
 def dbadmin():
     all_users = User.query.all()
     all_settings = Settings.query.all()
     return render_template("dbadmin.html", all_users=all_users, all_settings=all_settings)
-
 
 
 # @views.route('/', methods=['GET'])
@@ -70,7 +99,7 @@ def validate_script(name, id=None):
     else:
         if id is not None:
             id = int(id)
-            users_scripts = Script.query.filter(Script.user_id == current_user.id).all()
+            users_scripts = DBScript.query.filter(DBScript.user_id == current_user.id).all()
             for script in users_scripts:
                 if script.name == name and script.id != id:
                     err = f"There is already a script with the name '{name}'."
@@ -87,7 +116,7 @@ def my_scripts():
 @views.route('/get/<int:id>')
 @login_required
 def get_script(id):
-    script = Script.query.get_or_404(id)
+    script = DBScript.query.get_or_404(id)
     return {'name': script.name, 'code': script.code}
 
 
@@ -174,8 +203,6 @@ def save_settings():
     settings = request.json['settings']
 
     err = validate_settings(settings)
-    print("Hello")
-    print(err)
     if err:
         return {'error': err}
     settings_to_update = Settings.query.get_or_404(id)
@@ -194,7 +221,6 @@ def save_settings():
 
 @views.route('/get_demo/<int:index>', methods=['GET'])
 def get_demo(index):
-    print("FFO")
     script = demo_scripts[index - 1]
     return {'name': script['name'], 'code': script['code']}
 
@@ -205,7 +231,7 @@ def save_script():
     id = request.json['id']
     name = request.json['name']
     code = request.json['code']
-    script_to_update = Script.query.get_or_404(id)
+    script_to_update = DBScript.query.get_or_404(id)
     err = validate_script(name, id)
     if err:
         return {'error': err}
@@ -228,9 +254,9 @@ def add():
     name = request.json['name']
     code = request.json['code']
     err = validate_script(name)
-    new_script = Script(name=name,
-                        code=code,
-                        user_id=current_user.id)
+    new_script = DBScript(name=name,
+                          code=code,
+                          user_id=current_user.id)
     db.session.add(new_script)
     db.session.commit()
     # flash('Script added!', category='success')
@@ -241,7 +267,7 @@ def add():
 def delete():
     ids_to_delete = request.json['ids']
     for id in ids_to_delete:
-        script_to_delete = Script.query.get_or_404(id)
+        script_to_delete = DBScript.query.get_or_404(id)
         try:
             db.session.delete(script_to_delete)
             db.session.commit()
@@ -264,6 +290,14 @@ def run():
         for cmd in postcmds.cmds:
             out.append(cmd.to_dict())
         return jsonify(out)
+
+
+# def _move_exported_file(cmd):
+#     user_dirname, img_dir = get_user_img_dir()
+#     os.makedirs(img_dir, exist_ok=True)
+#     filename = cmd.parameters.get(kw.FILENAME)
+#     filename_in_dir = os.path.join(dir, filename)
+#     cmd.parameters.set(kw.FILENAME, filename_in_dir)
 
 
 # @views.route('/run_mpl', methods=['POST'])
@@ -295,7 +329,6 @@ def run_mpl_fig():
         os.makedirs(img_dir, exist_ok=True)
         out = list()
         for fig in figs:
-            # randstr = str(random.random())
             randstr = ''.join([str(random.randint(0, 9)) for _ in range(6)])
             filename = f'figfile{randstr}.{file_type}'
             abspath = os.path.join(img_dir, filename)
@@ -303,8 +336,12 @@ def run_mpl_fig():
             fig.savefig(abspath, format=file_type)
             out.append(relpath)
 
-        # print(os.path.join(views.root_path, 'mplfigimg', 'figfile.png'))
-        return jsonify(out)
+        export_cmds = postcmds.get_export_cmds()
+        export_cmds_json = []
+        for exportcmd in export_cmds:
+            export_cmds_json.append(exportcmd.to_dict())
+
+        return jsonify({'imgfiles': out, 'exportcmds': export_cmds_json})
 
 
 @staticmethod
@@ -312,6 +349,13 @@ def get_user_img_dir():
     user_dirname = f'user{current_user.id}'
     img_dir = os.path.join(views.root_path, 'static', 'mplfigimg', user_dirname)
     return user_dirname, img_dir
+
+
+@staticmethod
+def get_user_export_dir():
+    user_dirname = f'user{current_user.id}'
+    img_dir = os.path.join(views.root_path, 'static', 'export', user_dirname)
+    return img_dir
 
 
 @staticmethod
@@ -323,7 +367,7 @@ def delete_all_files_in(dir):
 @views.route('/simulate/<int:id>', methods=['GET'])
 @login_required
 def simulate(id):
-    script = Script.query.get_or_404(id)
+    script = DBScript.query.get_or_404(id)
     demo_script_names = [ds['name'] for ds in demo_scripts]
     settings = Settings.query.get(current_user.settings_id)
 

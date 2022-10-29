@@ -166,18 +166,20 @@ class Parameters():
         # Valid path to writable file
         elif prop == kw.FILENAME:
             filename = v_str
-            try:
-                file = open(filename, 'w', newline='')
-            except Exception as ex:
-                return str(ex)
-            finally:
-                file.close()
-                try:
-                    os.remove(filename)
-                except FileNotFoundError:
-                    pass
-            self.val[kw.FILENAME] = filename
-            return None
+            return self.set_filename(filename)
+
+    def set_filename(self, filename):
+        try:
+            file = open(filename, 'w', newline='')
+        except Exception as ex:
+            return str(ex)
+        file.close()
+        try:
+            os.remove(filename)
+        except FileNotFoundError:
+            pass
+        self.val[kw.FILENAME] = filename
+        return None
 
     def make_mechanism_obj(self):
         """

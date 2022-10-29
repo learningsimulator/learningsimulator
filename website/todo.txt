@@ -2,23 +2,27 @@ Move "Default legend position", "Default colors", "Default plot size" to "My Pre
 
 Restore to default settings?
 
+Delete @export-files and images files when figure / "export-icon" is
+deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
+
 "Plot as" switch buttons
 
-Logga in uppe till höger
+Logga in/ut uppe till höger - kanske med användarnamnet
+
+Begränsa storlek på plot (width, height)
+
+Begränsa längd på filnamn
 
 Navbar Bg color
 
 (DB-)Admin page
 
-Possibility for user to delete account
+Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
 
 start_at_1
 
 Check that html element contraints (min, max values, string lengths, required, etc) match db
 -1 < legend_{x,y} < 2 kanske?
-
-Report problems - link to GH Issues, maybe landing page
-Link to project page (somewhere, maybe landing page)
 
 Left navbar with
 "My Scripts"
@@ -27,7 +31,7 @@ Left navbar with
 "You sure you want to delete script ...?"
 
 Inspiration:
-https://plotly.com/javascript/configuration-options/
+https://plotly.com/javascript/configuration-options/ - especially "editable mode"
 https://plotly.com/javascript/custom-buttons/
 
 "Script ... saved" flash
@@ -41,16 +45,13 @@ Make "Name of script" read-only but with an "Edit" button that makes it editable
 Redis Queue
 Progress bar
 
-Border around plotly figure? https://community.plotly.com/t/how-to-show-border-around-the-entire-plotly-figure/51551
-
 Menu: Set font size, line height, "color scheme": (font color, bg color, comment color)
 Menu: Search/Replace
 Menu: Insert parameter block, phase block, etc.
 
-Plot: "Close Figure" button for each plot
+Plot: "Close Figure" button for each plot and "Delete @export-file" for each export "icon"
 Plot: "Download" button for mpl image plots
-Plot: "Close All Figures" button (like in Tk-frontend)
-Plot: "Keep figures" checkbox (If an error occuers, dont delete current figs)
+Plot: "Keep figures" checkbox (If an error occurs, dont delete current figs)
 Plot parameters: Grid on/off
 Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
 Plot parameters: Legend on/off, legend positioning
@@ -75,3 +76,6 @@ Move inline styling to css
 Hide db passwd, SECRET_KEY, etc.
 
 Investigate if use_pyplot=False can be used in Tk frontend.
+
+Report problems - link to GH Issues, maybe landing page
+Link to project page (somewhere, maybe landing page)
