@@ -436,8 +436,6 @@ class ScriptParser():
             raise ParseException(lineno, f"Invalid {cmd} command.")
         args = linesplit_space[1].strip()
         expr0, filename = ParseUtil.split1_strip(args)
-        print(expr0)
-        print(filename)
         expr = expr0
         if filename is None:
             if len(filename_param) == 0:

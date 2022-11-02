@@ -26,9 +26,11 @@ Check that html element contraints (min, max values, string lengths, required, e
 
 Left navbar with
 "My Scripts"
-"Demo Scripts"
+"Demo Scripts"'
 
 "You sure you want to delete script ...?"
+
+Add "Download" to the exported files, when checked that it works on PythonAnywhere.
 
 Inspiration:
 https://plotly.com/javascript/configuration-options/ - especially "editable mode"

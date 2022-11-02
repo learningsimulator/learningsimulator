@@ -340,15 +340,15 @@ function onLoad() { // DOM is loaded and ready
     }
 
     // A dictionary of UIScript objects, keyed by id. For caching to avoid hitting the db so often
-    var cachedScripts = {};
-    function updateCachedScripts(id, name, code) {
-        if (Object.hasOwn(cachedScripts, id)) {
-            cachedScripts[id].set(id, name, code);
-        }
-        else {
-            cachedScripts[id] = new UIScript(id, name, code);
-        }
-    }
+    // var cachedScripts = {};
+    // function updateCachedScripts(id, name, code) {
+    //     if (Object.hasOwn(cachedScripts, id)) {
+    //         cachedScripts[id].set(id, name, code);
+    //     }
+    //     else {
+    //         cachedScripts[id] = new UIScript(id, name, code);
+    //     }
+    // }
 
     // Set event listener to button for running script
     if (userRunButton) {  // This button is only displayed when logged in
@@ -565,6 +565,10 @@ function onLoad() { // DOM is loaded and ready
             }
 
             if (createFigure) {
+                let chartAndCPDiv = document.createElement('div');
+                chartAndCPDiv.style.position = "relative";
+                chartAndCPDiv.id =  makeRandomString(10);
+
                 let chartDiv = document.createElement('div');
                 // let chartHr = document.createElement('hr');
                 chartDiv.dataset.containsPlot = "0";
@@ -581,9 +585,22 @@ function onLoad() { // DOM is loaded and ready
                 }
 
                 chartDivResizeObserver.observe(chartDiv);
+                chartAndCPDiv.appendChild(chartDiv);
 
-                plotArea.appendChild(chartDiv);
-                // plotArea.appendChild(chartHr);
+                // Create Control Panel div (with e.g. Close Figure button)
+                let chartDivCP = document.createElement('div');
+                chartDivCP.style.position = "absolute";
+                chartDivCP.style.top = 0;
+                chartDivCP.style.left = 0;
+                let chartDivCloseButton = document.createElement('button');
+                chartDivCloseButton.dataset.id = chartAndCPDiv.id;  // So that close button knows which figure to close
+                chartDivCloseButton.innerText = "Close";
+                chartDivCloseButton.addEventListener('click', closeFig);
+
+                chartDivCP.appendChild(chartDivCloseButton);
+                chartAndCPDiv.appendChild(chartDivCP);
+                plotArea.appendChild(chartAndCPDiv);
+
                 createSubplotLegend = false;
             }
 
@@ -622,9 +639,30 @@ function onLoad() { // DOM is loaded and ready
         addExportedFiles(exportCmds, plotArea);
     }
 
+    function closeFig() {
+        let chartAndCPDivToDelete = document.getElementById(this.dataset.id);
+        Plotly.purge(chartAndCPDivToDelete);
+        while (chartAndCPDivToDelete.firstChild) {
+            chartAndCPDivToDelete.removeChild(chartAndCPDivToDelete.lastChild);
+        }
+        chartAndCPDivToDelete.parentNode.removeChild(chartAndCPDivToDelete);
+
+    }
+
+    function closeExport() {
+        alert(this.dataset.id);
+        let exportDivToDelete = document.getElementById(this.dataset.id);
+        while (exportDivToDelete.firstChild) {
+            exportDivToDelete.removeChild(exportDivToDelete.lastChild);
+        }
+        exportDivToDelete.parentNode.removeChild(exportDivToDelete);
+
+    }
+
     function addExportedFiles(exportCmds, plotArea) {
         if (exportCmds.length > 0) {
             var exportDiv = document.createElement('div');
+            exportDiv.id = makeRandomString(10);
             for (let i = 0; i < exportCmds.length; i++) {
                 const cmd = exportCmds[i];
                 const filename = cmd['filename'];
@@ -637,6 +675,13 @@ function onLoad() { // DOM is loaded and ready
                 exportDiv.appendChild(a);
                 exportDiv.appendChild(document.createElement('br'));
             }
+
+            let exportDivCloseButton = document.createElement('button');
+            exportDivCloseButton.dataset.id = exportDiv.id;  // So that close button knows which figure to close
+            exportDivCloseButton.innerText = "Delete";
+            exportDivCloseButton.addEventListener('click', closeExport);
+            exportDiv.appendChild(exportDivCloseButton);
+
             plotArea.appendChild(exportDiv);
         }
     }
@@ -875,6 +920,17 @@ function onLoad() { // DOM is loaded and ready
                 plotArea.removeChild(plotArea.lastChild);
             }
         }
+    }
+
+    // =============================== Utilities ===============================
+    function makeRandomString(len) {
+        var result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        for (let i = 0; i < len; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
     }
       
 
