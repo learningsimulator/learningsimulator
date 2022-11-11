@@ -849,6 +849,36 @@ class TestStopCondInRun(LsTestCase):
         plot_data = get_plot_data()
         self.assertEqual(len(plot_data['x']), 61)
 
+    def test_space_between_phase_names(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b
+    
+        @PHASE phase1 stop: Blablah
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase2 stop: Bliblahbloh
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @PHASE phase3 stop: Bliblahblohbleh
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run
+            phase1(stop: e1=30) phase2( stop : e1 = 20)
+            phase3(stop: e1=10) runlabel:myrunlbl
+
+        runlabel: myrunlbl
+        xscale: e1
+        @nplot e1
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        self.assertEqual(len(plot_data['x']), 61)
+
     def is_equal_output_subjects(self, output1_subject, output2_subject):
         self.assertEqual(output1_subject.history, output2_subject.history)
         self.assertEqual(output1_subject.first_step_phase, output2_subject.first_step_phase)

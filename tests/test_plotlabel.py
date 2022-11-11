@@ -179,7 +179,7 @@ class TestInitialValues(LsTestCase):
         beta              : 1
         u                 : reward:2, default:0
 
-        @phase instrumental_conditioning stop:s=100
+        @phase instrumental_conditioning stop:s=10
         STIMULUS    s          | respond: REWARD  | STIMULUS
         REWARD      reward     | STIMULUS
 

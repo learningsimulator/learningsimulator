@@ -268,7 +268,7 @@ class TestMechanisms(LsTestCase):
 
     def test_ga(self):
         script = '''
-n_subjects           : 100
+n_subjects           : 1
 mechanism            : ga
 behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
@@ -337,7 +337,7 @@ runlabel:0.5
 
     def test_sr_same_as_ga_when_alphaw_is_0(self):
         script = '''
-n_subjects           : 300
+n_subjects           : 200
 behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
 response_requirements: approach:plant, eat:berry
@@ -348,7 +348,7 @@ behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
 bind_trials          : off
 
-@phase acquisition stop: plant=200
+@phase acquisition stop: plant=150
 new_trial              | PLANT
 PLANT       plant     | approach: BERRY | new_trial
 BERRY       berry     | eat: REWARD     | NO_REWARD

@@ -617,7 +617,7 @@ class ScriptParser():
             else:
                 raise ParseException(lineno, f"Maximum one instance of 'runlabel:' on a {kw.RUN} line.")
             if len(phases_str) > 0:
-                run_phase_labels_line = phases_str.strip(',').split(',')
+                run_phase_labels_line = ParseUtil.space_split(phases_str.replace(',', ' '))
                 run_phase_labels_line = [(lbl.strip(), lineno) for lbl in run_phase_labels_line]
                 run_phase_labels.extend(run_phase_labels_line)
 
