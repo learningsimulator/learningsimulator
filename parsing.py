@@ -176,6 +176,7 @@ class ScriptParser():
         in_variables = False
         in_phase = False
         in_run = False
+        run_lines = None
 
         for lineno0, line_orig in enumerate(self.lines):
             line = line_orig
