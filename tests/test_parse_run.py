@@ -342,23 +342,23 @@ class TestBasic(LsTestCase):
 
         # Figure 1
         plot_data = get_plot_data(1)
-        self.assertEqual(plot_data['x'], list(range(101)))
-        self.assertEqual(plot_data['y'], list(range(101)))
+        self.assertEqual(plot_data['x'], list(range(100)))
+        self.assertEqual(plot_data['y'], list(range(100)))
 
         # Figure 2
         plot_data = get_plot_data(2)
-        self.assertEqual(plot_data['x'], list(range(51)))
-        self.assertEqual(plot_data['y'], list(range(51)))
+        self.assertEqual(plot_data['x'], list(range(50)))
+        self.assertEqual(plot_data['y'], list(range(50)))
 
         # Figure 3
         plot_data = get_plot_data(3)
-        self.assertEqual(plot_data['x'], list(range(141)))
-        self.assertEqual(plot_data['y'], list(range(141)))
+        self.assertEqual(plot_data['x'], list(range(140)))
+        self.assertEqual(plot_data['y'], list(range(140)))
 
         # Figure 4
         plot_data = get_plot_data(4)
-        self.assertEqual(plot_data['x'], list(range(111)))
-        self.assertEqual(plot_data['y'], list(range(111)))
+        self.assertEqual(plot_data['x'], list(range(110)))
+        self.assertEqual(plot_data['y'], list(range(110)))
 
 
     def test_multiple_run_with_different_behaviors(self):
@@ -390,13 +390,6 @@ class TestBasic(LsTestCase):
                           ('e2', 'x'), ('e2', 'y'), ('e2', 'z')})
 
     def test_mechanisms(self):
-        """
-        GA = 'ga'
-        SR = 'sr'
-        ES = 'es'
-        QL = 'ql'
-        AC = 'ac'
-        """
         text = '''
         mechanism: ga
         stimulus_elements: e1, e2
@@ -784,7 +777,7 @@ class TestStopCondInRun(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(len(plot_data['x']), 61)
+        self.assertEqual(len(plot_data['x']), 60)
 
         plt.close('all')
 
@@ -816,7 +809,7 @@ class TestStopCondInRun(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(len(plot_data['x']), 61)
+        self.assertEqual(len(plot_data['x']), 60)
 
         plt.close('all')
 
@@ -847,7 +840,7 @@ class TestStopCondInRun(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(len(plot_data['x']), 61)
+        self.assertEqual(len(plot_data['x']), 60)
 
     def test_space_between_phase_names(self):
         text = '''
@@ -877,7 +870,7 @@ class TestStopCondInRun(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(len(plot_data['x']), 61)
+        self.assertEqual(len(plot_data['x']), 60)
 
     def is_equal_output_subjects(self, output1_subject, output2_subject):
         self.assertEqual(output1_subject.history, output2_subject.history)

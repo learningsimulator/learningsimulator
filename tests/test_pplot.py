@@ -112,7 +112,7 @@ subject: average
         self.assertLess(y_bg, 0.8)
 
     def test_beta_mu_not_post_params(self):
-        ''''
+        '''
         Tests that beta, mu, and response_requirements are not postprocessing parameters,
         in other words that the values for these parameters used in the postprocessing
         should come from the run that is being postprocessed.

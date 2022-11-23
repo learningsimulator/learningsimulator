@@ -186,14 +186,18 @@ class ParseUtil():
         return False, None
 
     @staticmethod
-    def ast_parse(expr):
+    def ast_parse(expr, include_expr_in_errmsg=True):
         try:
             tree = ast.parse(expr, mode='eval')
         except Exception as ex:
-            err = f"Error in expression '{expr}': {ex}."
-            err = err.replace(" (<unknown>, line 1)", "")
+            if include_expr_in_errmsg:
+                err = f"Error in expression '{expr}': {ex}."
+                err = err.replace(" (<unknown>, line 1)", "")
+            else:
+                err = f"Error in expression."
             return None, err
         return tree, None
+
 
     # def replace_initial_behaviors(expr, behaviors, last_response):
     #     """
@@ -484,7 +488,7 @@ class ParseUtil():
         if n_arrows == 0:
             return None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, None, "Expression must include only one '->'."
+            return None, None, f"Expression must include only one '->'. {expr}"
 
         elements, behavior = expr.split('->')
         stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
@@ -552,12 +556,6 @@ class ParseUtil():
 
     @staticmethod
     def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
-
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
-        """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
@@ -574,12 +572,6 @@ class ParseUtil():
 
     @staticmethod
     def parse_element_element(expr, all_stimulus_elements):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
-
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
-        """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
@@ -593,6 +585,11 @@ class ParseUtil():
         if stimulus_element2 not in all_stimulus_elements:
             return None, f"Expected a stimulus element, got {stimulus_element2}."
         return (stimulus_element1, stimulus_element2), None
+
+    def parse_element(expr, all_stimulus_elements):
+        if expr not in all_stimulus_elements:
+            return None, f"Expected a stimulus element, got {expr}."
+        return expr, None
 
     # @staticmethod
     # def arrow2evalexpr_n(expr):
@@ -926,22 +923,22 @@ def find_and_cumsum(seq, pattern, use_exact_match):
 def find_and_cumsum_interval(seq, pattern, use_exact_match,
                              interval_pattern, interval_pattern_exact):
     """
-    Return the number of occurances of pattern in seq, between every two consecutive
-    occurrences of interval_pattern.
+    Return the number of occurrences of pattern in seq, between every two consecutive
+    occurrences of interval_pattern (and before the first occurrence).
 
     Example:
         find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X', True)
-        returns [2, 1, 0]
+        returns [2, 1, 0], [2, 3, 3]
     """
     ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)
     ind_int, _ = find_and_cumsum(seq, interval_pattern, interval_pattern_exact)
     cnt = 0
     out = list()
     for i in range(len(ind_seq)):
-        cnt += ind_seq[i]
         if ind_int[i] == 1:
             out.append(cnt)
             cnt = 0
+        cnt += ind_seq[i]
     return out, cumsum(out)
 
 

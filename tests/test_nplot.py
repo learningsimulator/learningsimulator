@@ -110,8 +110,8 @@ class TestInitialValues(LsTestCase):
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's3', 'b'] * 10)
 
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
 
         plt.close('all')
 
@@ -133,8 +133,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
 
         plt.close('all')
 
@@ -145,8 +145,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
 
         plt.close('all')
 
@@ -157,8 +157,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
 
         plt.close('all')
 
@@ -170,8 +170,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
         plt.close('all')
 
@@ -195,8 +195,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
         plt.close('all')
 
@@ -220,8 +220,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
 
         plt.close('all')
 
@@ -245,8 +245,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 6, 9, 12, 15, 18, 21, 24, 27, 30])
 
         plt.close('all')
 
@@ -268,8 +268,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
 
         plt.close('all')
 
@@ -292,8 +292,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-        self.assertEqual(plot_data['y'], [0, 3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
 
         plt.close('all')
 

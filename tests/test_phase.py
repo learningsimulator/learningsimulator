@@ -1920,8 +1920,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_phase_line_label(self):
         text = '''
@@ -1939,8 +1939,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_stimulus_with_xscale(self):
         text = '''
@@ -1959,8 +1959,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2])
-        self.assertEqual(ns['y'], [0, 1, 2])
+        self.assertEqual(ns['x'], [0, 1])
+        self.assertEqual(ns['y'], [0, 1])
 
     def test_stopcond_stimulus_with_phases(self):
         text = '''
@@ -1982,8 +1982,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_phase_line_label_with_xscale(self):
         text = '''

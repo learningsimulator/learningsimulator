@@ -5,8 +5,11 @@ class ParseException(Exception):
 
 
 class EvalException(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
+    def __init__(self, msg, lineno=None):
+        if lineno is None:
+            super().__init__(msg)
+        else:
+            super().__init__("Error on line {}".format(lineno) + ": " + msg)
 
 
 class InterruptedSimulation(Exception):

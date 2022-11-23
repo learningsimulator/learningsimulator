@@ -3,7 +3,9 @@ import re
 import copy
 import matplotlib.pyplot as plt
 import csv
+import math
 
+import posteval
 import keywords as kw
 from parameters import Parameters
 from parameters import is_parameter_name
@@ -12,6 +14,12 @@ from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from util import ParseUtil  # , eval_average
+
+
+POST_MATH = {'sin': math.sin, 'cos': math.cos, 'tan': math.tan, 'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
+             'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh, 'asinh': math.asinh, 'acosh': math.acosh, 'atanh': math.atanh,
+             'ceil': math.ceil, 'floor': math.floor,
+             'exp': math.exp, 'log': math.log, 'log10': math.log10, 'sqrt': math.sqrt}
 
 
 def clean_script(text):
@@ -96,10 +104,11 @@ class LineParser():
     RUN = 6
     FIGURE = 7
     SUBPLOT = 8
-    PLOT = 9
+    XPLOT = 9  # vplot, wplot, pplot, nplot, vssplot
     EXPORT = 10
     LEGEND = 11
     PREV_DEFINED_VARIABLE = 12
+    PLOT = 13
 
     def __init__(self, line, global_variables):
         self.line = line
@@ -133,6 +142,8 @@ class LineParser():
         elif first_word == kw.PHASE:
             self.line_type = LineParser.PHASE
         elif first_word in (kw.VPLOT, kw.VSSPLOT, kw.WPLOT, kw.PPLOT, kw.NPLOT):
+            self.line_type = LineParser.XPLOT
+        elif first_word == kw.PLOT:
             self.line_type = LineParser.PLOT
         elif first_word == kw.FIGURE:
             self.line_type = LineParser.FIGURE
@@ -326,8 +337,12 @@ class ScriptParser():
                 subplot_cmd = SubplotCmd(subplotspec_list, subplot_title, mpl_prop)
                 self.postcmds.add(subplot_cmd)
 
-            elif line_parser.line_type == LineParser.PLOT:
-                expr, mpl_prop, expr0 = self._parse_plot(lineno, linesplit_space)
+            elif line_parser.line_type in (LineParser.XPLOT, LineParser.PLOT):
+                isx = (line_parser.line_type == LineParser.XPLOT)
+                if isx:
+                    expr, mpl_prop, expr0 = self._parse_xplot(lineno, linesplit_space)
+                else:
+                  expr, mpl_prop, expr0 = self._parse_plot(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 plot_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, plot_parameters)
@@ -338,7 +353,10 @@ class ScriptParser():
                 else:
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
-                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, run_parameters, mpl_prop)
+                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, run_parameters, self.variables,
+                                   mpl_prop, lineno)
+                if not isx:
+                    plot_cmd.is_postexpr = True
                 self.postcmds.add(plot_cmd)
 
             elif line_parser.line_type == LineParser.LEGEND:
@@ -451,9 +469,9 @@ class ScriptParser():
             raise ParseException(lineno, err)
         return expr, filename, expr0
 
-    def _parse_plot(self, lineno, linesplit_space):
+    def _parse_xplot(self, lineno, linesplit_space):
         """
-        @plot expr {mpl_prop}
+        @{v,w,p,n,vss}plot expr {mpl_prop}
         """
         cmd = linesplit_space[0]
         if len(linesplit_space) == 1:  # @plot
@@ -480,6 +498,54 @@ class ScriptParser():
         if err:
             raise ParseException(lineno, err)
         return expr, mpl_prop, expr0
+
+    def _parse_plot(self, lineno, linesplit_space):
+        """
+        @plot expr {mpl_prop}
+        """
+        cmd = linesplit_space[0]
+        if len(linesplit_space) == 1:  # @plot
+            raise ParseException(lineno, f"Invalid {cmd} command.")
+
+        expr0, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+        if mpl_prop is None:
+            mpl_prop = dict()
+
+        expr = expr0
+        all_se = self.parameters.get(kw.STIMULUS_ELEMENTS)
+        all_b = self.parameters.get(kw.BEHAVIORS)
+
+        # exprs_list = ParseUtil.comma_split_strip(exprs)
+        # post_expr_objs = []
+        # for e in exprs_list:
+        post_expr_obj, err = posteval.parse_postexpr(expr, self.variables, POST_MATH)
+        if err:
+            raise ParseException(lineno, err)
+
+        for post_var in post_expr_obj.post_vars.values():
+            fn = post_var.fn
+            arg = post_var.arg
+
+            err = None
+            if fn == 'v':
+                parsed_arg, err = ParseUtil.parse_element_behavior(arg, all_se, all_b)
+            elif fn == 'vss':
+                parsed_arg, err = ParseUtil.parse_element_element(arg, all_se)
+            elif fn == 'w':
+                parsed_arg, err = ParseUtil.parse_element(arg, all_se)
+            elif fn == 'p':
+                stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b,
+                                                                            self.variables)
+                parsed_arg = (stimulus, behavior)
+            elif fn == 'n':
+                parsed_arg, err = ParseUtil.parse_chain(arg, all_se, all_b)
+            if err:
+                raise ParseException(lineno, err)
+
+            post_var.parsed_arg = parsed_arg
+            # post_expr_objs.append(post_expr_obj)
+
+        return post_expr_obj, mpl_prop, expr0
 
     def _parse_subplot(self, lineno, linesplit_space):
         """
@@ -746,37 +812,72 @@ class PostCmd():
 
 
 class PlotCmd(PostCmd):
-    def __init__(self, cmd, expr, expr0, parameters, run_parameters, mpl_prop):
+    def __init__(self, cmd, expr, expr0, parameters, run_parameters, variables, mpl_prop, lineno):
         super().__init__()
         self.cmd = cmd
         self.expr = expr
+        self.is_postexpr = False
         self.expr0 = expr0
         self.parameters = parameters
+        self.variables = variables
         self.run_parameters = run_parameters
         self.mpl_prop = mpl_prop
+        self.lineno = lineno
 
     def run(self, simulation_data):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
         start_at_1 = False
         if 'linewidth' not in self.mpl_prop:
             self.mpl_prop['linewidth'] = 1
-        if self.cmd == kw.VPLOT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
-            default_label = f"v({self.expr0})"
-        elif self.cmd == kw.VSSPLOT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
-            default_label = f"vss({self.expr0})"
-        elif self.cmd == kw.WPLOT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
-            default_label = f"w({self.expr0})"
-        elif self.cmd == kw.PPLOT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
-            default_label = f"p({self.expr0})"
-        elif self.cmd == kw.NPLOT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
-            default_label = f"n({self.expr0})"
-            start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
-                          (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
+
+        if self.is_postexpr:  # @plot v(s->b) + 2*w(s) / sin(n(s->b->s))
+            post_expr = self.expr
+
+            # Evaluate each variable v(s->b), w(s), n(s->b->s)
+            var_ydata = dict()  # Dict with evaluated ydata for each PostVar, keyed by alias variable
+            n_values = None
+
+            for alias, var in post_expr.post_vars.items():
+                var_ydata[alias] = simulation_data.vwpn_eval(var.fn, var.parsed_arg, self.parameters, self.run_parameters)
+                if n_values is None:
+                    n_values = len(var_ydata[alias])
+                else:  # Number of evaluated values should be the same for all variables
+                    assert(n_values == len(var_ydata[alias]))
+
+            # for a in post_expr.post_vars:
+            #     print(f"{a}: {len(var_ydata[a])}")
+
+            # Evaluate the expression using the evaluated variable values
+            ydata = [None] * n_values
+            for i in range(n_values):
+                alias_values = {key: val[i] for key, val in var_ydata.items()}
+                alias_values.update(POST_MATH)
+                alias_values.update(self.variables.values)
+                try:
+                    ydata[i] = eval(post_expr.expr, {'__builtins__': {'round': round}}, alias_values)
+                except Exception as e:
+                    raise EvalException(f"Expression evaluation failed.", self.lineno)
+
+            default_label = self.expr0
+            
+        else:  # vplot s->b OR wplot(s) OR ...
+            if self.cmd == kw.VPLOT:
+                ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
+                default_label = f"v({self.expr0})"
+            elif self.cmd == kw.VSSPLOT:
+                ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
+                default_label = f"vss({self.expr0})"
+            elif self.cmd == kw.WPLOT:
+                ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
+                default_label = f"w({self.expr0})"
+            elif self.cmd == kw.PPLOT:
+                ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
+                default_label = f"p({self.expr0})"
+            elif self.cmd == kw.NPLOT:
+                ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
+                default_label = f"n({self.expr0})"
+                start_at_1 = ((self.parameters.get(kw.CUMULATIVE) == kw.EVAL_OFF) and
+                            (self.parameters.get(kw.XSCALE) != kw.EVAL_ALL))
 
         if 'label' in self.mpl_prop:
             legend_label = self.mpl_prop['label']

@@ -468,7 +468,6 @@ class TestRescorlaWagner(LsTestCase):
 15,0.0
 16,0.0
 17,0.0
-18,0.0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
@@ -485,25 +484,24 @@ class TestRescorlaWagner(LsTestCase):
         self.assertIsNotNone(data)
 
         expected_file_contents = '''"x","n(cs)"
-0,0.0
+0,1.0
 1,1.0
 2,1.0
 3,1.0
-4,1.0
+4,2.0
 5,2.0
 6,2.0
 7,2.0
-8,2.0
+8,3.0
 9,3.0
 10,3.0
 11,3.0
-12,3.0
+12,4.0
 13,4.0
 14,4.0
 15,4.0
-16,4.0
+16,5.0
 17,5.0
-18,5.0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']

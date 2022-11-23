@@ -54,8 +54,8 @@ class TestSmall(LsTestCase):
         lines = ax.get_lines()
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        expected_xdata = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-        expected_ydata = [0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4]
+        expected_xdata = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        expected_ydata = [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4]
 
         self.assertEqual(list(line.get_xdata(True)), expected_xdata)
         self.assertEqual(list(line.get_ydata(True)), expected_ydata)
@@ -69,8 +69,8 @@ class TestSmall(LsTestCase):
         self.assertEqual(len(lines), 1)
         line = lines[0]
 
-        expected_xdata = [0, 1, 2, 3, 4]
-        expected_ydata = [0, 1, 2, 3, 4]
+        expected_xdata = [0, 1, 2, 3]
+        expected_ydata = [0, 1, 2, 3]
         self.assertEqual(list(line.get_xdata(True)), expected_xdata)
         self.assertEqual(list(line.get_ydata(True)), expected_ydata)
 
