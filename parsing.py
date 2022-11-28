@@ -340,9 +340,11 @@ class ScriptParser():
             elif line_parser.line_type in (LineParser.XPLOT, LineParser.PLOT):
                 isx = (line_parser.line_type == LineParser.XPLOT)
                 if isx:
-                    expr, mpl_prop, expr0 = self._parse_xplot(lineno, linesplit_space)
+                    exprs, mpl_prop, exprs_str = self._parse_xplot(lineno, linesplit_space)
                 else:
-                  expr, mpl_prop, expr0 = self._parse_plot(lineno, linesplit_space)
+                    expr, mpl_prop, expr_str = self._parse_plot(lineno, linesplit_space)
+                    exprs = [expr]
+                    exprs_str = [expr_str]
                 cmd = linesplit_space[0].lower()
                 plot_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, plot_parameters)
@@ -353,11 +355,13 @@ class ScriptParser():
                 else:
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
-                plot_cmd = PlotCmd(cmd, expr, expr0, plot_parameters, run_parameters, self.variables,
-                                   mpl_prop, lineno)
-                if not isx:
-                    plot_cmd.is_postexpr = True
-                self.postcmds.add(plot_cmd)
+                for expr, expr_str in zip(exprs, exprs_str):
+                    mpl_prop_copy = dict(mpl_prop)  # Since PlotCmd edits mpl_prop
+                    plot_cmd = PlotCmd(cmd, expr, expr_str, plot_parameters, run_parameters, self.variables,
+                                       mpl_prop_copy, lineno)
+                    if not isx:
+                        plot_cmd.is_postexpr = True
+                    self.postcmds.add(plot_cmd)
 
             elif line_parser.line_type == LineParser.LEGEND:
                 mpl_prop = self._parse_legend(lineno, linesplit_space)
@@ -471,33 +475,41 @@ class ScriptParser():
 
     def _parse_xplot(self, lineno, linesplit_space):
         """
-        @{v,w,p,n,vss}plot expr {mpl_prop}
+        @vplot expr {mpl_prop}
+        @wplot expr {mpl_prop}
+        @pplot expr {mpl_prop}
+        @nplot expr {mpl_prop}
+        @vssplot expr {mpl_prop}
         """
         cmd = linesplit_space[0]
         if len(linesplit_space) == 1:  # @plot
             raise ParseException(lineno, f"Invalid {cmd} command.")
 
-        expr0, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+        expr_str, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
         if mpl_prop is None:
             mpl_prop = dict()
 
-        expr = expr0
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
         if cmd == kw.VPLOT:
-            expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
+            exprs, exprs_str, err = ParseUtil.parse_element_behavior(expr_str, all_stimulus_elements, all_behaviors)
         elif cmd == kw.VSSPLOT:
-            expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
+            exprs, exprs_str, err = ParseUtil.parse_element_element(expr_str, all_stimulus_elements)
         elif cmd == kw.PPLOT:
-            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
-                                                                        all_behaviors, self.variables)
-            expr = (stimulus, behavior)
+            exprs, exprs_str, err = ParseUtil.parse_stimulus_behavior(expr_str, all_stimulus_elements,
+                                                                      all_behaviors, self.variables)
+        elif cmd == kw.WPLOT:
+            exprs, exprs_str, err = ParseUtil.parse_element(expr_str, all_stimulus_elements)
         elif cmd == kw.NPLOT:
-            expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
+            expr, err = ParseUtil.parse_chain(expr_str, all_stimulus_elements, all_behaviors)
+            exprs = [expr]
+            exprs_str = [expr_str]
+        else:
+            err = "Internal error."
         if err:
             raise ParseException(lineno, err)
-        return expr, mpl_prop, expr0
+        return exprs, mpl_prop, exprs_str
 
     def _parse_plot(self, lineno, linesplit_space):
         """
@@ -522,25 +534,37 @@ class ScriptParser():
         if err:
             raise ParseException(lineno, err)
 
+        # Don't allow mixing n with v, p, w, vss when xscale=all
+        if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
+            fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
+            if 'n' in fns:
+                if set(fns) == {'n'}:  # Only 'n' - ok
+                    pass
+                else:
+                    raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
+
         for post_var in post_expr_obj.post_vars.values():
             fn = post_var.fn
             arg = post_var.arg
 
-            err = None
             if fn == 'v':
-                parsed_arg, err = ParseUtil.parse_element_behavior(arg, all_se, all_b)
+                parsed_arg, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False)
             elif fn == 'vss':
-                parsed_arg, err = ParseUtil.parse_element_element(arg, all_se)
+                parsed_arg, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False)
             elif fn == 'w':
-                parsed_arg, err = ParseUtil.parse_element(arg, all_se)
+                parsed_arg, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False)
             elif fn == 'p':
-                stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b,
-                                                                            self.variables)
-                parsed_arg = (stimulus, behavior)
+                parsed_arg, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
+                                                                       allow_wildcard=False)
             elif fn == 'n':
                 parsed_arg, err = ParseUtil.parse_chain(arg, all_se, all_b)
+            else:
+                err = "Internal error."
             if err:
                 raise ParseException(lineno, err)
+
+            if fn != 'n':
+                parsed_arg = parsed_arg[0]
 
             post_var.parsed_arg = parsed_arg
             # post_expr_objs.append(post_expr_obj)
@@ -842,7 +866,7 @@ class PlotCmd(PostCmd):
                 if n_values is None:
                     n_values = len(var_ydata[alias])
                 else:  # Number of evaluated values should be the same for all variables
-                    assert(n_values == len(var_ydata[alias]))
+                    assert(n_values == len(var_ydata[alias])), f"{n_values} != {len(var_ydata[alias])}"
 
             # for a in post_expr.post_vars:
             #     print(f"{a}: {len(var_ydata[a])}")

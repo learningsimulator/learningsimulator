@@ -119,7 +119,7 @@ cumulative = off
         pplot = pd['pplot']['y']
         for n, p in zip(nplot, pplot):
             d = abs(n - p)
-            self.assertLess(d, 0.15)
+            self.assertLess(d, 0.155)
 
     def test_pplot_with_compound_stimuli(self):  # Same test as in test_pplot but with @plot p(...) instead of @pplot ...
         text = '''
@@ -241,6 +241,30 @@ subject: average
             self.assertAlmostEqual(o_python, o)
 
             n += 1
+
+    def test_multiple_n(self):
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b, b2
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=20
+        L1 s1 | L1
+        @run blaps
+
+        cumulative = off
+        xscale = all
+        @plot n(s1) + n(s2) - n(s1->b)        
+        xscale = s2
+        @plot n(s1) + n(s2) - n(s1->b)
+
+        cumulative = on
+        xscale = all
+        @plot n(s1) + n(s2) - n(s1->b)        
+        xscale = s2
+        @plot n(s1) + n(s2) - n(s1->b)
+        """
+        run(text)
 
 
 class TestExceptions(LsTestCase):
@@ -378,7 +402,6 @@ class TestExceptions(LsTestCase):
         with self.assertRaisesMsg(msg):
             run(text)
 
-
     def test_undefined_function(self):
         text = """
         mechanism: ga
@@ -431,13 +454,38 @@ class TestExceptions(LsTestCase):
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
-        @plot n(s1) / 0
+        @plot {}
         """
         msg = "Error on line 9: Expression evaluation failed."
-        for e in {"n(s1) / 0", "n(s1) / (v(s1->b)) - v(s1->b))", "log(-n(b))"}:
+        for e in {"n(s1) / 0", "log(-n(b))", "v(s1->b) / (v(s1->b)-v(s1->b))"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
+
+        text = text_base.format("n(s1) / (v(s1->b) + v(s1->b))")
+        with self.assertRaisesMsg("Error on line 9: Cannot mix n with v,p,w,vss when xscale is 'all'."):
+            run(text)
+
+    def test_wildcard(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+        msg = "Error on line 9: Wildcard syntax not supported in @plot/@export."
+        for e in {"v(s1-> * )", "w( *)", "w(* )", "v(s1->b) + v(*->b)"}:
+            text = text_base.format(e)
+            with self.assertRaisesMsg(msg):
+                run(text)
+
+        text = text_base.format("n(*)")
+        with self.assertRaisesMsg("Error on line 9: Expected stimulus element(s) or a behavior, got *."):
+            run(text)                
 
     def test_try_boom(self):
         text_base = """

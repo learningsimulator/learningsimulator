@@ -92,8 +92,9 @@ def is_arithmetic(expr, allowed_names):
         if type(node) is ast.Name:
             if node.id not in allowed_names:
                 return False, f"Invalid name {node.id} in expression."
-        elif type(node) not in (ast.Expression, ast.Call, ast.BinOp, ast.Constant, ast.Load,
-                                ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow):
+        elif type(node) not in (ast.Expression, ast.Call, ast.Constant, ast.Load,
+                                ast.BinOp, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
+                                ast.UnaryOp, ast.USub):
             return False, f"Invalid expression."
 
     return True, None

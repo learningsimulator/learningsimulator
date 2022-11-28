@@ -478,7 +478,7 @@ class ParseUtil():
         return None, string.lstrip()
 
     @staticmethod
-    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables):
+    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables, allow_wildcard=True):
         """
         From an expression of the form "s1[i1],s2[i2],...->r", return the
         tuple t where t[0] = (('s1',i1), ('s2',i2), ...) and t[1] = 'r'.
@@ -491,19 +491,49 @@ class ParseUtil():
             return None, None, f"Expression must include only one '->'. {expr}"
 
         elements, behavior = expr.split('->')
-        stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
-        if err:
-            return None, None, err
-
-        for element in stimulus:
-            if element not in all_stimulus_elements:
-                return None, None, f"Expected a stimulus element, got {element}."
-
+        elements = elements.strip()
         behavior = behavior.strip()
-        if behavior not in all_behaviors:
-            return None, None, f"Expected a behavior name, got {behavior}."
 
-        return stimulus, behavior, None
+        has_wildcard = False
+        if elements == '*':
+            has_wildcard = True
+            stimuluss = []
+            for se in all_stimulus_elements:
+                stimuluss.append({se: 1})
+        else:
+            stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
+            if err:
+                return None, None, err
+            for element in stimulus:
+                if element not in all_stimulus_elements:
+                    return None, None, f"Expected a stimulus element, got {element}."
+            stimuluss = [stimulus]
+
+        if behavior == '*':
+            has_wildcard = True
+            bs = list(all_behaviors)
+        else:
+            if behavior not in all_behaviors:
+                return None, None, f"Expected a behavior name, got {behavior}."
+            bs = [behavior]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        exprs = []
+        for s in stimuluss:
+            for b in bs:
+                exprs.append((s, b))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for e in exprs:
+                s, b = e
+                se = list(s.keys())[0]  # s is a dict with only one key
+                exprs_str.append(f"{se}->{b}")
+
+        return exprs, exprs_str, None  # stimulus, behavior, None
 
     @staticmethod
     def parse_elements_and_intensities(stimulus, variables, safe_intensity_eval=False):
@@ -555,41 +585,123 @@ class ParseUtil():
         return element, intensity, None
 
     @staticmethod
-    def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
+    def parse_element_behavior(expr, all_stimulus_elements, all_behaviors, allow_wildcard=True):
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, "Expression must include a '->'."
+            return None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
+            return None, None, "Expression must include only one '->'."
 
         stimulus_element, behavior = expr.split('->')
-        if stimulus_element not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element}."
-        if behavior not in all_behaviors:
-            return None, f"Expected a behavior name, got {behavior}."
-        return (stimulus_element, behavior), None
+        stimulus_element = stimulus_element.strip()
+        behavior = behavior.strip()
+
+        has_wildcard = False
+        if stimulus_element == '*':
+            has_wildcard = True
+            ses = all_stimulus_elements
+        else:
+            if stimulus_element not in all_stimulus_elements:
+                return None, None, f"Expected a stimulus element, got {stimulus_element}."
+            ses = [stimulus_element]
+
+        if behavior == '*':
+            has_wildcard = True
+            bs = all_behaviors
+        else:
+            if behavior not in all_behaviors:
+                return None, None, f"Expected a behavior name, got {behavior}."
+            bs = [behavior]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        exprs = []
+        for se in ses:
+            for b in bs:
+                exprs.append((se, b))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for seb in exprs:
+                se, b = seb
+                exprs_str.append(f"{se}->{b}")
+
+        return exprs, exprs_str, None
 
     @staticmethod
-    def parse_element_element(expr, all_stimulus_elements):
+    def parse_element_element(expr, all_stimulus_elements, allow_wildcard=True):
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, "Expression must include a '->'."
+            return None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
+            return None, None, "Expression must include only one '->'."
 
         stimulus_element1, stimulus_element2 = expr.split('->')
-        if stimulus_element1 not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element1}."
-        if stimulus_element2 not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element2}."
-        return (stimulus_element1, stimulus_element2), None
+        stimulus_element1 = stimulus_element1.strip()
+        stimulus_element2 = stimulus_element2.strip()
 
-    def parse_element(expr, all_stimulus_elements):
-        if expr not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {expr}."
-        return expr, None
+        has_wildcard = False
+        if stimulus_element1 == '*':
+            has_wildcard = True
+            ses1 = all_stimulus_elements
+        else:
+            if stimulus_element1 not in all_stimulus_elements:
+                return None, None, f"Expected a stimulus element, got {stimulus_element1}."
+            ses1 = [stimulus_element1]
+
+        if stimulus_element2 == '*':
+            has_wildcard = True
+            ses2 = all_stimulus_elements
+        else:
+            if stimulus_element2 not in all_stimulus_elements:
+                return None, None, f"Expected a stimulus element, got {stimulus_element2}."
+            ses2 = [stimulus_element2]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        if has_wildcard:
+            exprs_str = []
+        else:
+            exprs_str = expr
+
+        exprs = []
+        for se1 in ses1:
+            for se2 in ses2:
+                exprs.append((se1, se2))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for se1_se2 in exprs:
+                se1, se2 = se1_se2
+                exprs_str.append(f"{se1}->{se2}")
+
+        return exprs, exprs_str, None
+
+    def parse_element(expr, all_stimulus_elements, allow_wildcard=True):
+        expr = expr.strip()
+        has_wildcard = False
+        exprs_str = [expr]
+        if expr == '*':
+            has_wildcard = True
+            exprs = list(all_stimulus_elements)
+        else:
+            if expr not in all_stimulus_elements:
+                return None, None, f"Expected a stimulus element, got {expr}."
+            exprs = [expr]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        if has_wildcard:
+            exprs_str = list(all_stimulus_elements)
+
+        return exprs, exprs_str, None
 
     # @staticmethod
     # def arrow2evalexpr_n(expr):
