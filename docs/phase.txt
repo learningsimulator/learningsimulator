@@ -212,7 +212,7 @@ using ``count_reset``, see below). Similarly,::
 
   count(pull_lever)
 
-evaluates to the number of times the afent has responded with the behavior ``pull_lever`` (to any stimulus) since the beginning of the phase, or since it was last reset.
+evaluates to the number of times the agent has responded with the behavior ``pull_lever`` (to any stimulus) since the beginning of the phase, or since it was last reset.
 
 To return the number of visits to a phase line with label ``LBL``, use::
 
