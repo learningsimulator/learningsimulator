@@ -367,7 +367,7 @@ phase represents a number of trials. In that case, it is often not desired to ca
 over the reinforcement value of, say, a reward at the and of a trial to the
 first stimulus in the next.
 
-For example, in mechanisms with conditional reinforcement values (w-values),
+For example, in mechanisms with conditioned reinforcement values (w-values),
 and we have the following stimulus-response history::
 
   s -> response -> reward -> eat -> s
