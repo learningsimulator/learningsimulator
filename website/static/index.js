@@ -568,6 +568,7 @@ function onLoad() { // DOM is loaded and ready
                 let chartAndCPDiv = document.createElement('div');
                 chartAndCPDiv.style.position = "relative";
                 chartAndCPDiv.id =  makeRandomString(10);
+                chartAndCPDiv.className = 'close-button-plot';
 
                 let chartDiv = document.createElement('div');
                 // let chartHr = document.createElement('hr');
@@ -587,17 +588,8 @@ function onLoad() { // DOM is loaded and ready
                 chartDivResizeObserver.observe(chartDiv);
                 chartAndCPDiv.appendChild(chartDiv);
 
-                // Create Control Panel div (with e.g. Close Figure button)
-                let chartDivCP = document.createElement('div');
-                chartDivCP.style.position = "absolute";
-                chartDivCP.style.top = 0;
-                chartDivCP.style.left = 0;
-                let chartDivCloseButton = document.createElement('button');
-                chartDivCloseButton.dataset.id = chartAndCPDiv.id;  // So that close button knows which figure to close
-                chartDivCloseButton.innerText = "Close";
-                chartDivCloseButton.addEventListener('click', closeFig);
-
-                chartDivCP.appendChild(chartDivCloseButton);
+                let chartDivCP = createChartControlPanel(chartAndCPDiv.id);
+                
                 chartAndCPDiv.appendChild(chartDivCP);
                 plotArea.appendChild(chartAndCPDiv);
 
@@ -650,19 +642,19 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function closeExport() {
-        alert(this.dataset.id);
         let exportDivToDelete = document.getElementById(this.dataset.id);
         while (exportDivToDelete.firstChild) {
             exportDivToDelete.removeChild(exportDivToDelete.lastChild);
         }
         exportDivToDelete.parentNode.removeChild(exportDivToDelete);
-
     }
 
     function addExportedFiles(exportCmds, plotArea) {
         if (exportCmds.length > 0) {
             var exportDiv = document.createElement('div');
             exportDiv.id = makeRandomString(10);
+            // exportDiv.classList.add('closeplotbutton');
+            exportDiv.className = 'close-button-export';
             for (let i = 0; i < exportCmds.length; i++) {
                 const cmd = exportCmds[i];
                 const filename = cmd['filename'];
@@ -750,11 +742,36 @@ function onLoad() { // DOM is loaded and ready
 
             chartImg.setAttribute("alt", "Matplotlib chart");
             chartDiv.appendChild(chartImg);
-            plotArea.appendChild(chartDiv);
+
+            let chartAndCPDiv = document.createElement('div');
+            chartAndCPDiv.style.position = "relative";
+            chartAndCPDiv.id =  makeRandomString(10);
+            chartAndCPDiv.className = 'close-button-plot';
+
+            let chartDivCP = createChartControlPanel(chartAndCPDiv.id);
+            
+            chartAndCPDiv.appendChild(chartDivCP);
+            plotArea.appendChild(chartAndCPDiv);            
+            chartAndCPDiv.appendChild(chartDiv);
+
         }
 
         addExportedFiles(exportCmds, plotArea);
 
+    }
+
+    /* Create Control Panel div (with e.g. Close Figure button). */
+    function createChartControlPanel(id) {
+        let chartDivCP = document.createElement('div');
+        chartDivCP.style.position = "absolute";
+        chartDivCP.style.top = 0;
+        chartDivCP.style.left = 0;
+        let chartDivCloseButton = document.createElement('button');
+        chartDivCloseButton.dataset.id = id;  // So that close button knows which figure to close
+        chartDivCloseButton.innerText = "Close";
+        chartDivCloseButton.addEventListener('click', closeFig);
+        chartDivCP.appendChild(chartDivCloseButton);
+        return chartDivCP;
     }
 
     function plotSubplots(chartDiv, subplotPlots) {

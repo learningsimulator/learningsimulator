@@ -636,7 +636,7 @@ class PostCmds():
         curr_ax = None
         all_figs = []
         for cmd in self.cmds:
-            if isinstance(cmd, PlotCmd):
+            if not isinstance(cmd, ExportCmd):
                 curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
                 if is_new_fig:
                     all_figs.append(curr_fig)

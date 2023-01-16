@@ -208,6 +208,18 @@ button {
   margin-left: 4px;
 }
 
+.close-button-export > button {
+  display: none;
+}
+.close-button-export:hover > button {
+  display: block;
+}
+.close-button-plot button {
+  display: none;
+}
+.close-button-plot:hover button {
+  display: block;
+}
 
 /* ============================================================================= */
 /* The error "dialog box". */

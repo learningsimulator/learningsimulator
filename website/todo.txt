@@ -1,19 +1,35 @@
+Take dpi into account: @figure foo {'dpi': 200}
+(Maybe add dpi to settings?)
+
+For plotly-figures: "Download plot as"-icon can choose image format (ong/svg/...)?
+
+For Mpl-figures: Add "Note: Can be overwritten by @figure ... { figsize: [width, height] }"
+
 Move "Default legend position", "Default colors", "Default plot size" to "My Preferences"?
 
-Restore to default settings?
+"Restore defaults", at least for "Paper" and "Plot background"
+
+A clickable question-mark icon for help on some settings, at least plotly/mpl.
+(Include "This is the DEFAULT setting - it can be changed in each plot interactively
+using the CP")
 
 Delete @export-files and images files when figure / "export-icon" is
 deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
 
-"Plot as" switch buttons
+"Plot as" switch buttons instead of drop-down
+
+Menu: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
+Menu: Search/Replace
+Menu: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
+Menu: Import demo script (replaces content of entire script window) - warn if nonempty
 
 Logga in/ut uppe till höger - kanske med användarnamnet
 
 Begränsa storlek på plot (width, height)
 
-Begränsa längd på filnamn
+Begränsa längd på filnamn i export
 
-Navbar Bg color
+Navbar Bg-color
 
 (DB-)Admin page
 
@@ -31,6 +47,7 @@ Left navbar with
 "You sure you want to delete script ...?"
 
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.
+(Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
 Inspiration:
 https://plotly.com/javascript/configuration-options/ - especially "editable mode"
@@ -42,17 +59,10 @@ Make "Name of script" read-only but with an "Edit" button that makes it editable
 => But keep "Save" button
 => "Retrieve last saved" not needed
 
-@export should create download links to exported files
-
 Redis Queue
 Progress bar
 
-Menu: Set font size, line height, "color scheme": (font color, bg color, comment color)
-Menu: Search/Replace
-Menu: Insert parameter block, phase block, etc.
-
-Plot: "Close Figure" button for each plot and "Delete @export-file" for each export "icon"
-Plot: "Download" button for mpl image plots
+Plot: "Download" button for mpl image plots (instead of having to right-click and save image as)
 Plot: "Keep figures" checkbox (If an error occurs, dont delete current figs)
 Plot parameters: Grid on/off
 Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
