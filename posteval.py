@@ -2,6 +2,7 @@ import ast
 import re
 
 from util import ParseUtil
+from exceptions import EvalException
 
 
 class PostVar():
@@ -19,63 +20,30 @@ class PostExpr():
         self.expr = expr
         self.post_vars = post_vars  # dict
 
+    def eval(self, simulation_data, parameters, run_parameters, variables, POST_MATH):
+        # Evaluate each variable v(s->b), w(s), n(s->b->s)
+        var_ydata = dict()  # Dict with evaluated ydata for each PostVar, keyed by alias variable
+        n_values = None
 
-def parse_postexpr_wont_work_with_compound_stimuli(expr0):
-    '''
-    Parse an expression to postprocessing functions such as
-    "v(s1->b1) + v(s2->b2) - p(s2->b2) / 42 * sin(n(s1->b1->s2)) * w(s)"
-    and returns the corresponding PostExpr object.
+        for alias, var in self.post_vars.items():
+            var_ydata[alias] = simulation_data.vwpn_eval(var.fn, var.parsed_arg, parameters, run_parameters)
+            if n_values is None:
+                n_values = len(var_ydata[alias])
+            else:  # Number of evaluated values should be the same for all variables
+                assert(n_values == len(var_ydata[alias])), f"{n_values} != {len(var_ydata[alias])}"
 
-    First, replace -> with comma:
-    v(s1,b1) + v(s2,b2) - p(s2,b2) / 42 * sin(n(s1,b1,s2)) * w(s)
-    
-    Then, remove all arguments to each function call v,p,w,vss,n but store the arguments in
-    PostVar objects:
-    v() + v() - p() / 42 * sin(n()) * w()
-
-    Then, replace each empty function call with alias variable:
-    S1 + S2 - S3 / 42 * sin(S4) * S5
-
-    Store this expression and the created PostVar objects in the returned PostExpr object.
-    '''
-    # Replace -> with comma so that v(s->b) is interpreted as a function call v(s, b)
-    expr = expr0.replace('->', ',')
-
-    tree, err = ParseUtil.ast_parse(expr)
-    if err is not None:
-        return None, err
-
-    # print(ast.dump(tree, indent=4))
-
-    post_vars = dict()
-    alias_cnt = 0
-    replace_after_walk = dict()
-    for node in ast.walk(tree):
-        if type(node) is ast.Call and node.func.id in ('v', 'p', 'w', 'vss', 'n'):
-            fn = node.func.id
-            args = node.args
-            if len(args) == 0:  # E.g. v()
-                return None, f"No argument to {fn} given."
-            args_list = [a.id for a in args]
-            while len(args):  # Remove all arguments: v() + v() - p() / 42 * sin(n()) * w()
-                args.pop()
-            args_str = '->'.join(args_list)
-            alias = '__S' + str(alias_cnt)
-            alias_cnt += 1
-            post_vars[alias] = PostVar(fn, args_str)
-            replace_after_walk[fn + '()'] = alias  # After this loop, replace 
-    
-    # If (for some strange reason) any of "__S1()", "__S2()", etc. were already
-    # present in the original expression, give error
-    for orig in replace_after_walk:
-        if orig in expr0:
-            return None, f"Invalid part of expression: {orig}"
-
-    alias_expr = ast.unparse(tree)
-    for orig, replace_with in replace_after_walk.items():
-        alias_expr = alias_expr.replace(orig, replace_with)
-
-    return PostExpr(alias_expr, post_vars), None
+        # Evaluate the expression using the evaluated variable values
+        ydata = [None] * n_values
+        for i in range(n_values):
+            alias_values = {key: val[i] for key, val in var_ydata.items()}
+            alias_values.update(POST_MATH)
+            alias_values.update(variables.values)
+            try:
+                ydata[i] = eval(self.expr, {'__builtins__': {'round': round}}, alias_values)
+            except Exception as e:
+                # return None, raise EvalException(f"Expression evaluation failed.", self.lineno)
+                return None, f"Expression evaluation failed."
+        return ydata, None
 
 
 def is_arithmetic(expr, allowed_names):
@@ -88,13 +56,19 @@ def is_arithmetic(expr, allowed_names):
     if err is not None:  # Syntax error
         return False, err
     
+    allowed_nodes = [ast.Expression, ast.Call, ast.Load,
+                     ast.BinOp, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
+                     ast.UnaryOp, ast.USub]
+    if hasattr(ast, 'Num'):  # Deprecated since Python 3.8
+        allowed_nodes.append(ast.Num)
+    if hasattr(ast, 'Constant'):  # Introduced in Python 3.8
+        allowed_nodes.append(ast.Constant)
+
     for node in ast.walk(tree):
         if type(node) is ast.Name:
             if node.id not in allowed_names:
                 return False, f"Invalid name {node.id} in expression."
-        elif type(node) not in (ast.Expression, ast.Call, ast.Constant, ast.Load,
-                                ast.BinOp, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
-                                ast.UnaryOp, ast.USub):
+        elif type(node) not in allowed_nodes:
             return False, f"Invalid expression."
 
     return True, None
@@ -123,7 +97,7 @@ def parse_postexpr(expr, variables, POST_MATH):
     for fn in ['v', 'p', 'w', 'vss', 'n']:
         fn_done = False
         while not fn_done:
-            inds0 = [m.start() for m in re.finditer(fn + '[\s]*\(', alias_expr)]
+            inds0 = [m.start() for m in re.finditer(fn + '[ \t]*[(]', alias_expr)]
             inds = []
             for ind in inds0:
                 # For example sin(v(a->b)) should not catch "n("

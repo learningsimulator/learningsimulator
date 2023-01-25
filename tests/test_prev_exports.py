@@ -1,7 +1,7 @@
 from .testutil import LsTestCase, run, remove_exported_files, create_exported_files_folder, delete_exported_files_folder
 
 
-class TestPlots(LsTestCase):
+class TestExports(LsTestCase):
     def setUp(self):
         create_exported_files_folder()
 
@@ -219,3 +219,194 @@ class TestPlots(LsTestCase):
 
     def test_compare_to_plots(self):
         pass  # XXX
+
+
+class TestExportsWithFilename(LsTestCase):
+    def setUp(self):
+        create_exported_files_folder()
+
+    def tearDown(self):
+        filenames = ['test_wexport1.csv',
+                     'test_wexport2.csv',
+                     'test_vexport1.csv',
+                     'test_vexport2.csv',
+                     'test_pexport1.csv',
+                     'test_pexport2.csv',
+                     'test_nexport1.txt',
+                     'test_nexport2.txt',
+                     'test_hexport1.csv',
+                     'test_hexport2.csv']
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+
+        filenames = ['test_wexportMS1.csv',
+                     'test_wexportMS2.csv',
+                     'test_vexportMS1.csv',
+                     'test_vexportMS2.csv',
+                     'test_pexportMS1.csv',
+                     'test_pexportMS2.csv',
+                     'test_nexportMS1.csv',
+                     'test_nexportMS2.csv',
+                     'test_hexportMS1.csv',
+                     'test_hexportMS2.csv']
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+
+        delete_exported_files_folder()
+
+    def test_singlesubject(self):
+        filenames = ['test_wexport1.csv',
+                     'test_wexport2.csv',
+                     'test_vexport1.csv',
+                     'test_vexport2.csv',
+                     'test_pexport1.csv',
+                     'test_pexport2.csv',
+                     'test_nexport1.txt',
+                     'test_nexport2.txt',
+                     'test_hexport1.csv',
+                     'test_hexport2.csv']
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+
+        script = '''
+        n_subjects          : 1
+        mechanism         : GA
+        behaviors         : R0,R1,R2
+        stimulus_elements : S1,S2,reward,reward2,new_trial
+        start_v           : default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : R1:1, R2:1, default:0
+        u                 : reward:10, default: 0
+
+        ## ------------- SEQUENCE LEARNING -------------
+        @phase chaining stop: reward=25
+        NEW_TRIAL   new_trial  | STIMULUS_1
+        STIMULUS_1  S1         | R1: STIMULUS_2  | NEW_TRIAL
+        STIMULUS_2  S2         | R2: REWARD      | NEW_TRIAL
+        REWARD     reward      | NEW_TRIAL
+
+        @phase test_A  stop: S1=100
+        NEW_TRIAL   new_trial    | STIMULUS_1
+        STIMULUS_1  S1           | REWARD
+        REWARD      reward2      | NEW_TRIAL
+
+        @phase test_B   stop: S1=100
+        NEW_TRIAL   new_trial   | STIMULUS_1
+        STIMULUS_1  S1          | R1: STIMULUS_2  | NEW_TRIAL
+        STIMULUS_2  S2          | NEW_TRIAL
+
+        @run chaining,test_A   runlabel:A
+        @run chaining,test_B   runlabel:B
+
+        runlabel:A
+        filename = ./tests/exported_files/test_wexport1.csv
+        @wexport S1
+        runlabel:B
+        filename = ./tests/exported_files/test_wexport1.csv
+        @wexport S1 
+        runlabel:A
+        filename = ./tests/exported_files/test_wexport2.csv
+        @wexport S2 
+        runlabel:B
+        filename = ./tests/exported_files/test_wexport2.csv
+        @wexport S2 
+
+        filename = ./tests/exported_files/test_pexport1.csv
+        @pexport S1,S2->R1 
+        filename = ./tests/exported_files/test_pexport2.csv
+        @pexport S1->R0    
+
+        filename = ./tests/exported_files/test_vexport1.csv
+        @vexport S1->R1 
+        filename = ./tests/exported_files/test_vexport2.csv
+        @vexport S1->R0 
+
+        cumulative:on
+        filename = ./tests/exported_files/test_nexport1.txt  # Test without csv-suffix
+        @nexport reward 
+        filename = ./tests/exported_files/test_nexport2.txt      # Test without csv-suffix
+        @nexport S1 
+
+        runlabel:A
+        filename = ./tests/exported_files/test_hexport1.csv 
+        @hexport 
+        filename = ./tests/exported_files/test_hexport2.csv
+        @hexport 
+        '''
+        run(script)
+        self.assert_exported_files_exist(filenames)
+
+    def test_multisubject(self):
+        filenames = ['test_wexportMS1.csv',
+                     'test_wexportMS2.csv',
+                     'test_vexportMS1.csv',
+                     'test_vexportMS2.csv',
+                     'test_pexportMS1.csv',
+                     'test_pexportMS2.csv',
+                     'test_nexportMS1.csv',
+                     'test_nexportMS2.csv']
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+
+        script = '''
+        n_subjects        : 10
+        mechanism         : GA
+        behaviors         : R0,R1,R2
+        stimulus_elements : S1,S2,reward,reward2,new_trial
+        start_v           : default:-1
+        alpha_v           : 0.1
+        alpha_w           : 0.1
+        beta              : 1
+        behavior_cost     : R1:1, R2:1, default:0
+        u                 : reward:10,default: 0
+
+        ## ------------- SEQUENCE LEARNING -------------
+        @phase chaining stop:reward=25
+        NEW_TRIAL   new_trial   | STIMULUS_1
+        STIMULUS_1  S1          | R1: STIMULUS_2     | NEW_TRIAL
+        STIMULUS_2  S2          | R2: REWARD         | NEW_TRIAL
+        REWARD      reward      | NEW_TRIAL
+
+        @phase test_A stop: S1=100
+        NEW_TRIAL   new_trial       | STIMULUS_1
+        STIMULUS_1  S1              | REWARD
+        REWARD      reward2         | NEW_TRIAL
+
+        @phase test_B stop: S1=100
+        NEW_TRIAL   new_trial   | STIMULUS_1
+        STIMULUS_1  S1          | R1: STIMULUS_2     | NEW_TRIAL
+        STIMULUS_2  S2          | NEW_TRIAL
+
+        @run chaining,test_B
+
+        subject:all
+        filename = ./tests/exported_files/test_wexportMS1.csv
+        @wexport S1 
+        filename = ./tests/exported_files/test_wexportMS2.csv
+        @wexport S2 
+
+        filename = ./tests/exported_files/test_pexportMS1.csv
+        @pexport S1,S2->R1 
+        filename = ./tests/exported_files/test_pexportMS2.csv
+        @pexport S1->R0 
+
+        filename = ./tests/exported_files/test_vexportMS1.csv
+        @vexport S1->R1 
+        filename = ./tests/exported_files/test_vexportMS2.csv
+        @vexport S1->R0 
+
+        cumulative:on
+        filename = ./tests/exported_files/test_nexportMS1.csv
+        @nexport reward 
+        filename = ./tests/exported_files/test_nexportMS2.csv
+        @nexport S1 
+
+        filename = ./tests/exported_files/test_hexportMS1.csv
+        @hexport 
+        filename = ./tests/exported_files/test_hexportMS2.csv
+        @hexport 
+        '''
+        run(script)
+        self.assert_exported_files_exist(filenames)

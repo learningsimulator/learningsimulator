@@ -2,6 +2,7 @@ import os.path
 import unittest
 import matplotlib.pyplot as plt
 import re
+import csv
 
 from parsing import Script
 
@@ -87,6 +88,15 @@ def get_plot_data(figure_number=1, axes_number=1):
                                      'y': list(line.get_ydata(True))}
         return out
 
+def get_csv_file_contents(file):
+    data = None
+    with open(file) as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    titles = data[0]
+    data_rows = data[1:]
+    return titles, data_rows
+
 
 class LsTestCase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -99,6 +109,30 @@ class LsTestCase(unittest.TestCase):
         self.assertEqual(len(list1), len(list2))
         for val1, val2 in zip(list1, list2):
             self.assertAlmostEqual(val1, val2, places)
+
+    def assertAlmostEqualFile(self, file1, file2, places=7):
+        data1 = None
+        with open(file1) as file:
+            reader = csv.reader(file)
+            data1 = list(reader)
+        self.assertIsNotNone(data1)
+
+        data2 = None
+        with open(file2) as file:
+            reader = csv.reader(file)
+            data2 = list(reader)
+        self.assertIsNotNone(data2)
+
+        titles1 = data1[0]
+        titles2 = data2[0]
+        self.assertEqual(len(titles1), len(titles2))
+        for title1, title2 in zip(titles1, titles2):
+            self.assertEqual(title1, title2)
+
+        data_rows1 = data1[1:]
+        data_rows2 = data2[1:]
+        for data_row1, data_row2 in zip(data_rows1, data_rows2):
+            self.assertAlmostEqualList(data_row1, data_row2)
 
     def assert_exported_files_are_removed(self, filenames):
         for filename in filenames:

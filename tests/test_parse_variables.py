@@ -72,7 +72,7 @@ class TestBasic(LsTestCase):
         z_values = list()
         w_values = list()
         q_values = list()
-        N = 30000
+        N = 40000
         for _ in range(N):
             var_values = parse(text)
 

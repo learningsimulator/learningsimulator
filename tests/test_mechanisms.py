@@ -266,10 +266,10 @@ class TestRescorlaWagner(LsTestCase):
         expected_increasing_y = [0.5, 0.8, 0.92, 0.968, 0.9872]
         self.assertEqual(len(cs_us['y']), len(expected_increasing_y))
         for i, y in enumerate(expected_increasing_y):
-            self.assertAlmostEqual(cs_us['y'][i], expected_increasing_y[i], 6)
-            self.assertAlmostEqual(us_cs['y'][i], 1 - expected_increasing_y[i], 6)
-            self.assertAlmostEqual(us_us['y'][i], 1 - expected_increasing_y[i], 6)
-            self.assertAlmostEqual(cs_cs['y'][i], 1 - expected_increasing_y[i], 6)
+            self.assertAlmostEqual(cs_us['y'][i], y, 6)
+            self.assertAlmostEqual(us_cs['y'][i], 1 - y, 6)
+            self.assertAlmostEqual(us_us['y'][i], 1 - y, 6)
+            self.assertAlmostEqual(cs_cs['y'][i], 1 - y, 6)
 
     def test_compare_with_analytic(self):
         alpha = 0.6

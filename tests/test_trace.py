@@ -337,7 +337,7 @@ runlabel:0.5
 
     def test_sr_same_as_ga_when_alphaw_is_0(self):
         script = '''
-n_subjects           : 200
+n_subjects           : 300
 behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
 response_requirements: approach:plant, eat:berry
@@ -410,7 +410,7 @@ runlabel:ga0.5
 
 @legend
 '''
-        script_obj, script_output = run(script)
+        run(script)
         plot_data = get_plot_data()
 
         for lbl in ['0', '0: plant->approach', '0.25', '0.5', '0.5: plant->approach']:

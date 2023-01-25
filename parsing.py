@@ -15,7 +15,6 @@ from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from util import ParseUtil  # , eval_average
 
-
 POST_MATH = {'sin': math.sin, 'cos': math.cos, 'tan': math.tan, 'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
              'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh, 'asinh': math.asinh, 'acosh': math.acosh, 'atanh': math.atanh,
              'ceil': math.ceil, 'floor': math.floor,
@@ -105,10 +104,11 @@ class LineParser():
     FIGURE = 7
     SUBPLOT = 8
     XPLOT = 9  # vplot, wplot, pplot, nplot, vssplot
-    EXPORT = 10
+    XEXPORT = 10
     LEGEND = 11
     PREV_DEFINED_VARIABLE = 12
     PLOT = 13
+    EXPORT = 14
 
     def __init__(self, line, global_variables):
         self.line = line
@@ -151,6 +151,8 @@ class LineParser():
             self.line_type = LineParser.SUBPLOT
         elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT, kw.HEXPORT,
                             kw.VSSEXPORT):
+            self.line_type = LineParser.XEXPORT
+        elif first_word == kw.EXPORT:
             self.line_type = LineParser.EXPORT
         elif first_word == kw.LEGEND:
             self.line_type = LineParser.LEGEND
@@ -368,8 +370,13 @@ class ScriptParser():
                 legend_cmd = LegendCmd(mpl_prop)
                 self.postcmds.add(legend_cmd)
 
-            elif line_parser.line_type == LineParser.EXPORT:
-                expr, filename, expr0 = self._parse_export(lineno, linesplit_space)
+            elif line_parser.line_type in (LineParser.XEXPORT, LineParser.EXPORT):
+                # expr, filename, expr0 = self._parse_export(lineno, linesplit_space)
+                isx = (line_parser.line_type == LineParser.XEXPORT)
+                if isx:
+                    expr, filename, expr_str = self._parse_xexport(lineno, linesplit_space)
+                else:
+                    expr, filename, expr_str = self._parse_export(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen exports
                 self._evalparse(lineno, export_parameters)
@@ -381,12 +388,13 @@ class ScriptParser():
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
-                export_cmd = ExportCmd(lineno, cmd, expr, expr0, export_parameters, run_parameters)
+                export_cmd = ExportCmd(lineno, cmd, expr, expr_str, export_parameters, run_parameters, self.variables)
+                if not isx:
+                    export_cmd.is_postexpr = True
                 self.postcmds.add(export_cmd)
 
             else:
-                raise ParseException(lineno, f"Invalid expression '{line}'. {line_parser.line_type}")
-                # raise ParseException(lineno, f"Invalid expression '{line}'.")
+                raise ParseException(lineno, f"Invalid expression '{line}'.")
 
         # If @run is the last statement in the script, finishe the parsing of this
         if in_run:
@@ -425,10 +433,10 @@ class ScriptParser():
                 raise ParseException(lineno, f"Invalid @legend argument {arg}.")
         return mpl_prop
 
-    def _parse_export(self, lineno, linesplit_space):
+    def _parse_xexport(self, lineno, linesplit_space):
         """
-        @export expr
-        @export expr filename
+        @vexport expr
+        @vexport expr filename
 
         @hexport
         @hexport filename
@@ -443,35 +451,109 @@ class ScriptParser():
                 else:
                     filename = filename_param
             else:  # @hexport filename
-                filename = linesplit_space[1]
+                filename = linesplit_space[-1]
             return None, filename, None
 
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
         args = linesplit_space[1]
-        expr0, filename = ParseUtil.split1_strip(args)
-        expr = expr0
+
+        all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
+        all_behaviors = self.parameters.get(kw.BEHAVIORS)
+        if cmd == kw.VEXPORT:
+            exprs, exprs0, filename, err = ParseUtil.parse_element_behavior(args, all_stimulus_elements, all_behaviors,
+                                                                            allow_wildcard=False, allow_filename=True)
+        elif cmd == kw.VSSEXPORT:
+            exprs, exprs0, filename, err = ParseUtil.parse_element_element(args, all_stimulus_elements,
+                                                                           allow_wildcard=False, allow_filename=True)
+        elif cmd == kw.PEXPORT:
+            exprs, exprs0, filename, err = ParseUtil.parse_stimulus_behavior(args, all_stimulus_elements, all_behaviors,
+                                                                             self.variables, allow_wildcard=False,
+                                                                             allow_filename=True)
+        elif cmd == kw.WEXPORT:
+            exprs, exprs0, filename, err = ParseUtil.parse_element(args, all_stimulus_elements, allow_wildcard=False,
+                                                                   allow_filename=True)
+        elif cmd == kw.NEXPORT:
+            expr, expr0, filename, err = ParseUtil.parse_chain(args, all_stimulus_elements, all_behaviors, allow_filename=True)
+        else:
+            err = f"Internal error."
+        if err:
+            raise ParseException(lineno, err)
+
         if filename is None:
             if len(filename_param) == 0:
                 raise ParseException(lineno, f"No filename given to {cmd}.")
             else:
                 filename = filename_param
+
+        if cmd != kw.NEXPORT:
+            expr = exprs[0]
+            expr0 = exprs0[0]
+
+        return expr, filename, expr0
+
+    def _parse_export(self, lineno, linesplit_space):
+        """
+        @export expr
+        @export expr filename
+        """
+        cmd = linesplit_space[0]
+        filename = self.parameters.get(kw.FILENAME)
+        if len(filename) == 0:
+            raise ParseException(lineno, f"Filename needs to be specified before {cmd}.")
+
+        if len(linesplit_space) == 1:  # @export
+            raise ParseException(lineno, f"Invalid {cmd} command.")
+
+        expr0 = linesplit_space[1]  # E.g. n(plant -> approach) * 2
+        expr = expr0
+
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
-        err = None
-        if cmd == kw.VEXPORT:
-            expr, err = ParseUtil.parse_element_behavior(expr0, all_stimulus_elements, all_behaviors)
-        elif cmd == kw.VSSEXPORT:
-            expr, err = ParseUtil.parse_element_element(expr0, all_stimulus_elements)
-        elif cmd == kw.PEXPORT:
-            stimulus, behavior, err = ParseUtil.parse_stimulus_behavior(expr0, all_stimulus_elements,
-                                                                        all_behaviors, self.variables)
-            expr = (stimulus, behavior)
-        elif cmd == kw.NEXPORT:
-            expr, err = ParseUtil.parse_chain(expr0, all_stimulus_elements, all_behaviors)
+
+        post_expr_obj, err = posteval.parse_postexpr(expr, self.variables, POST_MATH)
         if err:
             raise ParseException(lineno, err)
-        return expr, filename, expr0
+
+        # Don't allow mixing n with v, p, w, vss when xscale=all
+        if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
+            fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
+            if 'n' in fns:
+                if set(fns) == {'n'}:  # Only 'n' - ok
+                    pass
+                else:
+                    raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
+
+        for post_var in post_expr_obj.post_vars.values():
+            fn = post_var.fn
+            arg = post_var.arg
+
+            if fn == 'v':
+                parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_stimulus_elements, all_behaviors, allow_wildcard=False,
+                                                                         allow_filename=False)
+            elif fn == 'vss':
+                parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_stimulus_elements, allow_wildcard=False,
+                                                                        allow_filename=False)
+            elif fn == 'w':
+                parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_stimulus_elements, allow_wildcard=False, allow_filename=False)
+            elif fn == 'p':
+                parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_stimulus_elements, all_behaviors, self.variables,
+                                                                          allow_wildcard=False, allow_filename=False)
+            elif fn == 'n':
+                parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_stimulus_elements, all_behaviors, allow_filename=False)
+            else:
+                err = "Internal error."
+            if err:
+                raise ParseException(lineno, err)
+
+            if fn != 'n':
+                parsed_arg = parsed_arg[0]
+
+            post_var.parsed_arg = parsed_arg
+            # post_expr_objs.append(post_expr_obj)
+
+        return post_expr_obj, filename, expr0
+
 
     def _parse_xplot(self, lineno, linesplit_space):
         """
@@ -493,16 +575,16 @@ class ScriptParser():
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
         if cmd == kw.VPLOT:
-            exprs, exprs_str, err = ParseUtil.parse_element_behavior(expr_str, all_stimulus_elements, all_behaviors)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_behavior(expr_str, all_stimulus_elements, all_behaviors)
         elif cmd == kw.VSSPLOT:
-            exprs, exprs_str, err = ParseUtil.parse_element_element(expr_str, all_stimulus_elements)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_element(expr_str, all_stimulus_elements)
         elif cmd == kw.PPLOT:
-            exprs, exprs_str, err = ParseUtil.parse_stimulus_behavior(expr_str, all_stimulus_elements,
-                                                                      all_behaviors, self.variables)
+            exprs, exprs_str, _, err = ParseUtil.parse_stimulus_behavior(expr_str, all_stimulus_elements,
+                                                                         all_behaviors, self.variables)
         elif cmd == kw.WPLOT:
-            exprs, exprs_str, err = ParseUtil.parse_element(expr_str, all_stimulus_elements)
+            exprs, exprs_str, _, err = ParseUtil.parse_element(expr_str, all_stimulus_elements)
         elif cmd == kw.NPLOT:
-            expr, err = ParseUtil.parse_chain(expr_str, all_stimulus_elements, all_behaviors)
+            expr, expr_str, _, err = ParseUtil.parse_chain(expr_str, all_stimulus_elements, all_behaviors, allow_filename=False)
             exprs = [expr]
             exprs_str = [expr_str]
         else:
@@ -548,16 +630,16 @@ class ScriptParser():
             arg = post_var.arg
 
             if fn == 'v':
-                parsed_arg, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False)
+                parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False)
             elif fn == 'vss':
-                parsed_arg, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False)
+                parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False)
             elif fn == 'w':
-                parsed_arg, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False)
+                parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False)
             elif fn == 'p':
-                parsed_arg, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
+                parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
                                                                        allow_wildcard=False)
             elif fn == 'n':
-                parsed_arg, err = ParseUtil.parse_chain(arg, all_se, all_b)
+                parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_se, all_b, allow_filename=False)
             else:
                 err = "Internal error."
             if err:
@@ -856,34 +938,34 @@ class PlotCmd(PostCmd):
 
         if self.is_postexpr:  # @plot v(s->b) + 2*w(s) / sin(n(s->b->s))
             post_expr = self.expr
-
-            # Evaluate each variable v(s->b), w(s), n(s->b->s)
-            var_ydata = dict()  # Dict with evaluated ydata for each PostVar, keyed by alias variable
-            n_values = None
-
-            for alias, var in post_expr.post_vars.items():
-                var_ydata[alias] = simulation_data.vwpn_eval(var.fn, var.parsed_arg, self.parameters, self.run_parameters)
-                if n_values is None:
-                    n_values = len(var_ydata[alias])
-                else:  # Number of evaluated values should be the same for all variables
-                    assert(n_values == len(var_ydata[alias])), f"{n_values} != {len(var_ydata[alias])}"
-
-            # for a in post_expr.post_vars:
-            #     print(f"{a}: {len(var_ydata[a])}")
-
-            # Evaluate the expression using the evaluated variable values
-            ydata = [None] * n_values
-            for i in range(n_values):
-                alias_values = {key: val[i] for key, val in var_ydata.items()}
-                alias_values.update(POST_MATH)
-                alias_values.update(self.variables.values)
-                try:
-                    ydata[i] = eval(post_expr.expr, {'__builtins__': {'round': round}}, alias_values)
-                except Exception as e:
-                    raise EvalException(f"Expression evaluation failed.", self.lineno)
-
+            ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
+                                        POST_MATH)
+            if err is not None:
+                raise EvalException(f"Expression evaluation failed.", self.lineno)
             default_label = self.expr0
-            
+
+            # # Evaluate each variable v(s->b), w(s), n(s->b->s)
+            # var_ydata = dict()  # Dict with evaluated ydata for each PostVar, keyed by alias variable
+            # n_values = None
+
+            # for alias, var in post_expr.post_vars.items():
+            #     var_ydata[alias] = simulation_data.vwpn_eval(var.fn, var.parsed_arg, self.parameters, self.run_parameters)
+            #     if n_values is None:
+            #         n_values = len(var_ydata[alias])
+            #     else:  # Number of evaluated values should be the same for all variables
+            #         assert(n_values == len(var_ydata[alias])), f"{n_values} != {len(var_ydata[alias])}"
+
+            # # Evaluate the expression using the evaluated variable values
+            # ydata = [None] * n_values
+            # for i in range(n_values):
+            #     alias_values = {key: val[i] for key, val in var_ydata.items()}
+            #     alias_values.update(POST_MATH)
+            #     alias_values.update(self.variables.values)
+            #     try:
+            #         ydata[i] = eval(post_expr.expr, {'__builtins__': {'round': round}}, alias_values)
+            #     except Exception as e:
+            #         raise EvalException(f"Expression evaluation failed.", self.lineno)
+
         else:  # vplot s->b OR wplot(s) OR ...
             if self.cmd == kw.VPLOT:
                 ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
@@ -961,14 +1043,17 @@ class PlotData():
 
 
 class ExportCmd(PostCmd):
-    def __init__(self, lineno, cmd, expr, expr0, parameters, run_parameters):
+    def __init__(self, lineno, cmd, expr, expr0, parameters, run_parameters, variables):
         super().__init__()
         self.lineno = lineno
         self.cmd = cmd
         self.expr = expr
+        self.is_postexpr = False
         self.expr0 = expr0
         self.parameters = parameters
         self.run_parameters = run_parameters
+        self.variables = variables
+
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
@@ -1043,21 +1128,30 @@ class ExportCmd(PostCmd):
 
     def _vwpn_export(self, file, simulation_data):
         label_expr = self.expr0  # beautify_expr_for_label(self.expr)
-        if self.cmd == kw.VEXPORT:
-            ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
-            legend_label = f"v({label_expr})"
-        if self.cmd == kw.VSSEXPORT:
-            ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
-            legend_label = f"vss({label_expr})"
-        elif self.cmd == kw.WEXPORT:
-            ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
-            legend_label = f"w({label_expr})"
-        elif self.cmd == kw.PEXPORT:
-            ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
-            legend_label = f"p({label_expr})"
-        elif self.cmd == kw.NEXPORT:
-            ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
-            legend_label = f"n({label_expr})"
+
+        if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
+            post_expr = self.expr
+            ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
+                                        POST_MATH)
+            if err is not None:
+                raise EvalException(f"Expression evaluation failed.", self.lineno)
+            legend_label = label_expr
+        else:
+            if self.cmd == kw.VEXPORT:
+                ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"v({label_expr})"
+            if self.cmd == kw.VSSEXPORT:
+                ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"vss({label_expr})"
+            elif self.cmd == kw.WEXPORT:
+                ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"w({label_expr})"
+            elif self.cmd == kw.PEXPORT:
+                ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"p({label_expr})"
+            elif self.cmd == kw.NEXPORT:
+                ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"n({label_expr})"
 
         n_ydata = len(ydata)
 

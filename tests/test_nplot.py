@@ -23,6 +23,7 @@ def get_match_script(nplot_expr, match, xscale, xscale_match, cumulative):
     xscale_match: {xscale_match}
     cumulative: {cumulative}
     xscale: {xscale}
+    @figure
     @nplot {nplot_expr}
     '''
 

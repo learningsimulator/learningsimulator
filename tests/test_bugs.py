@@ -28,11 +28,11 @@ class TestGitHubIssues(LsTestCase):
         @run phase_name
         @nplot s2
         '''
-        script, script_output = run(text)
+        run(text)
         plot_data = get_plot_data()
         y = plot_data['y']
-        assert(y[-1] < 550)
-        assert(y[-1] > 450)
+        self.assertLess(y[-1], 550)
+        self.assertGreater(y[-1], 450)
 
         plt.close('all')
 

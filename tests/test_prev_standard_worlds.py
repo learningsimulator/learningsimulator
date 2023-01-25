@@ -479,7 +479,7 @@ class TestVariableRatio(LsTestCase):
         self.assertEqual(s[0], {'reward': 1})
 
         d = {'lever': 0, 'leveron': 0}
-        n = 200000
+        n = 300000
         prev_was_reward = True
         for _ in range(n):
             s_dict = phase.next_stimulus('R')[0]
