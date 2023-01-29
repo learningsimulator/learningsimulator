@@ -400,6 +400,301 @@ class TestPlotProperties(LsTestCase):
                          plot_data['run_only_first'])
 
 
+class TestCommaSeparatedPlots(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_vwp_plots(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 10
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+        u: s1:0.5, s2:1, default:0
+
+        @variables i1=0.1, i2=1.0
+
+        @phase phase1 stop:s1=10
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+
+   	    xscale = s1
+        @figure
+        @vplot s1->b1
+        @vplot s2->b1
+
+        @figure
+        @vplot s1->b1; s2->b1
+
+        @figure
+        @pplot s1->b1
+        @pplot s2->b1
+        @pplot s1,s2->b1
+
+        @figure
+        @pplot s1->b1; s2->b1; s1,s2->b1
+
+        @figure
+        @pplot s1[0.1],s2[1.0]->b1
+        @pplot s1[1.0],s2[0.1]->b2
+
+        @figure
+        @pplot s1[0.1],s2[1.0]->b1 ; s1[1.0],s2[0.1]->b2
+
+        @figure
+        @pplot s1[i1],s2[i2]->b1 ; s1[i2],s2[i1],s3[0]->b2
+
+        @figure
+        @wplot s1
+        @wplot s2
+
+        @figure
+        @wplot s1 ; s2
+
+        xscale = all
+        @figure
+        @nplot s1->b1
+        @nplot s1->b2
+
+        @figure
+        @nplot s1->b1 ; s1->b2
+        '''
+        run(text)
+        
+        plot_data = get_plot_data(figure_number=1)
+        plot_data_comma = get_plot_data(figure_number=2)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=3)
+        plot_data_comma = get_plot_data(figure_number=4)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=5)
+        plot_data_comma = get_plot_data(figure_number=6)
+        plot_data_comma_var = get_plot_data(figure_number=7)
+        self.assertEqual(plot_data, plot_data_comma)
+        self.assertEqual(plot_data['p(s1[0.1],s2[1.0]->b1)'], plot_data_comma_var['p(s1[i1],s2[i2]->b1)'])
+        self.assertEqual(plot_data['p(s1[1.0],s2[0.1]->b2)'], plot_data_comma_var['p(s1[i2],s2[i1],s3[0]->b2)'])
+
+        plot_data = get_plot_data(figure_number=8)
+        plot_data_comma = get_plot_data(figure_number=9)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=10)
+        plot_data_comma = get_plot_data(figure_number=11)
+        self.assertEqual(plot_data, plot_data_comma)
+
+    def test_vss_plots(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+
+        @figure
+        @vssplot cs->cs        
+        @vssplot cs->us
+        @vssplot us->cs
+        @vssplot us->us
+
+        @figure
+        @vssplot *->*
+
+        @figure
+        @vssplot cs->cs ; cs->us ;  us->cs ;  us->us
+        '''
+        run(text)
+
+        plot_data = get_plot_data(figure_number=1)
+        plot_data_wild = get_plot_data(figure_number=2)
+        plot_data_semi = get_plot_data(figure_number=2)
+        self.assertEqual(plot_data, plot_data_wild)
+        self.assertEqual(plot_data, plot_data_semi)
+
+    def test_plots(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 10
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+        u: s1:0.5, s2:1, default:0
+
+        @variables i1=0.1, i2=1.0
+
+        @phase phase1 stop:s1=10
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+
+   	    xscale = s1
+        @figure
+        @vplot s1->b1
+        @vplot s2->b1
+
+        @figure
+        @plot v(s1->b1); v(s2->b1)
+
+        @figure
+        @pplot s1->b1
+        @pplot s2->b1
+        @pplot s1,s2->b1
+
+        @figure
+        @plot p(s1->b1); p(s2->b1); p(s1,s2->b1)
+
+        @figure
+        @pplot s1[0.1],s2[1.0]->b1
+        @pplot s1[1.0],s2[0.1]->b2
+
+        @figure
+        @plot p(s1[0.1],s2[1.0]->b1) ; p(s1[1.0],s2[0.1]->b2)
+
+        @figure
+        @plot p(s1[i1],s2[i2]->b1) ; p(s1[i2],s2[i1],s3[0]->b2)
+
+        @figure
+        @wplot s1
+        @wplot s2
+
+        @figure
+        @plot w(s1) ; w(s2)
+
+        xscale = all
+        @figure
+        @nplot s1->b1
+        @nplot s1->b2
+
+        @figure
+        @plot n(s1->b1) ; n(s1->b2)
+        '''
+        run(text)
+
+        plot_data = get_plot_data(figure_number=1)
+        plot_data_comma = get_plot_data(figure_number=2)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=3)
+        plot_data_comma = get_plot_data(figure_number=4)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=5)
+        plot_data_comma = get_plot_data(figure_number=6)
+        plot_data_comma_var = get_plot_data(figure_number=7)
+        self.assertEqual(plot_data, plot_data_comma)
+        self.assertEqual(plot_data['p(s1[0.1],s2[1.0]->b1)'], plot_data_comma_var['p(s1[i1],s2[i2]->b1)'])
+        self.assertEqual(plot_data['p(s1[1.0],s2[0.1]->b2)'], plot_data_comma_var['p(s1[i2],s2[i1],s3[0]->b2)'])
+
+        plot_data = get_plot_data(figure_number=8)
+        plot_data_comma = get_plot_data(figure_number=9)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=10)
+        plot_data_comma = get_plot_data(figure_number=11)
+        self.assertEqual(plot_data, plot_data_comma)
+
+    def test_plots_mixed(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 10
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+        u: s1:0.5, s2:1, default:0
+
+        @variables i1=0.1, i2=1.0
+
+        @phase phase1 stop:s1=10
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+
+   	    xscale = s1
+        @figure
+        @vplot s1->b1
+        @pplot s2->b1
+
+        @figure
+        @plot v(s1->b1); p(s2->b1)
+
+        @figure
+        @vplot s1->b1
+        @pplot s2->b1
+        @pplot s1,s2->b1
+
+        @figure
+        @plot v(s1->b1); p(s2->b1); p(s1,s2->b1)
+
+        @figure
+        @pplot s1[0.1],s2[1.0]->b1
+        @nplot s1->b2->s2
+
+        @figure
+        @plot p(s1[0.1],s2[1.0]->b1) ; n(s1->b2->s2)
+
+        @figure
+        @plot p(s1[i1],s2[i2]->b1) ; n(s1->b2->s2)
+
+        @figure
+        @wplot s1
+        @pplot s1->b1
+
+        @figure
+        @plot w(s1) ; p(s1->b1)
+
+        xscale = all
+        @figure
+        @nplot s1->b1
+        @pplot s1->b1
+
+        @figure
+        @plot n(s1->b1) ; p(s1->b1)
+        '''
+        run(text)
+
+        plot_data = get_plot_data(figure_number=1)
+        plot_data_comma = get_plot_data(figure_number=2)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=3)
+        plot_data_comma = get_plot_data(figure_number=4)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=5)
+        plot_data_comma = get_plot_data(figure_number=6)
+        plot_data_comma_var = get_plot_data(figure_number=7)
+        self.assertEqual(plot_data, plot_data_comma)
+        self.assertEqual(plot_data['p(s1[0.1],s2[1.0]->b1)'], plot_data_comma_var['p(s1[i1],s2[i2]->b1)'])
+        self.assertEqual(plot_data['n(s1->b2->s2)'], plot_data_comma_var['n(s1->b2->s2)'])
+
+        plot_data = get_plot_data(figure_number=8)
+        plot_data_comma = get_plot_data(figure_number=9)
+        self.assertEqual(plot_data, plot_data_comma)
+
+        plot_data = get_plot_data(figure_number=10)
+        plot_data_comma = get_plot_data(figure_number=11)
+        self.assertEqual(plot_data, plot_data_comma)
+
+
 class TestExceptions(LsTestCase):
     @classmethod
     def setUpClass(cls):
@@ -486,5 +781,402 @@ class TestExceptions(LsTestCase):
         @vplot s1->b1 {'label':'run_both_plot_first'}
         '''
         msg = "Error on line 15: Invalid @subplot argument 1.2."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_v_semicolon1(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @vplot s1->b1 ; s2->b2 filename.txt
+        '''
+        msg = "Error on line 12: Expected a behavior name, got b2 filename.txt."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_v_semicolon2(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @vplot s1->b1 filename; s2->b2
+        '''
+        msg = "Error on line 12: Expected a behavior name, got b1 filename."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_v_semicolon3(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @vplot s1->b1 ; foo->bar ; s2->b2
+        '''
+        msg = "Error on line 12: Expected a stimulus element, got foo."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_v_semicolon4(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @vplot s1->b1 ; *->b1; s2->b2
+        '''
+        msg = "Error on line 12: Cannot use semicolon-separated expressions with wildcard."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_w_semicolon1(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @wplot s1 ; s2 filename.txt
+        '''
+        msg = "Error on line 12: Expected a stimulus element, got s2 filename.txt."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_w_semicolon2(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @wplot s1 filename; s2
+        '''
+        msg = "Error on line 12: Expected a stimulus element, got s1 filename."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_w_semicolon3(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @wplot s1 ; foo ; s2
+        '''
+        msg = "Error on line 12: Expected a stimulus element, got foo."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_w_semicolon4(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @wplot s1 ; *; s2
+        '''
+        msg = "Error on line 12: Cannot use semicolon-separated expressions with wildcard."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_p_semicolon1(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @pplot s1->b1 ; s2->b2 filename.txt
+        '''
+        msg = "Error on line 12: Expected a behavior name, got b2 filename.txt."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_p_semicolon2(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @pplot s1->b1 filename; s2->b2
+        '''
+        msg = "Error on line 12: Expected a behavior name, got b1 filename."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_p_semicolon3(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @pplot s1->b1 ; foo->bar ; s2->b2
+        '''
+        msg = "Error on line 12: Expected a stimulus element, got foo."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_p_semicolon4(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @pplot s1->b1 ; *->b1; s2->b2
+        '''
+        msg = "Error on line 12: Cannot use semicolon-separated expressions with wildcard."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_n_semicolon1(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @nplot s1->b1 ; s2->b2 filename.txt
+        '''
+        msg = "Error on line 12: Expected behavior name, got 'b2 filename.txt'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_n_semicolon2(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @nplot s1->b1 filename; s2->b2
+        '''
+        msg = "Error on line 12: Expected behavior name, got 'b1 filename'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_n_semicolon3(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @nplot s1->b1 ; foo->bar ; s2->b2
+        '''
+        msg = "Error on line 12: Expected stimulus element(s) or a behavior, got foo."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_n_semicolon4(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @nplot s1->b1 ; *->b1; s2->b2
+        '''
+        msg = "Error on line 12: Expected stimulus element(s) or a behavior, got *."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_vss_semicolon1(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+        @vssplot cs->us ; us->cs filename.txt
+        '''
+        msg = "Error on line 16: Expected a stimulus element, got cs filename.txt."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_vss_semicolon2(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+        @vssplot cs->us filename; us->cs
+        '''
+        msg = "Error on line 16: Expected a stimulus element, got us filename."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_vss_semicolon3(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+        @vssplot cs->us ; foo->bar ; us->cs
+        '''
+        msg = "Error on line 16: Expected a stimulus element, got foo."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_errors_vss_semicolon4(self):
+        text = '''
+        mechanism: rw
+        stimulus_elements: cs, us
+
+        lambda:    us:1, default:0
+        start_vss: default:0.5
+        alpha_vss: 0.6
+
+        @phase foo stop:cs=5
+        CS cs     | US
+        US us     | CS
+
+        @run foo
+
+        xscale:cs
+        @vssplot cs->us ; *->us; us->cs
+        '''
+        msg = "Error on line 16: Cannot use semicolon-separated expressions with wildcard."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+
+
+
+    def test_errors_wildcard(self):
+        text = '''
+        mechanism: a
+	    n_subjects = 1
+        stimulus_elements: s1, s2, s3
+        behaviors: b1, b2
+
+        @phase phase1 stop:s1=5
+        START     s1 | b1:S2 | START
+        S2        s2 | START
+
+        @run phase1
+        @vplot *->* foo
+        '''
+        msg = "Error on line 12: Expected a behavior name, got * foo."
         with self.assertRaisesMsg(msg):
             run(text)

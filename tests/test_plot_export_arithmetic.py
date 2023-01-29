@@ -594,7 +594,7 @@ class TestPlotExceptions(LsTestCase):
         with self.assertRaisesMsg("Error on line 9: Cannot mix n with v,p,w,vss when xscale is 'all'."):
             run(text)
 
-    def test_wildcard(self):
+    def test_wildcard_plot(self):
         text_base = """
         mechanism: ga
         stimulus_elements: s1, s2
@@ -613,7 +613,30 @@ class TestPlotExceptions(LsTestCase):
 
         text = text_base.format("n(*)")
         with self.assertRaisesMsg("Error on line 9: Expected stimulus element(s) or a behavior, got *."):
-            run(text)                
+            run(text)
+
+    def test_wildcard_export(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+
+        filename = foo.txt
+        @export {}
+        """
+        msg = "Error on line 11: Wildcard syntax not supported in @plot/@export."
+        for e in {"v(s1-> * )", "w( *)", "w(* )", "v(s1->b) + v(*->b)"}:
+            text = text_base.format(e)
+            with self.assertRaisesMsg(msg):
+                run(text)
+
+        text = text_base.format("n(*)")
+        with self.assertRaisesMsg("Error on line 11: Expected stimulus element(s) or a behavior, got *."):
+            run(text)
 
     def test_try_boom(self):
         text_base = """
@@ -668,7 +691,6 @@ class TestPlotExceptions(LsTestCase):
         with self.assertRaisesMsg(msg):
             run(text)
 
-
     def test_too_many_components_in_xexport(self):
         text = """n_subjects           : 50
 mechanism            : A
@@ -703,4 +725,319 @@ filename = toto.toto
         msg = "Error on line 29: Too many components: 'plant toto2.toto jkkljkjh hgjhgjhg'."
         with self.assertRaisesMsg(msg):
             run(text)
+
+
+class TestPlotExceptionsSemicolon(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_no_arguments(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+
+        text = text_base.format("v(s1->b) ; v()")
+        msg = "Error on line 8: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("p() ; v(s1->b)")
+        msg = "Error on line 8: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("w(s1) ; w(s2) ; w()")
+        msg = "Error on line 8: Expected a stimulus element, got ."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("v(s1->b) ; n()")
+        msg = "Error on line 8: Expected stimulus element(s) or a behavior, got ."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_no_right_parentesis(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+        text = text_base.format("v(s1->b) ; v(s1->b")
+        msg = "Error on line 9: Missing right parenthesis in expression v(s1->b"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("v(s1->b) ; p(s1->b")
+        msg = "Error on line 9: Missing right parenthesis in expression p(s1->b"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("v(s1->b) ; w(s1")
+        msg = "Error on line 9: Missing right parenthesis in expression w(s1"
+        with self.assertRaisesMsg(msg):
+            run(text)
+        
+        text = text_base.format("v(s1->b) ; n(s1->b->s2")
+        msg = "Error on line 9: Missing right parenthesis in expression n(s1->b->s2"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_wrong_parenteses(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+        for e in {"v(s1->b) ; v((s1->b))", "v(s1->b) ; p((((((s1->b))", "v(s1->b) ; w(s1)))))", "v(s1->b) ; n((s1->b->s2))"}:
+            text = text_base.format(e)
+            msg = "Error on line 9: Error in expression."
+            with self.assertRaisesMsg(msg):
+                run(text)
+
+        text = text_base.format("s1->b")
+        msg = "Error on line 9: Invalid expression s1->b"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("blaps")
+        msg = "Error on line 9: Invalid expression blaps"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("")
+        msg = "Error on line 9: Invalid @plot command."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_space_after_at(self):
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @ plot
+        """
+        msg = "Error on line 9: Phase @ undefined."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @ plot v(s1->b) ; foo
+        """
+        msg = "Error on line 9: Phase @ undefined."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_undefined_function(self):
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot v(s1->b) ; foo(n(s))
+        """
+        msg = "Error on line 9: Invalid name foo in expression."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot round2(n(s)) ; v(s1->b)
+        """
+        msg = "Error on line 9: Invalid name round2 in expression."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+    def test_error_in_function(self):
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot n(s) / 0 ; v(s1->b)
+        """
+        msg = "Error on line 9: Expected stimulus element(s) or a behavior, got s."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+        msg = "Error on line 9: Expression evaluation failed."
+        for e in {"v(s1->b) ; n(s1) / 0", "v(s1->b) ; log(-n(b))", "v(s1->b) ; v(s1->b) / (v(s1->b)-v(s1->b))"}:
+            text = text_base.format(e)
+            with self.assertRaisesMsg(msg):
+                run(text)
+
+        text = text_base.format("n(s1) / (v(s1->b) + v(s1->b))")
+        with self.assertRaisesMsg("Error on line 9: Cannot mix n with v,p,w,vss when xscale is 'all'."):
+            run(text)
+
+    def test_wildcard(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot {}
+        """
+        msg = "Error on line 9: Wildcard syntax not supported in @plot/@export."
+        for e in {"v(s1->b) ; v(s1-> * )", "v(s1->b) ; w( *)", "v(s1->b) ; w(* )", "v(s1->b) ; v(s1->b) + v(*->b)"}:
+            text = text_base.format(e)
+            with self.assertRaisesMsg(msg):
+                run(text)
+
+        text = text_base.format("n(*)")
+        with self.assertRaisesMsg("Error on line 9: Expected stimulus element(s) or a behavior, got *."):
+            run(text)                
+
+    def test_try_boom(self):
+        text_base = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        {}
+        """
+        msg = "Error on line 9: Invalid expression."
+        text = text_base.format("@plot __import__('os').system('clear')+w(s) ; v(s1->b)")
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = text_base.format("@plot __import__('os').system('clear')  ; v(s1->b)")
+        msg = "Error on line 9: Invalid expression __import__('os').system('clear')"
+        with self.assertRaisesMsg(msg):
+            run(text)
+        
+    def test_end_with_semicolon(self):
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @vplot s1->b;
+        """
+        msg = "Error on line 9: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot v(s1->b);
+        """
+        msg = "Error on line 9: Invalid expression "
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot n(s1->b);
+        """
+        msg = "Error on line 9: Invalid expression "
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @plot v(s1->b) ;; v/s2->b)
+        """
+        msg = "Error on line 9: Invalid expression "
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = """
+        mechanism: ga
+        stimulus_elements: s1, s2
+        behaviors: b
+        start_v: s1->b:7, default:1.5
+        @phase blaps stop:s1=2
+        L1 s1 | L1
+        @run blaps
+        @vplot s1->b ;; s2->b
+        """
+        msg = "Error on line 9: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+
+
 

@@ -5,6 +5,9 @@ import os
 import sys
 
 
+SEMICOLON_ERR = "Cannot use semicolon-separated expressions with wildcard."
+
+
 def rand(start, stop):
     if not type(start) is int:
         raise Exception("First argument to 'rand' must be integer.")
@@ -401,6 +404,20 @@ class ParseUtil():
         return True
 
     @staticmethod
+    def parse_chain_semicolon(expr, all_stimulus_elements, all_behaviors):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_chain(e, all_stimulus_elements, all_behaviors,
+                                                                    allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            exprs_out.extend([exprs])
+            exprs_str_out.extend([exprs_str])
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
     def parse_chain(chain_str, all_stimulus_elements, all_behaviors, allow_filename=False):
         """Parse a chain, for example 's1->b1->s2' and return a list (['s1','b1','s2'])."""
         out = list()
@@ -486,6 +503,24 @@ class ParseUtil():
                 succeeding_tuple = string[(i + 1):].lstrip()
                 return t, succeeding_tuple
         return None, string.lstrip()
+
+    @staticmethod
+    def parse_stimulus_behavior_semicolon(expr, all_stimulus_elements, all_behaviors, variables, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_stimulus_behavior(e, all_stimulus_elements, all_behaviors,
+                                                                                variables, allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
 
     @staticmethod
     def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables, allow_wildcard=True, allow_filename=False):
@@ -607,6 +642,24 @@ class ParseUtil():
         return element, intensity, None
 
     @staticmethod
+    def parse_element_behavior_semicolon(expr, all_stimulus_elements, all_behaviors, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element_behavior(e, all_stimulus_elements, all_behaviors,
+                                                                               allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
     def parse_element_behavior(expr, all_stimulus_elements, all_behaviors, allow_wildcard=True, allow_filename=False):
         if allow_wildcard and allow_filename:
             return None, None, None, "Internal error."
@@ -664,6 +717,25 @@ class ParseUtil():
                 exprs_str.append(f"{se}->{b}")
 
         return exprs, exprs_str, filename, None
+
+    @staticmethod
+    def parse_element_element_semicolon(expr, all_stimulus_elements, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element_element(e, all_stimulus_elements,
+                                                                              allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
 
     @staticmethod
     def parse_element_element(expr, all_stimulus_elements, allow_wildcard=True, allow_filename=False):
@@ -728,11 +800,29 @@ class ParseUtil():
 
         return exprs, exprs_str, filename, None
 
-    def parse_element(expr0, all_stimulus_elements, allow_wildcard=True, allow_filename=False):
+    @staticmethod
+    def parse_element_semicolon(expr0, all_stimulus_elements, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr0.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element(e, all_stimulus_elements, allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
+    def parse_element(exprs0, all_stimulus_elements, allow_wildcard=True, allow_filename=False):
         if allow_wildcard and allow_filename:
             return None, None, None, "Internal error."
 
-        expr = expr0.strip()
+        expr = exprs0.strip()
 
         filename = None
         if allow_filename:
@@ -740,7 +830,7 @@ class ParseUtil():
             expr, filename = ParseUtil.split1_strip(expr)
             if filename is not None:
                 if len(filename.split()) > 1:
-                    return None, None, None, f"Too many components: '{expr0}'."
+                    return None, None, None, f"Too many components: '{exprs0}'."
 
         has_wildcard = False
         exprs_str = [expr]

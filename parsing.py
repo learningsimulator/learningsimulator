@@ -344,9 +344,7 @@ class ScriptParser():
                 if isx:
                     exprs, mpl_prop, exprs_str = self._parse_xplot(lineno, linesplit_space)
                 else:
-                    expr, mpl_prop, expr_str = self._parse_plot(lineno, linesplit_space)
-                    exprs = [expr]
-                    exprs_str = [expr_str]
+                    exprs, mpl_prop, exprs_str = self._parse_plot(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 plot_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen plot
                 self._evalparse(lineno, plot_parameters)
@@ -554,7 +552,6 @@ class ScriptParser():
 
         return post_expr_obj, filename, expr0
 
-
     def _parse_xplot(self, lineno, linesplit_space):
         """
         @vplot expr {mpl_prop}
@@ -575,18 +572,18 @@ class ScriptParser():
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         err = None
         if cmd == kw.VPLOT:
-            exprs, exprs_str, _, err = ParseUtil.parse_element_behavior(expr_str, all_stimulus_elements, all_behaviors)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_behavior_semicolon(expr_str, all_stimulus_elements,
+                                                                                  all_behaviors)
         elif cmd == kw.VSSPLOT:
-            exprs, exprs_str, _, err = ParseUtil.parse_element_element(expr_str, all_stimulus_elements)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_element_semicolon(expr_str, all_stimulus_elements)
         elif cmd == kw.PPLOT:
-            exprs, exprs_str, _, err = ParseUtil.parse_stimulus_behavior(expr_str, all_stimulus_elements,
-                                                                         all_behaviors, self.variables)
+            exprs, exprs_str, _, err = ParseUtil.parse_stimulus_behavior_semicolon(expr_str, all_stimulus_elements,
+                                                                                   all_behaviors, self.variables)
         elif cmd == kw.WPLOT:
-            exprs, exprs_str, _, err = ParseUtil.parse_element(expr_str, all_stimulus_elements)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_semicolon(expr_str, all_stimulus_elements)
         elif cmd == kw.NPLOT:
-            expr, expr_str, _, err = ParseUtil.parse_chain(expr_str, all_stimulus_elements, all_behaviors, allow_filename=False)
-            exprs = [expr]
-            exprs_str = [expr_str]
+            exprs, exprs_str, _, err = ParseUtil.parse_chain_semicolon(expr_str, all_stimulus_elements,
+                                                                       all_behaviors)
         else:
             err = "Internal error."
         if err:
@@ -609,49 +606,50 @@ class ScriptParser():
         all_se = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_b = self.parameters.get(kw.BEHAVIORS)
 
-        # exprs_list = ParseUtil.comma_split_strip(exprs)
-        # post_expr_objs = []
-        # for e in exprs_list:
-        post_expr_obj, err = posteval.parse_postexpr(expr, self.variables, POST_MATH)
-        if err:
-            raise ParseException(lineno, err)
-
-        # Don't allow mixing n with v, p, w, vss when xscale=all
-        if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
-            fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
-            if 'n' in fns:
-                if set(fns) == {'n'}:  # Only 'n' - ok
-                    pass
-                else:
-                    raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
-
-        for post_var in post_expr_obj.post_vars.values():
-            fn = post_var.fn
-            arg = post_var.arg
-
-            if fn == 'v':
-                parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False)
-            elif fn == 'vss':
-                parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False)
-            elif fn == 'w':
-                parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False)
-            elif fn == 'p':
-                parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
-                                                                       allow_wildcard=False)
-            elif fn == 'n':
-                parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_se, all_b, allow_filename=False)
-            else:
-                err = "Internal error."
+        exprs_list = [e.strip() for e in expr.split(';')]
+        exprs_str = list(exprs_list)
+        post_expr_objs = []
+        for e in exprs_list:
+            post_expr_obj, err = posteval.parse_postexpr(e, self.variables, POST_MATH)
             if err:
                 raise ParseException(lineno, err)
 
-            if fn != 'n':
-                parsed_arg = parsed_arg[0]
+            # Don't allow mixing n with v, p, w, vss when xscale=all
+            if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
+                fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
+                if 'n' in fns:
+                    if set(fns) == {'n'}:  # Only 'n' - ok
+                        pass
+                    else:
+                        raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
 
-            post_var.parsed_arg = parsed_arg
-            # post_expr_objs.append(post_expr_obj)
+            for post_var in post_expr_obj.post_vars.values():
+                fn = post_var.fn
+                arg = post_var.arg
 
-        return post_expr_obj, mpl_prop, expr0
+                if fn == 'v':
+                    parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False)
+                elif fn == 'vss':
+                    parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False)
+                elif fn == 'w':
+                    parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False)
+                elif fn == 'p':
+                    parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
+                                                                        allow_wildcard=False)
+                elif fn == 'n':
+                    parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_se, all_b, allow_filename=False)
+                else:
+                    err = "Internal error."
+                if err:
+                    raise ParseException(lineno, err)
+
+                if fn != 'n':
+                    parsed_arg = parsed_arg[0]
+
+                post_var.parsed_arg = parsed_arg
+                post_expr_objs.append(post_expr_obj)
+
+        return post_expr_objs, mpl_prop, exprs_str
 
     def _parse_subplot(self, lineno, linesplit_space):
         """
