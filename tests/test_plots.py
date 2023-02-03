@@ -20,17 +20,17 @@ class TestInitialValues(LsTestCase):
         mechanism: ga
         stimulus_elements: s1, s2
         behaviors: b
-        start_v: s1->b:7, default:1.5
+        start_v: s1 -> b:7, default:1.5
         @phase foo stop:s1=3
         L1 s1 | L1
         @run foo
-        @vplot s1->b
+        @vplot s1 -> b
         @vplot s2->b
         '''
         script_obj, script_output = run(text)
         self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 2)
         plot_data = get_plot_data()
-        s1b = plot_data['v(s1->b)']
+        s1b = plot_data['v(s1 -> b)']
         s2b = plot_data['v(s2->b)']
         self.assertEqual(s1b['x'], [0, 1, 2])
         self.assertEqual(s2b['x'], [0, 1, 2])
@@ -55,14 +55,14 @@ class TestInitialValues(LsTestCase):
         @figure
         @subplot 111 - {'ylim':[-0.1, 1.1]}
         @vplot s1->b1
-        @pplot s1->b1
+        @pplot s1->  b1
         '''
         script_obj, script_output = run(text)
         self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 4)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['v(s1->b1)']['y'][0], 0.5)
-        self.assertGreater(plot_data['p(s1->b1)']['y'][0], 0.622)
-        self.assertLess(plot_data['p(s1->b1)']['y'][0], 0.623)
+        self.assertGreater(plot_data['p(s1->  b1)']['y'][0], 0.622)
+        self.assertLess(plot_data['p(s1->  b1)']['y'][0], 0.623)
 
         # Test pplot with default start_v
         self.tearDown()

@@ -86,6 +86,37 @@ class TestBasic(LsTestCase):
 
         text = '''
         mechanism: ga
+        n_subjects: 100
+        stimulus_elements: e1, e2,
+                           e3
+        behaviors: b1, b2
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+        @PHASE phase2 stop:False
+        X1 e3 | X2
+        X2 e3 | X1
+        @run phase1     phase2  # Space instead of comma should also work
+        '''
+        run, parameters = parse(text, 'run1')
+        self.assertEqual(run.world.nphases, 2)
+        self.assertEqual(run.world.curr_phaseind, 0)
+        self.assertTrue(isinstance(run.mechanism_obj, Enquist))
+        self.assertTrue(run.has_w)
+        self.assertEqual(run.n_subjects, 100)
+
+        # Test scalar expansion
+        stimulus_elements = parameters.get(kw.STIMULUS_ELEMENTS)
+        behaviors = parameters.get(kw.BEHAVIORS)
+        self.assertEqual(len(parameters.get(kw.START_V).keys()), 6)
+        self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 6)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
+        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+
+        text = '''
+        mechanism: ga
         stimulus_elements: e1, e2,
                            e3
         behaviors: b1,
@@ -475,7 +506,7 @@ class TestBasic(LsTestCase):
 
         beta: 2.2
         n_subjects: 2
-        @run phase1,phase2 runlabel:myrun2
+        @run phase1 phase2 runlabel:myrun2
         '''
         run1, parameters1 = parse(text, 'myrun1')
         self.assertEqual(run1.world.nphases, 1)
@@ -831,7 +862,7 @@ class TestStopCondInRun(LsTestCase):
         L2 e2 | L1
 
         @run
-            phase1(stop: e1=30), phase2(stop: e1=20)
+            phase1(stop: e1=30)      phase2(stop: e1=20)
             phase3(stop: e1=10) runlabel:myrunlbl
 
         runlabel: myrunlbl
@@ -922,7 +953,7 @@ class TestExceptions(LsTestCase):
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
-        @run phase1, foo runlabel:run1
+        @run phase1 foo runlabel:run1
         '''
         msg = "Error on line 8: Phase foo undefined."
         with self.assertRaisesMsg(msg):
