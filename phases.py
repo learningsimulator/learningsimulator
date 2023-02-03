@@ -26,8 +26,6 @@ class Phases():
 
         self.phases[label] = Phase(label, stop_condition_str, lineno)  # Not inherited_phase.copy()!
         self.phases[label].lines = copy.deepcopy(inherited_phase.lines)
-        # self.phases[label].stop_condition_str = stop_condition_str  # XXX Needed?
-        # self.phases[label].lineno = lineno
         self.phases[label].is_inherited = True
 
     def append_line(self, label, line, lineno):

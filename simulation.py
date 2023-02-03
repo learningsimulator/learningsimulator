@@ -12,8 +12,6 @@ class Runs():
         self.run_labels = list()
 
     def add(self, run_obj, label):  # , world, mechanism_obj, n_subjects):
-        # if label in self.runs:
-        #     raise ParseException(lineno, f"Run label {label} is duplicated.")
         self.run_labels.append(label)
         self.runs[label] = run_obj  # ScriptRun(label, world, mechanism_obj, n_subjects)
 
@@ -49,10 +47,6 @@ class Runs():
             if progress:
                 progress.report1(f"Running {label}")
             out[label] = run.run(progress)
-
-        # for label, run in self.runs.items():
-        #     progress.report(1, f"Running {label}")
-        #     out[label] = run.run(progress)
 
         return ScriptOutput(out)
 

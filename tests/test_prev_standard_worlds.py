@@ -7,24 +7,6 @@ import util
 from .testutil import check_run_output_subject, run
 
 
-# def parse(text):
-#     script = Script(text)
-#     script.parse()
-#     script_parser = script.script_parser
-#     runs = script_parser.runs
-#     nruns = len(runs.runs)
-#     if nruns != 1:
-#         phases = script_parser.phases.phases
-#         for phaselbl, phase in phases.items():
-#             if not phase.is_parsed:
-#                 phase.parse(script_parser.parameters, script_parser.variables)
-#         world = World(phases, list(phases.keys()))
-#     else:
-#         run = list(runs.runs.values())[0]
-#         world = run.world
-#     return world, script
-
-
 def parse(text, phase_label):
     script = Script(text)
     script.parse()
