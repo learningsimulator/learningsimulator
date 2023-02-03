@@ -389,7 +389,7 @@ class TestExceptions(LsTestCase):
                   behaviors: b1, b2
                   {}: foo->bar:foobar, blabla
                '''.format(name)
-        msg = ""  # XXX
+        msg = "Error on line 3: Invalid value 'foobar' for 'foo->bar' in parameter 'behavior_cost'."
         with self.assertRaisesMsg(msg):
             parse(text)
 

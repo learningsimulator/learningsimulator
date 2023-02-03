@@ -145,9 +145,9 @@ class LineParser():
             self.line_type = LineParser.XPLOT
         elif first_word == kw.PLOT:
             self.line_type = LineParser.PLOT
-        elif first_word == kw.FIGURE:
+        elif first_word == kw.FIGURE or first_word.startswith(kw.FIGURE + '('):  # @figure or @figure(subplotspec)
             self.line_type = LineParser.FIGURE
-        elif first_word == kw.SUBPLOT:
+        elif first_word in (kw.SUBPLOT, kw.PANEL):
             self.line_type = LineParser.SUBPLOT
         elif first_word in (kw.VEXPORT, kw.WEXPORT, kw.PEXPORT, kw.NEXPORT, kw.HEXPORT,
                             kw.VSSEXPORT):
@@ -156,6 +156,17 @@ class LineParser():
             self.line_type = LineParser.EXPORT
         elif first_word == kw.LEGEND:
             self.line_type = LineParser.LEGEND
+
+
+class FigureSubplotGrid():
+    def __init__(self, subplotgrid):
+        self.subplotgrid = subplotgrid
+        self.curr_ind = 1
+
+    def next_subplotspec(self):
+        ind = self.curr_ind
+        self.curr_ind += 1
+        return self.subplotgrid + [ind]
 
 
 class ScriptParser():
@@ -190,6 +201,7 @@ class ScriptParser():
         in_phase = False
         in_run = False
         run_lines = None
+        curr_figure_subplotgrid = None
 
         for lineno0, line_orig in enumerate(self.lines):
             line = line_orig
@@ -330,12 +342,13 @@ class ScriptParser():
                 continue
 
             elif line_parser.line_type == LineParser.FIGURE:
-                figure_title, mpl_prop = self._parse_figure(lineno, linesplit_space)
+                figure_title, subplotgrid, mpl_prop = self._parse_figure(lineno, linesplit_space)
+                curr_figure_subplotgrid = FigureSubplotGrid(subplotgrid)
                 figure_cmd = FigureCmd(figure_title, mpl_prop)
                 self.postcmds.add(figure_cmd)
 
             elif line_parser.line_type == LineParser.SUBPLOT:
-                subplotspec_list, subplot_title, mpl_prop = self._parse_subplot(lineno, linesplit_space)
+                subplotspec_list, subplot_title, mpl_prop = self._parse_subplot(lineno, linesplit_space, curr_figure_subplotgrid)
                 subplot_cmd = SubplotCmd(subplotspec_list, subplot_title, mpl_prop)
                 self.postcmds.add(subplot_cmd)
 
@@ -651,68 +664,61 @@ class ScriptParser():
 
         return post_expr_objs, mpl_prop, exprs_str
 
-    def _parse_subplot(self, lineno, linesplit_space):
+    def _parse_subplot(self, lineno, linesplit_space, figure_subplotgrid):
         """
-        @subplot
-        @subplot subplotspec
-        @subplot subplotspec title
-        @subplot subplotspec {mpl_prop}
-        @subplot subplotspec title {mpl_prop}
+        If subplotgrid not given from @figure:
+        @subplot/@panel
+        @subplot/@panel subplotspec
+        @subplot/@panel subplotspec title
+        @subplot/@panel subplotspec {mpl_prop}
+        @subplot/@panel subplotspec title {mpl_prop}
+
+        If subplotgrid IS given from @figure:
+        @subplot/@panel
+        @subplot/@panel
+        @subplot/@panel title
+        @subplot/@panel {mpl_prop}
+        @subplot/@panel title {mpl_prop}
         """
-        def _parse_subplotspec(spec):
-            if len(spec) != 3:
-                return None
-            spec_intlist = []
-            if type(spec) is str:
-                for s in spec:
-                    if not s.isdigit():
-                        return None
-                    elif s == '0':
-                        return None
-                    spec_intlist.append(int(s))
-            elif type(spec) is tuple:
-                for s in spec:
-                    if type(s) is not int:
-                        return None
-                    if s <= 0:
-                        return None
-                    spec_intlist.append(s)
-            else:
-                return None
-
-            if spec_intlist[2] > spec_intlist[0] * spec_intlist[1]:
-                return None
-            return spec_intlist
-
         def _parse_subplotspec_and_title(args):
             subplotspec, title = ParseUtil.parse_initial_tuple(args)
             if subplotspec is not None:
-                subplotspec_list = _parse_subplotspec(subplotspec)
+                subplotspec_list = ParseUtil.parse_subplotspec(subplotspec)
                 return subplotspec_list, subplotspec, title
             else:
                 subplotspec_str, title = ParseUtil.split1_strip(args)
-                subplotspec_list = _parse_subplotspec(subplotspec_str)
+                subplotspec_list = ParseUtil.parse_subplotspec(subplotspec_str)
                 return subplotspec_list, subplotspec_str, title
 
+        assert(linesplit_space[0] in (kw.SUBPLOT, kw.PANEL))
+        if len(linesplit_space) > 1:
+            linesplit_space[1] = linesplit_space[1].strip()
+
         title_param = self.parameters.get(kw.SUBPLOTTITLE)
+        mpl_prop = None
 
-        if len(linesplit_space) == 1:  # @subplot
-            subplotspec_list = [1, 1, 1]
-            title = title_param
-            mpl_prop = dict()
-        elif len(linesplit_space) == 2:  # @subplot subplotspec ...
-            assert(linesplit_space[0] == kw.SUBPLOT)
-            args, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
-            if mpl_prop is None:
-                mpl_prop = dict()
-            subplotspec_list, subplotspec_str, title_line = _parse_subplotspec_and_title(args)
-            if subplotspec_list is None:
-                raise ParseException(lineno, f"Invalid @subplot argument {subplotspec_str}.")
-
-            if title_line is None:  # @subplot subplotspec
-                title = title_param
+        if figure_subplotgrid is not None and figure_subplotgrid.subplotgrid is not None:  # subplot grid is given in @figure
+            subplotspec_list = figure_subplotgrid.next_subplotspec()
+            if len(linesplit_space) == 1:  # @subplot
+                title_line = ""
             else:
-                title = title_line
+                title_line, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+        else:
+            if len(linesplit_space) == 1:  # @subplot/@panel (without arguments)
+                subplotspec_list = [1, 1, 1]
+                title_line = ""
+            elif len(linesplit_space) == 2:  # @subplot/@panel subplotspec ...
+                args, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
+                subplotspec_list, subplotspec_str, title_line = _parse_subplotspec_and_title(args)
+                if subplotspec_list is None:
+                    raise ParseException(lineno, f"Invalid @subplot argument {subplotspec_str}.")
+
+        if title_line:
+            title = title_line
+        else:
+            title = title_param
+        if mpl_prop is None:
+            mpl_prop = dict()
         return subplotspec_list, title, mpl_prop
 
     def _parse_figure(self, lineno, linesplit_space):
@@ -721,15 +727,52 @@ class ScriptParser():
         @figure title
         @figure {mpl_prop}
         @figure title {mpl_prop}
+
+        @figure(mn) or @figure(m,n)
+        @figure(mn) title
+        @figure(mn) {mpl_prop}
+        @figure(mn) title {mpl_prop}
+
+        linesplit_space is either @figure or @figure(mn) or @figure(m,n)
         """
+        def parse_fun_arg(fun_arg):
+            """
+            Parse a string of the form "fun(arg)".
+            Return error if fun is not "@figure".
+            """
+            ERR = "Invalid @figure command."
+
+            n_lpar = fun_arg.count('(')
+            n_rpar = fun_arg.count(')')
+            if (n_lpar == 0 and n_rpar == 0):
+                return None, None
+            elif (n_lpar != 1 or n_rpar != 1):
+                return None, ERR
+            elif (fun_arg[-1] != ')'):  # Does not end with a ')'
+                return None, ERR
+            elif fun_arg.split('(')[0] != kw.FIGURE:  # Substring before '(' is not @figure
+                return None, ERR
+            ind_lpar = fun_arg.index('(')
+            ind_rpar = fun_arg.index(')')
+            arg = fun_arg[(ind_lpar + 1): ind_rpar]
+            if ',' in arg:
+                arg = tuple(arg.split(','))  # E.g. ('1','2')
+            arg_intlist = ParseUtil.parse_subplotspec(arg, expected_len=2)
+            if arg_intlist is None:
+                return None, ERR
+            return arg_intlist, None
+
         title = self.parameters.get(kw.TITLE)
+        subplotgrid, err = parse_fun_arg(linesplit_space[0])
+        if err:
+            raise ParseException(lineno, err)
         if len(linesplit_space) == 1:  # @figure
             mpl_prop = dict()
         elif len(linesplit_space) == 2:  # @figure args
             title, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
             if mpl_prop is None:
                 mpl_prop = dict()
-        return title, mpl_prop
+        return title, subplotgrid, mpl_prop
 
     def _parse_run_lines(self, run_lines):
         # First line is of the form

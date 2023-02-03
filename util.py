@@ -850,6 +850,37 @@ class ParseUtil():
 
         return exprs, exprs_str, filename, None
 
+    @staticmethod
+    def parse_subplotspec(spec, expected_len=3):
+        if len(spec) != expected_len:
+            return None
+        spec_intlist = []
+        if type(spec) is str:
+            for s in spec:
+                if not s.isdigit():
+                    return None
+                elif s == '0':
+                    return None
+                spec_intlist.append(int(s))
+        elif type(spec) is tuple:
+            for s in spec:
+                try:
+                    s = int(s)
+                except ValueError:
+                    return None
+                # if type(s) is not int:
+                #     return None
+                if s <= 0:
+                    return None
+                spec_intlist.append(s)
+        else:
+            return None
+        if expected_len > 2:
+            if spec_intlist[2] > spec_intlist[0] * spec_intlist[1]:
+                return None
+        return spec_intlist
+
+
     # @staticmethod
     # def arrow2evalexpr_n(expr):
     #     # arrow2evalexpr_n
