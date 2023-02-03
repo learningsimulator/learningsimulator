@@ -654,8 +654,8 @@ class Parameters():
         elif xscale == 'all':
             pass
         else:
-            xscale, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
-                                                self.val[kw.BEHAVIORS])
+            xscale, _, _, err = ParseUtil.parse_chain(xscale, self.val[kw.STIMULUS_ELEMENTS],
+                                                      self.val[kw.BEHAVIORS])
             if err:
                 return err
 

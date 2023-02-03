@@ -5,6 +5,9 @@ import os
 import sys
 
 
+SEMICOLON_ERR = "Cannot use semicolon-separated expressions with wildcard."
+
+
 def rand(start, stop):
     if not type(start) is int:
         raise Exception("First argument to 'rand' must be integer.")
@@ -29,6 +32,7 @@ def choice(*args):
             raise Exception(ERRMSG)
         return random.choices(population=population, weights=weights, k=1)[0]
 
+    ERRMSG = "Invalid arguments to choice."
     nargs = len(args)
     if nargs == 0:
         raise Exception("The function 'choice' must have at least one argument.")
@@ -38,10 +42,15 @@ def choice(*args):
         else:
             raise Exception("Single input to 'choice' must be a list.")
     elif nargs == 2 and all(isinstance(x, list) for x in args):
-        return _choice_float(args[0], args[1])
+        return _choice_float(population=args[0], weights=args[1])
     else:
-        return _choice_float(args)
-
+        last_arg = args[-1]
+        if isinstance(last_arg, list):
+            population = args[:-1]
+            weights = last_arg
+            return _choice_float(population=population, weights=weights)
+        else:
+            return _choice_float(population=args)
 
 def count(event_counter, event):
     return event_counter.count[event]
@@ -103,6 +112,14 @@ class ParseUtil():
         example, split 'a:1, b:2, c:rand(a,b,c), c:3' into ['a:1', 'b:2', 'c:rand(a,b,c)', 'c:3'].
         '''
         return re.split(r',\s*(?![^()]*\))', string)
+
+    @staticmethod
+    def space_split(string):
+        '''
+        Split the specified string at each space ( ) except the spaces within parenthesis. For
+        example, split 'runlbl  phase( stop : A and B )  ' into ['runlbl', 'phase( stop : A and B )'].
+        '''
+        return re.split(r' \s*(?![^()]*\))', string)
 
     @staticmethod
     def comma_split_strip(string):
@@ -172,14 +189,18 @@ class ParseUtil():
         return False, None
 
     @staticmethod
-    def ast_parse(expr):
+    def ast_parse(expr, include_expr_in_errmsg=True):
         try:
             tree = ast.parse(expr, mode='eval')
         except Exception as ex:
-            err = f"Error in expression '{expr}': {ex}."
-            err = err.replace(" (<unknown>, line 1)", "")
+            if include_expr_in_errmsg:
+                err = f"Error in expression '{expr}': {ex}."
+                err = err.replace(" (<unknown>, line 1)", "")
+            else:
+                err = f"Error in expression."
             return None, err
         return tree, None
+
 
     # def replace_initial_behaviors(expr, behaviors, last_response):
     #     """
@@ -383,36 +404,60 @@ class ParseUtil():
         return True
 
     @staticmethod
-    def parse_chain(v_str, all_stimulus_elements, all_behaviors):
+    def parse_chain_semicolon(expr, all_stimulus_elements, all_behaviors):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_chain(e, all_stimulus_elements, all_behaviors,
+                                                                    allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            exprs_out.extend([exprs])
+            exprs_str_out.extend([exprs_str])
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
+    def parse_chain(chain_str, all_stimulus_elements, all_behaviors, allow_filename=False):
         """Parse a chain, for example 's1->b1->s2' and return a list (['s1','b1','s2'])."""
         out = list()
-        chain = v_str.replace(' ', '').split('->')
+        chain = [link.strip() for link in chain_str.split('->')]
+
+        filename = None
+        if allow_filename:
+            # If last in chain contains space, the second word is filename
+            chain[-1], filename = ParseUtil.split1_strip(chain[-1])
+            if filename is not None:
+                if len(filename.split()) > 1:
+                    return None, None, None, f"Too many components: '{chain_str}'."
+            chain_str = '->'.join(chain)
+
         first_link = chain[0].split(',')
         chain_starts_with_stimulus = first_link[0] in all_stimulus_elements
         if chain_starts_with_stimulus:
             # Check that all elements in first_link are stimulus elements
             for s in first_link:
                 if s not in all_stimulus_elements:
-                    return None, f"Expected stimulus element, got '{s}'."
+                    return None, None, None, f"Expected stimulus element, got '{s}'."
         elif first_link[0] not in all_behaviors:
-            return None, f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
+            return None, None, None, f"Expected stimulus element(s) or a behavior, got {first_link[0]}."
         expecting_stimulus = chain_starts_with_stimulus
         for sb in chain:
             if expecting_stimulus:
                 stimulus_elements = sb.split(',')
                 for e in stimulus_elements:
                     if e not in all_stimulus_elements:
-                        return None, f"Expected stimulus element, got '{e}'."
+                        return None, None, None, f"Expected stimulus element, got '{e}'."
                 if len(stimulus_elements) == 1:
                     out.append(stimulus_elements[0])
                 else:
                     out.append(tuple(stimulus_elements))
             else:
                 if sb not in all_behaviors:
-                    return None, f"Expected behavior name, got '{sb}'."
+                    return None, None, None, f"Expected behavior name, got '{sb}'."
                 out.append(sb)
             expecting_stimulus = not expecting_stimulus
-        return out, None
+        return out, chain_str, filename, None
 
     @staticmethod
     def get_ending_dict(string):
@@ -460,32 +505,92 @@ class ParseUtil():
         return None, string.lstrip()
 
     @staticmethod
-    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables):
+    def parse_stimulus_behavior_semicolon(expr, all_stimulus_elements, all_behaviors, variables, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_stimulus_behavior(e, all_stimulus_elements, all_behaviors,
+                                                                                variables, allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
+    def parse_stimulus_behavior(expr, all_stimulus_elements, all_behaviors, variables, allow_wildcard=True, allow_filename=False):
         """
         From an expression of the form "s1[i1],s2[i2],...->r", return the
         tuple t where t[0] = (('s1',i1), ('s2',i2), ...) and t[1] = 'r'.
         """
+        if allow_wildcard and allow_filename:
+            return None, None, None, "Internal error."
+
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, None, "Expression must include a '->'."
+            return None, None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, None, "Expression must include only one '->'."
+            return None, None, None, "Expression must include only one '->'."
 
         elements, behavior = expr.split('->')
-        stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
-        if err:
-            return None, None, err
-
-        for element in stimulus:
-            if element not in all_stimulus_elements:
-                return None, None, f"Expected a stimulus element, got {element}."
-
+        elements = elements.strip()
         behavior = behavior.strip()
-        if behavior not in all_behaviors:
-            return None, None, f"Expected a behavior name, got {behavior}."
 
-        return stimulus, behavior, None
+        filename = None
+        if allow_filename:
+            # If behavior contains space, the second word is filename
+            behavior, filename = ParseUtil.split1_strip(behavior)
+            if filename is not None:
+                if len(filename.split()) > 1:
+                    return None, None, None, f"Too many components: '{expr}'."
+                expr = expr[:-len(filename)].strip()
+
+        has_wildcard = False
+        if elements == '*':
+            has_wildcard = True
+            stimuluss = []
+            for se in all_stimulus_elements:
+                stimuluss.append({se: 1})
+        else:
+            stimulus, err = ParseUtil.parse_elements_and_intensities(elements, variables)
+            if err:
+                return None, None, None, err
+            for element in stimulus:
+                if element not in all_stimulus_elements:
+                    return None, None, None, f"Expected a stimulus element, got {element}."
+            stimuluss = [stimulus]
+
+        if behavior == '*':
+            has_wildcard = True
+            bs = list(all_behaviors)
+        else:
+            if behavior not in all_behaviors:
+                return None, None, None, f"Expected a behavior name, got {behavior}."
+            bs = [behavior]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        exprs = []
+        for s in stimuluss:
+            for b in bs:
+                exprs.append((s, b))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for e in exprs:
+                s, b = e
+                se = list(s.keys())[0]  # s is a dict with only one key
+                exprs_str.append(f"{se}->{b}")
+
+        return exprs, exprs_str, filename, None  # stimulus, behavior, None
 
     @staticmethod
     def parse_elements_and_intensities(stimulus, variables, safe_intensity_eval=False):
@@ -537,48 +642,244 @@ class ParseUtil():
         return element, intensity, None
 
     @staticmethod
-    def parse_element_behavior(expr, all_stimulus_elements, all_behaviors):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
-
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
-        """
-        arrow_inds = [m.start() for m in re.finditer('->', expr)]
-        n_arrows = len(arrow_inds)
-        if n_arrows == 0:
-            return None, "Expression must include a '->'."
-        elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
-
-        stimulus_element, behavior = expr.split('->')
-        if stimulus_element not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element}."
-        if behavior not in all_behaviors:
-            return None, f"Expected a behavior name, got {behavior}."
-        return (stimulus_element, behavior), None
+    def parse_element_behavior_semicolon(expr, all_stimulus_elements, all_behaviors, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element_behavior(e, all_stimulus_elements, all_behaviors,
+                                                                               allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
 
     @staticmethod
-    def parse_element_element(expr, all_stimulus_elements):
-        """
-        First, split specified string with respect to arrows (->) and then to commas to tuple while stripping each part.
+    def parse_element_behavior(expr, all_stimulus_elements, all_behaviors, allow_wildcard=True, allow_filename=False):
+        if allow_wildcard and allow_filename:
+            return None, None, None, "Internal error."
 
-        Example:
-            arrow2tuple("a ->   b,c->x,2->z") returns ('a', ('b', 'c'), ('x', '2'), 'z').
-        """
         arrow_inds = [m.start() for m in re.finditer('->', expr)]
         n_arrows = len(arrow_inds)
         if n_arrows == 0:
-            return None, "Expression must include a '->'."
+            return None, None, None, "Expression must include a '->'."
         elif n_arrows > 1:
-            return None, "Expression must include only one '->'."
+            return None, None, None, "Expression must include only one '->'."
+
+        stimulus_element, behavior = expr.split('->')
+        stimulus_element = stimulus_element.strip()
+        behavior = behavior.strip()
+
+        filename = None
+        if allow_filename:
+            # If behavior contains space, the second word is filename
+            behavior, filename = ParseUtil.split1_strip(behavior)
+            if filename is not None:
+                if len(filename.split()) > 1:
+                    return None, None, None, f"Too many components: '{expr}'."
+                expr = expr[:-len(filename)].strip()
+
+        has_wildcard = False
+        if stimulus_element == '*':
+            has_wildcard = True
+            ses = all_stimulus_elements
+        else:
+            if stimulus_element not in all_stimulus_elements:
+                return None, None, None, f"Expected a stimulus element, got {stimulus_element}."
+            ses = [stimulus_element]
+
+        if behavior == '*':
+            has_wildcard = True
+            bs = all_behaviors
+        else:
+            if behavior not in all_behaviors:
+                return None, None, None, f"Expected a behavior name, got {behavior}."
+            bs = [behavior]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        exprs = []
+        for se in ses:
+            for b in bs:
+                exprs.append((se, b))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for seb in exprs:
+                se, b = seb
+                exprs_str.append(f"{se}->{b}")
+
+        return exprs, exprs_str, filename, None
+
+    @staticmethod
+    def parse_element_element_semicolon(expr, all_stimulus_elements, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element_element(e, all_stimulus_elements,
+                                                                              allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
+
+    @staticmethod
+    def parse_element_element(expr, all_stimulus_elements, allow_wildcard=True, allow_filename=False):
+        if allow_wildcard and allow_filename:
+            return None, None, None, "Internal error."
+
+        arrow_inds = [m.start() for m in re.finditer('->', expr)]
+        n_arrows = len(arrow_inds)
+        if n_arrows == 0:
+            return None, None, None, "Expression must include a '->'."
+        elif n_arrows > 1:
+            return None, None, None, "Expression must include only one '->'."
 
         stimulus_element1, stimulus_element2 = expr.split('->')
-        if stimulus_element1 not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element1}."
-        if stimulus_element2 not in all_stimulus_elements:
-            return None, f"Expected a stimulus element, got {stimulus_element2}."
-        return (stimulus_element1, stimulus_element2), None
+        stimulus_element1 = stimulus_element1.strip()
+        stimulus_element2 = stimulus_element2.strip()
+
+        filename = None
+        if allow_filename:
+            # If stimulus_element2 contains space, the second word is filename
+            stimulus_element2, filename = ParseUtil.split1_strip(stimulus_element2)
+            if filename is not None:
+                if len(filename.split()) > 1:
+                    return None, None, None, f"Too many components: '{expr}'."
+
+        has_wildcard = False
+        if stimulus_element1 == '*':
+            has_wildcard = True
+            ses1 = all_stimulus_elements
+        else:
+            if stimulus_element1 not in all_stimulus_elements:
+                return None, None, None, f"Expected a stimulus element, got {stimulus_element1}."
+            ses1 = [stimulus_element1]
+
+        if stimulus_element2 == '*':
+            has_wildcard = True
+            ses2 = all_stimulus_elements
+        else:
+            if stimulus_element2 not in all_stimulus_elements:
+                return None, None, None, f"Expected a stimulus element, got {stimulus_element2}."
+            ses2 = [stimulus_element2]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        if has_wildcard:
+            exprs_str = []
+        else:
+            exprs_str = expr
+
+        exprs = []
+        for se1 in ses1:
+            for se2 in ses2:
+                exprs.append((se1, se2))
+
+        exprs_str = [expr]
+        if has_wildcard:
+            exprs_str = []
+            for se1_se2 in exprs:
+                se1, se2 = se1_se2
+                exprs_str.append(f"{se1}->{se2}")
+
+        return exprs, exprs_str, filename, None
+
+    @staticmethod
+    def parse_element_semicolon(expr0, all_stimulus_elements, allow_wildcard=True):
+        exprs_list = [e.strip() for e in expr0.split(';')]
+        has_semicolon = len(exprs_list) > 1
+        exprs_out = []
+        exprs_str_out = []
+        for e in exprs_list:
+            exprs, exprs_str, filename, err = ParseUtil.parse_element(e, all_stimulus_elements, allow_wildcard, allow_filename=False)
+            if err:
+                return exprs, exprs_str, filename, err
+            if len(exprs) > 1 and has_semicolon:
+                assert(allow_wildcard)  # The only way len(exprs) > 1
+                return None, None, None, SEMICOLON_ERR
+            exprs_out.extend(exprs)
+            exprs_str_out.extend(exprs_str)
+        return exprs_out, exprs_str_out, None, None
+
+    @staticmethod
+    def parse_element(exprs0, all_stimulus_elements, allow_wildcard=True, allow_filename=False):
+        if allow_wildcard and allow_filename:
+            return None, None, None, "Internal error."
+
+        expr = exprs0.strip()
+
+        filename = None
+        if allow_filename:
+            # If expr contains space, the second word is filename
+            expr, filename = ParseUtil.split1_strip(expr)
+            if filename is not None:
+                if len(filename.split()) > 1:
+                    return None, None, None, f"Too many components: '{exprs0}'."
+
+        has_wildcard = False
+        exprs_str = [expr]
+        if expr == '*':
+            has_wildcard = True
+            exprs = list(all_stimulus_elements)
+        else:
+            if expr not in all_stimulus_elements:
+                return None, None, None, f"Expected a stimulus element, got {expr}."
+            exprs = [expr]
+
+        if has_wildcard and not allow_wildcard:
+            return None, None, None, f"Wildcard syntax not supported in @plot/@export."
+
+        if has_wildcard:
+            exprs_str = list(all_stimulus_elements)
+
+        return exprs, exprs_str, filename, None
+
+    @staticmethod
+    def parse_subplotspec(spec, expected_len=3):
+        if len(spec) != expected_len:
+            return None
+        spec_intlist = []
+        if type(spec) is str:
+            for s in spec:
+                if not s.isdigit():
+                    return None
+                elif s == '0':
+                    return None
+                spec_intlist.append(int(s))
+        elif type(spec) is tuple:
+            for s in spec:
+                try:
+                    s = int(s)
+                except ValueError:
+                    return None
+                # if type(s) is not int:
+                #     return None
+                if s <= 0:
+                    return None
+                spec_intlist.append(s)
+        else:
+            return None
+        if expected_len > 2:
+            if spec_intlist[2] > spec_intlist[0] * spec_intlist[1]:
+                return None
+        return spec_intlist
+
 
     # @staticmethod
     # def arrow2evalexpr_n(expr):
@@ -912,22 +1213,22 @@ def find_and_cumsum(seq, pattern, use_exact_match):
 def find_and_cumsum_interval(seq, pattern, use_exact_match,
                              interval_pattern, interval_pattern_exact):
     """
-    Return the number of occurances of pattern in seq, between every two consecutive
-    occurrences of interval_pattern.
+    Return the number of occurrences of pattern in seq, between every two consecutive
+    occurrences of interval_pattern (and before the first occurrence).
 
     Example:
         find_and_cumsum_interval(['a','b','a','X','b','a','X','X'], 'a', True, 'X', True)
-        returns [2, 1, 0]
+        returns [2, 1, 0], [2, 3, 3]
     """
     ind_seq, _ = find_and_cumsum(seq, pattern, use_exact_match)
     ind_int, _ = find_and_cumsum(seq, interval_pattern, interval_pattern_exact)
     cnt = 0
     out = list()
     for i in range(len(ind_seq)):
-        cnt += ind_seq[i]
         if ind_int[i] == 1:
             out.append(cnt)
             cnt = 0
+        cnt += ind_seq[i]
     return out, cumsum(out)
 
 

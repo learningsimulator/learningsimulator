@@ -72,7 +72,7 @@ class TestBasic(LsTestCase):
         z_values = list()
         w_values = list()
         q_values = list()
-        N = 30000
+        N = 40000
         for _ in range(N):
             var_values = parse(text)
 
@@ -147,7 +147,7 @@ class TestExceptions(LsTestCase):
         text = '''
         @variables foo bar
         '''
-        msg = ""
+        msg = "Error on line 2: A @VARIABLES line should have the form '@VARIABLES var1:val1, var2:val2, ...'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -155,21 +155,21 @@ class TestExceptions(LsTestCase):
         text = '''
         @variables foo:bar, x:1, y:2
         '''
-        msg = ""
+        msg = "Error on line 2: Unknown variable 'bar'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         @variables foo:bar:foobar, x:1, y:2
         '''
-        msg = ""
+        msg = "Error on line 2: A @VARIABLES line should have the form '@VARIABLES var1:val1, var2:val2, ...'."
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         @variables x:1:2, y:2
         '''
-        msg = ""
+        msg = "Error on line 2: A @VARIABLES line should have the form '@VARIABLES var1:val1, var2:val2, ...'."
         with self.assertRaisesMsg(msg):
             parse(text)
 

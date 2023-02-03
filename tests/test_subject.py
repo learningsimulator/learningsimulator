@@ -190,7 +190,7 @@ class TestExceptions(LsTestCase):
 
     def test_single_subject(self):
         text = self.get_text('1', 'foo')
-        msg = "Error on line 19: Parameter subject must be 'average', 'all', or a positive integer."
+        msg = "Error on line 19: Parameter subject must be 'average', 'all', or a positive integer. Unknown variable 'foo'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -207,7 +207,7 @@ class TestExceptions(LsTestCase):
 
     def test_multiple_subjects(self):
         text = self.get_text('10', 'foo')
-        msg = "Error on line 19: Parameter subject must be 'average', 'all', or a positive integer."
+        msg = "Error on line 19: Parameter subject must be 'average', 'all', or a positive integer. Unknown variable 'foo'."
         with self.assertRaisesMsg(msg):
             run(text)
 
