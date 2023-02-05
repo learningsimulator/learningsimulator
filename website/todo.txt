@@ -1,22 +1,30 @@
-Take dpi into account: @figure foo {'dpi': 200}
-(Maybe add dpi to settings?)
-
-For plotly-figures: "Download plot as"-icon can choose image format (ong/svg/...)?
+Merge in master
 
 For Mpl-figures: Add "Note: Can be overwritten by @figure ... { figsize: [width, height] }"
 
-Move "Default legend position", "Default colors", "Default plot size" to "My Preferences"?
+Take dpi into account: @figure foo {'dpi': 200}
+Also add dpi to settings - overwritten by above @figure command, like figsize?
 
-"Restore defaults", at least for "Paper" and "Plot background"
+Selection png/svg for download plotly-plot (with camera-icon)
+https://plotly.com/javascript/configuration-options/#customize-download-plot-options
+(For plotly-figures: "Download plot as"-icon can choose image format (ong/svg/...)?)
+
+"Restore (factory) defaults", at least for "Paper" and "Plot background"
+
+"You sure you want to delete script ...?"
+
+"Keep current figures" checkbox (If an error occurs, dont delete current figs if this is checked)
 
 A clickable question-mark icon for help on some settings, at least plotly/mpl.
 (Include "This is the DEFAULT setting - it can be changed in each plot interactively
-using the CP")
+after the plot is created")
 
 Delete @export-files and images files when figure / "export-icon" is
 deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
 
-"Plot as" switch buttons instead of drop-down
+Issue warning (somehow) if unsupported mpl-props are used, saying "can be changed
+using advanced settings" or something like that. Only "color", "linewidth",
+"marker" and "markersize" (and "label") are supported.
 
 Menu: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
 Menu: Search/Replace
@@ -40,39 +48,18 @@ start_at_1
 Check that html element contraints (min, max values, string lengths, required, etc) match db
 -1 < legend_{x,y} < 2 kanske?
 
-Left navbar with
-"My Scripts"
-"Demo Scripts"'
-
-"You sure you want to delete script ...?"
+Tabbed layout with current script on one tab and demo script on the other
 
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.
 (Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
-Inspiration:
-https://plotly.com/javascript/configuration-options/ - especially "editable mode"
-https://plotly.com/javascript/custom-buttons/
-
-"Script ... saved" flash
-Make "Name of script" read-only but with an "Edit" button that makes it editable and shows "Save" and "Cancel"
-=> "Cache" can be removed? No
-=> But keep "Save" button
-=> "Retrieve last saved" not needed
+"Script ... saved" flash (how to use on single-page site)
+https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
 
 Redis Queue
 Progress bar
 
 Plot: "Download" button for mpl image plots (instead of having to right-click and save image as)
-Plot: "Keep figures" checkbox (If an error occurs, dont delete current figs)
-Plot parameters: Grid on/off
-Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
-Plot parameters: Legend on/off, legend positioning
-Plot parameters: Plot title, xlim, ylim, xlabel, ylabel, ...
-Plot parameters: line color, thickness, marker, marker size, color, etc.
-
-Plot: Range sliders?
-
-Plots: Responsive layout for plots: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_two_columns_responsive
 
 Plot: Subplot titles workaround
 (https://stackoverflow.com/questions/51592730/how-to-add-title-to-each-subplot-in-plotly-js, 
@@ -81,13 +68,53 @@ https://codepen.io/mdnasirfardoush/pen/gjovjO?editors=1010)
 Test accessibility bugs:
 https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
-favicon
+favicon: see warning in console (used before DOM is loaded?)
 
-Move inline styling to css
+Move (all) inline styling to css
 
 Hide db passwd, SECRET_KEY, etc.
 
-Investigate if use_pyplot=False can be used in Tk frontend.
-
 Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
+
+------------------------------------------------------------------------
+
+X Use "editable mode": https://plotly.com/javascript/configuration-options/ 
+  for Plot parameters: Plot title, xlim, ylim, xlabel, ylabel
+
+X Make "control panel" for plots:
+X     Plot parameters: Grid on/off toggle button
+X     Plot parameters: Legend on/off toggle button
+X using https://plotly.com/javascript/custom-buttons/ ?
+
+
+
+
+============
+Maybe later
+============
+Move "Default legend position", "Default colors", "Default plot size" to "My Preferences"?
+
+"Plot as" switch buttons instead of drop-down
+
+Log-window?
+
+Inspiration:
+https://plotly.com/javascript/configuration-options/ - especially "editable mode"
+
+Make "Name of script" read-only but with an "Edit" button that makes it editable and shows "Save" and "Cancel"
+
+Plots: Responsive layout for plots: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_two_columns_responsive
+(Needed?)
+
+Plot: Range sliders?
+
+
+=========================================================
+Maybe make issue (later):
+=========================================================
+Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
+Plot parameters: Legend on/off, legend positioning
+Plot parameters: line color, thickness, marker, marker size, color, etc.
+
+Investigate if use_pyplot=False can be used in Tk frontend. (See issue about crashes.)

@@ -190,9 +190,9 @@ def validate_settings(s):
     if not is_hex_color(val):
         return PREFIX + "plot background color: " + str(val)
 
-    val = s['keep_plots']
-    if val not in (True, False):
-        return PREFIX + "keep plots: " + str(val)
+    # val = s['keep_plots']
+    # if val not in (True, False):
+    #     return PREFIX + "keep plots: " + str(val)
     return None
 
 

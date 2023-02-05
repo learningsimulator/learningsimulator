@@ -32,12 +32,10 @@ function onLoad() { // DOM is loaded and ready
 
     // Settings
     const settingsButton = document.getElementById("button-settings");
-    // const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
-    // const settingsDlgOK = document.getElementById("settingsdlg-ok");
-    // const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
+    const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
+    const settingsDlgOK = document.getElementById("settingsdlg-ok");
+    const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
     const settingsDlgPlotType = document.getElementById("settings-plottype");
-    const settingsDiv = document.getElementById("div-settings");
-    // const settingsDlgFileType = document.getElementById("settings-div-filetype");
 
     settingsDlgPlotType.addEventListener("change", plotlyMplVisibility);
     plotlyMplVisibility();
@@ -76,7 +74,7 @@ function onLoad() { // DOM is loaded and ready
         }
         else {
             divDemo.style.maxHeight = divDemo.scrollHeight + "px";
-        } 
+        }
     }
 
     // To synchronise the scrolling of script textarea and linecounter textarea:
@@ -175,7 +173,6 @@ function onLoad() { // DOM is loaded and ready
             this.legend_orientation = null;
             this.paper_color = null;
             this.plot_bgcolor = null;
-            this.keep_plots = null;
         }
 
         readFromDB() {
@@ -199,24 +196,11 @@ function onLoad() { // DOM is loaded and ready
                     this.legend_orientation = data['legend_orientation'];
                     this.paper_color = data['paper_color'];
                     this.plot_bgcolor = data['plot_bgcolor'];
-                    this.keep_plots = data['keep_plots'];
-                    this._updateUI();
                 }
             );
         }
 
-        // _validate() {
-        //     let err = null;
-        //     return err;
-        // }
-
-        save() {
-            // const err_client = this._validate();
-            // if (err_client) {
-            //     // alert(err_client);
-            //     return err_client;
-            // }
-
+        readFromUI() {
             this.plot_type = document.getElementById("settings-plottype").value;
             this.file_type = document.getElementById("settings-filetype").value;
             this.plot_orientation = document.getElementById("settings-plotorientation").value;
@@ -229,13 +213,9 @@ function onLoad() { // DOM is loaded and ready
             this.legend_orientation = document.getElementById("settings-legendorientation").value;
             this.paper_color = document.getElementById("settings-paperbgcolor").value;
             this.plot_bgcolor = document.getElementById("settings-plotbgcolor").value;
-            this.keep_plots = document.getElementById("settings-keep").checked;
-
-            // Save to db
-            this._writeToDB();
         }
 
-        _writeToDB() {
+        saveToDB() {
             // The id of the settings for the current user is stored in the
             // attribute "data-settingsid" of the textbox
             const settingsId = usersScriptCode.dataset.settingsid;
@@ -250,17 +230,16 @@ function onLoad() { // DOM is loaded and ready
                 .then(data => {
                     const error = data['error'];
                     if (error) {
-                        alert(error);
-                        // return error;
+                        return error;
                     }
-                    // else {
-                    //     return null;
-                    // }
+                    else {
+                        return null;
+                    }
                 }
             );
         }
 
-        _updateUI() {
+        updateUI() {
             document.getElementById("settings-plottype").value = this.plot_type;
             document.getElementById("settings-filetype").value = this.file_type;
             document.getElementById("settings-plotorientation").value = this.plot_orientation;
@@ -273,43 +252,52 @@ function onLoad() { // DOM is loaded and ready
             document.getElementById("settings-legendorientation").value = this.legend_orientation;
             document.getElementById("settings-paperbgcolor").value = this.paper_color;
             document.getElementById("settings-plotbgcolor").value = this.plot_bgcolor;
-            document.getElementById("settings-keep").checked = this.keep_plots;
         }
 
     }
 
     var settings = new Settings();
     settings.readFromDB();
-    // settings.updateUI();
 
     // ======================================= Settings "dialog box" =======================================
 
     // Open settings "dialog"
     if (settingsButton) {
         settingsButton.addEventListener('click', () => {
-            // settings.update_ui();
-            toggleSettings();
-            // settingsDlgModalBg.style.display = "block";
+            settings.updateUI();
+            settingsDlgModalBg.style.display = "block";
         });
     }
 
-    function toggleSettings() {
-        if (settingsDiv.style.display == "block") {
-            settingsDiv.style.display = "none";
-            settingsButton.textContent = ">>";
-            document.getElementById('editor').setAttribute("style", "height:calc(100% - 110px);");
+    // function toggleSettings() {
+    //     if (settingsDiv.style.display == "block") {
+    //         settingsDiv.style.display = "none";
+    //         settingsButton.textContent = ">>";
+    //         document.getElementById('editor').setAttribute("style", "height:calc(100% - 110px);");
+    //     }
+    //     else {
+    //         settingsDiv.style.display = "block";
+    //         settingsButton.textContent = "<<";
+    //         document.getElementById('editor').setAttribute("style", "height:calc(100% - 500px);");
+    //     }
+    // }
+
+    // When the user clicks on Cancel, close the settings dialog
+    settingsDlgOK.onclick = function() {
+        settings.readFromUI();
+        const err = settings.saveToDB();
+        if (err) {
+            alert(err);
         }
         else {
-            settingsDiv.style.display = "block";
-            settingsButton.textContent = "<<";
-            document.getElementById('editor').setAttribute("style", "height:calc(100% - 500px);");
+            settingsDlgModalBg.style.display = "none";
         }
     }
 
-    // // When the user clicks on Cancel, close the settings dialog
-    // settingsDlgCancel.onclick = function() {
-    //     settingsDlgModalBg.style.display = "none";
-    // }
+    // When the user clicks on Cancel, close the settings dialog
+    settingsDlgCancel.onclick = function() {
+        settingsDlgModalBg.style.display = "none";
+    }
 
     // When the user clicks anywhere outside of the modal, close it
     // window.onclick = function(event) {
@@ -409,7 +397,6 @@ function onLoad() { // DOM is loaded and ready
         const name = usersScriptName.value;
         const code = usersScriptCode.value;
         saveScript(name, code);
-        settings.save();
     }
 
     function userRunButtonClicked() {
@@ -426,7 +413,6 @@ function onLoad() { // DOM is loaded and ready
             plotArea = document.getElementById('plotarea-demo');
         }
         else {
-            settings.save();
             if (settings.plot_orientation === 'vertical') {
                 plotArea = document.getElementById('plotarea-vert');
             }
@@ -571,6 +557,7 @@ function onLoad() { // DOM is loaded and ready
                 chartAndCPDiv.className = 'close-button-plot';
 
                 let chartDiv = document.createElement('div');
+                chartDiv.id = "div-plotly_" + makeRandomString(10);
                 // let chartHr = document.createElement('hr');
                 chartDiv.dataset.containsPlot = "0";
                 chartDiv.dataset.title = "";
@@ -588,8 +575,8 @@ function onLoad() { // DOM is loaded and ready
                 chartDivResizeObserver.observe(chartDiv);
                 chartAndCPDiv.appendChild(chartDiv);
 
-                let chartDivCP = createChartControlPanel(chartAndCPDiv.id);
-                
+                let chartDivCP = createChartControlPanel(chartDiv.id, chartAndCPDiv.id);
+
                 chartAndCPDiv.appendChild(chartDivCP);
                 plotArea.appendChild(chartAndCPDiv);
 
@@ -713,7 +700,7 @@ function onLoad() { // DOM is loaded and ready
         removeAllChartDivs(plotArea);
         for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
-            chartDiv.id = "div-mpld3_" + i;
+            chartDiv.id = "div-mpld3_" + makeRandomString(10);
             chartDiv.style.border = "3px solid blue";
 
             let chartImg;
@@ -748,10 +735,10 @@ function onLoad() { // DOM is loaded and ready
             chartAndCPDiv.id =  makeRandomString(10);
             chartAndCPDiv.className = 'close-button-plot';
 
-            let chartDivCP = createChartControlPanel(chartAndCPDiv.id);
-            
+            let chartDivCP = createChartControlPanel(chartDiv.id, chartAndCPDiv.id);
+
             chartAndCPDiv.appendChild(chartDivCP);
-            plotArea.appendChild(chartAndCPDiv);            
+            plotArea.appendChild(chartAndCPDiv);
             chartAndCPDiv.appendChild(chartDiv);
 
         }
@@ -761,17 +748,81 @@ function onLoad() { // DOM is loaded and ready
     }
 
     /* Create Control Panel div (with e.g. Close Figure button). */
-    function createChartControlPanel(id) {
+    function createChartControlPanel(chartDivId, chartAndCPDivId) {
         let chartDivCP = document.createElement('div');
         chartDivCP.style.position = "absolute";
         chartDivCP.style.top = 0;
         chartDivCP.style.left = 0;
+
+        // Close button
         let chartDivCloseButton = document.createElement('button');
-        chartDivCloseButton.dataset.id = id;  // So that close button knows which figure to close
+        chartDivCloseButton.dataset.id = chartAndCPDivId;  // So that close button knows which figure to close
         chartDivCloseButton.innerText = "Close";
         chartDivCloseButton.addEventListener('click', closeFig);
         chartDivCP.appendChild(chartDivCloseButton);
+
+        // Local (per plot) settings
+        let localSettingsDiv = document.createElement('div');
+        let legendToggleBtn = document.createElement('button');
+        legendToggleBtn.dataset.id = chartDivId;
+        legendToggleBtn.innerText = "Toggle Legend";
+        legendToggleBtn.addEventListener('click', toggleLegend);
+
+        let xGridToggleBtn = document.createElement('button');
+        xGridToggleBtn.dataset.id = chartDivId;
+        xGridToggleBtn.innerText = "Toggle x-grid";
+        xGridToggleBtn.addEventListener('click', toggleXGrid);
+
+        let yGridToggleBtn = document.createElement('button');
+        yGridToggleBtn.dataset.id = chartDivId;
+        yGridToggleBtn.innerText = "Toggle y-grid";
+        yGridToggleBtn.addEventListener('click', toggleYGrid);
+
+        localSettingsDiv.appendChild(legendToggleBtn);
+        localSettingsDiv.appendChild(xGridToggleBtn);
+        localSettingsDiv.appendChild(yGridToggleBtn);
+
+        chartDivCP.appendChild(localSettingsDiv);
+
         return chartDivCP;
+    }
+
+    function toggleLegend() {
+        let chartDiv = document.getElementById(this.dataset.id);
+        let currValue = chartDiv.layout.showlegend;
+        var layout_update = {showlegend: !currValue};
+        Plotly.relayout(chartDiv, layout_update);
+    }
+
+    function toggleXGrid() {
+        let chartDiv = document.getElementById(this.dataset.id);
+        toggleGrid('x', chartDiv);
+    }
+
+    function toggleYGrid() {
+        let chartDiv = document.getElementById(this.dataset.id);
+        toggleGrid('y', chartDiv);
+    }
+
+    function toggleGrid(dimension, chartDiv) {
+        let currValue;
+        if (dimension === 'x') {
+            currValue= chartDiv.layout.xaxis.showgrid;
+        }
+        else {
+            currValue= chartDiv.layout.yaxis.showgrid;
+        }
+        if (currValue === undefined) {
+            currValue = true;  // The default value, though {x/y}axis.showgrid doesn't exist
+        }
+        var layout_update
+        if (dimension === 'x') {
+            layout_update = {xaxis: {showgrid: !currValue}};
+        }
+        else {
+            layout_update = {yaxis: {showgrid: !currValue}};
+        }
+        Plotly.relayout(chartDiv, layout_update);
     }
 
     function plotSubplots(chartDiv, subplotPlots) {
@@ -782,7 +833,7 @@ function onLoad() { // DOM is loaded and ready
         for (const plotCmd of subplotPlots) {
             const subplotSpec = JSON.parse(plotCmd['subplot']['spec_list']);
             const mpl_prop = JSON.parse(plotCmd['subplot']['mpl_prop']);
-            
+
             nRows = subplotSpec[0];
             nCols = subplotSpec[1];
             const subplotNo = subplotSpec[2];
@@ -847,9 +898,37 @@ function onLoad() { // DOM is loaded and ready
         return true;
     }
 
+    // function getUpdateMenus() {
+    //     var updatemenus = [
+    //         {
+    //             buttons: [
+    //                 {
+    //                     args: ['showlegend', true],
+    //                     label: 'Legend',
+    //                     method: 'relayout'
+    //                 },
+    //                 {
+    //                     args: ['type', 'heatmap'],
+    //                     label:'Heatmap',
+    //                     method:'restyle'
+    //                 }
+    //             ],
+    //             direction: 'left',
+    //             pad: {'l': 10, 't': 10},
+    //             showactive: true,
+    //             type: 'buttons',
+    //             x: 0,
+    //             xanchor: 'left',
+    //             y: 1,
+    //             yanchor: 'top'
+    //         }
+    //     ]
+    //     return updatemenus;
+    // }
+
     function getPlotArgs(cmd, chartDiv) {
         const ydatas = JSON.parse(cmd['ydatas']);
-        const nLines = ydatas.length;        
+        const nLines = ydatas.length;
         plot_argss = JSON.parse(cmd['plot_args']);
 
         let plotlyData = [];
@@ -902,7 +981,9 @@ function onLoad() { // DOM is loaded and ready
             showlegend: false,
             plot_bgcolor: settings.plot_bgcolor,
             paper_bgcolor: settings.paper_color,
-            title: chartDiv.dataset.title            
+            title: chartDiv.dataset.title,
+            // updatemenus: getUpdateMenus()
+
             // xaxis: {  // XXX remember that for subplots, the axes are called xaxis2, etc.
             //     zeroline: true,
             //     zerolinewidth: 1,
@@ -921,10 +1002,16 @@ function onLoad() { // DOM is loaded and ready
         const plotlyData = plotArgs['plotlyData'];
         const layout = plotArgs['layout'];
         if (chartDiv.dataset.containsPlot === "1") {
-            Plotly.addTraces(chartDiv, plotlyData);    
+            Plotly.addTraces(chartDiv, plotlyData);
         }
         else {
-            Plotly.react(chartDiv, plotlyData, layout);
+            var config = {
+                showLink: true,
+                plotlyServerURL: "https://chart-studio.plotly.com",
+                linkText: 'Edit with Plotly Chart Studio',
+                editable: true
+            };
+            Plotly.react(chartDiv, plotlyData, layout, config);
             // Plotly.newPlot(chartDiv, plotlyData, layout);
         }
     }
@@ -949,6 +1036,6 @@ function onLoad() { // DOM is loaded and ready
         }
         return result;
     }
-      
+
 
 }
