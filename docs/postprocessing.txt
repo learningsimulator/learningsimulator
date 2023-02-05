@@ -328,14 +328,14 @@ plots the probability of responding with ``b`` to the stimulus ``s``, and ``line
 @wplot
 ******
 
-The command ``@wplot`` plots a w-value (the conditional reinforcement for a stimulus element) for the mechanisms that support this (*Guided associative learning* and *Actor-critic*).
+The command ``@wplot`` plots a w-value (the conditioned reinforcement for a stimulus element) for the mechanisms that support this (*Guided associative learning* and *Actor-critic*).
 
 Syntax::
 
   @wplot e
   @wplot e line_parameters
 
-plots the conditional reinforcement value for the stimulus element ``e``, and ``line_parameters`` are :ref:`line-parameters`.
+plots the conditioned reinforcement value for the stimulus element ``e``, and ``line_parameters`` are :ref:`line-parameters`.
 
 .. _nplot:
 

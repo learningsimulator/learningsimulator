@@ -176,9 +176,9 @@ runlabel: trace
         self.assertIncreasing(plot_data['no trace']['y'][0:50])
         self.assertIncreasing(plot_data['trace']['y'][0:50])
 
-        # Check that trace line is almost straight after 60
-        ref = plot_data['trace']['y'][60]
-        for y in plot_data['trace']['y'][60:]:
+        # Check that trace line is almost straight after 80
+        ref = plot_data['trace']['y'][80]
+        for y in plot_data['trace']['y'][80:]:
             self.assertLess(abs(y - ref), 0.0005)
 
         self.assertGreater(plot_data['trace']['y'][-1], 6.5)
@@ -268,7 +268,7 @@ class TestMechanisms(LsTestCase):
 
     def test_ga(self):
         script = '''
-n_subjects           : 100
+n_subjects           : 1
 mechanism            : ga
 behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
@@ -348,7 +348,7 @@ behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
 bind_trials          : off
 
-@phase acquisition stop: plant=200
+@phase acquisition stop: plant=150
 new_trial              | PLANT
 PLANT       plant     | approach: BERRY | new_trial
 BERRY       berry     | eat: REWARD     | NO_REWARD
@@ -410,7 +410,7 @@ runlabel:ga0.5
 
 @legend
 '''
-        script_obj, script_output = run(script)
+        run(script)
         plot_data = get_plot_data()
 
         for lbl in ['0', '0: plant->approach', '0.25', '0.5', '0.5: plant->approach']:

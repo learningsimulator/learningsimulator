@@ -4,25 +4,17 @@ from parsing import Script
 from phases import World
 import util
 
-from .testutil import check_run_output_subject
+from .testutil import check_run_output_subject, run
 
 
-def parse(text):
+def parse(text, phase_label):
     script = Script(text)
     script.parse()
     script_parser = script.script_parser
-    runs = script_parser.runs
-    nruns = len(runs.runs)
-    if nruns != 1:
-        phases = script_parser.phases.phases
-        for phaselbl, phase in phases.items():
-            if not phase.is_parsed:
-                phase.parse(script_parser.parameters, script_parser.variables)
-        world = World(phases, list(phases.keys()))
-    else:
-        run = list(runs.runs.values())[0]
-        world = run.world
-    return world, script
+    phase_obj = script_parser.phases.phases[phase_label]
+    if not phase_obj.is_parsed:
+        phase_obj.parse(script_parser.parameters, script_parser.variables)
+    return phase_obj
 
 
 def check_logic(self, condition, lineno, cond, cond_is_behavior, goto):
@@ -50,7 +42,7 @@ class TestMisc(LsTestCase):
         PL1    E1  |  PL2
         PL2    E2  |  PL0
         """
-        world, _ = parse(script)
+        world = parse(script, 'foo')
         msg = "Error on line 9: Unknown variable 'E00'."
         world.next_stimulus(None)
         with self.assertRaisesMsg(msg):
@@ -69,8 +61,11 @@ class TestMisc(LsTestCase):
 
         @run foo, foo
         """
-        w, script_obj = parse(script)
-        simulation_data = script_obj.run()
+        
+        # w, script_obj = parse(script)
+        # simulation_data = script_obj.run()
+        _, simulation_data = run(script)
+
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         _, cumsum = util.find_and_cumsum(history, 'E0', True)
         self.assertEqual(cumsum[-1], 20)
@@ -90,10 +85,10 @@ class TestClassicalConditioning(LsTestCase):
         US      us,context     | R: REWARD   | CONTEXT
         REWARD  reward,context | CONTEXT
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'pretraining')
 
     def test_props(self):
-        phase = self.world.phases[0]
+        phase = self.phase
         self.assertEqual(phase.first_label, "CONTEXT")
         self.assertEqual(phase.stop_condition.lineno, 5)
         self.assertEqual(phase.stop_condition.cond, "reward=20")
@@ -119,40 +114,40 @@ class TestClassicalConditioning(LsTestCase):
         check_logic(self, conditions[0], 8, None, False, [[1, "CONTEXT"]])
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)
-        self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], True))
+        phase = self.phase
+        s = phase.next_stimulus(None)
+        self.assertEqual(s, ({"context": 1}, 'CONTEXT', [], True))
 
         for _ in range(24):
-            s = world.next_stimulus('foo')
-            self.assertEqual(s, ({"context": 1}, 'pretraining', 'CONTEXT', [], False))
-        s = world.next_stimulus('foo')
-        self.assertEqual(s, ({"us": 1, "context": 1}, 'pretraining', 'US', [], False))
+            s = phase.next_stimulus('foo')
+            self.assertEqual(s, ({"context": 1}, 'CONTEXT', [], False))
+        s = phase.next_stimulus('foo')
+        self.assertEqual(s, ({"us": 1, "context": 1}, 'US', [], False))
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {"reward": 1, "context": 1})
 
         for _ in range(25):
-            s = world.next_stimulus('foo')
+            s = phase.next_stimulus('foo')
             self.assertEqual(s[0], {"context": 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {"us": 1, "context": 1})
 
         for i in range(19):
             for j in range(25):
-                s = world.next_stimulus('foo')
+                s = phase.next_stimulus('foo')
                 self.assertEqual(s[0], {"context": 1})
-            s = world.next_stimulus('R')
+            s = phase.next_stimulus('R')
             self.assertEqual(s[0], {"us": 1, "context": 1})
-            s = world.next_stimulus('R')
+            s = phase.next_stimulus('R')
             self.assertEqual(s[0], {"reward": 1, "context": 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertIsNone(s[0])
 
         for _ in range(100):
-            s = world.next_stimulus('R')
+            s = phase.next_stimulus('R')
             self.assertIsNone(s[0])
 
 
@@ -167,10 +162,10 @@ class TestFixedInterval(LsTestCase):
         ON     lever   | R: REWARD | ON
         REWARD reward  | OFF
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'fixed_interval')
 
     def test_props(self):
-        phase = self.world.phases[0]
+        phase = self.phase
         self.assertEqual(phase.first_label, "OFF")
         self.assertEqual(phase.stop_condition.lineno, 5)
         self.assertEqual(phase.stop_condition.cond, "reward=25")
@@ -212,10 +207,10 @@ class TestFixedRatio(LsTestCase):
         ON  lever       | R: REWARD | ON
         REWARD  reward  | OFF
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'fixed_ratio')
 
     def test_props(self):
-        phase = self.world.phases[0]
+        phase = self.phase
         self.assertEqual(phase.first_label, "OFF")
         self.assertEqual(phase.stop_condition.lineno, 5)
         self.assertEqual(phase.stop_condition.cond, "reward=23")
@@ -243,37 +238,37 @@ class TestFixedRatio(LsTestCase):
         check_logic(self, conditions[0], 8, None, False, [[1, "OFF"]])
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)
+        phase = self.phase
+        s = phase.next_stimulus(None)
         self.assertEqual(s[0], {'lever': 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'reward': 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
 
         for _ in range(100):
-            s = world.next_stimulus('R0')
+            s = phase.next_stimulus('R0')
             self.assertEqual(s[0], {'lever': 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'reward': 1})
 
 
@@ -288,10 +283,10 @@ class TestProbabilitySchedule(LsTestCase):
         REWARD1  reward1 | LEVER
         REWARD2  reward2 | LEVER
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'prob_shedule')
 
     def test_props(self):
-        phase = self.world.phases[0]
+        phase = self.phase
         self.assertEqual(phase.first_label, "LEVER")
         self.assertEqual(phase.stop_condition.lineno, 5)
         self.assertEqual(phase.stop_condition.cond, "reward=100000")
@@ -318,15 +313,15 @@ class TestProbabilitySchedule(LsTestCase):
         check_logic(self, conditions[0], 8, None, False, [[1, "LEVER"]])
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)[0]
+        phase = self.phase
+        s = phase.next_stimulus(None)[0]
         self.assertEqual(s, {'lever': 1})
 
         d = {'lever': 0, 'reward1': 0, 'reward2': 0}
         n = 200000
         prev_was_lever = True
         for _ in range(n):
-            s = world.next_stimulus('R')[0]
+            s = phase.next_stimulus('R')[0]
             s = list(s.keys())[0]
             if prev_was_lever:
                 d[s] += 1
@@ -350,10 +345,10 @@ class TestVariableInterval(LsTestCase):
         ON  leveron     | R:REWARD | ON
         REWARD  reward  | ON(1/3),FI2(1/3),FI3(1/3)
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'variable_interval')
 
     def test_props(self):
-        phase = self.world.phases[0]
+        phase = self.phase
         self.assertEqual(phase.first_label, "FI3")
         self.assertEqual(phase.stop_condition.lineno, 5)
         self.assertEqual(phase.stop_condition.cond, "reward =200000")
@@ -389,30 +384,30 @@ class TestVariableInterval(LsTestCase):
                     [[1 / 3, "ON"], [1 / 3, "FI2"], [1 / 3, "FI3"]])
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)
+        phase = self.phase
+        s = phase.next_stimulus(None)
         self.assertEqual(s[0], {'lever3': 1})
 
-        s = world.next_stimulus('foo')
+        s = phase.next_stimulus('foo')
         self.assertEqual(s[0], {'lever3': 1})
 
-        s = world.next_stimulus('bar')
+        s = phase.next_stimulus('bar')
         self.assertEqual(s[0], {'lever3': 1})
 
-        s = world.next_stimulus('foobar')
+        s = phase.next_stimulus('foobar')
         self.assertEqual(s[0], {'leveron': 1})
 
         for _ in range(100):
-            s = world.next_stimulus('foobar')
+            s = phase.next_stimulus('foobar')
             self.assertEqual(s[0], {'leveron': 1})
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'reward': 1})
 
         d = {'lever3': 0, 'lever2': 0, 'leveron': 0}
         n = 200000
         prev_was_reward = True
         for _ in range(n):
-            s = world.next_stimulus('R')[0]
+            s = phase.next_stimulus('R')[0]
             s = list(s.keys())[0]
             if prev_was_reward:
                 d[s] += 1
@@ -436,40 +431,40 @@ class TestVariableRatio(LsTestCase):
         ON  leveron    | R:REWARD    | R1:ON
         REWARD  reward | ON(1/3),FR2(1/3),FR3(1/3)
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'variable_ratio')
 
     def test_props(self):
         pass
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)
+        phase = self.phase
+        s = phase.next_stimulus(None)
         self.assertEqual(s[0], {'lever': 1})
 
         # First R
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'lever': 1})
 
         for _ in range(142):
-            s = world.next_stimulus('bar')
+            s = phase.next_stimulus('bar')
             self.assertEqual(s[0], {'lever': 1})
 
         # Second R, go to ON
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'leveron': 1})
 
         for _ in range(107):
-            s = world.next_stimulus('R1')
+            s = phase.next_stimulus('R1')
             self.assertEqual(s[0], {'leveron': 1})
 
-        s = world.next_stimulus('R')
+        s = phase.next_stimulus('R')
         self.assertEqual(s[0], {'reward': 1})
 
         d = {'lever': 0, 'leveron': 0}
-        n = 200000
+        n = 300000
         prev_was_reward = True
         for _ in range(n):
-            s_dict = world.next_stimulus('R')[0]
+            s_dict = phase.next_stimulus('R')[0]
             s = list(s_dict.keys())[0]
             if prev_was_reward:
                 d[s] += 1
@@ -490,26 +485,26 @@ class TestFixedTime(LsTestCase):
         LEVER   lever   | count_line()=5: REWARD  | LEVER
         REWARD  reward  | LEVER
         """
-        self.world, _ = parse(script)
+        self.phase = parse(script, 'fixed_time')
 
     def test_props(self):
         pass
 
     def test_run(self):
-        world = self.world
-        s = world.next_stimulus(None)[0]
+        phase = self.phase
+        s = phase.next_stimulus(None)[0]
         self.assertEqual(s, {'lever': 1})
 
         for _ in range(4):
-            s = world.next_stimulus('foo')[0]
+            s = phase.next_stimulus('foo')[0]
             self.assertEqual(s, {'lever': 1})
 
-        s = world.next_stimulus('foo')[0]
+        s = phase.next_stimulus('foo')[0]
         self.assertEqual(s, {'reward': 1})
 
         for i in range(100):
             for _ in range(5):
-                s = world.next_stimulus('foo')[0]
+                s = phase.next_stimulus('foo')[0]
                 self.assertEqual(s, {'lever': 1})
-            s = world.next_stimulus('bar')[0]
+            s = phase.next_stimulus('bar')[0]
             self.assertEqual(s, {'reward': 1})

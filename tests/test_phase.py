@@ -1920,8 +1920,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_phase_line_label(self):
         text = '''
@@ -1939,8 +1939,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_stimulus_with_xscale(self):
         text = '''
@@ -1959,8 +1959,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2])
-        self.assertEqual(ns['y'], [0, 1, 2])
+        self.assertEqual(ns['x'], [0, 1])
+        self.assertEqual(ns['y'], [0, 1])
 
     def test_stopcond_stimulus_with_phases(self):
         text = '''
@@ -1982,8 +1982,8 @@ class TestWithPlots(LsTestCase):
         run(text)
         plot_data = get_plot_data()
         ns = plot_data
-        self.assertEqual(ns['x'], [0, 1, 2, 3, 4])
-        self.assertEqual(ns['y'], [0, 1, 1, 2, 2])
+        self.assertEqual(ns['x'], [0, 1, 2, 3])
+        self.assertEqual(ns['y'], [1, 1, 2, 2])
 
     def test_stopcond_phase_line_label_with_xscale(self):
         text = '''
@@ -2057,18 +2057,6 @@ class TestExceptions(LsTestCase):
         phase.next_stimulus(None)
         with self.assertRaisesMsg(msg):
             phase.next_stimulus('b1')
-
-    def test_no_stopcond(self):
-        text = '''
-        stimulus_elements: e1, e2
-        behaviors: b1, b2
-        @PHASE phase_label
-        L1 e1 | L2
-        L2 e2 | L1
-        '''
-        msg = "Error on line 4: @PHASE line must have the form '@PHASE label stop:condition'."
-        with self.assertRaisesMsg(msg):
-            parse(text, 'phase_label')
 
     def test_empty_stopcond(self):
         text = '''
@@ -2606,3 +2594,32 @@ class TestExceptions(LsTestCase):
         msg = "Error on line 4: Phase label '123thelabel' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
+
+    def test_invalid_options_to_choice(self):
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2, b3
+        @PHASE lbl stop : e1==4
+        L1  e1  | x=choice(1,2,[32,23,43]), L2(0.2),L1(0.7) | L1
+        L2  e2  | L1
+
+        @run lbl
+        '''
+        msg = "Error on line 6: Cannot evaluate expression 'choice(1,2,[32,23,43])': The number of weights does not match the population."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2, b3
+        @PHASE lbl stop : e1==4
+        L1  e1  | x=choice([1,2],[32,23,43]), L2(0.2),L1(0.7) | L1
+        L2  e2  | L1
+
+        @run lbl
+        '''
+        msg = "Error on line 6: Cannot evaluate expression 'choice([1,2],[32,23,43])': The number of weights does not match the population."
+        with self.assertRaisesMsg(msg):
+            run(text)

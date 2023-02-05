@@ -89,7 +89,7 @@ In the scripting language, such restrictions are specified in the parameter :doc
 
 
 After observing the next stimulus :math:`S'` (being a consequence of the decision to respond with :math:`B`), the subject "learns" by updating an internal state variable
-:math:`v` indexed by stimulus-response pairs (so that :math:`v_{E\rightarrow B}` is the value associated with the response :math:`B` to stimulus element :math:`E`). Some mechanisms also use a state variable :math:`w` indexed by stimulus elements (so that :math:`w_E` is the value associated with stimulus element :math:`E`). The :math:`w`-values are usually called *conditional reinforcement* values. The table below shows the available learning mechanisms, their memory state variables, and how they are updated after the subject has experienced the steps
+:math:`v` indexed by stimulus-response pairs (so that :math:`v_{E\rightarrow B}` is the value associated with the response :math:`B` to stimulus element :math:`E`). Some mechanisms also use a state variable :math:`w` indexed by stimulus elements (so that :math:`w_E` is the value associated with stimulus element :math:`E`). The :math:`w`-values are usually called *conditioned reinforcement* values. The table below shows the available learning mechanisms, their memory state variables, and how they are updated after the subject has experienced the steps
 
 .. math::
   S \rightarrow B \rightarrow S'

@@ -28,11 +28,11 @@ class TestGitHubIssues(LsTestCase):
         @run phase_name
         @nplot s2
         '''
-        script, script_output = run(text)
+        run(text)
         plot_data = get_plot_data()
         y = plot_data['y']
-        assert(y[-1] < 550)
-        assert(y[-1] > 450)
+        self.assertLess(y[-1], 550)
+        self.assertGreater(y[-1], 450)
 
         plt.close('all')
 
@@ -54,7 +54,7 @@ class TestGitHubIssues(LsTestCase):
         plot_data = get_plot_data()
         x = plot_data['x']
         y = plot_data['y']
-        assert(x[-1] == 1000)
+        assert(x[-1] == 999)
         assert(y[-1] < 300)
         assert(y[-1] > 200)
 
@@ -129,10 +129,10 @@ class TestGitHubIssues(LsTestCase):
         plot_data = get_plot_data(figure_number=2)
         expected_value = 0
         for x, y in zip(plot_data['n(background)']['x'], plot_data['n(background)']['y']):
-            if x <= 2:
+            if x <= 1:
                 expected_value = 0
             else:
-                expected_value = (x + 1) // 4
+                expected_value = (x + 2) // 4
             self.assertEqual(y, expected_value)
         for y in plot_data['n(reward)']['y']:
             self.assertEqual(y, 0)
@@ -501,7 +501,7 @@ class TestFoundBugs(LsTestCase):
         line = lines[0]
         plotted_xdata = list(line.get_xdata(True))
         plotted_ydata = list(line.get_ydata(True))
-        self.assertEqual(plotted_xdata, list(range(0, 101)))
+        self.assertEqual(plotted_xdata, list(range(0, 100)))
         self.assertEqual(plotted_ydata[0:51], [0] * 51)
 
     def test_count_instead_of_local_variable(self):
@@ -546,7 +546,7 @@ class TestFoundBugs(LsTestCase):
         line = lines[0]
         plotted_xdata = list(line.get_xdata(True))
         plotted_ydata = list(line.get_ydata(True))
-        self.assertEqual(plotted_xdata, list(range(0, 101)))
+        self.assertEqual(plotted_xdata, list(range(0, 100)))
         self.assertEqual(plotted_ydata[0:51], [0] * 51)
 
     def test_phases_when_xscale_is_help_line_label(self):

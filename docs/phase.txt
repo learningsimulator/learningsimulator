@@ -212,7 +212,7 @@ using ``count_reset``, see below). Similarly,::
 
   count(pull_lever)
 
-evaluates to the number of times the afent has responded with the behavior ``pull_lever`` (to any stimulus) since the beginning of the phase, or since it was last reset.
+evaluates to the number of times the agent has responded with the behavior ``pull_lever`` (to any stimulus) since the beginning of the phase, or since it was last reset.
 
 To return the number of visits to a phase line with label ``LBL``, use::
 
@@ -367,7 +367,7 @@ phase represents a number of trials. In that case, it is often not desired to ca
 over the reinforcement value of, say, a reward at the and of a trial to the
 first stimulus in the next.
 
-For example, in mechanisms with conditional reinforcement values (w-values),
+For example, in mechanisms with conditioned reinforcement values (w-values),
 and we have the following stimulus-response history::
 
   s -> response -> reward -> eat -> s
