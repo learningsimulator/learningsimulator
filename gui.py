@@ -311,8 +311,8 @@ class Gui():
                 raise Exception("No simulation data to plot.")
 
             script = self.scriptField.text_box.get("1.0", "end-1c")
-            script_obj = Script(script)
-            script_obj.parse()
+            self.script_obj = Script(script)
+            self.script_obj.parse()
         except Exception as ex:
             self.handle_exception(ex)
             return
