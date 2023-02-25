@@ -1,19 +1,12 @@
-Merge in master
-
-For Mpl-figures: Add "Note: Can be overwritten by @figure ... { figsize: [width, height] }"
-
-Take dpi into account: @figure foo {'dpi': 200}
-Also add dpi to settings - overwritten by above @figure command, like figsize?
-
-Selection png/svg for download plotly-plot (with camera-icon)
+Selection png/jpeg/webp/svg for download plotly-plot (with camera-icon)
 https://plotly.com/javascript/configuration-options/#customize-download-plot-options
-(For plotly-figures: "Download plot as"-icon can choose image format (ong/svg/...)?)
+https://plotly.com/javascript/static-image-export/: "The common image formats: 'PNG', 'JPG/JPEG' are supported. In addition, formats like 'EPS', 'SVG' and 'PDF' are also available for user with a Personal or Professional subscription."
 
 "Restore (factory) defaults", at least for "Paper" and "Plot background"
 
-"You sure you want to delete script ...?"
-
 "Keep current figures" checkbox (If an error occurs, dont delete current figs if this is checked)
+
+"You sure you want to delete script ...?"
 
 A clickable question-mark icon for help on some settings, at least plotly/mpl.
 (Include "This is the DEFAULT setting - it can be changed in each plot interactively
@@ -22,7 +15,7 @@ after the plot is created")
 Delete @export-files and images files when figure / "export-icon" is
 deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
 
-Issue warning (somehow) if unsupported mpl-props are used, saying "can be changed
+Issue warning (somehow) if unsupported mpl-props for lines are used in plotly plot , saying "can be changed
 using advanced settings" or something like that. Only "color", "linewidth",
 "marker" and "markersize" (and "label") are supported.
 
@@ -70,6 +63,8 @@ https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campa
 
 favicon: see warning in console (used before DOM is loaded?)
 
+Uniform styling of buttons
+
 Move (all) inline styling to css
 
 Hide db passwd, SECRET_KEY, etc.
@@ -78,6 +73,21 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X Change default filename for exported plotly plots from "figfile..." (newplot)
+X to "learning_simulator..." e.dyl.
+
+X Remove default legend pos. (bec. it doesn't work for scripts without @legend,
+X and toggling legend with the "Toggle legend" button)
+
+X Buttons for toggle x-grid, y-grid, toggle legend only for plotly plots, not mpl.
+
+X Fix visbility of controls in settings based on plotly/mpl-selection.
+
+X When vector format is chosen, change "image size" to "plot size".
+
+X Toggle x-grid and y-grid only takes first subplot
+
+X Merge in master
 
 X Use "editable mode": https://plotly.com/javascript/configuration-options/ 
   for Plot parameters: Plot title, xlim, ylim, xlabel, ylabel
@@ -108,6 +118,11 @@ Plots: Responsive layout for plots: https://www.w3schools.com/howto/tryit.asp?fi
 (Needed?)
 
 Plot: Range sliders?
+
+For Mpl-figures: 
+Add "Image size and dpi can be set using
+    @figure ... {'figsize', [inches_x, inches_y], 'dpi', dpi}
+Add "Note: Can be overwritten by @figure ... { figsize: [width, height] }"
 
 
 =========================================================

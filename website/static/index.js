@@ -36,32 +36,60 @@ function onLoad() { // DOM is loaded and ready
     const settingsDlgOK = document.getElementById("settingsdlg-ok");
     const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
     const settingsDlgPlotType = document.getElementById("settings-plottype");
+    const settingsDlgFileTypeMpl = document.getElementById("settings-filetype-mpl");
+    const settingsDlgFileTypePlotly = document.getElementById("settings-filetype-plotly");
 
-    settingsDlgPlotType.addEventListener("change", plotlyMplVisibility);
-    plotlyMplVisibility();
-    function plotlyMplVisibility() {
+    settingsDlgPlotType.addEventListener("change", settingsDlgPlotTypeCb);
+    settingsDlgFileTypeMpl.addEventListener("change", settingsDlgFileTypeMplCb);
+
+    function settingsDlgPlotTypeCb() {
         if (settingsDlgPlotType.value === "image") {
             for (const el of document.getElementsByClassName("settings-plotly")) {
-                // el.style.visibility = "hidden";
                 el.style.display = "none";
             }
             for (const el of document.getElementsByClassName("settings-mpl")) {
-                // el.style.visibility = "visible";
-                el.style.display = "block";
+                if (el.classList.contains("inline")) {
+                    el.style.display = "inline";
+                }
+                else {
+                    el.style.display = "block";
+                }
             }
-            document.getElementById("settings-size").innerHTML = "Image size";
+            settingsDlgFileTypeMplCb();
         }
         else {
             for (const el of document.getElementsByClassName("settings-mpl")) {
-                // el.style.visibility = "hidden";
                 el.style.display = "none";
             }
             for (const el of document.getElementsByClassName("settings-plotly")) {
-                // el.style.visibility = "visible";
-                el.style.display = "block";
+                if (el.classList.contains("inline")) {
+                    el.style.display = "inline";
+                }
+                else {
+                    el.style.display = "block";
+                }
             }
-            document.getElementById("settings-size").innerHTML = "Plot size";
+            document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
+            settingsDlgFileTypePlotlyCb();
         }
+    }
+
+    function settingsDlgFileTypeMplCb() {
+        if (['png', 'jpg'].includes(settingsDlgFileTypeMpl.value)) {
+            document.getElementById("settings-size").innerHTML = "Image size";
+        }
+        else {
+            document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
+        }
+    }
+
+    function settingsDlgFileTypePlotlyCb() {
+        // if (['png', 'jpg'].includes(settingsDlgFileTypeMpl.value)) {
+        //     document.getElementById("settings-size").innerHTML = "Image size";
+        // }
+        // else {
+        //     document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
+        // }
     }
 
     // Showing/hiding demo scripts
@@ -163,13 +191,15 @@ function onLoad() { // DOM is loaded and ready
     class Settings {
         constructor() {
             this.plot_type = null;
+            this.file_type_mpl = null;
+            this.file_type_plotly = null;
             this.plot_orientation = null;
             this.plot_width = null;
             this.plot_height = null;
-            this.legend_x = null;
-            this.legend_y = null;
-            this.legend_x_anchor = null;
-            this.legend_y_anchor = null;
+            // this.legend_x = null;
+            // this.legend_y = null;
+            // this.legend_x_anchor = null;
+            // this.legend_y_anchor = null;
             this.legend_orientation = null;
             this.paper_color = null;
             this.plot_bgcolor = null;
@@ -185,14 +215,15 @@ function onLoad() { // DOM is loaded and ready
                 .then(response => response.json())
                 .then(data => {
                     this.plot_type = data['plot_type'];
-                    this.file_type = data['file_type'];
+                    this.file_type_mpl = data['file_type_mpl'];
+                    this.file_type_plotly = data['file_type_plotly'];
                     this.plot_orientation = data['plot_orientation'];
                     this.plot_width = data['plot_width'];
                     this.plot_height = data['plot_height'];
-                    this.legend_x = data['legend_x'];
-                    this.legend_y = data['legend_y'];
-                    this.legend_x_anchor = data['legend_x_anchor'];
-                    this.legend_y_anchor = data['legend_y_anchor'];
+                    // this.legend_x = data['legend_x'];
+                    // this.legend_y = data['legend_y'];
+                    // this.legend_x_anchor = data['legend_x_anchor'];
+                    // this.legend_y_anchor = data['legend_y_anchor'];
                     this.legend_orientation = data['legend_orientation'];
                     this.paper_color = data['paper_color'];
                     this.plot_bgcolor = data['plot_bgcolor'];
@@ -202,14 +233,15 @@ function onLoad() { // DOM is loaded and ready
 
         readFromUI() {
             this.plot_type = document.getElementById("settings-plottype").value;
-            this.file_type = document.getElementById("settings-filetype").value;
+            this.file_type_mpl = document.getElementById("settings-filetype-mpl").value;
+            this.file_type_plotly = document.getElementById("settings-filetype-plotly").value;
             this.plot_orientation = document.getElementById("settings-plotorientation").value;
             this.plot_width = document.getElementById("settings-plotwidth").value;
             this.plot_height = document.getElementById("settings-plotheight").value;
-            this.legend_x = document.getElementById("settings-legendrelx").value;
-            this.legend_y = document.getElementById("settings-legendrely").value;
-            this.legend_x_anchor = document.getElementById("settings-legendanchorx").value;
-            this.legend_y_anchor = document.getElementById("settings-legendanchory").value;
+            // this.legend_x = document.getElementById("settings-legendrelx").value;
+            // this.legend_y = document.getElementById("settings-legendrely").value;
+            // this.legend_x_anchor = document.getElementById("settings-legendanchorx").value;
+            // this.legend_y_anchor = document.getElementById("settings-legendanchory").value;
             this.legend_orientation = document.getElementById("settings-legendorientation").value;
             this.paper_color = document.getElementById("settings-paperbgcolor").value;
             this.plot_bgcolor = document.getElementById("settings-plotbgcolor").value;
@@ -241,14 +273,15 @@ function onLoad() { // DOM is loaded and ready
 
         updateUI() {
             document.getElementById("settings-plottype").value = this.plot_type;
-            document.getElementById("settings-filetype").value = this.file_type;
+            document.getElementById("settings-filetype-mpl").value = this.file_type_mpl;
+            document.getElementById("settings-filetype-plotly").value = this.file_type_plotly;
             document.getElementById("settings-plotorientation").value = this.plot_orientation;
             document.getElementById("settings-plotwidth").value = this.plot_width;
             document.getElementById("settings-plotheight").value = this.plot_height;
-            document.getElementById("settings-legendrelx").value = this.legend_x;
-            document.getElementById("settings-legendrely").value = this.legend_y;
-            document.getElementById("settings-legendanchorx").value = this.legend_x_anchor;
-            document.getElementById("settings-legendanchory").value = this.legend_y_anchor;
+            // document.getElementById("settings-legendrelx").value = this.legend_x;
+            // document.getElementById("settings-legendrely").value = this.legend_y;
+            // document.getElementById("settings-legendanchorx").value = this.legend_x_anchor;
+            // document.getElementById("settings-legendanchory").value = this.legend_y_anchor;
             document.getElementById("settings-legendorientation").value = this.legend_orientation;
             document.getElementById("settings-paperbgcolor").value = this.paper_color;
             document.getElementById("settings-plotbgcolor").value = this.plot_bgcolor;
@@ -265,6 +298,7 @@ function onLoad() { // DOM is loaded and ready
     if (settingsButton) {
         settingsButton.addEventListener('click', () => {
             settings.updateUI();
+            settingsDlgPlotTypeCb();
             settingsDlgModalBg.style.display = "block";
         });
     }
@@ -669,10 +703,10 @@ function onLoad() { // DOM is loaded and ready
         return {
             showlegend: true,
             legend: {
-                x: settings.legend_x,
-                y: settings.legend_y,
-                xanchor: settings.legend_x_anchor,
-                yanchor: settings.legend_y_anchor,
+                // x: settings.legend_x,
+                // y: settings.legend_y,
+                // xanchor: settings.legend_x_anchor,
+                // yanchor: settings.legend_y_anchor,
                 orientation: settings.legend_orientation
             }
         }
@@ -704,7 +738,7 @@ function onLoad() { // DOM is loaded and ready
             chartDiv.style.border = "3px solid blue";
 
             let chartImg;
-            if (settings.file_type === 'pdf') {
+            if (settings.file_type_mpl === 'pdf') {
                 chartImg = document.createElement('iframe');
                 chartImg.setAttribute("src", figImgs[i] + "#toolbar=0");
             }
@@ -713,14 +747,14 @@ function onLoad() { // DOM is loaded and ready
                 chartImg.setAttribute("src", figImgs[i]);
             }
 
-            if (settings.file_type === 'pdf') {  // Very small default iframe
+            if (settings.file_type_mpl === 'pdf') {  // Very small default iframe
                 chartDiv.style.width = settings.plot_width + "px";
                 chartDiv.style.height = settings.plot_height + "px";
                 // chartDiv.classList.add('hvcenter');
                 chartImg.style.width = "100%";
                 chartImg.style.height = "100%";
             }
-            else if (settings.file_type === 'svg') {  // Make div resizable, since svg is vector graphics
+            else if (settings.file_type_mpl === 'svg') {  // Make div resizable, since svg is vector graphics
                 chartDiv.style.resize = "both";
                 chartDiv.style.overflow = "hidden";
                 chartImg.style.width = "100%";
@@ -761,29 +795,30 @@ function onLoad() { // DOM is loaded and ready
         chartDivCloseButton.addEventListener('click', closeFig);
         chartDivCP.appendChild(chartDivCloseButton);
 
-        // Local (per plot) settings
-        let localSettingsDiv = document.createElement('div');
-        let legendToggleBtn = document.createElement('button');
-        legendToggleBtn.dataset.id = chartDivId;
-        legendToggleBtn.innerText = "Toggle Legend";
-        legendToggleBtn.addEventListener('click', toggleLegend);
+        if (settings.plot_type !== "image") {
+            // Local (per plot) settings
+            let localSettingsDiv = document.createElement('div');
+            let legendToggleBtn = document.createElement('button');
+            legendToggleBtn.dataset.id = chartDivId;
+            legendToggleBtn.innerText = "Toggle Legend";
+            legendToggleBtn.addEventListener('click', toggleLegend);
 
-        let xGridToggleBtn = document.createElement('button');
-        xGridToggleBtn.dataset.id = chartDivId;
-        xGridToggleBtn.innerText = "Toggle x-grid";
-        xGridToggleBtn.addEventListener('click', toggleXGrid);
+            let xGridToggleBtn = document.createElement('button');
+            xGridToggleBtn.dataset.id = chartDivId;
+            xGridToggleBtn.innerText = "Toggle x-grid";
+            xGridToggleBtn.addEventListener('click', toggleXGrid);
 
-        let yGridToggleBtn = document.createElement('button');
-        yGridToggleBtn.dataset.id = chartDivId;
-        yGridToggleBtn.innerText = "Toggle y-grid";
-        yGridToggleBtn.addEventListener('click', toggleYGrid);
+            let yGridToggleBtn = document.createElement('button');
+            yGridToggleBtn.dataset.id = chartDivId;
+            yGridToggleBtn.innerText = "Toggle y-grid";
+            yGridToggleBtn.addEventListener('click', toggleYGrid);
 
-        localSettingsDiv.appendChild(legendToggleBtn);
-        localSettingsDiv.appendChild(xGridToggleBtn);
-        localSettingsDiv.appendChild(yGridToggleBtn);
+            localSettingsDiv.appendChild(legendToggleBtn);
+            localSettingsDiv.appendChild(xGridToggleBtn);
+            localSettingsDiv.appendChild(yGridToggleBtn);
 
-        chartDivCP.appendChild(localSettingsDiv);
-
+            chartDivCP.appendChild(localSettingsDiv);
+        }
         return chartDivCP;
     }
 
@@ -805,24 +840,29 @@ function onLoad() { // DOM is loaded and ready
     }
 
     function toggleGrid(dimension, chartDiv) {
-        let currValue;
-        if (dimension === 'x') {
-            currValue= chartDiv.layout.xaxis.showgrid;
+        // dimension is 'x' or 'y'
+
+        axisNames = [dimension + 'axis'];
+        if (chartDiv.layout.grid) {
+            nRowsSubplot = parseInt(chartDiv.layout.grid.rows);
+            nColsSubplot = parseInt(chartDiv.layout.grid.columns);
+            nSubplots = nRowsSubplot * nColsSubplot;
+            for (let i = 2; i <= nSubplots; i++) {
+                axisNames.push(dimension + 'axis' + i);
+            }
         }
-        else {
-            currValue= chartDiv.layout.yaxis.showgrid;
+
+        for (let axisName of axisNames) {
+            let currValue;
+            currValue = chartDiv.layout[axisName].showgrid;
+            if (currValue === undefined) {
+                currValue = true;  // The default value, though {x/y}axis.showgrid doesn't exist
+            }
+            // Use bracket notation to evaluate the string axisName
+            let layout_update = {[axisName]: {showgrid: !currValue}};
+
+            Plotly.relayout(chartDiv, layout_update);
         }
-        if (currValue === undefined) {
-            currValue = true;  // The default value, though {x/y}axis.showgrid doesn't exist
-        }
-        var layout_update
-        if (dimension === 'x') {
-            layout_update = {xaxis: {showgrid: !currValue}};
-        }
-        else {
-            layout_update = {yaxis: {showgrid: !currValue}};
-        }
-        Plotly.relayout(chartDiv, layout_update);
     }
 
     function plotSubplots(chartDiv, subplotPlots) {
@@ -1009,7 +1049,13 @@ function onLoad() { // DOM is loaded and ready
                 showLink: true,
                 plotlyServerURL: "https://chart-studio.plotly.com",
                 linkText: 'Edit with Plotly Chart Studio',
-                editable: true
+                editable: true,
+
+                toImageButtonOptions: {
+                    filename: 'learningsimulator_fig',
+                    format: 'webp'  // svg, png, jpeg, webp
+                }
+
             };
             Plotly.react(chartDiv, plotlyData, layout, config);
             // Plotly.newPlot(chartDiv, plotlyData, layout);

@@ -146,8 +146,12 @@ def validate_settings(s):
     if val not in ('plot', 'image'):
         return PREFIX + "plot type: " + str(val)
 
-    val = s['file_type']
+    val = s['file_type_mpl']
     if val not in ('png', 'jpg', 'svg', 'pdf'):
+        return PREFIX + "file type: " + str(val)
+
+    val = s['file_type_plotly']
+    if val not in ('png', 'jpeg', 'svg', 'webp'):
         return PREFIX + "file type: " + str(val)
 
     val = s['plot_orientation']
@@ -162,21 +166,21 @@ def validate_settings(s):
     if val is None or (val < 10 or val > 1000):
         return PREFIX + "plot height: " + str(s['plot_height'])
 
-    val, _ = ParseUtil.is_float(s['legend_x'])
-    if val is None:
-        return PREFIX + "legend relative x-coordinate: " + str(s['legend_x'])
+    # val, _ = ParseUtil.is_float(s['legend_x'])
+    # if val is None:
+    #     return PREFIX + "legend relative x-coordinate: " + str(s['legend_x'])
 
-    val, _ = ParseUtil.is_float(s['legend_y'])
-    if val is None:
-        return PREFIX + "legend relative y-coordinate: " + str(s['legend_y'])
+    # val, _ = ParseUtil.is_float(s['legend_y'])
+    # if val is None:
+    #     return PREFIX + "legend relative y-coordinate: " + str(s['legend_y'])
 
-    val = s['legend_x_anchor']
-    if val not in ('left', 'center', 'right'):
-        return PREFIX + "legend x-anchor: " + str(val)
+    # val = s['legend_x_anchor']
+    # if val not in ('left', 'center', 'right'):
+    #     return PREFIX + "legend x-anchor: " + str(val)
 
-    val = s['legend_y_anchor']
-    if val not in ('bottom', 'middle', 'top'):
-        return PREFIX + "legend y-anchor: " + str(val)
+    # val = s['legend_y_anchor']
+    # if val not in ('bottom', 'middle', 'top'):
+    #     return PREFIX + "legend y-anchor: " + str(val)
 
     val = s['legend_orientation']
     if val not in ('h', 'v'):
@@ -216,7 +220,6 @@ def save_settings():
         db.session.rollback()
         err = f"There was an error saving the settings:\n{e.args[0]}"
     return {'error': err}
-
 
 
 @views.route('/get_demo/<int:index>', methods=['GET'])
@@ -317,7 +320,7 @@ def run():
 def run_mpl_fig():
     code = request.json['code']
     settings = request.json['settings']
-    file_type = settings['file_type']
+    file_type = settings['file_type_mpl']
     is_err, simulation_output = run_simulation(code)
     if is_err:
         err_msg, lineno, stack_trace = simulation_output
@@ -360,8 +363,9 @@ def get_user_export_dir():
 
 @staticmethod
 def delete_all_files_in(dir):
-    for f in os.listdir(dir):
-        os.remove(os.path.join(dir, f))
+    if os.path.isdir(dir):
+        for f in os.listdir(dir):
+            os.remove(os.path.join(dir, f))
 
 
 @views.route('/simulate/<int:id>', methods=['GET'])

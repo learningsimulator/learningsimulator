@@ -160,16 +160,29 @@ Learning Simulator
 
       <!-- Plot type -->
       <div style="margin-bottom: 5px">
-        <label style="float:left; width:150px">Plot as:</label>
+        <label style="display:inline-block; width:120px">Plot as:</label>
+        <!-- <select id="settings-plottype" style="width:130px;"> -->
         <select id="settings-plottype" style="width:130px;">
-          <option value="plot">Plotly plot</option>
-          <option value="image">Image (Matplotlib)</option>
+          <option value="plot">Plotly chart</option>
+          <option value="image">Matplotlib image</option>
+        </select>
+        <select id="settings-filetype-mpl" class="settings-mpl inline">
+          <option value="png">png</option>
+          <option value="jpg">jpg</option>
+          <option value="svg">svg</option>
+          <option value="pdf">pdf</option>
+        </select>
+        <select id="settings-filetype-plotly" class="settings-plotly inline">
+          <option value="png">png</option>
+          <option value="jpeg">jpeg</option>
+          <option value="webp">webp</option>
+          <option value="svg">svg</option>
         </select>
       </div>
 
       <!-- Horizontal/vertical plot orientation -->
       <div style="margin-bottom: 5px">
-        <label style="float:left; width:150px">Plot orientation:</label>
+        <label style="display:inline-block; width:120px">Plot orientation:</label>
         <select id="settings-plotorientation" style="width:130px;">
           <option value="vertical">Vertical</option>
           <option value="horizontal">Horizontal</option>
@@ -178,8 +191,7 @@ Learning Simulator
 
       <!-- Plot size -->
       <fieldset style="margin-left:0; margin-bottom: 5px;">
-        <!-- <legend>Plot size</legend> -->
-        <legend id="settings-size">Plot size</legend>
+        <legend id="settings-size"></legend>
         <div style="margin-bottom: 5px">
           <label style="float:left; width:55px">Width:</label>
           <input id="settings-plotwidth" type="number" value="300" min="10" max="1000" style="width:50px;">
@@ -190,20 +202,10 @@ Learning Simulator
         </div>
       </fieldset>
 
-      <div id="settings-div-filetype" class="settings-mpl">
-        <label style="width:50px;">File type:</label>
-        <select id="settings-filetype" style="width:50px;">
-          <option value="png">png</option>
-          <option value="jpg">jpg</option>
-          <option value="svg">svg</option>
-          <option value="pdf">pdf</option>
-        </select>
-      </div>
-
       <!-- Legend positioning -->
       <fieldset style="margin-left:0; margin-bottom: 5px;" class="settings-plotly">
-        <legend>Legend</legend>
-        <div style="margin-bottom: 5px">
+        <legend>@legend</legend>
+        <!-- <div style="margin-bottom: 5px">
           <label style="float:left; width:150px">Relative x-coordinate:</label>
           <input id="settings-legendrelx" type="text" style="width:40px;" />
           <label>&nbsp;Anchor: </label>
@@ -223,16 +225,15 @@ Learning Simulator
             <option value="middle">Middle</option>
             <option value="top">Top</option>
           </select>
-        </div>
+        </div> -->
 
         <div>
-          <label style="float:left; width:150px">Orientation:</label>
+          <label style="float:left; width:150px">Default orientation:</label>
           <select id="settings-legendorientation" style="width:100px;">
             <option value="v">Vertical</option>
             <option value="h">Horizontal</option>
           </select>
         </div>
-
       </fieldset>
 
       <!-- Colors -->
