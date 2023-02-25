@@ -1053,7 +1053,7 @@ function onLoad() { // DOM is loaded and ready
 
                 toImageButtonOptions: {
                     filename: 'learningsimulator_fig',
-                    format: 'webp'  // svg, png, jpeg, webp
+                    format: settings.file_type_plotly
                 }
 
             };
