@@ -41,7 +41,6 @@ class PostExpr():
             try:
                 ydata[i] = eval(self.expr, {'__builtins__': {'round': round}}, alias_values)
             except Exception as e:
-                # return None, raise EvalException(f"Expression evaluation failed.", self.lineno)
                 return None, f"Expression evaluation failed."
         return ydata, None
 

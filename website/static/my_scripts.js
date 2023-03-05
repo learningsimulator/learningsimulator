@@ -192,6 +192,10 @@ function onLoad() { // DOM is loaded and ready
             return;
         }
 
+        if (!confirm("Are you sure you want to delete the selected scripts?")) {
+            return;
+        }
+
         const dataSend = {'ids': selectedValues};
         const delete_url = "/delete";  // XXX use Jinja2: {{ url_for("delete") | tojson }}
         const delete_arg = {"method": "POST",

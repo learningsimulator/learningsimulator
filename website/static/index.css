@@ -21,11 +21,11 @@
 .left {
   padding: 5px;
   width: 300px;
-  height: 900px;
+  height: 600px;
 }
 .middle {
   padding: 5px;
-  height: 900px;
+  height: 600px;
   width: 600px;
   border: 1px solid red;
   resize: both;
@@ -137,7 +137,7 @@ input[type=checkbox] {
   display: flex;
   margin-top: 5px;
   margin-bottom: 5px;
-  height: calc(100% - 110px);
+  height: calc(100% - 120px);
 
   /* border: 2px solid blue; */
 }
@@ -169,6 +169,7 @@ button {
   font-size: 16px;
   margin-bottom: 4px;
   margin-left: 2px;
+  font-family: verdana, sans-serif;
 }
 
 #button-settings {
@@ -182,6 +183,7 @@ button {
   border-radius: 6px;
   font-size: 16px;
   margin-bottom: 4px;
+  font-family: verdana, sans-serif;
 }
 
 #button-closeall {
@@ -194,6 +196,7 @@ button {
   border-radius: 6px;
   font-size: 16px;
   margin-bottom: 4px;
+  font-family: verdana, sans-serif;
 }
 
 #button-savescript {
@@ -206,6 +209,7 @@ button {
   border-radius: 6px;
   font-size: 20px;
   margin-left: 4px;
+  font-family: verdana, sans-serif;
 }
 
 .close-button-export > button {

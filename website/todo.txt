@@ -1,16 +1,4 @@
-Selection png/jpeg/webp/svg for download plotly-plot (with camera-icon)
-https://plotly.com/javascript/configuration-options/#customize-download-plot-options
-https://plotly.com/javascript/static-image-export/: "The common image formats: 'PNG', 'JPG/JPEG' are supported. In addition, formats like 'EPS', 'SVG' and 'PDF' are also available for user with a Personal or Professional subscription."
-
-"Restore (factory) defaults", at least for "Paper" and "Plot background"
-
-"Keep current figures" checkbox (If an error occurs, dont delete current figs if this is checked)
-
-"You sure you want to delete script ...?"
-
-A clickable question-mark icon for help on some settings, at least plotly/mpl.
-(Include "This is the DEFAULT setting - it can be changed in each plot interactively
-after the plot is created")
+Redis Queue + Progress bar
 
 Delete @export-files and images files when figure / "export-icon" is
 deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
@@ -18,6 +6,8 @@ deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
 Issue warning (somehow) if unsupported mpl-props for lines are used in plotly plot , saying "can be changed
 using advanced settings" or something like that. Only "color", "linewidth",
 "marker" and "markersize" (and "label") are supported.
+
+Tabbed layout with current script on one tab and demo script on the other
 
 Menu: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
 Menu: Search/Replace
@@ -30,7 +20,7 @@ Begränsa storlek på plot (width, height)
 
 Begränsa längd på filnamn i export
 
-Navbar Bg-color
+Make Navbar nice (with Bg-color) "Home, MY Scripts, Log out" 
 
 (DB-)Admin page
 
@@ -41,16 +31,11 @@ start_at_1
 Check that html element contraints (min, max values, string lengths, required, etc) match db
 -1 < legend_{x,y} < 2 kanske?
 
-Tabbed layout with current script on one tab and demo script on the other
-
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.
 (Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
 "Script ... saved" flash (how to use on single-page site)
 https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
-
-Redis Queue
-Progress bar
 
 Plot: "Download" button for mpl image plots (instead of having to right-click and save image as)
 
@@ -63,6 +48,14 @@ https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campa
 
 favicon: see warning in console (used before DOM is loaded?)
 
+A clickable question-mark icon for help on some settings, at least plotly/mpl.
+(Include "This is the DEFAULT setting - it can be changed in each plot interactively
+after the plot is created")
+
+Freeze mpl4 (and maybe other stuff) to make them local.
+
+Skriv ut versionsnummer någonstans (kanske även version av mpl3, plotly, etc.)
+
 Uniform styling of buttons
 
 Move (all) inline styling to css
@@ -73,6 +66,18 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X "You sure you want to delete script ...?"
+
+X "Save & run"
+
+X "Keep current figures" checkbox (If an error occurs, dont delete current figs if this is checked)
+
+X "Restore (factory) defaults", at least for "Paper" and "Plot background"
+
+X Selection png/jpeg/webp/svg for download plotly-plot (with camera-icon)
+X https://plotly.com/javascript/configuration-options/#customize-download-plot-options
+X https://plotly.com/javascript/static-image-export/: "The common image formats: 'PNG', 'JPG/JPEG' are supported. In addition, formats like 'EPS', 'SVG' and 'PDF' are also available for user with a Personal or Professional subscription."
+
 X Change default filename for exported plotly plots from "figfile..." (newplot)
 X to "learning_simulator..." e.dyl.
 

@@ -51,7 +51,7 @@ class Settings(db.Model):
     # legend_x_anchor = db.Column(db.String(6), default="right")  # left, center, or right
     # legend_y_anchor = db.Column(db.String(6), default="bottom")  # top, middle, or bottom
     legend_orientation = db.Column(Enum(LegendOrientation), default=LegendOrientation.v)
-    paper_color = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
+    paper_color = db.Column(db.String(7), default="#dfdfdf")  # hex color, e.g. #0cdf41
     plot_bgcolor = db.Column(db.String(7), default="#ffffff")  # hex color, e.g. #0cdf41
     keep_plots = db.Column(db.Boolean, default=False)
 

@@ -30,6 +30,16 @@ function onLoad() { // DOM is loaded and ready
     const divDemo = document.getElementById("div-demo");
     const showDivDemoButton = document.getElementById("button-showdemo");
 
+    const autoSaveCheck = document.getElementById("check-autosave");
+    autoSaveCheck.addEventListener("change", runButtonText);
+    function runButtonText() {
+        let btnTxt = "Run"
+        if (autoSaveCheck.checked) {
+            btnTxt = "Save & run"
+        }
+        userRunButton.innerHTML = btnTxt;
+    }
+
     // Settings
     const settingsButton = document.getElementById("button-settings");
     const settingsDlgModalBg = document.getElementById("div-settingsdlg-modal-bg");
@@ -339,6 +349,7 @@ function onLoad() { // DOM is loaded and ready
     //         errorDlgModalBg.style.display = "none";
     //     }
     // }
+
     // ==================================================================================================
 
     class UIScript {
@@ -408,29 +419,31 @@ function onLoad() { // DOM is loaded and ready
         );
     }
 
-    function saveScript(name, code) {
+    async function saveScript() {
+        const name = usersScriptName.value;
+        const code = usersScriptCode.value;
+
         const id = usersScriptCode.dataset.scriptid;  // The id of the current script is stored in the attribute "data-scriptid" of the textbox
         const dataSend = {'id': id, 'name': name, 'code': code};
         const save_url = "/save";  // XXX use Jinja2: {{ url_for("save") | tojson }}
         const save_arg = {"method": "POST",
                           "headers": {"Content-Type": "application/json"},
                           "body": JSON.stringify(dataSend)};
-        fetch(save_url, save_arg)
+        return fetch(save_url, save_arg)
             .then(response => response.json())
-            .then(data => {
-                const error = data['error'];
-                if (error) {
-                    alert(error);
-                }
+            .then(respjson => {
+                return respjson;
             }
         );
     }
 
     /* Listener. */
-    function saveScriptButtonClicked() {
-        const name = usersScriptName.value;
-        const code = usersScriptCode.value;
-        saveScript(name, code);
+    async function saveScriptButtonClicked() {
+        const respjson = await saveScript();
+        const error = respjson['error'];
+        if (error) {
+            alert(error);
+        }
     }
 
     function userRunButtonClicked() {
@@ -441,7 +454,16 @@ function onLoad() { // DOM is loaded and ready
         runButtonClicked(DEMOSCRIPT_CODE, true);  // "plotarea-demo");
     }
 
-    function runButtonClicked(textareaID, isDemo) {
+    async function runButtonClicked(textareaID, isDemo) {
+        if (autoSaveCheck.checked) {
+            const respjson = await saveScript();
+            const error = respjson['error'];
+            if (error) {
+                alert(error);
+                return;
+            }
+        }
+
         let plotArea;
         if (isDemo) {
             plotArea = document.getElementById('plotarea-demo');
@@ -479,6 +501,10 @@ function onLoad() { // DOM is loaded and ready
                     return;
                 }
                 try {
+                    const keep_current = document.getElementById("check-keep");
+                    if (!keep_current.checked) {
+                        removeAllChartDivs();
+                    }
                     if (isMpl)
                         postproc_mpl_fig(data, plotArea);
                     else {
@@ -540,7 +566,7 @@ function onLoad() { // DOM is loaded and ready
 // =================================================================================
 
     function postproc(postcmds, plotArea) {
-        removeAllChartDivs();
+        // removeAllChartDivs();
         let currSubplot = null;
         let collectingSubplots = false;
         let createSubplotLegend = false;
@@ -731,7 +757,7 @@ function onLoad() { // DOM is loaded and ready
         figImgs = data['imgfiles'];
         exportCmds = data['exportcmds'];
 
-        removeAllChartDivs(plotArea);
+        // removeAllChartDivs(plotArea);
         for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
             chartDiv.id = "div-mpld3_" + makeRandomString(10);

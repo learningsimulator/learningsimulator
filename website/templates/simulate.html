@@ -53,16 +53,28 @@ Learning Simulator
     <div style="margin-bottom: 5px; margin-top: 5px">
       <!-- <button type="button" id="button-savescript">Save</button> -->
 
-      <div style="float: right">
-        <input type="checkbox" id="settings-keep">
-        <label for="settings-keep" style="vertical-align: middle;">Keep current plots&nbsp;</label>
-        <button type="button" id="button-closeall">Close All Figures</button>
-      </div>
+      <input type="checkbox" id="check-keep" style="width:20px;height:20px;">
+      <label for="check-keep" style="vertical-align: middle;">Keep current charts&nbsp;</label>
+
+      <input type="checkbox" id="check-autosave" style="width:20px;height:20px;">
+      <label for="check-autosave" style="vertical-align: middle;">Always save before run</label>
+
     </div>
 
     <!-- <div style="float:right;"> -->
-      <button type="button" id="button-run">Run Simulation</button>
-      <button type="button" id="button-settings">>></button>
+      <button type="button" id="button-run">Run</button>
+
+      <!-- <button type="button" id="button-settings">>></button> -->
+      <button type="button" id="button-settings">
+        <i style="color: white" class="fa fa-cog"></i>
+      </button>
+
+      <div style="float: right">
+        <button type="button" id="button-closeall">Close all charts</button>
+      </div>
+
+
+
     <!-- </div> -->
 
 <!-- --------------------------- Settings --------------------------- -->
@@ -241,11 +253,19 @@ Learning Simulator
         <legend>Colors</legend>
         <div style="margin-bottom: 5px">
           <label style="float:left; width:150px">Paper:</label>
-          <input id="settings-paperbgcolor" type="color" value="#ffffff" style="vertical-align: middle;" />
+          <input id="settings-paperbgcolor" type="color" value="#dfdfdf" style="vertical-align: middle;" />
+          &nbsp;
+          <a id="settings-restore-paperbgcolor"
+             href="#"
+             onclick="document.getElementById('settings-paperbgcolor').value = '#dfdfdf'; return false;">Restore default</a>
         </div>
         <div>
-          <label style="float:left; width:150px">Plot background:</label>
+          <label style="float:left; width:150px;">Plot background:</label>
           <input id="settings-plotbgcolor" type="color" value="#ffffff" style="vertical-align: middle;" />
+          &nbsp;
+          <a id="settings-restore-plotbgcolor"
+             href="#" 
+             onclick="document.getElementById('settings-plotbgcolor').value = '#ffffff'; return false;">Restore default</a>
         </div>
       </fieldset>
 
