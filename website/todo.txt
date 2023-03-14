@@ -1,5 +1,9 @@
 Redis Queue + Progress bar
 
+Add "Preview" to preview in "My Files"
+
+Varning om @start_trial vs @omit
+
 Delete @export-files and images files when figure / "export-icon" is
 deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
 
