@@ -391,7 +391,7 @@ class PhaseLine():
             raise ParseException(lineno, f"Missing separator '{PHASEDIV}' on phase line.")
         action_list = ParseUtil.comma_split_strip(self.action)
 
-        first_element, _, _ = ParseUtil.parse_element_and_intensity(action_list[0], variables=None,
+        first_element, _, _, _ = ParseUtil.parse_element_and_intensity(action_list[0], variables=None,
                                                                     safe_intensity_eval=True)
         self.is_help_line = (len(action_list) == 1) and (first_element not in parameters.get(STIMULUS_ELEMENTS))
         if self.is_help_line:
@@ -399,8 +399,8 @@ class PhaseLine():
             if action_list[0] != '':
                 check_action(action_list[0], parameters, global_variables, lineno, all_linelabels)
         else:
-            self.stimulus, err = ParseUtil.parse_elements_and_intensities(self.action, global_variables,
-                                                                          safe_intensity_eval=True)
+            self.stimulus, _, err = ParseUtil.parse_elements_and_intensities(self.action, global_variables,
+                                                                             safe_intensity_eval=True)
             if err:
                 raise ParseException(lineno, err)
 

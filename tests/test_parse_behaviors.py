@@ -18,19 +18,19 @@ class TestBasic(LsTestCase):
         behaviors: B1, b1, B2, b2
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
+        self.assertEqual(behaviors, ['B1', 'b1', 'B2', 'b2'])
 
         text = '''
                behaviors   :    B1,b1,  B2,   b2
                '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
+        self.assertEqual(behaviors, ['B1', 'b1', 'B2', 'b2'])
 
         text = '''
                behaviors   =    B1,b1,  B2,   b2
                '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'B1', 'b1', 'B2', 'b2'})
+        self.assertEqual(behaviors, ['B1', 'b1', 'B2', 'b2'])
 
     def test_multiline(self):
         text = '''
@@ -38,7 +38,7 @@ class TestBasic(LsTestCase):
                    b3, b4
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'b1', 'b2', 'b3', 'b4'})
+        self.assertEqual(behaviors, ['b1', 'b2', 'b3', 'b4'])
 
         text = '''
         behaviors   :    b1,
@@ -47,7 +47,7 @@ class TestBasic(LsTestCase):
                 b5
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'b1', 'b2', 'b3', 'b4', 'b5'})
+        self.assertEqual(behaviors, ['b1', 'b2', 'b3', 'b4', 'b5'])
 
     def test_redefinition(self):
         text = '''
@@ -55,14 +55,14 @@ class TestBasic(LsTestCase):
         behaviors: x1, x2
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'x1', 'x2'})
+        self.assertEqual(behaviors, ['x1', 'x2'])
 
         text = '''
         behaviors: x1, x2
         behaviors: b1, b2, b3, b4
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'b1', 'b2', 'b3', 'b4'})
+        self.assertEqual(behaviors, ['b1', 'b2', 'b3', 'b4'])
 
         text = '''
         behaviors: b1, b2,
@@ -71,7 +71,7 @@ class TestBasic(LsTestCase):
                    x2
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'x1', 'x2'})
+        self.assertEqual(behaviors, ['x1', 'x2'])
 
         text = '''
         behaviors: x1, x2
@@ -80,7 +80,7 @@ class TestBasic(LsTestCase):
                    b4
         '''
         behaviors = parse(text)
-        self.assertEqual(behaviors, {'b1', 'b2', 'b3', 'b4'})
+        self.assertEqual(behaviors, ['b1', 'b2', 'b3', 'b4'])
 
 
 class TestParseBehaviorsErrors(LsTestCase):

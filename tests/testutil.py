@@ -154,3 +154,19 @@ class LsTestCase(unittest.TestCase):
                     break
                 prev = x
         self.assertTrue(is_increasing)
+
+    def assertPlotExportEqual(self, pd, plot_legends, exported_data):
+        # Check that all plot data have the same length as exported data 
+        n_exported_data = len(exported_data)
+        for plot_legend in plot_legends:
+            self.assertEqual(len(pd[plot_legend]['x']), n_exported_data)
+            self.assertEqual(len(pd[plot_legend]['y']), n_exported_data)
+
+        # Check that y-values for all plots are the same as exported data
+        for i in range(n_exported_data):
+            e = exported_data[i]
+            x = pd[plot_legends[0]]['x'][i]
+            self.assertAlmostEqual(x, float(e[0]))
+            for j, plot_legend in enumerate(plot_legends):
+                y = pd[plot_legend]['y'][i]
+                self.assertAlmostEqual(y, float(e[j + 1]))

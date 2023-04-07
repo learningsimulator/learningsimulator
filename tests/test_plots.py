@@ -30,7 +30,7 @@ class TestInitialValues(LsTestCase):
         script_obj, script_output = run(text)
         self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 2)
         plot_data = get_plot_data()
-        s1b = plot_data['v(s1 -> b)']
+        s1b = plot_data['v(s1->b)']
         s2b = plot_data['v(s2->b)']
         self.assertEqual(s1b['x'], [0, 1, 2])
         self.assertEqual(s2b['x'], [0, 1, 2])
@@ -61,8 +61,8 @@ class TestInitialValues(LsTestCase):
         self.assertEqual(len(script_obj.script_parser.postcmds.cmds), 4)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['v(s1->b1)']['y'][0], 0.5)
-        self.assertGreater(plot_data['p(s1->  b1)']['y'][0], 0.622)
-        self.assertLess(plot_data['p(s1->  b1)']['y'][0], 0.623)
+        self.assertGreater(plot_data['p(s1->b1)']['y'][0], 0.622)
+        self.assertLess(plot_data['p(s1->b1)']['y'][0], 0.623)
 
         # Test pplot with default start_v
         self.tearDown()
@@ -482,8 +482,8 @@ class TestCommaSeparatedPlots(LsTestCase):
         plot_data_comma = get_plot_data(figure_number=6)
         plot_data_comma_var = get_plot_data(figure_number=7)
         self.assertEqual(plot_data, plot_data_comma)
-        self.assertEqual(plot_data['p(s1[0.1],s2[1.0]->b1)'], plot_data_comma_var['p(s1[i1],s2[i2]->b1)'])
-        self.assertEqual(plot_data['p(s1[1.0],s2[0.1]->b2)'], plot_data_comma_var['p(s1[i2],s2[i1],s3[0]->b2)'])
+        self.assertEqual(plot_data['p(s1[0.1],s2[1.0]->b1)'], plot_data_comma_var['p(s1[0.1],s2[1.0]->b1)'])
+        self.assertEqual(plot_data['p(s1[1.0],s2[0.1]->b2)'], plot_data_comma_var['p(s1[1.0],s2[0.1],s3[0]->b2)'])
 
         plot_data = get_plot_data(figure_number=8)
         plot_data_comma = get_plot_data(figure_number=9)
@@ -629,36 +629,36 @@ class TestCommaSeparatedPlots(LsTestCase):
         @run phase1
 
    	    xscale = s1
-        @figure
+        @figure  # 1
         @vplot s1->b1
         @pplot s2->b1
 
-        @figure
+        @figure  # 2
         @plot v(s1->b1); p(s2->b1)
 
-        @figure
+        @figure  # 3
         @vplot s1->b1
         @pplot s2->b1
         @pplot s1,s2->b1
 
-        @figure
+        @figure  # 4
         @plot v(s1->b1); p(s2->b1); p(s1,s2->b1)
 
-        @figure
+        @figure  # 5
         @pplot s1[0.1],s2[1.0]->b1
         @nplot s1->b2->s2
 
-        @figure
+        @figure  # 6
         @plot p(s1[0.1],s2[1.0]->b1) ; n(s1->b2->s2)
 
-        @figure
+        @figure  # 7
         @plot p(s1[i1],s2[i2]->b1) ; n(s1->b2->s2)
 
-        @figure
+        @figure  # 8
         @wplot s1
         @pplot s1->b1
 
-        @figure
+        @figure  # 9
         @plot w(s1) ; p(s1->b1)
 
         xscale = all
@@ -666,7 +666,7 @@ class TestCommaSeparatedPlots(LsTestCase):
         @nplot s1->b1
         @pplot s1->b1
 
-        @figure
+        @figure  # 10
         @plot n(s1->b1) ; p(s1->b1)
         '''
         run(text)
