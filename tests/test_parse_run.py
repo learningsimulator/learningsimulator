@@ -47,10 +47,10 @@ class TestBasic(LsTestCase):
         behaviors = parameters.get(kw.BEHAVIORS)
         self.assertEqual(len(parameters.get(kw.START_V).keys()), 4)
         self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 4)
-        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.U).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), set(behaviors))
 
     def test_multiphase(self):
         text = '''
@@ -79,10 +79,10 @@ class TestBasic(LsTestCase):
         behaviors = parameters.get(kw.BEHAVIORS)
         self.assertEqual(len(parameters.get(kw.START_V).keys()), 6)
         self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 6)
-        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.U).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), set(behaviors))
 
         text = '''
         mechanism: ga
@@ -110,10 +110,10 @@ class TestBasic(LsTestCase):
         behaviors = parameters.get(kw.BEHAVIORS)
         self.assertEqual(len(parameters.get(kw.START_V).keys()), 6)
         self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 6)
-        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.U).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), set(behaviors))
 
         text = '''
         mechanism: ga
@@ -141,10 +141,10 @@ class TestBasic(LsTestCase):
         behaviors = parameters.get(kw.BEHAVIORS)
         self.assertEqual(len(parameters.get(kw.START_V).keys()), 9)
         self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 9)
-        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.U).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), set(behaviors))
 
         text = '''
         mechanism: sr
@@ -176,10 +176,10 @@ class TestBasic(LsTestCase):
         behaviors = parameters.get(kw.BEHAVIORS)
         self.assertEqual(len(parameters.get(kw.START_V).keys()), 9)
         self.assertEqual(len(parameters.get(kw.ALPHA_V).keys()), 9)
-        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.START_W).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.U).keys()), stimulus_elements)
-        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), behaviors)
+        self.assertEqual(set(parameters.get(kw.ALPHA_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.START_W).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.U).keys()), set(stimulus_elements))
+        self.assertEqual(set(parameters.get(kw.BEHAVIOR_COST).keys()), set(behaviors))
 
     def test_multiphase_with_one_phase_per_line(self):
         text = '''
@@ -410,12 +410,12 @@ class TestBasic(LsTestCase):
         @run phase1
         '''
         _, parameters1 = parse(text, 'run1')
-        self.assertEqual(parameters1.get(kw.BEHAVIORS), {'b1', 'b2'})
+        self.assertEqual(parameters1.get(kw.BEHAVIORS), ['b1', 'b2'])
         self.assertEqual(set(parameters1.get(kw.START_V).keys()),
                          {('e1', 'b1'), ('e1', 'b2'), ('e2', 'b1'), ('e2', 'b2')})
 
         _, parameters2 = parse(text, 'run2')
-        self.assertEqual(parameters2.get(kw.BEHAVIORS), {'x', 'y', 'z'})
+        self.assertEqual(parameters2.get(kw.BEHAVIORS), ['x', 'y', 'z'])
         self.assertEqual(set(parameters2.get(kw.START_V).keys()),
                          {('e1', 'x'), ('e1', 'y'), ('e1', 'z'),
                           ('e2', 'x'), ('e2', 'y'), ('e2', 'z')})

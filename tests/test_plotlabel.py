@@ -62,11 +62,11 @@ class TestInitialValues(LsTestCase):
         '''
         script_obj, _ = run(text)
         labels = get_legends_from_script_obj(script_obj)
-        expected_labels = ['p(s->respond), subject 1',
-                           'p(s->respond), subject 2',
-                           'p(s->respond), subject 3',
-                           'p(s->respond), subject 4',
-                           'p(s->respond), subject 5']
+        expected_labels = ['p(s->respond) subject 1',
+                           'p(s->respond) subject 2',
+                           'p(s->respond) subject 3',
+                           'p(s->respond) subject 4',
+                           'p(s->respond) subject 5']
         self.assertEqual(labels, expected_labels)
 
     def test_default_label_vplot(self):
@@ -95,11 +95,11 @@ class TestInitialValues(LsTestCase):
         '''
         script_obj, _ = run(text)
         labels = get_legends_from_script_obj(script_obj)
-        expected_labels = ['v(s->respond), subject 1',
-                           'v(s->respond), subject 2',
-                           'v(s->respond), subject 3',
-                           'v(s->respond), subject 4',
-                           'v(s->respond), subject 5']
+        expected_labels = ['v(s->respond) subject 1',
+                           'v(s->respond) subject 2',
+                           'v(s->respond) subject 3',
+                           'v(s->respond) subject 4',
+                           'v(s->respond) subject 5']
         self.assertEqual(labels, expected_labels)
 
     def test_default_label_wplot(self):
@@ -128,11 +128,11 @@ class TestInitialValues(LsTestCase):
         '''
         script_obj, _ = run(text)
         labels = get_legends_from_script_obj(script_obj)
-        expected_labels = ['w(s), subject 1',
-                           'w(s), subject 2',
-                           'w(s), subject 3',
-                           'w(s), subject 4',
-                           'w(s), subject 5']
+        expected_labels = ['w(s) subject 1',
+                           'w(s) subject 2',
+                           'w(s) subject 3',
+                           'w(s) subject 4',
+                           'w(s) subject 5']
         self.assertEqual(labels, expected_labels)
 
     def test_default_label_nplot(self):
@@ -161,11 +161,11 @@ class TestInitialValues(LsTestCase):
         '''
         script_obj, _ = run(text)
         labels = get_legends_from_script_obj(script_obj)
-        expected_labels = ['n(reward), subject 1',
-                           'n(reward), subject 2',
-                           'n(reward), subject 3',
-                           'n(reward), subject 4',
-                           'n(reward), subject 5']
+        expected_labels = ['n(reward) subject 1',
+                           'n(reward) subject 2',
+                           'n(reward) subject 3',
+                           'n(reward) subject 4',
+                           'n(reward) subject 5']
         self.assertEqual(labels, expected_labels)
 
     def test_custom_label(self):
@@ -194,11 +194,11 @@ class TestInitialValues(LsTestCase):
         '''
         script_obj, _ = run(text)
         labels = get_legends_from_script_obj(script_obj)
-        expected_labels = ['my custom, subject 1',
-                           'my custom, subject 2',
-                           'my custom, subject 3',
-                           'my custom, subject 4',
-                           'my custom, subject 5']
+        expected_labels = ['my custom subject 1',
+                           'my custom subject 2',
+                           'my custom subject 3',
+                           'my custom subject 4',
+                           'my custom subject 5']
         self.assertEqual(labels, expected_labels)
 
     def test_custom_empty(self):

@@ -6,8 +6,8 @@ import mechanism
 from util import ParseUtil, make_readable_list_of_strings
 
 # All parameters and their defaults.
-PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings                  , REQ
-      kw.STIMULUS_ELEMENTS: set(),       # set of (restricted) strings                  , REQ
+PD = {kw.BEHAVIORS: list(),              # list of (restricted) strings                  , REQ
+      kw.STIMULUS_ELEMENTS: list(),      # list of (restricted) strings                  , REQ
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.START_VSS: 0,                   # Scalar or list of se->se:val or default:val  ,
@@ -166,16 +166,18 @@ class Parameters():
         # Valid path to writable file
         elif prop == kw.FILENAME:
             filename = v_str
+            file = None
             try:
                 file = open(filename, 'w', newline='')
             except Exception as ex:
                 return str(ex)
             finally:
-                file.close()
-                try:
-                    os.remove(filename)
-                except FileNotFoundError:
-                    pass
+                if file is not None:
+                    file.close()
+                    try:
+                        os.remove(filename)
+                    except Exception as ex:
+                        return str(ex)
             self.val[kw.FILENAME] = filename
             return None
 
@@ -222,7 +224,7 @@ class Parameters():
         Example: "B1,  B2,B123" returns {'B1', 'B2', 'B123'}
         """
         if not is_appending:
-            self.val[kw.BEHAVIORS] = set()
+            self.val[kw.BEHAVIORS] = list()
         behaviors_list = behaviors_str.split(',')
         for b in behaviors_list:
             b = b.strip()
@@ -236,7 +238,7 @@ class Parameters():
                 return f"The behavior name '{b}' is invalid, since it is a variable name."
             if not b.isidentifier():
                 return f"Behavior name '{b}' is not a valid identifier."
-            self.val[kw.BEHAVIORS].add(b)
+            self.val[kw.BEHAVIORS].append(b)
         return None  # No error
 
     def _parse_stimulus_elements(self, stimulus_elements_str, variables, is_appending):
@@ -247,7 +249,7 @@ class Parameters():
         Example: "E1,  E2,E123" returns {'E1', 'E2', 'E123'}
         """
         if not is_appending:
-            self.val[kw.STIMULUS_ELEMENTS] = set()
+            self.val[kw.STIMULUS_ELEMENTS] = list()
         stimulus_elements_list = stimulus_elements_str.split(',')
         for e in stimulus_elements_list:
             e = e.strip()
@@ -261,7 +263,7 @@ class Parameters():
                 return f"The stimulus element name '{e}' is invalid, since it is a variable name."
             if not e.isidentifier():
                 return f"Stimulus element name '{e}' is not a valid identifier."
-            self.val[kw.STIMULUS_ELEMENTS].add(e)
+            self.val[kw.STIMULUS_ELEMENTS].append(e)
         return None  # No error
 
     def _parse_mechanism_name(self, mechanism_name):
