@@ -6,7 +6,7 @@ alpha_v
 Specifies the learning rate for v-values (the associative strength between stimulus element - behavior pairs),
 used in the updating of the v-values. See :ref:`the-mechanisms`.
 
-The parameter ``alpha_v`` can be set to certain values for certain particular element-behavior pairs.
+The parameter ``alpha_v`` can be set to specific values for specific element-behavior pairs.
 It can also be specified as a single value, in which case the same learning rate is used for all
 element-behavior pairs. Wildcards (*) may be used to set several values at once.
 
