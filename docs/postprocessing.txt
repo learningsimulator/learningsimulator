@@ -15,10 +15,14 @@ The postprocessing commands are the following:
 | :ref:`figure`    | Creates a figure window                        | None                                                 |
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`subplot`   | Creates a subplot within the current           | None                                                 |
-|                  | figure window                                  |                                                      |
+| :ref:`panel`     | figure window                                  |                                                      |
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`legend`    | Creates a legend for all plotted lines in      | None                                                 |
 |                  | the current subplot                            |                                                      |
++------------------+------------------------------------------------+------------------------------------------------------+
+| :ref:`plot`      | Generic plot command                           | :doc:`runlabel`, :doc:`xscale`, :doc:`xscale_match`, |
+|                  |                                                | :doc:`phases`, :doc:`subject`,                       |
+|                  |                                                | :doc:`cumulative`, :doc:`match`                      |
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`vplot`     | Plots a v-value                                | :doc:`runlabel`, :doc:`xscale`, :doc:`xscale_match`, |
 |                  |                                                | :doc:`phases`, :doc:`subject`                        |
@@ -36,6 +40,8 @@ The postprocessing commands are the following:
 |                  | | stimulus/behavior or a chain                 | :doc:`phases`, :doc:`subject`,                       |
 |                  | | ``stimulus->behavior->stimulus->...`` or     | :doc:`cumulative`, :doc:`match`                      |
 |                  | | ``behavior->stimulus->behavior->...``        |                                                      |
++------------------+------------------------------------------------+------------------------------------------------------+
+| :ref:`export`    | Generic export commmand                        | :doc:`filename` and same as :ref:`plot`              |
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`vexport`   | Exports the values of a :ref:`vplot`           | :doc:`filename` and same as :ref:`vplot`             |
 +------------------+------------------------------------------------+------------------------------------------------------+
@@ -103,6 +109,27 @@ where
 
 - ``figure_title`` is an optional title of the figure (any string),
 - ``figure_parameters`` is an optional specification of `Matplotlib <https://matplotlib.org>`_ ``Figure`` parameters controlling figure size, colors, etc. of the format ``{param1:value1, param2:value2, ...}``. See `figure_parameters <https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html>`_ for the supported figure parameters.
+
+It is also possible to specify the subplot grid in parenthesis
+after ``@figure``::
+
+    @figure(1,3) [figure_title] [figure_parameters]
+    @subplot
+    @plot ...  # This plot ends up in subplot 131
+    @subplot
+    @plot ...  # This plot ends up in subplot 132
+    @subplot
+    @plot ...  # This plot ends up in subplot 133
+
+as an alternative form of::
+
+    @figure [figure_title] [figure_parameters]
+    @subplot 131
+    @plot ...  # This plot ends up in subplot 131
+    @subplot 132
+    @plot ...  # This plot ends up in subplot 132
+    @subplot 133
+    @plot ...  # This plot ends up in subplot 133
 
 .. note::
 
@@ -201,6 +228,12 @@ Example
 .. image:: postprocessing-subplot.png
   :scale: 60
 
+.. _panel:
+
+@panel
+******
+Same as :ref:`subplot`.
+
 .. _legend:
 
 @legend
@@ -271,13 +304,62 @@ creates the following figure:
 .. image:: postprocessing-legend2.png
   :scale: 60
 
+.. _plot:
+
+@plot
+*****
+
+The command ``@plot`` plots one or several expressions that include
+v-values (as plotted with ``@vplot``),
+w-values (as plotted with ``@wplot``),
+p-values (as plotted with ``@pplot``),
+vss-values (as plotted with ``@vssplot``), and
+n-values (as plotted with ``@nplot``).
+
+The plotted entity can be an arithemtic expression of these values.
+For example::
+
+    @plot 2*v(s->b) - w(s)
+    @plot n(s1->b1->s2->b2) / n(s1->b1->s2)
+
+To plot several expressions in the same ``@plot`` command,
+separate them by semicolon::
+
+    @plot v(s->b); p(s->b) * p(s1->b1); sin(n(s))
+
+which is the same as::
+
+    @plot v(s->b)
+    @plot p(s->b) * p(s1->b1)
+    @plot sin(n(s))
+
+Note that
+
+  - ``@plot v(s->b)`` is the same as ``@vplot s->b``
+  - ``@plot p(s1,s2->b)`` is the same as ``@pplot s1,s2->b``
+  - ``@plot w(s)`` is the same as ``@wplot s``
+
+The arithemtic expression may include the below operators and
+functions:
+
+  - ``+``, ``-``, ``*``, ``/``, ``**``
+  - the trigonometric functions ``sin``, ``cos``, ``tan``
+  - the inverse trigonometric functions ``asin``, ``acos``, ``atan``
+  - the hyperbolic functions ``sinh``, ``cosh``, ``tanh``
+  - the inverse hyperbolic functions ``asinh``, ``acosh``, ``atanh``
+  - ``round``, ``ceil``, ``floor``
+  - ``exp``, ``log``, ``log10``, ``sqrt``
+
+Note that wildcards (*) cannot be used in ``@plot``.
+
 
 .. _vplot:
 
 @vplot
 ******
 
-The command ``@vplot`` plots a v-value (the associative strength between a stimulus element and a behavior).
+The command ``@vplot`` plots one or several v-values
+(the associative strength between a stimulus element and a behavior).
 
 Syntax::
 
@@ -285,14 +367,46 @@ Syntax::
   @vplot e->b line_parameters
 
 plots the associative strength between the stimulus element ``e`` and the behavior ``b``, and ``line_parameters`` are :ref:`line-parameters`.
+To plot several lines in the same subplot, use::
 
+  @vplot e1->b1; e2->b2; ...
+  @vplot e1->b1; e2->b2; line_parameters
+
+Wildcards are also allowed. If::
+
+  stimulus_elements = s1, s2
+  behaviors = b1, b2, b3
+
+then::
+
+    @vplot s1->*
+
+is short for::
+
+    @vplot s1->b1
+    @vplot s1->b2
+    @vplot s1->b3
+
+and::
+
+    @vplot *->*
+
+is short for::
+
+    @vplot s1->b1
+    @vplot s1->b2
+    @vplot s1->b3
+    @vplot s2->b1
+    @vplot s2->b2
+    @vplot s3->b3
 
 .. _vssplot:
 
 @vssplot
 ********
 
-The command ``@vssplot`` plots a vss-value (the associative strength between two stimulus elements).
+The command ``@vssplot`` plots one or several vss-value
+(the associative strength between two stimulus elements).
 
 .. note::
 
@@ -304,8 +418,42 @@ Syntax::
   @vssplot e1->e2
   @vssplot e1->e2 line_parameters
 
-plots the associative strength between the stimulus elements ``e1`` and ``e2``, and ``line_parameters`` are :ref:`line-parameters`.
+plots the associative strength between the stimulus elements ``e1`` and ``e2``,
+and ``line_parameters`` are :ref:`line-parameters`. To plot several
+lines in the same subplot, use::
 
+  @vssplot e1->e2; e3->e4; ...
+  @vssplot e1->e2; e3->e4; ... line_parameters
+
+Wildcards are also allowed. If::
+
+  stimulus_elements = s1, s2, s3
+
+then::
+
+    @vssplot s1->*
+
+is short for::
+
+    @vssplot s1->s1
+    @vssplot s1->s2
+    @vssplot s1->s3
+
+and::
+
+    @vssplot *->*
+
+is short for::
+
+    @vssplot s1->s1
+    @vssplot s1->s2
+    @vssplot s1->s3
+    @vssplot s2->s1
+    @vssplot s2->s2
+    @vssplot s2->s3
+    @vssplot s3->s1
+    @vssplot s3->s2
+    @vssplot s3->s3
 
 .. _pplot:
 
@@ -321,14 +469,55 @@ Syntax::
   @pplot s->b line_parameters
 
 plots the probability of responding with ``b`` to the stimulus ``s``, and ``line_parameters`` are :ref:`line-parameters`.
+To plot several lines in the same subplot, use::
 
+  @pplot s1->b1; s2->b2; ...
+  @pplot s1->b1; s2->b2; ... line_parameters
+
+Note that stimuli consisting of several stimulus elements (compound stimuli) are supported, and that an intensity
+may be specified to each element, for example::
+
+  @pplot s1[0.5],s2[0.6]->b1; s2->b2; ...
+  @pplot s1[0.5],s2[0.6]->b1; s2->b2; ... line_parameters
+
+plots (1) the probabililty of responding with ``b1`` to the compound stimulus ``s1[0.5],s2[0.6]``, and
+(2) the probabililty of responding with ``b2`` to the stimulus ``s2`` in the same subplot.
+
+Wildcards are also allowed. If::
+
+  stimulus_elements = s1, s2
+  behaviors = b1, b2, b3
+
+then::
+
+    @pplot s1->*
+
+is short for::
+
+    @pplot s1->b1
+    @pplot s1->b2
+    @pplot s1->b3
+
+and::
+
+    @pplot *->*
+
+is short for::
+
+    @pplot s1->b1
+    @pplot s1->b2
+    @pplot s1->b3
+    @pplot s2->b1
+    @pplot s2->b2
+    @pplot s3->b3
 
 .. _wplot:
 
 @wplot
 ******
 
-The command ``@wplot`` plots a w-value (the conditioned reinforcement for a stimulus element) for the mechanisms that support this (*Guided associative learning* and *Actor-critic*).
+The command ``@wplot`` plots one or several w-values (the conditioned reinforcement for a stimulus element)
+for the mechanisms that support this (*A-learning* and *Actor-critic*).
 
 Syntax::
 
@@ -336,6 +525,24 @@ Syntax::
   @wplot e line_parameters
 
 plots the conditioned reinforcement value for the stimulus element ``e``, and ``line_parameters`` are :ref:`line-parameters`.
+To plot several lines in the same subplot, use::
+
+  @wplot e1; e2; ...
+  @wplot e1; e2; e3; ... line_parameters
+
+Wildcards are also allowed. If::
+
+  stimulus_elements = s1, s2, s3
+
+then::
+
+    @wplot *
+
+is short for::
+
+    @wplot s1
+    @wplot s2
+    @wplot s3
 
 .. _nplot:
 
@@ -343,7 +550,8 @@ plots the conditioned reinforcement value for the stimulus element ``e``, and ``
 ******
 
 The command ``@nplot`` plots the number of occurrences of a stimulus, a behavior, or a chain ``stimulus->behavior->stimulus->...``
-or ``behavior->stimulus->behavior->...`` in the history of stimulus-response pairs during the simulation, and ``line_parameters`` are :ref:`line-parameters`.
+or ``behavior->stimulus->behavior->...`` in the history of stimulus-response pairs during the simulation, and ``line_parameters``
+are :ref:`line-parameters`.
 
 Syntax::
 
@@ -353,7 +561,12 @@ Syntax::
   @nplot behavior1->stimulus1->behavior2->...
   @nplot ... line_parameters
 
-where ``stimulus`` is a :ref:`stimulus<stimulus-specification>`, i.e. in general a comma-separated list of stimulus elements, ``behavior`` is a behavior, and ``line_parameters`` are :ref:`line-parameters`.
+where ``stimulus`` is a :ref:`stimulus<stimulus-specification>`, i.e. in general a comma-separated list of
+stimulus elements, ``behavior`` is a behavior, and ``line_parameters`` are :ref:`line-parameters`.
+
+To plot several lines in the same subplot, use::
+
+  @nplot x->y->z->...; a->b->c->...
 
 cumulative
 ----------
@@ -431,8 +644,8 @@ Useful Line2D parameters to control the appearance of the plot include ``color``
 Exporting data to file
 **********************
 
-The data-exporting commands ``@vexport``, ``@wexport``, ``@pexport``, and ``@nexport`` exports to a csv-file the data that is plotted with the
-plotting commads ``@vplot``, ``@wplot``, ``@pplot``, and ``@nplot``, respectively. Therefore the same parameters
+The data-exporting commands ``@export``, ``@vexport``, ``@wexport``, ``@pexport``, and ``@nexport`` exports to a csv-file the data that is plotted with the
+plotting commads ``@plot``, ``@vplot``, ``@wplot``, ``@pplot``, and ``@nplot``, respectively. Therefore the same parameters
 that affect the plot also affect the exported data (for example ``xscale``, ``phases``, ``subject``, ``runlabel``, etc.)
 
 In addition, the parameter :doc:`filename` is required to all exporting commands.
@@ -490,6 +703,23 @@ The :ref:`hexport` command exports the sequence of alternating stimuli and respo
 for each subject, and has therefore a different format. See :ref:`hexport`.
 
 
+.. _export:
+
+@export
+*******
+
+``@export`` exports the data plotted by :Ref:`plot` to the csv-file specified with the parameter :doc:`filename`.
+
+Syntax::
+
+  filename = my_file.csv
+  @export v(s1->b) + v(s2->b)
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+Note that wildcards (*) cannot be used in ``@export``.
+
+
 .. _vexport:
 
 @vexport
@@ -501,6 +731,18 @@ Syntax::
 
   filename = my_file.csv
   @vexport e->b
+  @vexport e1->b1; e2->b2; ...
+  @vexport e->*
+  @vexport *->b
+  @vexport *->*
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @vexport e->b my_file.csv
+  @vexport e1->b1; e2->b2; ... my_file.csv
+  @vexport e->* my_file.csv
+  @vexport *->b my_file.csv
+  @vexport *->* my_file.csv
 
 See also :ref:`format-of-the-csv-file`.
 
@@ -515,12 +757,25 @@ See also :ref:`format-of-the-csv-file`.
 .. note::
 
   Only the *Rescorla-Wagner* learning mechanism has vss-values, so the command ``@vssplot`` is only
-  applicable when ``mechnism=rw``.
+  applicable when ``mechanism=rw``.
 
 Syntax::
 
   filename = my_file.csv
   @vssexport e1->e2
+  @vssexport e1->e2; e3->e4; ...
+  @vssexport e1->*
+  @vssexport *->e1
+  @vssexport *->*
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @vssexport e1->e2 my_file.csv
+  @vssexport e1->e2; e3->e4; ... my_file.csv
+  @vssexport e1->* my_file.csv
+  @vssexport *->e1 my_file.csv
+  @vssexport *->* my_file.csv
+
 
 See also :ref:`format-of-the-csv-file`.
 
@@ -536,6 +791,18 @@ Syntax::
 
   filename = my_file.csv
   @pexport s->b
+  @pexport s1->b1; s2->b2; ...
+  @pexport s->*
+  @pexport *->b
+  @pexport *->*
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @pexport s->b my_file.csv
+  @pexport s1->b1; s2->b2; ... my_file.csv
+  @pexport s->* my_file.csv 
+  @pexport *->b my_file.csv
+  @pexport *->* my_file.csv
 
 See also :ref:`format-of-the-csv-file`.
 
@@ -550,7 +817,15 @@ See also :ref:`format-of-the-csv-file`.
 Syntax::
 
   filename = my_file.csv
-  @vexport e
+  @wexport e
+  @wexport e1; e2; ...
+  @wexport *
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @wexport e my_file.csv
+  @wexport e1; e2; ... my_file.csv
+  @wexport * my_file.csv
 
 See also :ref:`format-of-the-csv-file`.
 
@@ -569,6 +844,15 @@ Syntax::
   @nexport behavior
   @nexport stimulus1->behavior1->stimulus2->...
   @nexport behavior1->stimulus1->behavior2->...
+  @nplot x->y->z->...; a->b->c->...
+
+The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @nexport stimulus my_file.csv
+  @nexport behavior my_file.csv
+  @nexport stimulus1->behavior1->stimulus2->... my_file.csv
+  @nexport behavior1->stimulus1->behavior2->... my_file.csv
+  @nplot x->y->z->...; a->b->c->... my_file.csv
 
 See also :ref:`format-of-the-csv-file`.
 
@@ -584,6 +868,15 @@ response, respectively, for subject 1. Column 4 and 5 contains the stimulus
 and response, respectively, for subject 2, etc::
 
 "step","stimulus subject 0","response subject 0","stimulus subject 1","response subject 1","stimulus subject 2","response subject 2",...
+
+Syntax::
+
+  filename = my_file.csv
+  @hexport
+
+or::
+
+  @hexport my_file.csv
 
 .. note::
 
