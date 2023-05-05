@@ -2,12 +2,16 @@ import os
 import sys
 import sqlalchemy
 import random
+import time
 
 from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
 from flask_login import login_required, current_user
-from .models import DBScript, Settings, User
+from .models import DBScript, Settings, User, SimulationTask
 from . import db
 from .demo_scripts import demo_scripts
+
+from exceptions import InterruptedSimulation
+
 
 # Import stuff (e.g. util) from parent directory learningsimulator/
 # (why so complicated to import from parent dir in Python?)
@@ -52,14 +56,21 @@ def run_simulation(script):
         script_obj = Script(script)
         script_obj.parse(is_webapp=True)  # Use is_webapp=True to discriminate Tkinter from browser frontend
 
+        progress = ProgressWeb(script_obj)
+        progress.set_done(False)
+        progress.set_stop_clicked(False)
+
         amend_export_filenames(script_obj.script_parser.postcmds.cmds)
 
-        simulation_data = script_obj.run()
-        script_obj.postproc(simulation_data)
+        simulation_data = script_obj.run(progress)
+        script_obj.postproc(simulation_data, progress)
+        progress.set_done(True)
         return False, script_obj.script_parser.postcmds
     except Exception as ex:
+        stop_clicked = isinstance(ex, InterruptedSimulation)
         err_msg, lineno, stack_trace = util.get_errormsg(ex)
-        return True, (err_msg, lineno, stack_trace)
+        progress.set_done(True)
+        return True, (err_msg, lineno, stack_trace, stop_clicked)
 
 
 def amend_export_filenames(cmds):
@@ -280,40 +291,119 @@ def delete():
     return {'errors': None}
 
 
+class ProgressWeb():
+    def __init__(self, script_obj):
+        self.script_obj = script_obj
+
+        id = current_user.simulation_task_id
+        self.db_task = SimulationTask.query.get_or_404(id)
+
+        self.DB_COMMIT_AT = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        self.next_commit = self.DB_COMMIT_AT.pop(0)
+
+        self.nsteps1 = sum(script_obj.script_parser.runs.get_n_subjects())
+        self.nsteps1_percent = 100 / self.nsteps1 if self.nsteps1 > 0 else 1
+
+        self.nsteps2 = script_obj.script_parser.runs.get_n_phases()
+        self.nsteps2_percent = dict()
+        for key in self.nsteps2:
+            self.nsteps2_percent[key] = 100 / self.nsteps2[key] if self.nsteps2[key] > 0 else 1
+
+        self.set_progress1(0)
+        self.message1 = ""  # tk.StringVar()
+
+        # Set to True when the Stop button has been clicked
+        self.stop_clicked = False
+
+        self.done = False
+
+    def get_stop_clicked(self):
+        return self.db_task.stop_clicked
+
+    def set_stop_clicked(self, stop_clicked):
+        self.db_task.stop_clicked = stop_clicked
+        db.session.commit()
+
+    def set_done(self, is_done):
+        self.db_task.is_done = is_done
+        db.session.commit()
+
+    def get_n_runs(self):
+        return len(self.nsteps2)
+
+    def set_progress1(self, val):
+        self.progress1 = val
+        self.db_task.progress1 = val
+        if val >= self.next_commit:
+            db.session.commit()
+            if len(self.DB_COMMIT_AT) > 0:
+                self.next_commit = self.DB_COMMIT_AT.pop(0)
+
+    def increment1(self):
+        new_value = self.progress1 + self.nsteps1_percent
+        self.set_progress1(new_value)
+
+    def increment2(self, run_label):
+        pass
+
+    def reset1(self):
+        self.set_progress1(0)
+
+    def reset2(self):
+        pass
+
+    def report1(self, message):
+        self.message1 = message
+        self.db_task.message1 = message
+
+    def report2(self, message):
+        pass
+
+    def set_dlg_visibility2(self, visibility):
+        pass
+    
+    def set_dlg_title(self, title):
+        pass
+
+
 @views.route('/run', methods=['POST'])
 def run():
     code = request.json['code']
     is_err, simulation_output = run_simulation(code)
     if is_err:
-        err_msg, lineno, stack_trace = simulation_output
-        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
+        err_msg, lineno, stack_trace, stop_clicked = simulation_output
+        print(err_msg)
+        print(stack_trace)
+        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace,
+                        'stop_clicked': stop_clicked})
     else:
         postcmds = simulation_output
         out = []
         for cmd in postcmds.cmds:
             out.append(cmd.to_dict())
+
         return jsonify(out)
 
 
-# def _move_exported_file(cmd):
-#     user_dirname, img_dir = get_user_img_dir()
-#     os.makedirs(img_dir, exist_ok=True)
-#     filename = cmd.parameters.get(kw.FILENAME)
-#     filename_in_dir = os.path.join(dir, filename)
-#     cmd.parameters.set(kw.FILENAME, filename_in_dir)
+@views.route('/get_sim_status')
+def get_sim_status():
+    db.session.commit()
+    id = current_user.simulation_task_id
+    task_to_read = SimulationTask.query.get_or_404(id)
+    message1 = task_to_read.message1
+    progress1 = task_to_read.progress1
+    is_done = task_to_read.is_done
+    return {'message1': message1, 'progress1': progress1,
+            'is_done': is_done}
 
 
-# @views.route('/run_mpl', methods=['POST'])
-# def run_mpl():
-#     code = request.json['code']
-#     is_err, simulation_output = run_simulation(code)
-#     if is_err:
-#         err_msg, lineno, stack_trace = simulation_output
-#         return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
-#     else:
-#         postcmds = simulation_output
-#         out = postcmds.plot_js()
-#         return jsonify(out)
+@views.route('/stop_simulation')
+def stop_simulation():
+    id = current_user.simulation_task_id
+    db_task = SimulationTask.query.get_or_404(id)
+    db_task.stop_clicked = True
+    db.session.commit()
+    return {'err': None}
 
 
 @views.route('/run_mpl_fig', methods=['POST'])
@@ -381,10 +471,3 @@ def simulate(id):
 
     return render_template("simulate.html", user=current_user, settings=settings,
                            script=script, demo_script_names=demo_script_names)
-
-
-# @views.route('/run', methods=['POST'])
-# def run():
-#     script = request.json['script']
-#     postcmds = run_simulation(script)
-#     return render_template("home.html", user=current_user, postcmds=postcmds.cmds)

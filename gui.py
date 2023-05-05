@@ -564,6 +564,9 @@ class Progress():
     def stop(self):
         self.stop_clicked = True
 
+    def get_stop_clicked(self):
+        return self.stop_clicked
+
     def set_done(self, done):
         self.done = done
 
@@ -574,6 +577,9 @@ class Progress():
 
     def get_n_runs(self):
         return len(self.nsteps2)
+
+    def set_progress1(self, val):
+        self.progress1.set(val)
 
     def increment1(self):
         self.progress1.set(self.progress1.get() + self.nsteps1_percent)
@@ -604,6 +610,14 @@ class Progress():
 
     def report2(self, message):
         self.message2.set(message)
+
+    def set_dlg_visibility2(self, visibility):
+        if self.dlg is not None:
+            self.dlg.set_visibility2(visibility)
+
+    def set_dlg_title(self, title):
+        if self.dlg is not None:
+            self.dlg.set_title(title)
 
 
 if __name__ == "__main__":

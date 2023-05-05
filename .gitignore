@@ -23,6 +23,7 @@ var/
 
 # Virtual environment
 venv
+venv-linux
 
 # Installer logs
 pip-log.txt

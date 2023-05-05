@@ -22,11 +22,19 @@ function onLoad() { // DOM is loaded and ready
     const demoRunButton = document.getElementById('button-run-demo');
     const closeAllButton = document.getElementById('button-closeall');
     const lineCounter = document.getElementById('linecounter');
+
     const errDlgDetailsButton = document.getElementById('button-errdlg-details');
     const errDlgDetails = document.getElementById('textarea-errdlg-details');
     const errDlgClose = document.getElementById("errdlg-close");
     const errorDlgModalBg = document.getElementById("div-errordlg-modal-bg");
     const errDlgMsg = document.getElementById("div-errmsg");
+
+    const progressDlgModalBg = document.getElementById("div-progressdlg-modal-bg");
+    const progressDlgMsg = document.getElementById("div-progressmsg");
+    const progressDlgBar = document.getElementById("div-progressbar");
+    const progressDlgClose = document.getElementById("progressdlg-close");
+    const progressDlgCancel = document.getElementById("progressdlg-cancel");
+
     const divDemo = document.getElementById("div-demo");
     const showDivDemoButton = document.getElementById("button-showdemo");
 
@@ -47,7 +55,6 @@ function onLoad() { // DOM is loaded and ready
     const settingsDlgCancel = document.getElementById("settingsdlg-cancel");
     const settingsDlgPlotType = document.getElementById("settings-plottype");
     const settingsDlgFileTypeMpl = document.getElementById("settings-filetype-mpl");
-    const settingsDlgFileTypePlotly = document.getElementById("settings-filetype-plotly");
 
     settingsDlgPlotType.addEventListener("change", settingsDlgPlotTypeCb);
     settingsDlgFileTypeMpl.addEventListener("change", settingsDlgFileTypeMplCb);
@@ -91,15 +98,6 @@ function onLoad() { // DOM is loaded and ready
         else {
             document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
         }
-    }
-
-    function settingsDlgFileTypePlotlyCb() {
-        // if (['png', 'jpg'].includes(settingsDlgFileTypeMpl.value)) {
-        //     document.getElementById("settings-size").innerHTML = "Image size";
-        // }
-        // else {
-        //     document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
-        // }
     }
 
     // Showing/hiding demo scripts
@@ -198,6 +196,84 @@ function onLoad() { // DOM is loaded and ready
     // }
     // ==================================================================================================
 
+    // ==================================================================================================
+    // Progress dlg
+    let progressUpdateInterval = null;
+    async function openProgressDlg() {
+        const isAlreadyDone = await getSimulationTaskDone();
+        if (isAlreadyDone) {
+            return;
+        }
+        progressDlgModalBg.style.display = "block";
+        progressUpdateInterval = setInterval(updateProgressDlg, 1000);
+    }
+
+    function closeProgressDlg() {
+        if (progressUpdateInterval) {
+            clearInterval(progressUpdateInterval);
+        }
+        progressUpdateInterval = null;
+        progressDlgModalBg.style.display = "none";
+    }
+
+    function resetProgressDlg() {
+        progressDlgMsg.textContent = "Simulation status";
+        progressDlgBar.style.width = "0%";
+    }
+
+    function updateProgressDlg() {
+        const get_url = "/get_sim_status";
+        fetch(get_url)
+            .then(response => response.json())
+            .then(data => {
+                const message1 = data['message1'];
+                const progress1 = data['progress1'];
+                progressDlgMsg.textContent = message1;
+                progressDlgBar.style.width = progress1 + "%";
+            }
+        );
+    }
+
+    async function getSimulationTaskDone() {
+        const get_url = "/get_sim_status";
+        try {
+            // Since this function should return is_done, we have to wait for the Promise "response" to resolve
+            const response = await fetch(get_url);  
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            const data = await response.json();
+            return data['is_done'];
+            // return data;
+        }
+        catch (error) {
+            alert(`Could not get simulation status: ${error}`);
+            return null;
+        }
+    }
+
+    // When the user clicks on <span> (x), close the error dialog
+    progressDlgClose.onclick = function() {
+        progressDlgModalBg.style.display = "none";
+    }
+
+    progressDlgCancel.onclick = function() {
+        const url = "/stop_simulation";
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // const err = data['err'];
+                // if (err) {
+                //     alert(err);
+                // }
+                progressDlgModalBg.style.display = "none";
+            }
+        );
+    }
+
+    // ==================================================================================================
+
+
     class Settings {
         constructor() {
             this.plot_type = null;
@@ -259,7 +335,7 @@ function onLoad() { // DOM is loaded and ready
 
         saveToDB() {
             // The id of the settings for the current user is stored in the
-            // attribute "data-settingsid" of the textbox
+            // attribute "data-settingsid" of the script textbox
             const settingsId = usersScriptCode.dataset.settingsid;
 
             const dataSend = {'id': settingsId, 'settings': this};
@@ -267,18 +343,7 @@ function onLoad() { // DOM is loaded and ready
             const save_arg = {"method": "POST",
                               "headers": {"Content-Type": "application/json"},
                               "body": JSON.stringify(dataSend)};
-            fetch(save_url, save_arg)
-                .then(response => response.json())
-                .then(data => {
-                    const error = data['error'];
-                    if (error) {
-                        return error;
-                    }
-                    else {
-                        return null;
-                    }
-                }
-            );
+            return fetch(save_url, save_arg);
         }
 
         updateUI() {
@@ -326,16 +391,21 @@ function onLoad() { // DOM is loaded and ready
     //     }
     // }
 
-    // When the user clicks on Cancel, close the settings dialog
+    // When the user clicks on OK, save settings and close the settings dialog
     settingsDlgOK.onclick = function() {
         settings.readFromUI();
-        const err = settings.saveToDB();
-        if (err) {
-            alert(err);
-        }
-        else {
-            settingsDlgModalBg.style.display = "none";
-        }
+        settings.saveToDB()
+            .then(response => response.json())
+            .then(data => {
+                const error = data['error'];
+                if (error) {
+                    alert(error);
+                }
+                else {
+                    settingsDlgModalBg.style.display = "none";
+                }
+            }
+        );
     }
 
     // When the user clicks on Cancel, close the settings dialog
@@ -399,7 +469,7 @@ function onLoad() { // DOM is loaded and ready
     // Set event listener to "Demo scripts" list
     demoScripts.addEventListener('change', demoScriptsSelectionChanged);
 
-    closeAllButton.addEventListener('click', removeAllChartDivs)
+    closeAllButton.addEventListener('click', removeAllChartDivs);
 
     /* Get the current sleection in the users scripts list. */
     function getSelectedDemoScript() {
@@ -429,18 +499,23 @@ function onLoad() { // DOM is loaded and ready
         const save_arg = {"method": "POST",
                           "headers": {"Content-Type": "application/json"},
                           "body": JSON.stringify(dataSend)};
-        return fetch(save_url, save_arg)
-            .then(response => response.json())
-            .then(respjson => {
-                return respjson;
+        try {
+            const response = await fetch(save_url, save_arg);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
             }
-        );
+            const data = await response.json();
+            return data;
+        }
+        catch (error) {
+            alert(`Could not save script: ${error}`);
+        }
     }
 
     /* Listener. */
     async function saveScriptButtonClicked() {
-        const respjson = await saveScript();
-        const error = respjson['error'];
+        const data = await saveScript();
+        const error = data['error'];
         if (error) {
             alert(error);
         }
@@ -455,9 +530,17 @@ function onLoad() { // DOM is loaded and ready
     }
 
     async function runButtonClicked(textareaID, isDemo) {
+        // Check if there is an ongoing simluation
+        const isDone = await getSimulationTaskDone();
+        if (isDone === false) {
+            alert("There is already an ongoing simulation.");
+            return;
+        }
+
+        // Save before simulating
         if (autoSaveCheck.checked) {
-            const respjson = await saveScript();
-            const error = respjson['error'];
+            const data = await saveScript();
+            const error = data['error'];
             if (error) {
                 alert(error);
                 return;
@@ -490,15 +573,19 @@ function onLoad() { // DOM is loaded and ready
         const run_arg = {"method": "POST",
                          "headers": {"Content-Type": "application/json"},
                          "body": JSON.stringify(dataSend)};
+        resetProgressDlg();
+        setTimeout(openProgressDlg, 1000);
         fetch(run_url, run_arg)
             .then(response => response.json())
             .then(data => {
+                closeProgressDlg();
                 if (Object.hasOwn(data, 'err_msg')) {
-                    if (data.lineno) {
-                        selectLine(data.lineno);
+                    if (!data.stop_clicked) {
+                        if (data.lineno) {
+                            selectLine(data.lineno);
+                        }
+                        displayRunError(data);
                     }
-                    displayRunError(data);
-                    return;
                 }
                 try {
                     const keep_current = document.getElementById("check-keep");
@@ -1097,6 +1184,7 @@ function onLoad() { // DOM is loaded and ready
             }
         }
     }
+
 
     // =============================== Utilities ===============================
     function makeRandomString(len) {

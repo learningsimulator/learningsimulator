@@ -1,4 +1,9 @@
 Redis Queue + Progress bar
+- Cancel button: https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
+- Store progress info in db. Inherit Progress object.
+- Pull regularly from client
+
+Cancel button: Maybe use https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
 
 Add "Preview" to preview in "My Files"
 
@@ -32,7 +37,7 @@ Possibility for user to delete account- "This cannot be undone", "will delete al
 
 start_at_1
 
-Check that html element contraints (min, max values, string lengths, required, etc) match db
+Check that html element constraints (min, max values, string lengths, required, etc) match db
 -1 < legend_{x,y} < 2 kanske?
 
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.

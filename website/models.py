@@ -23,9 +23,8 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     username = db.Column(db.String(150))
     scripts = db.relationship('DBScript')
-    # settings = db.relationship('Settings')
-    # settings_id = db.Column(db.Integer, unique=True)
     settings_id = db.Column(db.Integer, db.ForeignKey('settings.id'), nullable=True, default=None)
+    simulation_task_id = db.Column(db.Integer, db.ForeignKey('simulation_task.id'), nullable=True, default=None)
 
 
 class PlotOrientation(enum.Enum):
@@ -60,7 +59,6 @@ class Settings(db.Model):
             val = settings[fn]
             setattr(self, fn, val)
 
-
     def to_dict(self):
         out = dict()
         for fn in vars(self):
@@ -71,3 +69,11 @@ class Settings(db.Model):
                 else:
                     out[fn] = val
         return(out)
+
+
+class SimulationTask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message1 = db.Column(db.String(50), default="")
+    progress1 = db.Column(db.Double(), default="")
+    is_done = db.Column(db.Boolean, default=False)
+    stop_clicked = db.Column(db.Boolean, default=False)

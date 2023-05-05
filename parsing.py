@@ -85,9 +85,9 @@ class Script():
         return self.script_parser.runs.run(progress)
 
     def postproc(self, simulation_data, progress=None):
-        if (progress is not None) and (progress.dlg is not None):
-            progress.dlg.set_visibility2(False)
-            progress.dlg.set_title("Plot/Export Progress")
+        if progress is not None:
+            progress.set_dlg_visibility2(False)
+            progress.set_dlg_title("Plot/Export Progress")
 
         self.script_parser.postcmds.run(simulation_data, progress)
 
@@ -946,12 +946,13 @@ class PostCmds():
         n_commands = len(self.cmds)
         for i, cmd in enumerate(self.cmds):
             assert(isinstance(cmd, PostCmd))
-            if progress and progress.stop_clicked:
+            if progress and progress.get_stop_clicked():
                 raise InterruptedSimulation()
             cmd.run(simulation_data)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
-                progress.progress1.set((i + 1) / n_commands * 100)
+                progress.set_progress1((i + 1) / n_commands * 100)
+                # progress.progress1.set((i + 1) / n_commands * 100)
 
     def plot(self):
         for cmd in self.cmds:

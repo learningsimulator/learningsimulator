@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import User, Settings
+from .models import User, Settings, SimulationTask
 from .forms import RegistrationForm, LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
@@ -22,9 +22,7 @@ def login():
             if check_password_hash(user.password, password):
                 flash('Logged in successfully!', category='success')
                 login_user(user, remember=rememeber)
-                # if not user.settings_id:
-                #     add_settings_to_user(user)
-                # return redirect(url_for('views.home'))
+                add_relations_to_user(user)
                 return render_template("my_scripts.html", user=current_user)
             else:
                 flash('Incorrect password, try again.', category='error')
@@ -35,15 +33,22 @@ def login():
     return render_template("login.html", user=current_user, form=form)
 
 
-def add_settings_to_user(user):
-    settings = Settings()
-    db.session.add(settings)
-    db.session.commit()
+def add_relations_to_user(user):
+    if not user.settings_id:
+        settings = Settings()
+        db.session.add(settings)
+        db.session.commit()
+        # After commit, settings has an id
+        user.settings_id = settings.id
+        db.session.commit()
 
-    # After commit, settings has an id
-    user.settings_id = settings.id
-
-    db.session.commit()
+    if not user.simulation_task_id:
+        simulation_task = SimulationTask()
+        db.session.add(simulation_task)
+        db.session.commit()
+        # After commit, simulation_task has an id
+        user.simulation_task_id = simulation_task.id
+        db.session.commit()
 
 
 @auth.route('/logout')
@@ -66,7 +71,7 @@ def sign_up():
         
         try:
             db.session.commit()
-            add_settings_to_user(new_user)
+            # add_relations_to_user(new_user)
             flash("Account created!", category='success')
             login_user(new_user, remember=True)
             return redirect(url_for('views.my_scripts'))

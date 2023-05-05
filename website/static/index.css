@@ -260,6 +260,10 @@ button {
   width: 400px;
 }
 
+#div-progressdlg {
+  width: 300px;
+}
+
 /* The Close Button */
 .modaldlg-close {
   color: #aaaaaa;
@@ -286,6 +290,21 @@ button {
 #textarea-errdlg-details:focus-visible {
     outline:none;
 }
+
+
+/* ============================================================================= */
+/* The progress bar. */
+#div-progressbarbg {
+  width: 100%;
+  background-color: #dfdfdf;
+}
+
+#div-progressbar {
+  width: 1%;
+  height: 30px;
+  background-color: #04AA6D;
+}
+
 
 /* ============================================================================= */
 /* For showing/hiding the demo scripts */
