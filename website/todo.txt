@@ -1,12 +1,3 @@
-Redis Queue + Progress bar
-- Cancel button: https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
-- Store progress info in db. Inherit Progress object.
-- Pull regularly from client
-
-Cancel button: Maybe use https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
-
-Add "Preview" to preview in "My Files"
-
 Varning om @start_trial vs @omit
 
 Delete @export-files and images files when figure / "export-icon" is
@@ -29,7 +20,7 @@ Begränsa storlek på plot (width, height)
 
 Begränsa längd på filnamn i export
 
-Make Navbar nice (with Bg-color) "Home, MY Scripts, Log out" 
+Make Navbar nice (with Bg-color) "Home, My Scripts, Log out" 
 
 (DB-)Admin page
 
@@ -75,6 +66,14 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X Add "Preview" to preview in "My Files"
+
+X Redis Queue + Progress bar
+  - Cancel button: https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
+  - Store progress info in db. Inherit Progress object.
+  - Pull regularly from client
+  Cancel button: Maybe use https://stackoverflow.com/questions/18511119/stop-processing-flask-route-if-request-aborted
+
 X "You sure you want to delete script ...?"
 
 X "Save & run"

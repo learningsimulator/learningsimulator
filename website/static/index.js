@@ -587,15 +587,18 @@ function onLoad() { // DOM is loaded and ready
                         displayRunError(data);
                     }
                 }
+                else if (data.deprecated_warn) {
+                    alert(data.deprecated_warn);
+                }
                 try {
                     const keep_current = document.getElementById("check-keep");
                     if (!keep_current.checked) {
                         removeAllChartDivs();
                     }
                     if (isMpl)
-                        postproc_mpl_fig(data, plotArea);
+                        postproc_mpl_fig(data.postcmds, plotArea);
                     else {
-                        postproc(data, plotArea);
+                        postproc(data.postcmds, plotArea);
                     }
                 }
                 catch (err) {

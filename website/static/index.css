@@ -62,7 +62,7 @@
   -moz-box-sizing: border-box;  /* Include the padding and border in textarea's total width and height */
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  color:gray;
+  color:lightgray;
 }
 
 /* Font in list of script names */

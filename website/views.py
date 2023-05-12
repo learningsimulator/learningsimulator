@@ -56,6 +56,8 @@ def run_simulation(script):
         script_obj = Script(script)
         script_obj.parse(is_webapp=True)  # Use is_webapp=True to discriminate Tkinter from browser frontend
 
+        deprecated_warn = script_obj.check_deprecated_syntax()
+
         progress = ProgressWeb(script_obj)
         progress.set_done(False)
         progress.set_stop_clicked(False)
@@ -65,12 +67,12 @@ def run_simulation(script):
         simulation_data = script_obj.run(progress)
         script_obj.postproc(simulation_data, progress)
         progress.set_done(True)
-        return False, script_obj.script_parser.postcmds
+        return False, script_obj.script_parser.postcmds, deprecated_warn
     except Exception as ex:
         stop_clicked = isinstance(ex, InterruptedSimulation)
         err_msg, lineno, stack_trace = util.get_errormsg(ex)
         progress.set_done(True)
-        return True, (err_msg, lineno, stack_trace, stop_clicked)
+        return True, (err_msg, lineno, stack_trace, stop_clicked), None
 
 
 def amend_export_filenames(cmds):
@@ -369,7 +371,7 @@ class ProgressWeb():
 @views.route('/run', methods=['POST'])
 def run():
     code = request.json['code']
-    is_err, simulation_output = run_simulation(code)
+    is_err, simulation_output, deprecated_warn = run_simulation(code)
     if is_err:
         err_msg, lineno, stack_trace, stop_clicked = simulation_output
         print(err_msg)
@@ -378,11 +380,12 @@ def run():
                         'stop_clicked': stop_clicked})
     else:
         postcmds = simulation_output
-        out = []
+        postcmds_out = []
         for cmd in postcmds.cmds:
-            out.append(cmd.to_dict())
+            postcmds_out.append(cmd.to_dict())
 
-        return jsonify(out)
+        return jsonify({'postcmds': postcmds_out,
+                        'deprecated_warn': deprecated_warn})
 
 
 @views.route('/get_sim_status')

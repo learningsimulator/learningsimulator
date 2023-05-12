@@ -7,6 +7,7 @@ function onLoad() { // DOM is loaded and ready
     const deleteButton = document.getElementById('button-deletescript');
     const openButton = document.getElementById('button-openscript');
     const previewCode = document.getElementById('textarea-code-preview');
+    const previewText = document.getElementById('text-code-preview');
 
     // Set event listener to "My scripts" list
     usersScripts.addEventListener('change', userScriptsSelectionChanged);
@@ -28,9 +29,14 @@ function onLoad() { // DOM is loaded and ready
 
     handleVisibility();
 
-    /* Get the current selection in the users scripts list. */
+    /* Get the values in the current selection in the users scripts list. */
     function getSelectedUserScripts() {
         return Array.from(usersScripts.querySelectorAll("option:checked"), e => e.value);
+    }
+
+    /* Get the names in the current selection in the users scripts list. */
+    function getSelectedUserScriptNames() {
+        return Array.from(usersScripts.querySelectorAll("option:checked"), e => e.text);
     }
 
     class UIScript {
@@ -102,10 +108,15 @@ function onLoad() { // DOM is loaded and ready
 
     /* Handle visibility of elements based on selection in list of scripts. */
     function handleVisibility() {
-        const nSelectedValues = getSelectedUserScripts().length;
+        const selectedScriptNames = getSelectedUserScriptNames();
+        const nSelectedValues = selectedScriptNames.length;
         const showScript = (nSelectedValues == 1);
         if (!showScript) {
             previewCode.value = "";
+            previewText.innerHTML = "Preview";
+        }
+        else {
+            previewText.innerHTML = "Preview of script " + selectedScriptNames[0];
         }
         if (deleteButton) {
             const showDeleteButton = (nSelectedValues >= 1);
