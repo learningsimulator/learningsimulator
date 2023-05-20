@@ -28,6 +28,7 @@ PHASES = 'phases'
 CUMULATIVE = 'cumulative'
 MATCH = 'match'
 FILENAME = 'filename'
+RANDOM_SEED = 'random_seed'
 
 # Commands
 RUN = '@run'
@@ -87,6 +88,7 @@ KEYWORDS = (BEHAVIORS,
             CUMULATIVE,
             MATCH,
             FILENAME,
+            RANDOM_SEED,
             VARIABLES,
             PHASE,
             RUN,

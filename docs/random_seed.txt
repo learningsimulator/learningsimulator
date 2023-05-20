@@ -1,0 +1,41 @@
+:orphan:
+
+random_seed
+***********
+
+Sets a seed to the random generator used in the simulations. This is useful when wanting the result of a script to be reproducible,
+even though the decisions about behavior responses are taken using a random function. It may be set anywhere in the script.
+
+.. note::
+
+  The parameter ``random_seed`` can only be specified once per script.
+
+
+Syntax
+------
+
+::
+
+  random_seed = n
+
+where n is a string. Strings representing an integer are often used. See example below.
+
+Description
+-----------
+
+``random_seed = n`` sets the random generator seed to ``n``.
+
+Examples
+--------
+
+::
+
+  random_seed = 5
+
+sets the random seed to 5.
+
+::
+
+  random_seed = hello
+
+sets the seed to the string 'hello'.
