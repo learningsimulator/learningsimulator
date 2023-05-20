@@ -56,6 +56,8 @@ Simulation parameters
 | :doc:`n_subjects`            | | Number of        | 1               | Positive integer                                  | All            |
 |                              | | subjects         |                 |                                                   |                | 
 +------------------------------+--------------------+-----------------+---------------------------------------------------+----------------+
+| :doc:`random_seed`           | Random seed        | None            | Any string (typically integers are used)          | All            |
++------------------------------+--------------------+-----------------+---------------------------------------------------+----------------+
 | :doc:`response_requirements` | | Possible stimuli | | All stimuli   | | List of                                         | All except     |
 |                              | | per behavior     | | possible for  | | ``behavior:element`` and/or                     | ``rw``         |
 |                              |                    | | each behavior | | ``behavior:[element1,element2,...]``            |                |

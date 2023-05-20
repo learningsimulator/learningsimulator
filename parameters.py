@@ -1,4 +1,5 @@
 import os
+import random
 
 import keywords as kw
 import mechanism_names as mn
@@ -34,6 +35,7 @@ PD = {kw.BEHAVIORS: list(),              # list of (restricted) strings         
       kw.EVAL_PHASES: 'all',             # @post: all or list of phase labels           ,
       kw.CUMULATIVE: 'on',               # on or off
       kw.MATCH: 'subset',                # subset or exact
+      kw.RANDOM_SEED: None,              # Any number
       kw.FILENAME: ''}                   # valid path                                     REQ
 
 
@@ -179,6 +181,13 @@ class Parameters():
                     except Exception as ex:
                         return str(ex)
             self.val[kw.FILENAME] = filename
+            return None
+        
+        elif prop == kw.RANDOM_SEED:
+            if self.val[kw.RANDOM_SEED] is not None:
+                return "Can only set random_seed once."
+            self.val[kw.RANDOM_SEED] = v_str  # Can be anything, really
+            random.seed(v_str)
             return None
 
     def make_mechanism_obj(self):
