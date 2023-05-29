@@ -8,6 +8,12 @@ required Python version.
 
 If you use IDLE, open the file ``lesim.py`` and run it to launch the GUI.
 
+There is an Emacs mode for writing and running Learning Simulator scripts. It can be found at
+https://github.com/drghirlanda/lesim-mode. There is also an integration package for org-mode,
+which is a literate programming / reproducible science package for Emacs that lets you mix
+code in documents. With this you can have your script in the text and run it from your
+document directly. It can be found at https://github.com/drghirlanda/ob-lesim.
+
 If you have a standard Python environment (that fulfils the :ref:`dependencies`), use
 the below commands.
 
@@ -44,3 +50,7 @@ With ``learningsimulator.exe`` on Windows, just run that file to launch the GUI.
 
 Once the GUI is launched, run a script by opening it (with **File** > **Open**), write a script, or paste an existing script into
 the script window, then run it (with **Run** > **Simulate and Plot**, or the **Simulate and Plot** button).
+
+Running a script from within Emacs
+**********************************
+See https://github.com/drghirlanda/lesim-mode and https://github.com/drghirlanda/ob-lesim.
