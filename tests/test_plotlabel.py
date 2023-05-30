@@ -110,6 +110,7 @@ class TestInitialValues(LsTestCase):
         stimulus_elements : s, reward
         start_v           : s->ignore:0, default:-1
         alpha_v           : 0.1
+        alpha_w           : 1
         beta              : 1
         u                 : reward:2, default:0
 

@@ -17,6 +17,7 @@ def get_script(seed=None):
         stimulus_elements = background, stimulus, reward
         start_v           = -3
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==10
@@ -95,6 +96,7 @@ class TestSmall(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -3
         alpha_v           = 0.1
+        alpha_w           = 0.1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==10
@@ -111,6 +113,6 @@ class TestSmall(LsTestCase):
         @figure
         @plot v(stimulus->response)
         '''
-        msg = "Error on line 16: Can only set random_seed once."
+        msg = "Error on line 17: Can only set random_seed once."
         with self.assertRaisesMsg(msg):
             run(text)

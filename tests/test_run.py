@@ -19,6 +19,9 @@ class TestBasic(LsTestCase):
         mechanism: ga
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -45,11 +48,14 @@ class TestExceptions(LsTestCase):
         mechanism: ga
         stimulus_elements: s1, s2
         behaviors: b
+        alpha_v: 1
+        alpha_w: 1
         start_v: s1->b:7, default:1.5
+        
         @phase foo stop:s1=2
         L1 s1 | L1
         @vplot s1->b
         """
-        msg = "Error on line 8: There is no @RUN."
+        msg = "Error on line 11: There is no @RUN."
         with self.assertRaisesMsg(msg):
             run(text)

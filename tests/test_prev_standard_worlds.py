@@ -53,6 +53,8 @@ class TestMisc(LsTestCase):
         mechanism: GA
         behaviors: R0, R1, R2
         stimulus_elements: E0, E1, E2
+        alpha_v: 1
+        alpha_w: 1
 
         @phase foo stop:E0=10
         PL0    E0  |  PL1

@@ -28,6 +28,8 @@ class TestHExport(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b1, b2
         mechanism: ga
+        alpha_v: 1
+        alpha_w: 1
 
         @phase foo stop: s1=5
         S1 s1 | S2(0.5) | S1

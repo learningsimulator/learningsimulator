@@ -340,7 +340,8 @@ class Gui():
 
     def handle_exception(self, ex, stack_trace=None):
         if isinstance(ex, ParseException):
-            self._select_line(ex.lineno)
+            if ex.lineno is not None:
+                self._select_line(ex.lineno)
         # self.close_figs()  # Fix for issue #83. If ok, remove this line
 
         err_msg = str(ex)

@@ -12,7 +12,6 @@ class Mechanism():
 
     def __init__(self, parameters):
         self.parameters = parameters
-        # parameters.scalar_expand()
         self.trace = self.parameters.get(kw.TRACE)
         self.use_trace = (self.trace != 0)
 
@@ -115,7 +114,16 @@ class Mechanism():
                                      self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
-        return None, None  # To be overridden where necessary
+        if self.has_v():
+            if self.parameters.get(kw.ALPHA_V) is None:
+                return "Parameter alpha_v not specified.", None
+        if self.has_w():
+            if self.parameters.get(kw.ALPHA_W) is None:
+                return "Parameter alpha_w not specified.", None
+        if self.has_vss():
+            if self.parameters.get(kw.ALPHA_VSS) is None:
+                return "Parameter alpha_vss not specified.", None
+        return None, None
 
     def has_v(self):
         return True
@@ -430,6 +438,10 @@ class OriginalRescorlaWagner(Mechanism):
                 self.vss[key] += -alpha_vss[key] * self.vss[key]
 
     def check_compatibility_with_world(self, world):
+        err, lineno = super().check_compatibility_with_world(world)
+        if err:
+            return err, lineno
+
         behaviors = self.parameters.get(kw.BEHAVIORS)
 
         # Check that stop condition does not depend on behavior
