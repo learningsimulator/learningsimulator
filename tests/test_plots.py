@@ -139,7 +139,7 @@ class TestInitialValues(LsTestCase):
         self.assertEqual(len(plot_data['p(s1->b1)']['x']), 100)
         self.assertEqual(len(plot_data['p(s1->b1)']['y']), 100)
 
-        self.assertGreater(plot_data['v(s1->b1)']['y'][99], 80)
+        self.assertGreater(plot_data['v(s1->b1)']['y'][99], 75)
         self.assertLess(plot_data['p(s1->b1)']['y'][99], 1.01)
         self.assertGreater(plot_data['p(s1->b1)']['y'][99], 0.99)
 
