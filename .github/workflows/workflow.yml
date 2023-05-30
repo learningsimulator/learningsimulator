@@ -37,12 +37,12 @@ jobs:
         coverage html
         coverage-badge -o coverage.svg
     - name: Archive code coverage html
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: coverage-html
           path: htmlcov
     - name: Archive code coverage badge
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: coverage-badge
           path: coverage.svg
