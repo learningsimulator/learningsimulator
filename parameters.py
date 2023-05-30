@@ -206,8 +206,6 @@ class Parameters():
         if not mechanism_name:
             return None, "Parameter 'mechanism' is not specified."
 
-        # print("Making mechanism + " + mechanism_name + " for alpha_v " + str(self.get(kw.ALPHA_V)))
-
         self.scalar_expand()
 
         if mechanism_name in mn.SR:
@@ -388,9 +386,6 @@ class Parameters():
                 return f"A single value for '{NAME}' cannot be followed by other values."
             else:
                 self.val[NAME] = single_v
-                # for key in self.val[NAME]:
-                #     self.val[NAME][key] = single_v
-                # self.val[NAME].pop(kw.DEFAULT)
         else:
             # Create and populate the struct with None values
             if not is_appending:
