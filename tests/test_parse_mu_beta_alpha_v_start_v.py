@@ -1,4 +1,4 @@
-from .testutil import LsTestCase
+from .testutil import LsTestCase, run
 from keywords import START_V, ALPHA_V, BETA, MU
 from parsing import Script
 
@@ -79,7 +79,8 @@ class TestBasic(LsTestCase):
         {}: 0.42
         '''.format(name)
         v = parse(text, name)
-        expected = {('e1', 'b1'): 0.42, ('e1', 'b2'): 0.42, ('e2', 'b1'): 0.42, ('e2', 'b2'): 0.42}
+        # expected = {('e1', 'b1'): 0.42, ('e1', 'b2'): 0.42, ('e2', 'b1'): 0.42, ('e2', 'b2'): 0.42}
+        expected = 0.42
         self.assertEqual(v, expected)
 
         text = '''
@@ -97,7 +98,8 @@ class TestBasic(LsTestCase):
         {}: 0
         '''.format(name)
         v = parse(text, name)
-        expected = {('e1', 'b1'): 0, ('e1', 'b2'): 0, ('e2', 'b1'): 0, ('e2', 'b2'): 0}
+        # expected = {('e1', 'b1'): 0, ('e1', 'b2'): 0, ('e2', 'b1'): 0, ('e2', 'b2'): 0}
+        expected = 0
         self.assertEqual(v, expected)
 
     def test_redefinition(self):
@@ -379,6 +381,155 @@ class TestExceptions(LsTestCase):
 
     def _test_mixup_eb(self, name):
         pass
+
+    def test_not_specified(self):
+        # GA, missing alpha_v
+        text = '''
+        mechanism: ga
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        with self.assertRaisesMsg("Error: Parameter alpha_v not specified."):
+            run(text)
+
+        # GA, missing alpha_w
+        text = '''
+        mechanism: ga
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        alpha_v: 1
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_w not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+        
+        # SR, missing alpha_v
+        text = '''
+        mechanism: sr
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        alpha_w: 1
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_v not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+    
+        # RW, missing alpha_vss
+        text = '''
+        mechanism: rw
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_vss not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        # RW, missing alpha_vss
+        text = '''
+        mechanism: rw
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        alpha_w: 1
+        alpha_v: 1
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_vss not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        # AC, missing alpha_v
+        text = '''
+        mechanism: ac
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_v not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        # AC, missing alpha_w
+        text = '''
+        mechanism: ac
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        alpha_v: 1
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_w not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        # QL, missing alpha_v
+        text = '''
+        mechanism: ql
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_v not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        # ES, missing alpha_v
+        text = '''
+        mechanism: es
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        
+        @phase foo stop: e1:10
+        S1 e1 | S2
+        S2 e2 | S1
+
+        @run foo
+        '''
+        msg = "Error: Parameter alpha_v not specified."
+        with self.assertRaisesMsg(msg):
+            run(text)
 
     def test_stimulus_element_not_defined(self):
         for prop in PROPS:

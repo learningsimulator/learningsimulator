@@ -9,6 +9,7 @@ def get_match_script(nplot_expr, match, xscale, xscale_match, cumulative):
     mechanism         : SR
     behaviors         : b
     stimulus_elements : s1, s2, s3
+    alpha_v           : 1
 
     @phase ph1 stop:s3=10
     S1     s1              | S2_1

@@ -38,6 +38,7 @@ class TestPlotExportArithmetic(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -108,7 +109,9 @@ class TestPlotExportArithmetic(LsTestCase):
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
         start_v           = -1
+        start_w           = -1
         alpha_v           = 0.1
+        alpha_w           = 0.1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -237,6 +240,7 @@ subject: average
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @variables x = -1, y = 2, z = 3
 
@@ -265,6 +269,7 @@ subject: average
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @variables x = -1, y = 2, z = 3
 
@@ -295,6 +300,7 @@ subject: average
         stimulus_elements = background, s, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: s==5
@@ -377,6 +383,9 @@ subject: average
         stimulus_elements: s1, s2
         behaviors: b, b2
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+        
         @phase blaps stop:s1=20
         L1 s1 | L1
         @run blaps
@@ -412,6 +421,9 @@ class TestPlotExceptions(LsTestCase):
         mechanism: ga
         stimulus_elements: s1, s2
         behaviors: b
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -419,22 +431,22 @@ class TestPlotExceptions(LsTestCase):
         """
 
         text = text_base.format("v()")
-        msg = "Error on line 8: Expression must include a '->'."
+        msg = "Error on line 11: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("p()")
-        msg = "Error on line 8: Expression must include a '->'."
+        msg = "Error on line 11: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("w()")
-        msg = "Error on line 8: Expected a stimulus element, got ."
+        msg = "Error on line 11: Expected a stimulus element, got ."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("n()")
-        msg = "Error on line 8: Expected stimulus element(s) or a behavior, got ."
+        msg = "Error on line 11: Expected stimulus element(s) or a behavior, got ."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -444,28 +456,31 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
         text = text_base.format("v(s1->b")
-        msg = "Error on line 9: Missing right parenthesis in expression v(s1->b"
+        msg = "Error on line 12: Missing right parenthesis in expression v(s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("p(s1->b")
-        msg = "Error on line 9: Missing right parenthesis in expression p(s1->b"
+        msg = "Error on line 12: Missing right parenthesis in expression p(s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("w(s1")
-        msg = "Error on line 9: Missing right parenthesis in expression w(s1"
+        msg = "Error on line 12: Missing right parenthesis in expression w(s1"
         with self.assertRaisesMsg(msg):
             run(text)
         
         text = text_base.format("n(s1->b->s2")
-        msg = "Error on line 9: Missing right parenthesis in expression n(s1->b->s2"
+        msg = "Error on line 12: Missing right parenthesis in expression n(s1->b->s2"
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -475,6 +490,9 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -482,22 +500,22 @@ class TestPlotExceptions(LsTestCase):
         """
         for e in {"v((s1->b))", "p((((((s1->b))", "w(s1)))))", "n((s1->b->s2))"}:
             text = text_base.format(e)
-            msg = "Error on line 9: Error in expression."
+            msg = "Error on line 12: Error in expression."
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("s1->b")
-        msg = "Error on line 9: Invalid expression s1->b"
+        msg = "Error on line 12: Invalid expression s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("blaps")
-        msg = "Error on line 9: Invalid expression blaps"
+        msg = "Error on line 12: Invalid expression blaps"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("")
-        msg = "Error on line 9: Invalid @plot command."
+        msg = "Error on line 12: Invalid @plot command."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -536,12 +554,15 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+        
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot foo(n(s))
         """
-        msg = "Error on line 9: Invalid name foo in expression."
+        msg = "Error on line 12: Invalid name foo in expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -550,12 +571,15 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot round2(n(s))
         """
-        msg = "Error on line 9: Invalid name round2 in expression."
+        msg = "Error on line 12: Invalid name round2 in expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -565,12 +589,15 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot n(s) / 0
         """
-        msg = "Error on line 9: Expected stimulus element(s) or a behavior, got s."
+        msg = "Error on line 12: Expected stimulus element(s) or a behavior, got s."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -579,19 +606,22 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
-        msg = "Error on line 9: Expression evaluation failed."
+        msg = "Error on line 12: Expression evaluation failed."
         for e in {"n(s1) / 0", "log(-n(b))", "v(s1->b) / (v(s1->b)-v(s1->b))"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("n(s1) / (v(s1->b) + v(s1->b))")
-        with self.assertRaisesMsg("Error on line 9: Cannot mix n with v,p,w,vss when xscale is 'all'."):
+        with self.assertRaisesMsg("Error on line 12: Cannot mix n with v,p,w,vss when xscale is 'all'."):
             run(text)
 
     def test_wildcard_plot(self):
@@ -600,19 +630,22 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
-        msg = "Error on line 9: Wildcard syntax not supported in @plot/@export."
+        msg = "Error on line 12: Wildcard syntax not supported in @plot/@export."
         for e in {"v(s1-> * )", "w( *)", "w(* )", "v(s1->b) + v(*->b)"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("n(*)")
-        with self.assertRaisesMsg("Error on line 9: Expected stimulus element(s) or a behavior, got *."):
+        with self.assertRaisesMsg("Error on line 12: Expected stimulus element(s) or a behavior, got *."):
             run(text)
 
     def test_wildcard_export(self):
@@ -621,6 +654,9 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -628,14 +664,14 @@ class TestPlotExceptions(LsTestCase):
         filename = foo.txt
         @export {}
         """
-        msg = "Error on line 11: Wildcard syntax not supported in @plot/@export."
+        msg = "Error on line 14: Wildcard syntax not supported in @plot/@export."
         for e in {"v(s1-> * )", "w( *)", "w(* )", "v(s1->b) + v(*->b)"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("n(*)")
-        with self.assertRaisesMsg("Error on line 11: Expected stimulus element(s) or a behavior, got *."):
+        with self.assertRaisesMsg("Error on line 14: Expected stimulus element(s) or a behavior, got *."):
             run(text)
 
     def test_try_boom(self):
@@ -644,18 +680,21 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
-        msg = "Error on line 9: Error in expression."
+        msg = "Error on line 12: Error in expression."
         text = text_base.format("@plot __import__('os').system('clear')+w(s)")
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("@plot __import__('os').system('clear')")
-        msg = "Error on line 9: Invalid expression @plot __import__('os').system('clear')"
+        msg = "Error on line 12: Invalid expression @plot __import__('os').system('clear')"
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -665,13 +704,16 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
 
         @export v(s1->b)
         """
-        msg = "Error on line 10: Filename needs to be specified before @export."
+        msg = "Error on line 13: Filename needs to be specified before @export."
         with self.assertRaisesMsg(msg):
             run(text)
         
@@ -680,6 +722,9 @@ class TestPlotExceptions(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -687,7 +732,7 @@ class TestPlotExceptions(LsTestCase):
         filename = myfilename.txt
         @export v(s1->b)  myfilename.txt
         """
-        msg = "Error on line 11: Error in expression."
+        msg = "Error on line 14: Error in expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -743,6 +788,9 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         mechanism: ga
         stimulus_elements: s1, s2
         behaviors: b
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -750,22 +798,22 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         """
 
         text = text_base.format("v(s1->b) ; v()")
-        msg = "Error on line 8: Expression must include a '->'."
+        msg = "Error on line 11: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("p() ; v(s1->b)")
-        msg = "Error on line 8: Expression must include a '->'."
+        msg = "Error on line 11: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("w(s1) ; w(s2) ; w()")
-        msg = "Error on line 8: Expected a stimulus element, got ."
+        msg = "Error on line 11: Expected a stimulus element, got ."
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("v(s1->b) ; n()")
-        msg = "Error on line 8: Expected stimulus element(s) or a behavior, got ."
+        msg = "Error on line 11: Expected stimulus element(s) or a behavior, got ."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -775,28 +823,31 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
         text = text_base.format("v(s1->b) ; v(s1->b")
-        msg = "Error on line 9: Missing right parenthesis in expression v(s1->b"
+        msg = "Error on line 12: Missing right parenthesis in expression v(s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("v(s1->b) ; p(s1->b")
-        msg = "Error on line 9: Missing right parenthesis in expression p(s1->b"
+        msg = "Error on line 12: Missing right parenthesis in expression p(s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("v(s1->b) ; w(s1")
-        msg = "Error on line 9: Missing right parenthesis in expression w(s1"
+        msg = "Error on line 12: Missing right parenthesis in expression w(s1"
         with self.assertRaisesMsg(msg):
             run(text)
         
         text = text_base.format("v(s1->b) ; n(s1->b->s2")
-        msg = "Error on line 9: Missing right parenthesis in expression n(s1->b->s2"
+        msg = "Error on line 12: Missing right parenthesis in expression n(s1->b->s2"
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -806,6 +857,9 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
@@ -813,22 +867,22 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         """
         for e in {"v(s1->b) ; v((s1->b))", "v(s1->b) ; p((((((s1->b))", "v(s1->b) ; w(s1)))))", "v(s1->b) ; n((s1->b->s2))"}:
             text = text_base.format(e)
-            msg = "Error on line 9: Error in expression."
+            msg = "Error on line 12: Error in expression."
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("s1->b")
-        msg = "Error on line 9: Invalid expression s1->b"
+        msg = "Error on line 12: Invalid expression s1->b"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("blaps")
-        msg = "Error on line 9: Invalid expression blaps"
+        msg = "Error on line 12: Invalid expression blaps"
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("")
-        msg = "Error on line 9: Invalid @plot command."
+        msg = "Error on line 12: Invalid @plot command."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -838,12 +892,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @ plot
         """
-        msg = "Error on line 9: Phase @ undefined."
+        msg = "Error on line 12: Phase @ undefined."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -852,12 +909,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @ plot v(s1->b) ; foo
         """
-        msg = "Error on line 9: Phase @ undefined."
+        msg = "Error on line 12: Phase @ undefined."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -867,12 +927,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot v(s1->b) ; foo(n(s))
         """
-        msg = "Error on line 9: Invalid name foo in expression."
+        msg = "Error on line 12: Invalid name foo in expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -881,12 +944,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1        
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot round2(n(s)) ; v(s1->b)
         """
-        msg = "Error on line 9: Invalid name round2 in expression."
+        msg = "Error on line 12: Invalid name round2 in expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -896,12 +962,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot n(s) / 0 ; v(s1->b)
         """
-        msg = "Error on line 9: Expected stimulus element(s) or a behavior, got s."
+        msg = "Error on line 12: Expected stimulus element(s) or a behavior, got s."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -910,19 +979,22 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
-        msg = "Error on line 9: Expression evaluation failed."
+        msg = "Error on line 12: Expression evaluation failed."
         for e in {"v(s1->b) ; n(s1) / 0", "v(s1->b) ; log(-n(b))", "v(s1->b) ; v(s1->b) / (v(s1->b)-v(s1->b))"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("n(s1) / (v(s1->b) + v(s1->b))")
-        with self.assertRaisesMsg("Error on line 9: Cannot mix n with v,p,w,vss when xscale is 'all'."):
+        with self.assertRaisesMsg("Error on line 12: Cannot mix n with v,p,w,vss when xscale is 'all'."):
             run(text)
 
     def test_wildcard(self):
@@ -931,19 +1003,22 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot {}
         """
-        msg = "Error on line 9: Wildcard syntax not supported in @plot/@export."
+        msg = "Error on line 12: Wildcard syntax not supported in @plot/@export."
         for e in {"v(s1->b) ; v(s1-> * )", "v(s1->b) ; w( *)", "v(s1->b) ; w(* )", "v(s1->b) ; v(s1->b) + v(*->b)"}:
             text = text_base.format(e)
             with self.assertRaisesMsg(msg):
                 run(text)
 
         text = text_base.format("n(*)")
-        with self.assertRaisesMsg("Error on line 9: Expected stimulus element(s) or a behavior, got *."):
+        with self.assertRaisesMsg("Error on line 12: Expected stimulus element(s) or a behavior, got *."):
             run(text)                
 
     def test_try_boom(self):
@@ -952,18 +1027,21 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         {}
         """
-        msg = "Error on line 9: Invalid expression."
+        msg = "Error on line 12: Invalid expression."
         text = text_base.format("@plot __import__('os').system('clear')+w(s) ; v(s1->b)")
         with self.assertRaisesMsg(msg):
             run(text)
 
         text = text_base.format("@plot __import__('os').system('clear')  ; v(s1->b)")
-        msg = "Error on line 9: Invalid expression __import__('os').system('clear')"
+        msg = "Error on line 12: Invalid expression __import__('os').system('clear')"
         with self.assertRaisesMsg(msg):
             run(text)
         
@@ -973,12 +1051,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @vplot s1->b;
         """
-        msg = "Error on line 9: Expression must include a '->'."
+        msg = "Error on line 12: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -987,12 +1068,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot v(s1->b);
         """
-        msg = "Error on line 9: Invalid expression "
+        msg = "Error on line 12: Invalid expression "
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1001,12 +1085,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot n(s1->b);
         """
-        msg = "Error on line 9: Invalid expression "
+        msg = "Error on line 12: Invalid expression "
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1015,12 +1102,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @plot v(s1->b) ;; v/s2->b)
         """
-        msg = "Error on line 9: Invalid expression "
+        msg = "Error on line 12: Invalid expression "
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1029,12 +1119,15 @@ class TestPlotExceptionsSemicolon(LsTestCase):
         stimulus_elements: s1, s2
         behaviors: b
         start_v: s1->b:7, default:1.5
+        alpha_v: 1
+        alpha_w: 1
+
         @phase blaps stop:s1=2
         L1 s1 | L1
         @run blaps
         @vplot s1->b ;; s2->b
         """
-        msg = "Error on line 9: Expression must include a '->'."
+        msg = "Error on line 12: Expression must include a '->'."
         with self.assertRaisesMsg(msg):
             run(text)
 

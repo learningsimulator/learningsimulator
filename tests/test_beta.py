@@ -25,6 +25,8 @@ class TestBasic(LsTestCase):
         mu: {mu_str}
         u: e2:1, default:0
         start_v: {start_v_str}
+        alpha_v: 1
+        alpha_w: 1
 
         @PHASE phase1 stop:e1=100
         L1 e1 | L2

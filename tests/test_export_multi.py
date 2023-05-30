@@ -57,6 +57,7 @@ class TestExportMultiExpression(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==7
@@ -248,6 +249,7 @@ class TestExportMultiExpression(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==7
@@ -332,6 +334,7 @@ class TestExportMultiExpression(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==7
@@ -415,6 +418,7 @@ class TestExportMultiExpression(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==7
@@ -536,6 +540,7 @@ class TestExportMultiExpression(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==7

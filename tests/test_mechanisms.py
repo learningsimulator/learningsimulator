@@ -25,6 +25,8 @@ class TestVMechanisms(LsTestCase):
             behaviors: b1, b2, dummy
             u: rew:1, norew:-1, default:0
             n_subjects:100
+            alpha_v: 1
+            alpha_w: 1 
             response_requirements: b1:[s1, s2],
                                    b2:[s1, s2],
                                    dummy:[rew, norew]
@@ -106,6 +108,7 @@ class TestRescorlaWagner(LsTestCase):
 
         lambda:    us:1, default:0
         start_vss: default:0.5
+        alpha_vss: 1
 
         @phase foo stop:cs=5
         CS cs     | US
@@ -539,6 +542,8 @@ class TestExceptions(LsTestCase):
         mechanism: sr
         stimulus_elements: cs, us
         behaviors: b1, b2
+        start_v: 1
+        alpha_v: 1
 
         lambda:    us:1, default:0
         start_vss: default:0.5
@@ -554,6 +559,7 @@ class TestExceptions(LsTestCase):
         msg = "Used mechanism does not have variable 'w'."
         with self.assertRaisesMsg(msg):
             run(text.format("@wplot cs"))
+        
         msg = "Used mechanism does not have variable 'vss'."
         with self.assertRaisesMsg(msg):
             run(text.format("@vssplot cs->us"))
@@ -647,19 +653,3 @@ class TestExceptions(LsTestCase):
         msg = "Error on line 10: Phase line logic cannot depend on behavior in mechanism 'rw'."
         with self.assertRaisesMsg(msg):
             run(text)
-
-        text = """
-        mechanism: sr
-        stimulus_elements: cs, us
-        behaviors: b1, b2
-        lambda:    us:1, default:0
-        start_vss: default:0.5
-        alpha_vss: 0.6
-
-        @phase bar stop:us=5
-        CS cs     | b1:US | CS
-        US us     | CS
-
-        @run bar
-        """
-        run(text)
