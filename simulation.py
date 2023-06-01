@@ -1,7 +1,7 @@
 import keywords as kw
 from exceptions import ParseException, InterruptedSimulation
 from output import ScriptOutput, RunOutput, RunOutputSubject
-
+import multiprocessing
 
 class Runs():
     def __init__(self):
@@ -185,8 +185,17 @@ class Run():
 
         out = RunOutput(self.n_subjects, self.mechanism_obj)
 
-        # The actual simulation
+        # Create a multiprocessing pool but don't hog the system completely
+        # Ideally, this should be a script parameter
+        pool = multiprocessing.Pool( processes = multiprocessing.cpu_count() - 1 )
+        results = [None] * self.n_subjects
+
+        # Start processes
         for subject_ind in range(self.n_subjects):
-            out.output_subjects[ subject_ind ] = self.run_one( subject_ind, progress )
+            results[ subject_ind ] = pool.apply_async( self.run_one, (subject_ind, progress) )
+
+        # Collect results
+        for subject_ind in range(self.n_subjects):
+            out.output_subjects[ subject_ind ] = results[ subject_ind ].get()
             
         return out
