@@ -1,6 +1,6 @@
 import keywords as kw
 from exceptions import ParseException, InterruptedSimulation
-from output import ScriptOutput, RunOutput
+from output import ScriptOutput, RunOutput, RunOutputSubject
 
 
 class Runs():
@@ -64,7 +64,8 @@ class Run():
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 
-    def run(self, progress=None):
+
+    def run_one( self, subject_ind, stimulus_req, progress=None ):
 
         # Remove when omit_learn using new_trial is no longer suppoerted
         def _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines, is_bind_off):
@@ -73,108 +74,119 @@ class Run():
             omit_learn_using_new_trial = (is_bind_off and (is_new_trial or ("new_trial" in lower_phh)))
             return omit_learn_using_new_trial
 
-        out = RunOutput(self.n_subjects, self.mechanism_obj)
+        # Reset mechanism and world for the next subject
+        self.mechanism_obj.subject_reset()
+        self.world.subject_reset()
+        prev_phase_label = None  # For phases progress
+        out = RunOutputSubject( stimulus_req )
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
         behaviors = self.mechanism_obj.parameters.get(kw.BEHAVIORS)
         is_bind_off = (self.bind_trials == "off")
 
-        # Initialize output with start values
-        for subject_ind in range(self.n_subjects):
-            for element in stimulus_elements:
+        # Initialize output
+        for element in stimulus_elements:
+            if self.has_w:
+                out.write_w({element: 1}, 0, self.mechanism_obj)
+            if self.has_v:
+                for behavior in behaviors:
+                    out.write_v({element: 1}, behavior, 0, self.mechanism_obj)
+            if self.has_vss:
+                for element2 in stimulus_elements:
+                    out.write_vss({element: 1}, {element2: 1}, 0, self.mechanism_obj)
+            # out.write_step(self.world.phases[0].label, 0)
+        
+        if progress:
+            if progress.get_n_runs() > 1:
+                progress.report1(f"{self.run_label}: Simulating subject {subject_ind + 1}")
+            else:
+                progress.report1(f"Simulating subject {subject_ind + 1}")
+                progress.reset2()
+                progress.report2("")
+
+        step = 1
+        subject_done = False
+        response = None
+        while not subject_done:
+            if progress and progress.stop_clicked:
+                raise InterruptedSimulation()
+            next_stimulus_out = self.world.next_stimulus(response)
+            stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
+            if progress:
+                if phase_label != prev_phase_label:  # Update phases progress
+                    progress.increment2(self.run_label)
+                    progress.report2(f"Phase {phase_label}")
+                    prev_phase_label = phase_label
+
+            subject_done = (stimulus is None)
+            
+            if not subject_done:
+
+                # Remove when omit_learn using new_trial is no longer suppoerted
+                omit_learn_using_new_trial = _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines,
+                                                                             is_bind_off)
+                omit_learn = (omit_learn or omit_learn_using_new_trial)
+
+                prev_stimulus = self.mechanism_obj.prev_stimulus
+                prev_response = self.mechanism_obj.response
+                response = self.mechanism_obj.learn_and_respond(stimulus, omit_learn)
+
+                if prev_stimulus is not None:
+                    if self.has_w:
+                        out.write_w(prev_stimulus, step, self.mechanism_obj)
+                    if self.has_v:
+                        out.write_v( prev_stimulus, prev_response, step,
+                                    self.mechanism_obj)
+                    if self.has_vss:
+                        # Loop since *all* vss[(prev_stimulus,*)] is set in
+                        # OriginalRescorlaWagner.learn_and_respond, not only
+                        # vss[(prev_stimulus,stimulus)]
+                        for e in stimulus_elements:
+                            out.write_vss(prev_stimulus, {e: 1}, step,
+                                          self.mechanism_obj)
+                    out.write_history(prev_stimulus, prev_response)
+                    phase_step = step
+                    if step > 1:
+                        phase_step = step + 1
+                    out.write_step(phase_label, phase_step)
+                    step += 1
+                out.write_phase_line_label(phase_line_label, step,
+                                               preceeding_help_lines)
+                last_stimulus = dict(stimulus)  # XXX dict ok?
+                last_response = response
+            else:
+                step -= 1
+                # Write last step to all variables
                 if self.has_w:
-                    out.write_w(subject_ind, {element: 1}, 0, self.mechanism_obj)
+                    for element in stimulus_elements:
+                        out.write_w((element,), step, self.mechanism_obj)
                 if self.has_v:
-                    for behavior in behaviors:
-                        out.write_v(subject_ind, {element: 1}, behavior, 0, self.mechanism_obj)
+                    for element in stimulus_elements:
+                        for behavior in behaviors:
+                            out.write_v({element: 1}, behavior, step,
+                                        self.mechanism_obj)
+
                 if self.has_vss:
-                    for element2 in stimulus_elements:
-                        out.write_vss(subject_ind, {element: 1}, {element2: 1}, 0, self.mechanism_obj)
-            # out.write_step(subject_ind, self.world.phases[0].label, 0)
+                    for element1 in stimulus_elements:
+                        for element2 in stimulus_elements:
+                            out.write_vss({element1: 1}, {element2: 1}, step,
+                                          self.mechanism_obj)
+
+                out.write_history(last_stimulus, last_response)
+                out.write_step("last", step + 2)
+
+            if progress:
+                progress.increment1()
+
+        return out
+
+        
+    def run(self, progress=None):
+
+        out = RunOutput(self.n_subjects, self.mechanism_obj)
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
-            prev_phase_label = None  # For phases progress
-            if progress:
-                if progress.get_n_runs() > 1:
-                    progress.report1(f"{self.run_label}: Simulating subject {subject_ind + 1}")
-                else:
-                    progress.report1(f"Simulating subject {subject_ind + 1}")
-                progress.reset2()
-                progress.report2("")
-            step = 1
-            subject_done = False
-            response = None
-            while not subject_done:
-                if progress and progress.stop_clicked:
-                    raise InterruptedSimulation()
-                next_stimulus_out = self.world.next_stimulus(response)
-                stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
-                if progress:
-                    if phase_label != prev_phase_label:  # Update phases progress
-                        progress.increment2(self.run_label)
-                        progress.report2(f"Phase {phase_label}")
-                        prev_phase_label = phase_label
-
-                subject_done = (stimulus is None)
-                if not subject_done:
-
-                    # Remove when omit_learn using new_trial is no longer suppoerted
-                    omit_learn_using_new_trial = _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines,
-                                                                             is_bind_off)
-                    omit_learn = (omit_learn or omit_learn_using_new_trial)
-
-                    prev_stimulus = self.mechanism_obj.prev_stimulus
-                    prev_response = self.mechanism_obj.response
-                    response = self.mechanism_obj.learn_and_respond(stimulus, omit_learn)
-
-                    if prev_stimulus is not None:
-                        if self.has_w:
-                            out.write_w(subject_ind, prev_stimulus, step, self.mechanism_obj)
-                        if self.has_v:
-                            out.write_v(subject_ind, prev_stimulus, prev_response, step,
-                                        self.mechanism_obj)
-                        if self.has_vss:
-                            # Loop since *all* vss[(prev_stimulus,*)] is set in
-                            # OriginalRescorlaWagner.learn_and_respond, not only
-                            # vss[(prev_stimulus,stimulus)]
-                            for e in stimulus_elements:
-                                out.write_vss(subject_ind, prev_stimulus, {e: 1}, step,
-                                              self.mechanism_obj)
-                        out.write_history(subject_ind, prev_stimulus, prev_response)
-                        phase_step = step
-                        if step > 1:
-                            phase_step = step + 1
-                        out.write_step(subject_ind, phase_label, phase_step)
-                        step += 1
-                    out.write_phase_line_label(subject_ind, phase_line_label, step,
-                                               preceeding_help_lines)
-                    last_stimulus = dict(stimulus)  # XXX dict ok?
-                    last_response = response
-                else:
-                    step -= 1
-                    # Write last step to all variables
-                    if self.has_w:
-                        for element in stimulus_elements:
-                            out.write_w(subject_ind, (element,), step, self.mechanism_obj)
-                    if self.has_v:
-                        for element in stimulus_elements:
-                            for behavior in behaviors:
-                                out.write_v(subject_ind, {element: 1}, behavior, step,
-                                            self.mechanism_obj)
-
-                    if self.has_vss:
-                        for element1 in stimulus_elements:
-                            for element2 in stimulus_elements:
-                                out.write_vss(subject_ind, {element1: 1}, {element2: 1}, step,
-                                              self.mechanism_obj)
-
-                    out.write_history(subject_ind, last_stimulus, last_response)
-                    out.write_step(subject_ind, "last", step + 2)
-
-                    # Reset mechanism and world for the next subject
-                    self.mechanism_obj.subject_reset()
-                    self.world.subject_reset()
-            if progress:
-                progress.increment1()
+            out.output_subjects[ subject_ind ] = self.run_one( subject_ind, progress )
+            
         return out
