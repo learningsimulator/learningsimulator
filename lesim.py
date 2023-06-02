@@ -1,4 +1,7 @@
 import sys
+import multiprocessing
+
+import compute
 
 import gui
 import parsing
@@ -55,7 +58,8 @@ if __name__ == "__main__":
                 if msg is not None:
                     print(msg)
 
-                simulation_data = script_obj.run()
+                compute.queue.put( script_obj )
+                simulation_data = compute.queue.get()
                 script_obj.postproc(simulation_data)
                 block = (i == nfiles - 1)
                 script_obj.plot(block)
@@ -64,3 +68,5 @@ if __name__ == "__main__":
             print(man_page)
         else:
             print("Invalid command option '{}' to lesim. Type 'lesim.py help' for the available options.".format(arg1))
+
+compute.process.terminate()

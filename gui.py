@@ -23,6 +23,7 @@ from exceptions import ParseException, EvalException, InterruptedSimulation
 from functools import partial
 
 import util
+import compute
 
 # matplotlib.use('Agg')
 
@@ -283,7 +284,10 @@ class Gui():
 
     def simulate(self):
         try:
-            self.simulation_data = self.script_obj.run(self.progress)
+            compute.queue.put( self.script_obj )
+            self.simulation_data = compute.queue.get()
+#            compute.process.terminate()
+#            self.simulation_data = self.script_obj.run(self.progress)
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
