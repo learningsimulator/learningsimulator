@@ -197,5 +197,6 @@ class Run():
         # Collect results
         for subject_ind in range(self.n_subjects):
             out.output_subjects[ subject_ind ] = results[ subject_ind ].get()
-            
+
+        pool.terminate()
         return out
