@@ -52,6 +52,8 @@ HEXPORT = '@hexport'
 VSSEXPORT = '@vssexport'
 EXPORT = '@export'
 
+OMIT_LEARN = '@omit_learn'
+
 # Other
 DEFAULT = 'default'
 RAND = 'rand'
