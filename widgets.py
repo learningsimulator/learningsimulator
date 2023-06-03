@@ -5,6 +5,7 @@ from tkinter import Canvas  # , Frame
 from tkinter.scrolledtext import ScrolledText
 from tkinter.constants import YES  # , BOTH
 from tkinter import messagebox
+import platform
 # import threading
 
 # import time
@@ -174,7 +175,9 @@ class ErrorDlg(tk.Toplevel):
         # self.textbox.config(yscrollcommand=self.scrollb.set)
 
         ok_button.focus_set()
-        self.wait_visibility()
+        isLinux = platform.system().lower() == "linux"
+        if isLinux:
+            self.wait_visibility()
         self.grab_set()  # Make this dialog box modal
 
     def toggle_details(self):
@@ -247,7 +250,9 @@ class ProgressDlg(tk.Toplevel):
         self.close_button.config(state=tk.DISABLED)
 
         # stop_button.focus_set()
-        self.wait_visibility()
+        isLinux = platform.system().lower() == "linux"
+        if isLinux:
+            self.wait_visibility()
         self.grab_set()  # Make this dialog box modal
 
     def set_title(self, title):
@@ -330,7 +335,9 @@ class LicenseDlg(tk.Toplevel):
         no_button.grid(row=0, column=1, padx=(5, 0))
 
         self.resizable(True, True)
-        self.wait_visibility()
+        isLinux = platform.system().lower() == "linux"
+        if isLinux:
+            self.wait_visibility()
         self.grab_set()  # Make this dialog box modal
         if include_agree_buttons:
             yes_button.focus_set()
