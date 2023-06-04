@@ -263,7 +263,7 @@ class Phase():
             self.event_counter.reset_count(event)
 
         # omit_learn
-        elif action == "@omit_learn":
+        elif action == kw.OMIT_LEARN:
             omit_learn = True
 
         else:
@@ -369,7 +369,7 @@ def check_action(action, parameters, global_variables, lineno, all_linelabels):
         event = action[12:-1]
         if event not in stimulus_elements and event not in behaviors and event not in all_linelabels:
             raise ParseException(lineno, f"Unknown event '{event}' in count_reset.")
-    elif action == "@omit_learn":
+    elif action == kw.OMIT_LEARN:
         pass
     else:
         raise ParseException(lineno, f"Unknown action '{action}'.")

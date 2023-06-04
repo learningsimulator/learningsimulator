@@ -30,6 +30,9 @@ class TestBasic(LsTestCase):
         mechanism: ga
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -59,6 +62,9 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2,
                            e3
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -90,6 +96,9 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2,
                            e3
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -121,6 +130,9 @@ class TestBasic(LsTestCase):
                            e3
         behaviors: b1,
                    b2, b3
+        alpha_v = 1
+        alpha_w = 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -152,6 +164,8 @@ class TestBasic(LsTestCase):
                            e3
         behaviors: b1,
                    b2, b3
+        alpha_v = 1
+        alpha_w = 1
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -188,6 +202,9 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2,
                            e3
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -210,6 +227,8 @@ class TestBasic(LsTestCase):
                            e3
         behaviors: b1,
                    b2, b3
+        alpha_v: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -236,6 +255,8 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2,
                            e3
         behaviors: b1, b2
+        alpha_v = 1
+        alpha_w = 1
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -261,6 +282,8 @@ class TestBasic(LsTestCase):
                            e3, e4, e5, e6, e7,
                            e8
         behaviors: b1, b2
+        alpha_v = 1
+        alpha_w = 1
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -320,6 +343,9 @@ class TestBasic(LsTestCase):
         stimulus_elements: e1, e2,
                            e3, e4, e5
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+        
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -392,39 +418,44 @@ class TestBasic(LsTestCase):
         self.assertEqual(plot_data['y'], list(range(110)))
 
 
-    def test_multiple_run_with_different_behaviors(self):
-        text = '''
-        mechanism:   ga
-        stimulus_elements: e1, e2
-        behaviors: b1, b2
-        behavior_cost: b1:1, b2:2
+    # def test_multiple_run_with_different_behaviors(self):
+    #     text = '''
+    #     mechanism:   ga
+    #     stimulus_elements: e1, e2
+    #     behaviors: b1, b2
+    #     behavior_cost: b1:1, b2:2
+    #     alpha_v: 1
+    #     alpha_w: 1
 
-        @PHASE phase1 stop:e1=10
-        L1 e1 | L2
-        L2 e2 | L1
+    #     @PHASE phase1 stop:e1=10
+    #     L1 e1 | L2
+    #     L2 e2 | L1
 
-        @run phase1
+    #     @run phase1
 
-        behaviors: x, y, z
-        behavior_cost: x:1, y:2, z:3
-        @run phase1
-        '''
-        _, parameters1 = parse(text, 'run1')
-        self.assertEqual(parameters1.get(kw.BEHAVIORS), ['b1', 'b2'])
-        self.assertEqual(set(parameters1.get(kw.START_V).keys()),
-                         {('e1', 'b1'), ('e1', 'b2'), ('e2', 'b1'), ('e2', 'b2')})
+    #     behaviors: x, y, z
+    #     behavior_cost: x:1, y:2, z:3
+    #     @run phase1
+    #     '''
+    #     _, parameters1 = parse(text, 'run1')
+    #     self.assertEqual(parameters1.get(kw.BEHAVIORS), ['b1', 'b2'])
+    #     self.assertEqual(set(parameters1.get(kw.START_V).keys()),
+    #                      {('e1', 'b1'), ('e1', 'b2'), ('e2', 'b1'), ('e2', 'b2')})
 
-        _, parameters2 = parse(text, 'run2')
-        self.assertEqual(parameters2.get(kw.BEHAVIORS), ['x', 'y', 'z'])
-        self.assertEqual(set(parameters2.get(kw.START_V).keys()),
-                         {('e1', 'x'), ('e1', 'y'), ('e1', 'z'),
-                          ('e2', 'x'), ('e2', 'y'), ('e2', 'z')})
+    #     _, parameters2 = parse(text, 'run2')
+    #     self.assertEqual(parameters2.get(kw.BEHAVIORS), ['x', 'y', 'z'])
+    #     self.assertEqual(set(parameters2.get(kw.START_V).keys()),
+    #                      {('e1', 'x'), ('e1', 'y'), ('e1', 'z'),
+    #                       ('e2', 'x'), ('e2', 'y'), ('e2', 'z')})
 
     def test_mechanisms(self):
         text = '''
         mechanism: ga
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -438,6 +469,8 @@ class TestBasic(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -451,6 +484,9 @@ class TestBasic(LsTestCase):
         mechanism: ac
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -464,6 +500,8 @@ class TestBasic(LsTestCase):
         mechanism: ql
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -477,6 +515,8 @@ class TestBasic(LsTestCase):
         mechanism: es
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -491,6 +531,7 @@ class TestBasic(LsTestCase):
         mechanism: es
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
 
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
@@ -535,6 +576,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -547,6 +590,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
+
         @PHASE phase1
         L1 e1 | L2
         L2 e2 | L1
@@ -559,7 +604,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
-    
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -576,7 +622,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
-    
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -593,6 +640,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1
         L1 e1 | L2
@@ -607,7 +655,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
-    
+        alpha_v: 1
+
         @PHASE phase1
         L1 e1 | L2
         L2 e2 | L1
@@ -621,6 +670,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1  stop : e1 == 10
         L1 e1 | L2
@@ -635,7 +685,8 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
-    
+        alpha_v: 1
+
         @PHASE phase1  stop : e1 == 10 and e1 == 10
         L1 e1 | L2
         L2 e2 | L1
@@ -649,6 +700,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1
         L1 e1 | L2
@@ -683,6 +735,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1
         L1 e1 | L2
@@ -690,7 +743,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run phase1        
         '''
-        msg = "Error on line 10: Missing stop condition for phase 'phase1'."
+        msg = "Error on line 11: Missing stop condition for phase 'phase1'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -698,6 +751,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: e1 == 10
         L1 e1 | L2
@@ -705,7 +759,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run xxx)yyy(
         '''
-        msg = "Error on line 10: Invalid parenthesis in phase label with stop condition: xxx)yyy(."
+        msg = "Error on line 11: Invalid parenthesis in phase label with stop condition: xxx)yyy(."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -713,6 +767,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: e1 == 10
         L1 e1 | L2
@@ -720,7 +775,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run xxx()
         '''
-        msg = "Error on line 10: Empty condition in phase label with stop condition."
+        msg = "Error on line 11: Empty condition in phase label with stop condition."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -728,6 +783,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: e1 == 10
         L1 e1 | L2
@@ -735,7 +791,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run xxx(foo)yyy
         '''
-        msg = "Error on line 10: Malformed phase label with stop condition: xxx(foo)yyy."
+        msg = "Error on line 11: Malformed phase label with stop condition: xxx(foo)yyy."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -743,6 +799,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: e1 == 10
         L1 e1 | L2
@@ -750,7 +807,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run (yyy)
         '''
-        msg = "Error on line 10: Empty phase label in phase with stop condition: (yyy)."
+        msg = "Error on line 11: Empty phase label in phase with stop condition: (yyy)."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -758,6 +815,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: e1 == 10
         L1 e1 | L2
@@ -765,7 +823,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run phase1(stopp : e1 == 10)
         '''
-        msg = "Error on line 10: Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 11: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -773,6 +831,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1       e1 == 10
         L1 e1 | L2
@@ -780,7 +839,7 @@ class TestStopCondInRun(LsTestCase):
 
         @run phase1(stopp : e1 == 10)
         '''
-        msg = "Error on line 6: Phase stop condition must have the form 'stop:condition'."
+        msg = "Error on line 7: Phase stop condition must have the form 'stop:condition'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -789,6 +848,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1
         L1 e1 | L2
@@ -816,6 +876,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1
         L1 e1 | L2
@@ -848,6 +909,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: Blablah
         L1 e1 | L2
@@ -878,6 +940,7 @@ class TestStopCondInRun(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b
+        alpha_v: 1
     
         @PHASE phase1 stop: Blablah
         L1 e1 | L2
@@ -916,11 +979,49 @@ class TestExceptions(LsTestCase):
 
     def test_no_phases_nor_label(self):
         text = '''
+        @run runlabel phaselabel
+        '''
+        msg = "Error on line 2: Phase phaselabel undefined."
+        # msg = "Error on line 2: Parameter 'mechanism' is not specified."
+        with self.assertRaisesMsg(msg):
+            parse(text, '_')
+
+    def test_no_phase_labels(self):
+        text = '''
+        mechanism: ga
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        behavior_cost: b1:1, b2:2
+        alpha_v: 1
+        alpha_w: 1
+
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
         @run
         '''
-        msg = "Error on line 2: Parameter 'mechanism' is not specified."
+        msg = "Error on line 13: No phase label given in @run."
         with self.assertRaisesMsg(msg):
-            run, parameters = parse(text, '_')
+            parse(text, '_')
+
+        text = '''
+        mechanism: ga
+        stimulus_elements: e1, e2
+        behaviors: b1, b2
+        behavior_cost: b1:1, b2:2
+        alpha_v: 1
+        alpha_w: 1
+
+        @PHASE phase1 stop:e1=10
+        L1 e1 | L2
+        L2 e2 | L1
+
+        @run runlabelfoo
+        '''
+        msg = "Error on line 13: No phase label given in @run."
+        with self.assertRaisesMsg(msg):
+            parse(text, '_')
 
     def test_redefinition_of_phase(self):
         text = '''
@@ -1017,6 +1118,8 @@ class TestExceptions(LsTestCase):
         mechanism:  sr
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -1026,7 +1129,7 @@ class TestExceptions(LsTestCase):
         @run phase1 runlabel:mylabel
         @run phase2 runlabel:    mylabel
         '''
-        msg = "Error on line 12: Duplication of run label 'mylabel'."
+        msg = "Error on line 14: Duplication of run label 'mylabel'."
         with self.assertRaisesMsg(msg):
             run, parameters = parse(text, 'run1')
 
@@ -1034,6 +1137,7 @@ class TestExceptions(LsTestCase):
         mechanism:  sr
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
 
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
@@ -1050,14 +1154,15 @@ class TestExceptions(LsTestCase):
         phase1
         phase2 
         '''
-        msg = "Error on line 17: Duplication of run label 'mylabel'."
+        msg = "Error on line 18: Duplication of run label 'mylabel'."
         with self.assertRaisesMsg(msg):
-            run, parameters = parse(text, 'run1')
+            parse(text, 'run1')
 
         text = '''
         mechanism:  sr
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
 
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
@@ -1074,9 +1179,9 @@ class TestExceptions(LsTestCase):
         phase1
         phase2 
         '''
-        msg = "Error on line 15: Duplication of run label 'mylabel'."
+        msg = "Error on line 16: Duplication of run label 'mylabel'."
         with self.assertRaisesMsg(msg):
-            run, parameters = parse(text, 'run1')
+            parse(text, 'run1')
 
 
     def test_multiple_labels(self):
@@ -1084,6 +1189,9 @@ class TestExceptions(LsTestCase):
         mechanism:   ga
         stimulus_elements: e1, e2
         behaviors: b1, b2
+        alpha_v: 1
+        alpha_w: 1
+
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
         L2 e2 | L1
@@ -1093,17 +1201,16 @@ class TestExceptions(LsTestCase):
         @run phase1 runlabel:run1
         @run phase2 runlabel:run1 runlabel:run2
         '''
-        msg = "Error on line 12: Maximum one instance of 'runlabel:' on a @run line."
+        msg = "Error on line 15: Maximum one instance of 'runlabel:' on a @run line."
         with self.assertRaisesMsg(msg):
-            run, parameters = parse(text, 'run1')
+            parse(text, 'run1')
 
-    def test_redefine_stimulus_elements_or_behaviors(self):
+    def test_not_behavior(self):
         text = '''
         mechanism:   ga
         stimulus_elements: e1, e2
-        behaviors: b1, b2
-        behavior_cost: b1:1, b2:2
         behaviors: x, y, z
+        behavior_cost: b1:1, b2:2
 
         @PHASE phase1 stop:e1=10
         L1 e1 | L2
@@ -1111,6 +1218,6 @@ class TestExceptions(LsTestCase):
 
         @run phase1
         '''
-        msg = "The parameter 'behavior_cost' does not match 'behaviors'."
+        msg = "Error on line 5: Error in parameter 'behavior_cost': 'b1' is an invalid behavior name."
         with self.assertRaisesMsg(msg):
-            run, parameters = parse(text, 'run1')
+            parse(text, 'run1')

@@ -91,6 +91,7 @@ class TestBasic(LsTestCase):
         n_subjects = 1
         stimulus_elements: s1, s2
         behaviors: b1, b2
+        alpha_v: 1
         u: s1:0, s2:10, default:0
 
         @phase phase1 stop:s1=10

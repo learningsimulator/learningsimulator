@@ -144,6 +144,8 @@ class TestNewTrialWithBind(unittest.TestCase):
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
         start_w                : 1.4
+        alpha_v                : 1
+        alpha_w                : 1
 
         @phase foo stop: new_trial=4
         new_trial        | NONE
@@ -165,7 +167,9 @@ class TestNewTrialWithBind(unittest.TestCase):
         mechanism              : GA
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
-        start_w: 1.4
+        alpha_v                : 1
+        alpha_w                : 1
+        start_w                : 1.4
 
         @phase foo stop: new_trial=4
         new_trial        | NONE
@@ -187,7 +191,9 @@ class TestNewTrialWithBind(unittest.TestCase):
         mechanism              : GA
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
-        start_w: 1.4
+        alpha_v                : 1
+        alpha_w                : 1
+        start_w                : 1.4
 
         @phase foo stop: new_trial=4
         new_trial us      | NONE
@@ -407,6 +413,8 @@ class TestNewTrialWithOmitLearnAction(unittest.TestCase):
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
         start_w                : 1.4
+        alpha_v                : 1
+        alpha_w                : 1
 
         @phase foo stop: nju_trial=4
         nju_trial        | NONE
@@ -428,7 +436,9 @@ class TestNewTrialWithOmitLearnAction(unittest.TestCase):
         mechanism              : GA
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
-        start_w: 1.4
+        alpha_v                : 1
+        alpha_w                : 1
+        start_w                : 1.4
 
         @phase foo stop: nju_trial=4
         nju_trial        | NONE
@@ -450,7 +460,9 @@ class TestNewTrialWithOmitLearnAction(unittest.TestCase):
         mechanism              : GA
         behaviors              : cr,ignore
         stimulus_elements      : us,cs1,cs2,none
-        start_w: 1.4
+        alpha_v                : 1
+        alpha_w                : 1
+        start_w                : 1.4
 
         @phase foo stop: nju_trial=4
         nju_trial us      | NONE

@@ -407,7 +407,7 @@ class ScriptParser():
             else:
                 raise ParseException(lineno, f"Invalid expression '{line}'.")
 
-        # If @run is the last statement in the script, finishe the parsing of this
+        # If @run is the last statement in the script, finish the parsing of this
         if in_run:
             run, run_label = self._parse_run_lines(run_lines)
             self.runs.add(run, run_label)
@@ -840,6 +840,9 @@ class ScriptParser():
                 run_phase_labels_line = ParseUtil.space_split(phases_str.replace(',', ' '))
                 run_phase_labels_line = [(lbl.strip(), lineno) for lbl in run_phase_labels_line]
                 run_phase_labels.extend(run_phase_labels_line)
+
+        if len(run_phase_labels) == 0:
+            raise ParseException(run_lines[0][1], "No phase label given in @run.")
 
         if not got_run_label:
             run_label = f'run{self.unnamed_run_cnt}'

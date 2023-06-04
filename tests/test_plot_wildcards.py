@@ -18,6 +18,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -64,6 +65,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -106,6 +108,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -149,7 +152,9 @@ class TestPlotWildcards(LsTestCase):
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
         start_v           = -1
+        start_w           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -196,6 +201,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -238,6 +244,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -282,6 +289,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50
@@ -419,6 +427,7 @@ class TestPlotWildcards(LsTestCase):
         stimulus_elements = background, stimulus, reward
         start_v           = -1
         alpha_v           = 0.1
+        alpha_w           = 1
         u                 = reward:10, default:0
 
         @PHASE training stop: stimulus==50

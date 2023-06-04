@@ -19,6 +19,7 @@ class TestGitHubIssues(LsTestCase):
         mechanism             : SR
         behaviors             : b1, b2
         stimulus_elements     : s1, s2
+        alpha_v               : 1
 
         @phase phase_name stop: LINE0=1000
         LINE0 p:0.5 | LINE1
@@ -40,6 +41,7 @@ class TestGitHubIssues(LsTestCase):
         mechanism             = SR
         behaviors             = b1, b2
         stimulus_elements     = s0, s1, s2
+        alpha_v               = 1
 
         @phase phase_name stop: LINE0=1000
         START       | p=0.5, LINE0
