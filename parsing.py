@@ -71,8 +71,8 @@ class Script():
     def check_deprecated_syntax(self):
         return self.script_parser.check_deprecated_syntax()
 
-    def run(self, progress=None):
-        return self.script_parser.runs.run(progress)
+    def run(self):
+        return self.script_parser.runs.run()
 
     def postproc(self, simulation_data, progress=None):
         if (progress is not None) and (progress.dlg is not None):

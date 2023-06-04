@@ -5,6 +5,7 @@ import platform
 import sys
 import webbrowser
 import pathlib
+import time
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -280,13 +281,24 @@ class Gui():
                     self.handle_exception(ex, traceback.format_exc())
         else:
             assert(self.simulation_thread.is_alive())
+            self.update_progress()
             self.check_job = self.root.after(100, self.handle_simulation_end)
+
+    def update_progress(self):
+        if not self.progress:
+            return
+        while not self.progress.stop_clicked and not compute.progress_queue.empty():
+            message = compute.progress_queue.get()
+            method = getattr( self.progress, message[0] )
+            if len(message)>1:
+                method( message[1] )
+            else:
+                method()
 
     def simulate(self):
         try:
-            compute.queue.put( self.script_obj )
-            self.simulation_data = compute.queue.get()
-#            compute.process.terminate()
+            compute.worker_queue.put( self.script_obj )
+            self.simulation_data = compute.worker_queue.get()
 #            self.simulation_data = self.script_obj.run(self.progress)
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:

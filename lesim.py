@@ -58,8 +58,8 @@ if __name__ == "__main__":
                 if msg is not None:
                     print(msg)
 
-                compute.queue.put( script_obj )
-                simulation_data = compute.queue.get()
+                compute.worker_queue.put( script_obj )
+                simulation_data = compute.worker_queue.get()
                 script_obj.postproc(simulation_data)
                 block = (i == nfiles - 1)
                 script_obj.plot(block)

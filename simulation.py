@@ -1,7 +1,8 @@
+import multiprocessing
 import keywords as kw
 from exceptions import ParseException, InterruptedSimulation
 from output import ScriptOutput, RunOutput, RunOutputSubject
-import multiprocessing
+import compute
 
 class Runs():
     def __init__(self):
@@ -40,13 +41,12 @@ class Runs():
                 return False
         return True
 
-    def run(self, progress=None):
+    def run(self):
         out = dict()
         for label in self.run_labels:
             run = self.runs[label]
-            if progress:
-                progress.report1(f"Running {label}")
-            out[label] = run.run(progress)
+            compute.progress_queue.put( ("report1", f"Running {label}") )
+            out[label] = run.run()
 
         return ScriptOutput(out)
 
@@ -64,8 +64,7 @@ class Run():
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 
-
-    def run_one( self, subject_ind, stimulus_req, progress=None ):
+    def run_one( self, subject_ind ):
 
         # Remove when omit_learn using new_trial is no longer suppoerted
         def _omit_learn_using_new_trial(phase_line_label, preceeding_help_lines, is_bind_off):
@@ -78,7 +77,7 @@ class Run():
         self.mechanism_obj.subject_reset()
         self.world.subject_reset()
         prev_phase_label = None  # For phases progress
-        out = RunOutputSubject( stimulus_req )
+        out = RunOutputSubject( self.mechanism_obj.stimulus_req )
 
         stimulus_elements = self.mechanism_obj.parameters.get(kw.STIMULUS_ELEMENTS)
         behaviors = self.mechanism_obj.parameters.get(kw.BEHAVIORS)
@@ -96,27 +95,23 @@ class Run():
                     out.write_vss({element: 1}, {element2: 1}, 0, self.mechanism_obj)
             # out.write_step(self.world.phases[0].label, 0)
         
-        if progress:
-            if progress.get_n_runs() > 1:
-                progress.report1(f"{self.run_label}: Simulating subject {subject_ind + 1}")
-            else:
-                progress.report1(f"Simulating subject {subject_ind + 1}")
-                progress.reset2()
-                progress.report2("")
+            compute.progress_queue.put( ("report1", f"{self.run_label}: Simulating subject {subject_ind + 1}") )
+            compute.progress_queue.put( ("reset2",) )
+            compute.progress_queue.put( ("report2", "") )
 
         step = 1
         subject_done = False
         response = None
         while not subject_done:
-            if progress and progress.stop_clicked:
-                raise InterruptedSimulation()
+# Move handling this to GUI:            
+#            if progress and progress.stop_clicked:
+#                raise InterruptedSimulation()
             next_stimulus_out = self.world.next_stimulus(response)
             stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
-            if progress:
-                if phase_label != prev_phase_label:  # Update phases progress
-                    progress.increment2(self.run_label)
-                    progress.report2(f"Phase {phase_label}")
-                    prev_phase_label = phase_label
+            if phase_label != prev_phase_label:  # Update phases progress
+                compute.progress_queue.put( ("increment2", self.run_label) )
+                compute.progress_queue.put( ("report2", f"Phase {phase_label}") )
+                prev_phase_label = phase_label
 
             subject_done = (stimulus is None)
             
@@ -175,13 +170,12 @@ class Run():
                 out.write_history(last_stimulus, last_response)
                 out.write_step("last", step + 2)
 
-            if progress:
-                progress.increment1()
+                compute.progress_queue.put( ("increment1",) )
 
         return out
 
         
-    def run(self, progress=None):
+    def run(self):
 
         out = RunOutput(self.n_subjects, self.mechanism_obj)
 
@@ -192,7 +186,7 @@ class Run():
 
         # Start processes
         for subject_ind in range(self.n_subjects):
-            results[ subject_ind ] = pool.apply_async( self.run_one, (subject_ind, progress) )
+            results[ subject_ind ] = pool.apply_async( self.run_one, (subject_ind,) )
 
         # Collect results
         for subject_ind in range(self.n_subjects):
