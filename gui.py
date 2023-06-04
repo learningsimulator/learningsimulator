@@ -5,7 +5,6 @@ import platform
 import sys
 import webbrowser
 import pathlib
-import time
 # import matplotlib
 from matplotlib import pyplot as plt
 

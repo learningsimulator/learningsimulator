@@ -1,0 +1,7 @@
+        behaviors         : b1
+        stimulus_elements : e1, e2
+        mechanism         : sr
+
+        @PHASE phase_label stop:e1=10
+        A e1       | b1: x1=1, x2=2, B | A
+        B e2       | A

@@ -1,5 +1,4 @@
 import sys
-import multiprocessing
 
 import compute
 

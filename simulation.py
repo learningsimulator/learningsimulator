@@ -181,7 +181,8 @@ class Run():
 
         # Create a multiprocessing pool but don't hog the system completely
         # Ideally, this should be a script parameter
-        pool = multiprocessing.Pool( processes = multiprocessing.cpu_count() - 1 )
+        nproc = min( self.n_subjects, multiprocessing.cpu_count() - 1 )
+        pool = multiprocessing.Pool( processes = nproc )
         results = [None] * self.n_subjects
 
         # Start processes
