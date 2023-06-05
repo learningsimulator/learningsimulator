@@ -1,6 +1,7 @@
 import multiprocessing
+
 import keywords as kw
-from exceptions import ParseException, InterruptedSimulation
+from exceptions import ParseException, InterruptedSimulation, EvalException
 from output import ScriptOutput, RunOutput, RunOutputSubject
 import compute
 
@@ -95,9 +96,9 @@ class Run():
                     out.write_vss({element: 1}, {element2: 1}, 0, self.mechanism_obj)
             # out.write_step(self.world.phases[0].label, 0)
         
-            compute.progress_queue.put( ("report1", f"{self.run_label}: Simulating subject {subject_ind + 1}") )
-            compute.progress_queue.put( ("reset2",) )
-            compute.progress_queue.put( ("report2", "") )
+        compute.progress_queue.put( ("report1", f"{self.run_label}: Simulating subject {subject_ind + 1}") )
+        compute.progress_queue.put( ("reset2",) )
+        compute.progress_queue.put( ("report2", "") )
 
         step = 1
         subject_done = False
@@ -170,28 +171,24 @@ class Run():
                 out.write_history(last_stimulus, last_response)
                 out.write_step("last", step + 2)
 
-                compute.progress_queue.put( ("increment1",) )
-
+        compute.progress_queue.put( ("increment1",) )
         return out
 
-        
+    def run_one_wrapper( self, subject_index ):
+        try:
+            return self.run_one( subject_index )
+        except Exception as ex:
+            return f"{ex}"
+
     def run(self):
-
         out = RunOutput(self.n_subjects, self.mechanism_obj)
-
-        # Create a multiprocessing pool but don't hog the system completely
-        # Ideally, this should be a script parameter
         nproc = min( self.n_subjects, multiprocessing.cpu_count() - 1 )
-        pool = multiprocessing.Pool( processes = nproc )
-        results = [None] * self.n_subjects
 
-        # Start processes
-        for subject_ind in range(self.n_subjects):
-            results[ subject_ind ] = pool.apply_async( self.run_one, (subject_ind,) )
+        with multiprocessing.Pool(processes=nproc) as pool:
+            out.output_subjects = pool.map(self.run_one_wrapper, range(self.n_subjects))
 
-        # Collect results
-        for subject_ind in range(self.n_subjects):
-            out.output_subjects[ subject_ind ] = results[ subject_ind ].get()
+        for i in range(self.n_subjects):
+            if not isinstance( out.output_subjects[i], RunOutputSubject ):
+                raise Exception( out.output_subjects[i] )
 
-        pool.terminate()
         return out
