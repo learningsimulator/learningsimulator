@@ -1,6 +1,7 @@
 import random
+import time
 import math
-from random import random
+import random
 import matplotlib.pyplot as plt
 from .testutil import LsTestCase, get_plot_data, run
 
@@ -8,6 +9,8 @@ from .testutil import LsTestCase, get_plot_data, run
 def get_script(seed=None):
         if seed is None:
             first_line = ''
+            t = 1000 * time.time()  # If a test that uses random_seed was run before this test
+            random.seed(int(t) % 2**32)
         else:
             first_line = "random_seed = " + str(seed)
 
@@ -77,7 +80,7 @@ class TestSmall(LsTestCase):
         self.assertTrue(found_a_diff)
 
     def test_run_twice_with_same_seed(self):
-        seed = math.floor(random() * 100)
+        seed = math.floor(random.random() * 100)
         text = get_script(seed=seed)
         run(text)
         plot_data1 = get_plot_data()
