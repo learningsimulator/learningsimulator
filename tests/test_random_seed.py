@@ -1,5 +1,7 @@
+import random
+import math
+from random import random
 import matplotlib.pyplot as plt
-
 from .testutil import LsTestCase, get_plot_data, run
 
 
@@ -33,6 +35,21 @@ def get_script(seed=None):
         @figure
         @plot v(stimulus->response)
         '''
+
+# Check whether plot_data1 and plot_data2 are different
+def is_diff(plot_data1, plot_data2, n_subjects):
+    found_a_diff = False
+    for subject in range(1, n_subjects + 1):
+        key = f'v(stimulus->response) subject {subject}'
+        for i in range(len(plot_data1[key]['y'])):
+            y1 = plot_data1[key]['y'][i]
+            y2 = plot_data2[key]['y'][i]
+            if abs(y1 -y2) > 4:
+                found_a_diff = True
+                break
+        if found_a_diff:
+            break
+    return found_a_diff
 
 
 class TestSmall(LsTestCase):
@@ -73,19 +90,22 @@ class TestSmall(LsTestCase):
         run(text)
         plot_data2 = get_plot_data()
 
-        # Check that plot_data1 and plot_data2 are different
-        found_a_diff = False
-        for subject in range(1, 11):
-            key = f'v(stimulus->response) subject {subject}'
-            for i in range(len(plot_data1[key]['y'])):
-                y1 = plot_data1[key]['y'][i]
-                y2 = plot_data2[key]['y'][i]
-                if abs(y1 -y2) > 4:
-                    found_a_diff = True
-                    break
-            if found_a_diff:
-                break
+        found_a_diff = is_diff(plot_data1, plot_data2, 10)
         self.assertTrue(found_a_diff)
+
+    def test_run_twice_with_same_seed(self):
+        seed = math.floor(random() * 100)
+        text = get_script(seed=seed)
+        run(text)
+        plot_data1 = get_plot_data()
+        
+        self.tearDown()
+
+        run(text)
+        plot_data2 = get_plot_data()
+ 
+        found_a_diff = is_diff(plot_data1, plot_data2, 10)
+        self.assertFalse(found_a_diff, f"seed={seed}")
 
     def test_error_for_multiple_seeds(self):
         text = '''
