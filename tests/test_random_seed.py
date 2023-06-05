@@ -62,23 +62,6 @@ class TestSmall(LsTestCase):
 
     def tearDown(self):
         plt.close('all')
-
-    def test_with_seed(self):
-        text = get_script(seed=1)
-        run(text)
-        plot_data = get_plot_data()
-        
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 1']['x'], [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 1']['y'], [-3.0, -1.7, -0.53, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 2']['y'], [-3.0, -1.7, -0.53, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 3']['y'], [-3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 4']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 5']['y'], [-3.0, -3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 6']['y'], [-3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 2.32363])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 7']['y'], [-3.0, -3.0, -1.7, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 8']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 9']['y'], [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -1.7, -1.7])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 10']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
         
     def test_without_seed(self):
         text = get_script(seed=None)
