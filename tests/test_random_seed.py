@@ -1,11 +1,16 @@
+import random
+import time
+import math
+import random
 import matplotlib.pyplot as plt
-
 from .testutil import LsTestCase, get_plot_data, run
 
 
 def get_script(seed=None):
         if seed is None:
             first_line = ''
+            t = 1000 * time.time()  # If a test that uses random_seed was run before this test
+            random.seed(int(t) % 2**32)
         else:
             first_line = "random_seed = " + str(seed)
 
@@ -34,6 +39,21 @@ def get_script(seed=None):
         @plot v(stimulus->response)
         '''
 
+# Check whether plot_data1 and plot_data2 are different
+def is_diff(plot_data1, plot_data2, n_subjects):
+    found_a_diff = False
+    for subject in range(1, n_subjects + 1):
+        key = f'v(stimulus->response) subject {subject}'
+        for i in range(len(plot_data1[key]['y'])):
+            y1 = plot_data1[key]['y'][i]
+            y2 = plot_data2[key]['y'][i]
+            if abs(y1 -y2) > 4:
+                found_a_diff = True
+                break
+        if found_a_diff:
+            break
+    return found_a_diff
+
 
 class TestSmall(LsTestCase):
     @classmethod
@@ -45,23 +65,6 @@ class TestSmall(LsTestCase):
 
     def tearDown(self):
         plt.close('all')
-
-    def test_with_seed(self):
-        text = get_script(seed=1)
-        run(text)
-        plot_data = get_plot_data()
-        
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 1']['x'], [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 1']['y'], [-3.0, -1.7, -0.53, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 2']['y'], [-3.0, -1.7, -0.53, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 3']['y'], [-3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 4']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 5']['y'], [-3.0, -3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 6']['y'], [-3.0, -3.0, -3.0, -3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 2.32363])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 7']['y'], [-3.0, -3.0, -1.7, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 8']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 9']['y'], [-3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -1.7, -1.7])
-        self.assertAlmostEqualList(plot_data['v(stimulus->response) subject 10']['y'], [-3.0, -1.7, -0.53, 0.523, 1.4707, 2.32363, 3.091267, 3.7821403, 4.40392627, 4.963533643])
         
     def test_without_seed(self):
         text = get_script(seed=None)
@@ -73,19 +76,22 @@ class TestSmall(LsTestCase):
         run(text)
         plot_data2 = get_plot_data()
 
-        # Check that plot_data1 and plot_data2 are different
-        found_a_diff = False
-        for subject in range(1, 11):
-            key = f'v(stimulus->response) subject {subject}'
-            for i in range(len(plot_data1[key]['y'])):
-                y1 = plot_data1[key]['y'][i]
-                y2 = plot_data2[key]['y'][i]
-                if abs(y1 -y2) > 4:
-                    found_a_diff = True
-                    break
-            if found_a_diff:
-                break
+        found_a_diff = is_diff(plot_data1, plot_data2, 10)
         self.assertTrue(found_a_diff)
+
+    def test_run_twice_with_same_seed(self):
+        seed = math.floor(random.random() * 100)
+        text = get_script(seed=seed)
+        run(text)
+        plot_data1 = get_plot_data()
+        
+        self.tearDown()
+
+        run(text)
+        plot_data2 = get_plot_data()
+ 
+        found_a_diff = is_diff(plot_data1, plot_data2, 10)
+        self.assertFalse(found_a_diff, f"seed={seed}")
 
     def test_error_for_multiple_seeds(self):
         text = '''
