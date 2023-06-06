@@ -5,6 +5,7 @@ import platform
 import sys
 import webbrowser
 import pathlib
+import output
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -295,17 +296,16 @@ class Gui():
                 method()
 
     def simulate(self):
-        try:
-            compute.worker_queue.put( self.script_obj )
-            self.simulation_data = compute.worker_queue.get()
-#            self.simulation_data = self.script_obj.run(self.progress)
+        compute.worker_queue.put( self.script_obj )
+        result = compute.worker_queue.get()
+        if type( result[0] ) is output.ScriptOutput:
+            self.simulation_data = result[0]
             self.script_obj.postproc(self.simulation_data, self.progress)
-        except Exception as ex:
-            self.progress.exception = ex
-            self.progress.exception_traceback = traceback.format_exc()
-        finally:
-            self.progress.set_done(True)
-        # return None  # XXX perhaps not needed? for threading
+        else:
+            self.progress.exception = result[0]
+            self.progress.exception_traceback = result[1]
+
+        self.progress.set_done(True)
 
     def _select_line(self, lineno):
         start = f"{lineno}.0"
