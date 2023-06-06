@@ -43,7 +43,6 @@ def get_script(seed=None):
 def is_diff(plot_data1, plot_data2, n_subjects):
     found_a_diff = False
     for subject in range(1, n_subjects + 1):
-        key = f'v(stimulus->response) subject {subject}'
         for i in range(len(plot_data1['y'])):
             y1 = plot_data1['y'][i]
             y2 = plot_data2['y'][i]
