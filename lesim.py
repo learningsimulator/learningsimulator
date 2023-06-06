@@ -1,15 +1,13 @@
 import sys
-
+import traceback
 import compute
 
 import gui
 import parsing
 
-
 GUI = "gui"
 RUN = "run"
 HELP = "help"
-
 
 def get_man_page():
     return """Help for the Learning Simulator control command lesim.
@@ -37,10 +35,12 @@ if __name__ == "__main__":
 
     guiObj = None
     if nargs == 1:
+        compute.process.start()
         guiObj = gui.Gui()
     else:
         arg1 = args[1]
         if arg1 == GUI:
+            compute.process.start()
             guiObj = gui.Gui()
         elif arg1 == RUN:
             files = args[2:len(args)]
@@ -57,15 +57,19 @@ if __name__ == "__main__":
                 if msg is not None:
                     print(msg)
 
-                compute.worker_queue.put( script_obj )
-                simulation_data = compute.worker_queue.get()
+                # try:
+                simulation_data = script_obj.run()
                 script_obj.postproc(simulation_data)
                 block = (i == nfiles - 1)
                 script_obj.plot(block)
+                #except Exception as ex:
+                #    print( traceback.format_exc(), ex )
+                
         elif arg1 == HELP:
             man_page = get_man_page()
             print(man_page)
         else:
             print("Invalid command option '{}' to lesim. Type 'lesim.py help' for the available options.".format(arg1))
 
-compute.process.terminate()
+if compute.process.is_alive():
+    compute.process.terminate()
