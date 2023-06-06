@@ -182,7 +182,5 @@ class Run():
             nproc = min(self.n_subjects-1, multiprocessing.cpu_count()-1)
             pool = multiprocessing.Pool(processes=nproc)
             out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
-            pool.close()
-            pool.join()
         
         return out
