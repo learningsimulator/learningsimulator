@@ -1,5 +1,4 @@
 import multiprocessing
-
 import keywords as kw
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from output import ScriptOutput, RunOutput, RunOutputSubject
@@ -174,21 +173,16 @@ class Run():
         compute.progress_queue.put( ("increment1",) )
         return out
 
-    def run_one_wrapper( self, subject_index ):
-        try:
-            return self.run_one( subject_index )
-        except Exception as ex:
-            return f"{ex}"
-
     def run(self):
         out = RunOutput(self.n_subjects, self.mechanism_obj)
-        nproc = min( self.n_subjects, multiprocessing.cpu_count() - 1 )
 
-        with multiprocessing.Pool(processes=nproc) as pool:
-            out.output_subjects = pool.map(self.run_one_wrapper, range(self.n_subjects))
-
-        for i in range(self.n_subjects):
-            if not isinstance( out.output_subjects[i], RunOutputSubject ):
-                raise Exception( out.output_subjects[i] )
-
+        out.output_subjects[0] = self.run_one(0)
+        
+        if self.n_subjects>1:
+            nproc = min(self.n_subjects-1, multiprocessing.cpu_count()-1)
+            pool = multiprocessing.Pool(processes=nproc)
+            out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
+            pool.close()
+            pool.join()
+        
         return out
