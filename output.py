@@ -129,6 +129,10 @@ class RunOutput():
     def write_history(self, subject_ind, stimulus, response):
         self.output_subjects[subject_ind].write_history(stimulus, response)
 
+    def write_xhistory(self, subject_ind, step, phase_label, preceeding_help_lines, phase_line_label, stimulus, response):
+        self.output_subjects[subject_ind].write_xhistory(step, phase_label, preceeding_help_lines,
+                                                         phase_line_label, stimulus, response)
+
     def write_step(self, subject_ind, phase_label, step):
         self.output_subjects[subject_ind].write_step(phase_label, step)
 
@@ -168,6 +172,49 @@ class RunOutput():
             ros.printout()
 
 
+class XHistoryEvent():
+    def __init__(self, step, phase_label, preceeding_help_lines, phase_line_label, stimulus, response):
+        self.step = step
+        self.phase_label = phase_label
+        self.preceeding_help_lines = preceeding_help_lines
+        self.phase_line_label = phase_line_label
+        self.stimulus = stimulus
+        self.response = response
+
+    @staticmethod
+    def _add_row(rows, step, phase_label, phase_line_label, stimulus, response):
+        rows["step"].append(step)
+        rows["phase"].append(phase_label)
+        rows["phase line"].append(phase_line_label)
+        rows["stimulus"].append(stimulus)
+        rows["response"].append(response)
+
+    def add_rows(self, rows):
+        for phh in self.preceeding_help_lines:
+            self._add_row(rows, self.step, self.phase_label, phh, self.stimulus, self.response)
+        self._add_row(rows, self.step, self.phase_label, self.phase_line_label, self.stimulus, self.response)
+
+
+class XHistory():
+    CSV_HEADERS = ["phase", "phase line", "stimulus", "response"]
+
+    def __init__(self):
+        self.xhistory_events = list()  # List of XHistoryEvent objects
+
+    def append(self, **kwargs):
+        xhistory_event = XHistoryEvent(**kwargs)
+        self.xhistory_events.append(xhistory_event)
+
+    def get_csv_subject_headers(subject_no):
+        return [csv_header + f" subject {subject_no}" for csv_header in XHistory.CSV_HEADERS]
+        
+    def get_csv_columns(self):
+        """Return a dict with lists for each csv header, and the length of the lists."""
+        out = {header: list() for header in XHistory.CSV_HEADERS}
+        for event in self.xhistory_events:
+            event.add_rows(out)
+        return out, len(out["step"])
+
 class RunOutputSubject():
     def __init__(self, stimulus_req):
         self.stimulus_req = stimulus_req
@@ -183,6 +230,9 @@ class RunOutputSubject():
 
         # History of stimulus and responses [S1,R1,S2,R2,...]
         self.history = list()
+
+        # Extended history of events, including phase line labels and help lines
+        self.xhistory = XHistory()
 
         # Tuple where first index is list of phase labels, second is list of step numbers for
         # first step in each phase
@@ -202,6 +252,9 @@ class RunOutputSubject():
         else:
             self.history.append(stimulus_tuple)
         self.history.append(response)
+
+    def write_xhistory(self, **kwargs):
+        self.xhistory.append(**kwargs)
 
     def write_step(self, phase_label, step):
         if phase_label not in self.first_step_phase[0]:

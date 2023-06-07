@@ -1125,6 +1125,51 @@ class ExportCmd(PostCmd):
             raise ex
 
     def _h_export(self, file, simulation_data):
+        run_label = self.parameters.get(kw.EVAL_RUNLABEL)
+        n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
+
+        # Write headers            
+        header = ["step"]
+        for i in range(n_subjects):
+            xh = simulation_data.run_outputs[run_label].output_subjects[i].xhistory
+            header.extend(xh.get_csv_subject_headers(subject=i))
+
+        # Find max number or rows among subjects
+        csv_columns = [None] * n_subjects
+        max_n_rows = 0
+        for i in range(n_subjects):
+            xh = simulation_data.run_outputs[run_label].output_subjects[i].xhistory
+            csv_columns[i], n_rows = xh.get_csv_columns()
+            max_n_rows = max(max_n_rows, n_rows)
+
+        # Write data
+        with file as csvfile:
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w.writerow(header)
+            for row_ind in range(max_n_rows):
+                datarow = []
+                for i in range(n_subjects):
+                    datarow = 
+                    w.writerow(datarow)
+
+
+
+            # for histind in range(0, maxlen, 2):
+            #     step = histind // 2
+            #     datarow = [step]
+            #     for i in range(n_subjects):
+            #         history = simulation_data.run_outputs[run_label].output_subjects[i].history
+            #         if histind < len(history):
+            #             stimulus = history[histind]
+            #             response = history[histind + 1]
+            #             datarow.append(stimulus)
+            #             datarow.append(response)
+            #         else:
+            #             datarow.append(' ')
+            #             datarow.append(' ')
+            #     w.writerow(datarow)
+
+    def _h_export_orig(self, file, simulation_data):
         # evalprops = simulation_data._evalparse(self.parameters)
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
@@ -1136,6 +1181,7 @@ class ExportCmd(PostCmd):
             for i in range(n_subjects):
                 # subject_legend_labels.append("phase line subject {}".format(i))
                 subject_legend_labels.append("stimulus subject {}".format(i))
+                # subject_legend_labels.append("intensity subject {}".format(i))
                 subject_legend_labels.append("response subject {}".format(i))
 
             # Write headers
@@ -1149,7 +1195,8 @@ class ExportCmd(PostCmd):
                 if len_history_i > maxlen:
                     maxlen = len_history_i
             for histind in range(0, maxlen, 2):
-                datarow = [histind // 2]
+                step = histind // 2
+                datarow = [step]
                 for i in range(n_subjects):
                     history = simulation_data.run_outputs[run_label].output_subjects[i].history
                     # phase_line_labels = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels

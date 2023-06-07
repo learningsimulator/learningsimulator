@@ -128,6 +128,9 @@ class Run():
                     prev_response = self.mechanism_obj.response
                     response = self.mechanism_obj.learn_and_respond(stimulus, omit_learn)
 
+                    out.write_xhistory(subject_ind, step, phase_label, preceeding_help_lines, phase_line_label, stimulus, response)
+                    # print(f"{step}, {preceeding_help_lines}, {phase_line_label}, {stimulus}, {response}")
+
                     if prev_stimulus is not None:
                         if self.has_w:
                             out.write_w(subject_ind, prev_stimulus, step, self.mechanism_obj)
