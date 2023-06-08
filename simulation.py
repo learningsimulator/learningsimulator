@@ -1,4 +1,5 @@
 import multiprocessing
+import threading
 import keywords as kw
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from output import ScriptOutput, RunOutput, RunOutputSubject
@@ -177,10 +178,11 @@ class Run():
         out = RunOutput(self.n_subjects, self.mechanism_obj)
 
         out.output_subjects[0] = self.run_one(0)
-        
+
         if self.n_subjects>1:
             nproc = min(self.n_subjects-1, multiprocessing.cpu_count()-1)
-            pool = multiprocessing.Pool(processes=nproc)
-            out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
-        
+            with multiprocessing.Pool(processes=nproc) as pool:
+                pool = multiprocessing.Pool(processes=nproc)
+                out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
+
         return out
