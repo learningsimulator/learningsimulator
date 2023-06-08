@@ -185,4 +185,9 @@ class Run():
                 pool = multiprocessing.Pool(processes=nproc)
                 out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
 
+        # There may be messages left if progress monitors did not have
+        # time to grab them. We leave things tidy for the next run:
+        while not compute.progress_queue.empty():
+            compute.progress_queue.get()
+        
         return out
