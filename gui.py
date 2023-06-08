@@ -296,15 +296,19 @@ class Gui():
                 method()
 
     def simulate(self):
-        compute.worker_queue.put( self.script_obj )
-        result = compute.worker_queue.get()
-        if type( result[0] ) is output.ScriptOutput:
-            self.simulation_data = result[0]
-            self.script_obj.postproc(self.simulation_data, self.progress)
-        else:
-            self.progress.exception = result[0]
-            self.progress.exception_traceback = result[1]
-
+        try:
+            compute.worker_queue.put( self.script_obj )
+            result = compute.worker_queue.get()
+            if type( result[0] ) is output.ScriptOutput:
+                self.simulation_data = result[0]
+                self.script_obj.postproc(self.simulation_data, self.progress)
+            else:
+                self.progress.exception = result[0]
+                self.progress.exception_traceback = result[1]
+        except Exception as ex:
+            self.progress.exception = ex
+            self.progress.exception_traceback = traceback.format_exc()
+        
         self.progress.set_done(True)
 
     def _select_line(self, lineno):
