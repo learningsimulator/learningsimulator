@@ -39,26 +39,16 @@ class TestHExport(LsTestCase):
 
         @hexport ./tests/exported_files/test_issue_57.txt
         '''
-        successful_attempt = False
-        while not successful_attempt:
-            run(text)
-            self.assert_exported_files_exist([file])
-            last_row = None
-            with open(filepath) as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                for row in csv_reader:
-                    last_row = row
-            successful_attempt = (' ' in last_row)
-        self.assertEqual(last_row.count(' '), 2)
-
+        run(text)
         with open(filepath) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
+            expected_header = ['run','phase','subject','step','line','compound','behavior','s1','s2']
             for row in csv_reader:
                 if line_count == 0:
-                    self.assertEqual(row, ["step", "stimulus subject 0", "response subject 0", "stimulus subject 1", "response subject 1"])
+                    self.assertEqual(row, expected_header )
                 else:
-                    self.assertEqual(len(row), 5)
+                    self.assertEqual(len(row), len(expected_header))
                 line_count += 1
 
 

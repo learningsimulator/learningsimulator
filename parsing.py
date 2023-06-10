@@ -1134,7 +1134,7 @@ class ExportCmd(PostCmd):
             all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
             # Write headers
-            w.writerow( ['run','phase','subject','step','line','compound'] + all_stimulus_elements + ['behavior'] )
+            w.writerow(['run','phase','subject','step','line','compound','behavior'] + all_stimulus_elements)
             
             for s in range(n_subjects):
                 subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
@@ -1162,7 +1162,7 @@ class ExportCmd(PostCmd):
                                 compound.append( f"{e}[{intensity}]" )
                         else:
                             intensities.append(0)
-                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound)] + intensities + [response])
+                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities)
 
     def _vwpn_export(self, file, simulation_data):
         ydatas = []
