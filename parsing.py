@@ -1134,26 +1134,35 @@ class ExportCmd(PostCmd):
             all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
             # Write headers
-            w.writerow( ['run','subject','step'] + all_stimulus_elements + ['response'] )
+            w.writerow( ['run','phase','subject','step','line','compound'] + all_stimulus_elements + ['behavior'] )
             
             for s in range(n_subjects):
-                history = simulation_data.run_outputs[run_label].output_subjects[s].history
-                # phase_line_labels = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels
-                # phase_line_labels_steps = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels_steps
-                # print(history)
-                # print(phase_line_labels)
-                # print(phase_line_labels_steps)
-                for h in range(len(history) // 2):
-                    stimulus = history[2*h]
-                    response = history[2*h + 1]
-                    intensities = [len(all_stimulus_elements)]
+                subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
+                history = subject_output.history
+                phase_line_labels = subject_output.phase_line_labels
+                phase_line_labels_steps = subject_output.phase_line_labels_steps
+                first_step_phase = subject_output.first_step_phase
+                for i in range(len(phase_line_labels_steps)):
+                    step = phase_line_labels_steps[i]
+                    p = 0
+                    while first_step_phase[1][p+1] <= step:
+                        p += 1
+                    phase = first_step_phase[0][p]
+                    stimulus = history[2*(step-1)]
+                    response = history[2*(step-1)+1]
+                    intensities = []
+                    compound = []
                     for e in all_stimulus_elements:
                         if e in stimulus:
-                            intensities.append(stimulus[e])
+                            intensity = stimulus[e]
+                            intensities.append(intensity)
+                            if intensity==1:
+                                compound.append( f"{e}" )
+                            else:
+                                compound.append( f"{e}[{intensity}]" )
                         else:
                             intensities.append(0)
-                    # phase_line = phase_line_labels[]
-                    w.writerow([run_label, s, h] + intensities + [response])
+                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound)] + intensities + [response])
 
     def _vwpn_export(self, file, simulation_data):
         ydatas = []
