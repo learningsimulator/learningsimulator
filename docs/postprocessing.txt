@@ -650,7 +650,7 @@ that affect the plot also affect the exported data (for example ``xscale``, ``ph
 
 In addition, the parameter :doc:`filename` is required to all exporting commands.
 
-The command :ref:`hexport` simply exports the sequence of alternating stimuli and responses for the ``@run`` specified with the parameter ``runlabel``. There is one sequence for each subject (regardless of the value of the parameter ``subject``). The exported data with ``@hexport`` is not affected by any other parameter.
+The command :ref:`hexport` exports the entire sequence of events for the ``@run`` specified with the parameter ``runlabel``. There is one sequence for each subject (regardless of the value of the parameter ``subject``). The exported data with ``@hexport`` is not affected by any other parameter.
 
 The destination file is specified with the parameter :doc:`filename`.
 
@@ -658,11 +658,26 @@ The destination file is specified with the parameter :doc:`filename`.
 
   If the specified file already exists, the existing file will be overwritten without warning.
 
+.. _format-of-the-csv-file-hexport
+
+Format of the csv-file for `@hexport`
+-------------------------------------
+
+The csv-file exported by :ref:`hexport` has one row for each event in the history, and the following columns:
+
+- run: The ``runlabel`` being exported.
+- phase: The ``phase`` in which the event occurred.
+- subject: The ``subject`` to which the event occurred.
+- step: The time step at which the event occurred. The time step is incremented only when stimuli are presented to the subject. If a phase has lines that do not present stimuli, there will be multiple rows with the same time step. See also the next two points.
+- line: The name of the phase line in which the event occurred.
+- stimuli: The stimuli being presented when the event occured, or the empty string if no stimuli were being presented. In other words, this field is identical to the stimulus field of the phase line at which the event occurred (see :doc:`phase-line`).
+- behavior: The behavior produced by the subject. 
+- Then follows a variable number of columns, each for one of the stimulus elements in the simulation, in the same order as in the ``stimulus_elements`` specification. Each column has the name of a stimulus element and its value is the intensity of that element at this specific stimulus presentation (see doc:`stimulus-specification`). If no intensity is specified, the intensity is 1. If the stimulus element was not presented, the intensity is 0.
 
 .. _format-of-the-csv-file:
 
-Format of the csv-file
-----------------------
+Format of the csv-file for `@vexport`, `@wexport`, `@pexport`, and `@nexport`
+-----------------------------------------------------------------------------
 
 The data export commands :ref:`vexport`, :ref:`wexport`, :ref:`pexport`, and :ref:`nexport`
 exports the data as a csv-file with two or more
