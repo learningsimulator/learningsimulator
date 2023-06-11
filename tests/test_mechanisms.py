@@ -409,16 +409,16 @@ class TestRescorlaWagner(LsTestCase):
 
         self.assertIsNotNone(data)
 
-        expected_file_contents = '''"step","stimulus subject 0","response subject 0"
-0,"cs",""
-1,"us",""
-2,"cs",""
-3,"us",""
-4,"cs",""
-5,"us",""
-6,"cs",""
-7,"us",""
-8,"cs",""
+        expected_file_contents = '''"run","phase","subject","step","line","compound","behavior","cs","us"
+"run1","foo",0,1,"CS","cs","",1,0
+"run1","foo",0,2,"US","us","",0,1
+"run1","foo",0,3,"CS","cs","",1,0
+"run1","foo",0,4,"US","us","",0,1
+"run1","foo",0,5,"CS","cs","",1,0
+"run1","foo",0,6,"US","us","",0,1
+"run1","foo",0,7,"CS","cs","",1,0
+"run1","foo",0,8,"US","us","",0,1
+"run1","foo",0,9,"CS","cs","",1,0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
