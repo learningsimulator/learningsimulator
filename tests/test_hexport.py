@@ -43,7 +43,7 @@ class TestHExport(LsTestCase):
         with open(filepath) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
-            expected_header = ['run','phase','subject','step','line','compound','behavior','s1','s2']
+            expected_header = ['run','phase','subject','step','line','stimuli','behavior','s1','s2']
             for row in csv_reader:
                 if line_count == 0:
                     self.assertEqual(row, expected_header )

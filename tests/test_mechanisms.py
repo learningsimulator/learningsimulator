@@ -409,7 +409,7 @@ class TestRescorlaWagner(LsTestCase):
 
         self.assertIsNotNone(data)
 
-        expected_file_contents = '''"run","phase","subject","step","line","compound","behavior","cs","us"
+        expected_file_contents = '''"run","phase","subject","step","line","stimuli","behavior","cs","us"
 "run1","foo",0,1,"CS","cs","",1,0
 "run1","foo",0,2,"US","us","",0,1
 "run1","foo",0,3,"CS","cs","",1,0

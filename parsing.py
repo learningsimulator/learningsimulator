@@ -1134,7 +1134,7 @@ class ExportCmd(PostCmd):
             all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
             # Write headers
-            w.writerow(['run','phase','subject','step','line','compound','behavior'] + all_stimulus_elements)
+            w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements)
             
             for s in range(n_subjects):
                 subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
