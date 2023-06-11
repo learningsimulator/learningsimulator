@@ -1206,8 +1206,10 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     for i in range(len(seq)):
         s = seq[i]
         if type(s) is dict:
-            seq[i] = ','.join( s.keys() )
-    
+            seq[i] = tuple( s.keys() )
+            if len(seq[i])==1:
+                seq[i] = seq[i][0]
+                
     assert(type(seq) == list)
     for s in seq:
         s_type = type(s)
