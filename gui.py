@@ -603,6 +603,9 @@ class Progress():
     def get_n_runs(self):
         return len(self.nsteps2)
 
+    def set1(self, value):
+        self.progress1.set(value)
+        
     def increment1(self):
         self.progress1.set(self.progress1.get() + self.nsteps1_percent)
 

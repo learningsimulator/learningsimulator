@@ -926,7 +926,7 @@ class PostCmds():
             cmd.run(simulation_data)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
-                progress.progress1.set((i + 1) / n_commands * 100)
+                progress.set1((i + 1) / n_commands * 100)
 
     def plot(self):
         for cmd in self.cmds:
