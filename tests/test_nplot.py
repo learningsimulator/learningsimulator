@@ -109,7 +109,7 @@ class TestInitialValues(LsTestCase):
         obj, simulation_data = run(text)
 
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s1':1}, 'b', {'s2':1}, 'b', {'s3':1}, 'b'] * 10)
 
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -121,7 +121,7 @@ class TestInitialValues(LsTestCase):
         obj, simulation_data = run(text)
 
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s1':1}, 'b', {'s2':1}, 'b', {'s3':1}, 'b'] * 10)
 
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -133,7 +133,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
@@ -145,7 +145,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
@@ -157,7 +157,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [4, 9, 14, 19, 24, 29, 34, 39, 44, 49])
@@ -170,7 +170,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -182,7 +182,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1])
@@ -195,7 +195,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -207,7 +207,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1])
@@ -220,7 +220,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
@@ -232,7 +232,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [2, 2, 2, 2, 2, 2, 2, 2, 2])
@@ -245,7 +245,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [3, 6, 9, 12, 15, 18, 21, 24, 27, 30])
@@ -257,7 +257,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="subset", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [3, 3, 3, 3, 3, 3, 3, 3, 3])
@@ -268,7 +268,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
@@ -280,7 +280,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
@@ -292,7 +292,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="on")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [3, 8, 13, 18, 23, 28, 33, 38, 43, 48])
@@ -304,7 +304,7 @@ class TestInitialValues(LsTestCase):
                                 xscale_match="exact", cumulative="off")
         obj, simulation_data = run(text)
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
-        self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
+        self.assertEqual(history, [{'s1':1}, 'b', {'s2':1}, 'b', {'s2':1}, 'b', {'s1':1, 's2':1}, 'b', {'s3':1}, 'b'] * 10)
         plot_data = get_plot_data()
         self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
