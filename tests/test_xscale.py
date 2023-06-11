@@ -43,7 +43,7 @@ class TestSmall(LsTestCase):
         '''
         script, simulation_data = run(text)
         history = simulation_data.run_outputs['run1'].output_subjects[0].history
-        expected_history = ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's1', 'b']
+        expected_history = [{'s1':1}, 'b', {'s2':1}, 'b', {'s1':1}, 'b', {'s2':1}, 'b', {'s1':1}, 'b', {'s2':1}, 'b', {'s1':1}, 'b']
         self.assertEqual(history, expected_history)
 
         # xscale: all

@@ -196,11 +196,7 @@ class RunOutputSubject():
         self.phase_line_labels_steps = list()
 
     def write_history(self, stimulus, response):
-        stimulus_tuple = tuple([e for e in stimulus if stimulus[e] != 0])
-        if len(stimulus_tuple) == 1:
-            self.history.append(stimulus_tuple[0])
-        else:
-            self.history.append(stimulus_tuple)
+        self.history.append( stimulus )
         self.history.append(response)
 
     def write_step(self, phase_label, step):
