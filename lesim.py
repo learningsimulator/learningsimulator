@@ -3,6 +3,7 @@ import traceback
 import compute
 
 import gui
+import cli
 import parsing
 
 GUI = "gui"
@@ -34,42 +35,22 @@ if __name__ == "__main__":
         assert(args[0].endswith("lesim.py"))
 
     guiObj = None
-    if nargs == 1:
-        compute.process.start()
+    if nargs == 1 or (nargs>1 and args[1] == GUI):
         guiObj = gui.Gui()
+    elif args[1] == RUN:
+        files = args[2:nargs]
+
+        if len(files) == 0:
+            print("No script file given to lesim run. Type 'lesim.py help' for the available options.")
+            sys.exit(1)
+        
+        cliObj = cli.Cli( files )
+
+    elif arg1 == HELP:
+        man_page = get_man_page()
+        print(man_page)
     else:
-        arg1 = args[1]
-        if arg1 == GUI:
-            compute.process.start()
-            guiObj = gui.Gui()
-        elif arg1 == RUN:
-            files = args[2:len(args)]
-            if len(files) == 0:
-                print("No script file given to lesim run. Type 'lesim.py help' for the available options.")
-            nfiles = len(files)
-            for i, file in enumerate(files):
-                file_obj = open(file, "r")
-                script = file_obj.read()
-                script_obj = parsing.Script(script)
-                script_obj.parse()
-
-                msg = script_obj.check_deprecated_syntax()
-                if msg is not None:
-                    print(msg)
-
-                # try:
-                simulation_data = script_obj.run()
-                script_obj.postproc(simulation_data)
-                block = (i == nfiles - 1)
-                script_obj.plot(block)
-                #except Exception as ex:
-                #    print( traceback.format_exc(), ex )
-                
-        elif arg1 == HELP:
-            man_page = get_man_page()
-            print(man_page)
-        else:
-            print("Invalid command option '{}' to lesim. Type 'lesim.py help' for the available options.".format(arg1))
+        print("Invalid command option '{}' to lesim. Type 'lesim.py help' for the available options.".format(arg1))
 
 if compute.process.is_alive():
     compute.process.terminate()
