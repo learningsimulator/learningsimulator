@@ -39,28 +39,24 @@ class Cli():
             self.simulation_thread = threading.Thread(target=self.simulate)
             self.simulation_thread.daemon = True  # So that the thread dies if main program exits
             self.simulation_thread.start()
-            try:
-                while self.simulation_thread.is_alive():
-                    self.handle_simulation_end(block)
-                    time.sleep(0.1)                
-            except:
-                compute.progress_queue.close()
+            while True: # wait for simulation thread to set self.progress.done
+                if self.progress.done:
+                    assert(not self.simulation_thread.is_alive()) # should be done
+                    self.simulation_thread.join()                 # tidy up
+                    if self.progress.exception is not None:       # oops
+                        compute.progress_queue.close()            # tidy up
+                        print(self.progress.exception_traceback)  # mimic exception
+                        print(self.progress.exception)
+                    else:
+                        self.script_obj.postproc(self.simulation_data, self.progress)
+                        self.script_obj.plot(block=block, progress=self.progress)
+                    break
+                else:
+                    self.update_progress()
+                time.sleep(0.1)                
 
         compute.progress_queue.close()
         print('\033[2K\033[1A')
-
-    def handle_simulation_end(self, block):
-        if self.progress.done:
-            assert(not self.simulation_thread.is_alive())
-            self.simulation_thread.join()
-            if self.progress.exception is not None:
-                if not isinstance(self.progress.exception, InterruptedSimulation):
-                    print(self.progress.exception_traceback)
-                    print(self.progress.exception)
-            else:
-                self.script_obj.plot(block=block, progress=self.progress)
-        else:
-            self.update_progress()
 
     def update_progress(self):
         if not self.progress:
@@ -75,14 +71,7 @@ class Cli():
 
     def simulate(self):
         try:
-            compute.worker_queue.put( self.script_obj )
-            result = compute.worker_queue.get()
-            if type( result[0] ) is output.ScriptOutput:
-                self.simulation_data = result[0]
-                self.script_obj.postproc(self.simulation_data, self.progress)
-            else:
-                self.progress.exception = result[0]
-                self.progress.exception_traceback = result[1]
+            self.simulation_data = self.script_obj.run()
         except Exception as ex:
             self.progress.exception = ex
             self.progress.exception_traceback = traceback.format_exc()
