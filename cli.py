@@ -39,6 +39,7 @@ class Cli():
             self.simulation_thread = threading.Thread(target=self.simulate)
             self.simulation_thread.daemon = True  # So that the thread dies if main program exits
             self.simulation_thread.start()
+
             while True: # wait for simulation thread to set self.progress.done
                 if self.progress.done:
                     assert(not self.simulation_thread.is_alive()) # should be done
@@ -47,16 +48,17 @@ class Cli():
                         compute.progress_queue.close()            # tidy up
                         print(self.progress.exception_traceback)  # mimic exception
                         print(self.progress.exception)
+                        sys.exit(1)
                     else:
-                        self.script_obj.postproc(self.simulation_data, self.progress)
-                        self.script_obj.plot(block=block, progress=self.progress)
-                    break
-                else:
-                    self.update_progress()
+                        break
+                self.update_progress()
                 time.sleep(0.1)                
 
+            self.script_obj.postproc(self.simulation_data, self.progress)
+            self.script_obj.plot(block=block, progress=self.progress)
+
         compute.progress_queue.close()
-        print('\033[2K\033[1A')
+        print('\033[2K', "Done")
 
     def update_progress(self):
         if not self.progress:
@@ -68,7 +70,9 @@ class Cli():
                 method( message[1] )
             else:
                 method()
-
+            if self.progress.done:
+                break
+            
     def simulate(self):
         try:
             self.simulation_data = self.script_obj.run()
@@ -77,7 +81,6 @@ class Cli():
             self.progress.exception_traceback = traceback.format_exc()
         
         self.progress.set_done(True)
-
 
 class Progress():
     def __init__(self, script_obj):
