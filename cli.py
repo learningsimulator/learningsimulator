@@ -46,9 +46,9 @@ class Cli():
             except:
                 compute.progress_queue.close()
 
-        print('\033[2K\033[1A')
         compute.progress_queue.close()
-            
+        print('\033[2K\033[1A')
+
     def handle_simulation_end(self, block):
         if self.progress.done:
             assert(not self.simulation_thread.is_alive())
@@ -65,7 +65,7 @@ class Cli():
     def update_progress(self):
         if not self.progress:
             return
-        while not self.progress.stop_clicked and not compute.progress_queue.empty():
+        while not compute.progress_queue.empty():
             message = compute.progress_queue.get()
             method = getattr( self.progress, message[0] )
             if len(message)>1:
