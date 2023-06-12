@@ -36,6 +36,7 @@ if __name__ == "__main__":
 
     guiObj = None
     if nargs == 1 or (nargs>1 and args[1] == GUI):
+        compute.process.start()
         guiObj = gui.Gui()
     elif args[1] == RUN:
         files = args[2:nargs]
