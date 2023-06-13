@@ -147,9 +147,8 @@ class Run():
                     out.write_step(phase_label, phase_step)
                     step += 1
                 out.write_phase_line_label(phase_line_label, step,
-                                               preceeding_help_lines)
-                    out.write_variables(subject_ind, variables, step,
-                                        preceding_help_line_variables)
+                                           preceeding_help_lines)
+                out.write_variables(variables, step, preceding_help_line_variables)
                 last_stimulus = dict(stimulus)  # XXX dict ok?
                 last_response = response
             else:

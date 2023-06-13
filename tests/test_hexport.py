@@ -31,8 +31,10 @@ class TestHExport(LsTestCase):
         alpha_v: 1
         alpha_w: 1
 
+        @variables g1=1, g2=2
+        
         @phase foo stop: s1=5
-        S1 s1 | S2(0.5) | S1
+        S1 s1 | l1=1, S2(0.5) | S1
         S2 s2 | S1
 
         @run foo
@@ -43,7 +45,7 @@ class TestHExport(LsTestCase):
         with open(filepath) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
-            expected_header = ['run','phase','subject','step','line','stimuli','behavior','s1','s2']
+            expected_header = ['run','phase','subject','step','line','stimuli','behavior','s1','s2','g1','g2','l1']
             for row in csv_reader:
                 if line_count == 0:
                     self.assertEqual(row, expected_header )
