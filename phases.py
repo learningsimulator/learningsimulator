@@ -162,8 +162,6 @@ class Phase():
 
         if preceeding_help_lines is None:
             preceeding_help_lines = list()
-
-        if preceding_help_line_variables is None:
             preceding_help_line_variables = list()
 
         variables_both = Variables.join(self.global_variables, self.local_variables)
@@ -196,6 +194,9 @@ class Phase():
         if stimulus is not None:
             for element, intensity in stimulus.items():
                 if type(intensity) is str:  # element[var] where var is a (local) variable
+                    # We copy stimulus to avoid changing self.phase_lines[rowlbl].stimulus
+                    # which would give wrong stimuli if variables change 
+                    stimulus = copy.copy( stimulus )
                     stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables_both)
                     if err:
                         raise ParseException(self.phase_lines[rowlbl].lineno, err)
