@@ -1171,11 +1171,11 @@ class ExportCmd(PostCmd):
                         for e in all_stimulus_elements:
                             if e in stimulus:
                                 intensity = stimulus[e]
-                                intensities.append(intensity)
+                                intensities.append(f"{intensity:g}")
                                 if intensity==1:
-                                    compound.append( f"{e}" )
+                                    compound.append(f"{e}")
                                 else:
-                                    compound.append( f"{e}[{intensity:g}]" )
+                                    compound.append(f"{e}[{intensity:g}]")
                             else:
                                 intensities.append(0)
                     # Saving variables must take care of keeping the
@@ -1184,7 +1184,7 @@ class ExportCmd(PostCmd):
                     step_variables = list()
                     for v in all_variables:
                         if v in variables[i].values:
-                            step_variables.append(variables[i].values[v])
+                            step_variables.append(f"{variables[i].values[v]:g}")
                         else:
                             step_variables.append("")
                     rows.append([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
