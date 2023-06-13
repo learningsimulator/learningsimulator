@@ -181,9 +181,15 @@ class Run():
 
         if self.n_subjects>1:
             nproc = min(self.n_subjects-1, multiprocessing.cpu_count()-1)
-            with multiprocessing.Pool(processes=nproc) as pool:
-                pool = multiprocessing.Pool(processes=nproc)
-                out.output_subjects[1:self.n_subjects] = pool.map(self.run_one, range(1,self.n_subjects))
+            pool = multiprocessing.Pool(processes=nproc)
+            result = pool.map_async(self.run_one, range(1,self.n_subjects))
+            while not result.ready():
+                try:
+                    out.output_subjects[1:self.n_subjects] = result.get(0.1)
+                except multiprocessing.TimeoutError:
+                    if compute.stop.is_set():
+                        pool.terminate()
+                        break
             pool.close()
             
         # There may be messages left if progress monitors did not have

@@ -1,4 +1,5 @@
 import multiprocessing
+import threading
 import traceback
 
 def worker(q):
@@ -13,4 +14,4 @@ def worker(q):
 worker_queue = multiprocessing.Queue()
 progress_queue = multiprocessing.Queue()
 process = multiprocessing.Process(target=worker, args=(worker_queue,))
-
+stop = threading.Event()
