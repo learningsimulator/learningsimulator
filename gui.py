@@ -260,7 +260,12 @@ class Gui():
 
         self.simulation_thread = threading.Thread(target=self.simulate)
         self.simulation_thread.daemon = True  # So that the thread dies if main program exits
+
+        # The Order of the next two lines matters: simulation.py:Run.run()
+        # stops if the compute.stop threading.Event is set
+        compute.stop.clear() 
         self.simulation_thread.start()
+
         self.check_job = self.root.after(100, self.handle_simulation_end)
 
     def handle_simulation_end(self):
@@ -279,6 +284,8 @@ class Gui():
                 except Exception as ex:
                     self.progress.close_dlg()
                     self.handle_exception(ex, traceback.format_exc())
+        elif self.progress.stop_clicked:
+            compute.stop.set() # stops simulation.py:Run.run()
         else:
             assert(self.simulation_thread.is_alive())
             self.update_progress()
