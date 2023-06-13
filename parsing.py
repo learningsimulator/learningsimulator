@@ -1158,31 +1158,35 @@ class ExportCmd(PostCmd):
                     while first_step_phase[1][p+1] <= step:
                         p += 1
                     phase = first_step_phase[0][p]
-                    stimulus = history[2*(step-1)]
-                    response = history[2*(step-1)+1]
-                    # Next loop figures out element intensities and
-                    # the compound representation of stimulus
-                    intensities = []
-                    compound = []
-                    for e in all_stimulus_elements:
-                        if e in stimulus:
-                            intensity = stimulus[e]
-                            intensities.append(intensity)
-                            if intensity==1:
-                                compound.append( f"{e}" )
+                    compound = [""]
+                    response = ""
+                    intensities = [""]*len(all_stimulus_elements)
+                    if i==len(phase_line_labels_steps)-1 or step != phase_line_labels_steps[i+1]:
+                        stimulus = history[2*(step-1)]
+                        response = history[2*(step-1)+1]
+                        # Next loop figures out element intensities and
+                        # the compound representation of stimulus
+                        intensities = []
+                        compound = []
+                        for e in all_stimulus_elements:
+                            if e in stimulus:
+                                intensity = stimulus[e]
+                                intensities.append(intensity)
+                                if intensity==1:
+                                    compound.append( f"{e}" )
+                                else:
+                                    compound.append( f"{e}[{intensity:g}]" )
                             else:
-                                compound.append( f"{e}[{intensity}]" )
-                        else:
-                            intensities.append(0)
+                                intensities.append(0)
                     # Saving variables must take care of keeping the
-                    # same order and adding 0 for variables that may
+                    # same order and adding NA for variables that may
                     # not have a value at this step
                     step_variables = list()
                     for v in all_variables:
                         if v in variables[i].values:
                             step_variables.append(variables[i].values[v])
                         else:
-                            step_variables.append("NA")
+                            step_variables.append("")
                     rows.append([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
                                step_variables)
                 w.writerows( rows )
