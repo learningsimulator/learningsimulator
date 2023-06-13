@@ -154,13 +154,19 @@ class Phase():
         self.initialize_local_variables()
         self.first_stimulus_presented = False
 
-    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None, omit_learn=None):
+    def next_stimulus(self, response, ignore_response_increment=False, preceeding_help_lines=None, omit_learn=None,
+                      preceding_help_line_variables=None):
         # if not self.is_parsed:
         #     raise Exception("Internal error: Cannot call Phase.next_stimulus" +
         #                     " before Phase.parse().")
 
         if preceeding_help_lines is None:
             preceeding_help_lines = list()
+
+        if preceding_help_line_variables is None:
+            preceding_help_line_variables = list()
+
+        variables_both = Variables.join(self.global_variables, self.local_variables)
 
         if not ignore_response_increment:
             # if not self.is_first_line:
@@ -169,10 +175,10 @@ class Phase():
                 self.event_counter.increment_count_line(response)
                 self.event_counter.set_last_response(response)
 
+
         if self.first_stimulus_presented:
-            variables_both = Variables.join(self.global_variables, self.local_variables)
             if self.stop_condition.is_met(variables_both, self.event_counter):
-                return None, None, preceeding_help_lines, None
+                return None, None, preceeding_help_lines, None, variables_both, preceding_help_line_variables
 
         if self.is_first_line:
             # assert(response is None)
@@ -189,7 +195,6 @@ class Phase():
         if stimulus is not None:
             for element, intensity in stimulus.items():
                 if type(intensity) is str:  # element[var] where var is a (local) variable
-                    variables_both = Variables.join(self.global_variables, self.local_variables)
                     stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables_both)
                     if err:
                         raise ParseException(self.phase_lines[rowlbl].lineno, err)
@@ -206,10 +211,12 @@ class Phase():
             lineno = self.phase_lines[rowlbl].lineno
             self._perform_action(lineno, action)
             preceeding_help_lines.append(rowlbl)
+            preceding_help_line_variables.append(variables_both)
             next_stimulus_out = self.next_stimulus(response, ignore_response_increment=True,
                                                    preceeding_help_lines=preceeding_help_lines,
-                                                   omit_learn=omit_learn)
-            stimulus, rowlbl, preceeding_help_lines, omit_learn_help = next_stimulus_out
+                                                   omit_learn=omit_learn,
+                                                   preceding_help_line_variables=preceding_help_line_variables)
+            stimulus, rowlbl, preceeding_help_lines, omit_learn_help, variables_both, preceding_help_line_variables = next_stimulus_out
 
             omit_learn = (omit_learn or omit_learn_help)
         else:
@@ -218,7 +225,7 @@ class Phase():
                 self.event_counter.increment_count_line(stimulus_element)
             self.first_stimulus_presented = True
 
-        return stimulus, rowlbl, preceeding_help_lines, omit_learn
+        return stimulus, rowlbl, preceeding_help_lines, omit_learn, variables_both, preceding_help_line_variables
 
     def _make_current_line(self, label):
         # self.curr_linelabel = label
@@ -728,16 +735,16 @@ class World():
     def next_stimulus(self, response):
         """Returns a stimulus-tuple and current phase label."""
         curr_phase = self.phases[self.curr_phaseind]
-        stimulus, row_lbl, preceeding_help_lines, omit_learn = curr_phase.next_stimulus(response)
+        stimulus, row_lbl, preceeding_help_lines, omit_learn, variables, preceding_help_line_variables = curr_phase.next_stimulus(response)
         if stimulus is None:  # Phase done
             if self.curr_phaseind + 1 >= self.nphases:  # No more phases
-                return None, curr_phase.label, row_lbl, preceeding_help_lines, None
+                return None, curr_phase.label, row_lbl, preceeding_help_lines, None, variables, preceding_help_line_variables
             else:  # Go to next phase
                 self.curr_phaseind += 1
                 # return self.next_stimulus(None)
                 return self.next_stimulus(response)
         else:
-            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines, omit_learn
+            return stimulus, curr_phase.label, row_lbl, preceeding_help_lines, omit_learn, variables, preceding_help_line_variables
 
     # def get_phase_labels(self):
     #     phase_labels = [phase.label for phase in self.phases]

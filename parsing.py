@@ -1133,14 +1133,23 @@ class ExportCmd(PostCmd):
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
             all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
+            # Figure out variable names
+            variable_history = simulation_data.run_outputs[run_label].output_subjects[0].variables
+            all_variables = dict()
+            for v in variable_history:
+                for k in v.values.keys():
+                    all_variables[k] = 1
+            all_variables = list(all_variables.keys())
+            
             # Write headers
-            w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements)
+            w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements + all_variables)
             
             for s in range(n_subjects):
                 subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
                 history = subject_output.history
                 phase_line_labels = subject_output.phase_line_labels
                 phase_line_labels_steps = subject_output.phase_line_labels_steps
+                variables = subject_output.variables
                 first_step_phase = subject_output.first_step_phase
                 for i in range(len(phase_line_labels_steps)):
                     step = phase_line_labels_steps[i]
@@ -1150,6 +1159,8 @@ class ExportCmd(PostCmd):
                     phase = first_step_phase[0][p]
                     stimulus = history[2*(step-1)]
                     response = history[2*(step-1)+1]
+                    # Next loop figures out element intensities and
+                    # the compound representation of stimulus
                     intensities = []
                     compound = []
                     for e in all_stimulus_elements:
@@ -1162,7 +1173,17 @@ class ExportCmd(PostCmd):
                                 compound.append( f"{e}[{intensity}]" )
                         else:
                             intensities.append(0)
-                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities)
+                    # Saving variables must take care of keeping the
+                    # same order and adding 0 for variables that may
+                    # not have a value at this step
+                    step_variables = list()
+                    for v in all_variables:
+                        if v in variables[i].values:
+                            step_variables.append(variables[i].values[v])
+                        else:
+                            step_variables.append("NA")
+                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
+                               step_variables)
 
     def _vwpn_export(self, file, simulation_data):
         ydatas = []
