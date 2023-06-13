@@ -108,7 +108,7 @@ class Run():
 #            if progress and progress.stop_clicked:
 #                raise InterruptedSimulation()
             next_stimulus_out = self.world.next_stimulus(response)
-            stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
+            stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn, variables, preceding_help_line_variables = next_stimulus_out
             if phase_label != prev_phase_label:  # Update phases progress
                 compute.progress_queue.put( ("increment2", self.run_label) )
                 compute.progress_queue.put( ("report2", f"Phase {phase_label}") )
@@ -148,6 +148,8 @@ class Run():
                     step += 1
                 out.write_phase_line_label(phase_line_label, step,
                                                preceeding_help_lines)
+                    out.write_variables(subject_ind, variables, step,
+                                        preceding_help_line_variables)
                 last_stimulus = dict(stimulus)  # XXX dict ok?
                 last_response = response
             else:

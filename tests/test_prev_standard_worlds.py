@@ -118,13 +118,14 @@ class TestClassicalConditioning(LsTestCase):
     def test_run(self):
         phase = self.phase
         s = phase.next_stimulus(None)
-        self.assertEqual(s, ({"context": 1}, 'CONTEXT', [], True))
+        # We test 0:4 here and below, leaving out an unused Variables object 
+        self.assertEqual(s[0:4], ({"context": 1}, 'CONTEXT', [], True))
 
         for _ in range(24):
             s = phase.next_stimulus('foo')
-            self.assertEqual(s, ({"context": 1}, 'CONTEXT', [], False))
+            self.assertEqual(s[0:4], ({"context": 1}, 'CONTEXT', [], False))
         s = phase.next_stimulus('foo')
-        self.assertEqual(s, ({"us": 1, "context": 1}, 'US', [], False))
+        self.assertEqual(s[0:4], ({"us": 1, "context": 1}, 'US', [], False))
 
         s = phase.next_stimulus('R')
         self.assertEqual(s[0], {"reward": 1, "context": 1})
