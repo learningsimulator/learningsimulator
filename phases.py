@@ -186,7 +186,6 @@ class Phase():
             self._make_current_line(rowlbl)
 
         stimulus = self.phase_lines[rowlbl].stimulus
-        print(stimulus)
         if stimulus is not None:
             for element, intensity in stimulus.items():
                 if type(intensity) is str:  # element[var] where var is a (local) variable
