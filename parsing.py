@@ -1145,6 +1145,7 @@ class ExportCmd(PostCmd):
             w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements + all_variables)
             
             for s in range(n_subjects):
+                rows = list()
                 subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
                 history = subject_output.history
                 phase_line_labels = subject_output.phase_line_labels
@@ -1182,8 +1183,9 @@ class ExportCmd(PostCmd):
                             step_variables.append(variables[i].values[v])
                         else:
                             step_variables.append("NA")
-                    w.writerow([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
+                    rows.append([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
                                step_variables)
+                w.writerows( rows )
 
     def _vwpn_export(self, file, simulation_data):
         ydatas = []
