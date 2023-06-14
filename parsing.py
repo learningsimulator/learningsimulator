@@ -1177,7 +1177,7 @@ class ExportCmd(PostCmd):
                                 else:
                                     compound.append(f"{e}[{intensity:.2g}]")
                             else:
-                                intensities.append(0)
+                                intensities.append("0")
                     # Saving variables must take care of keeping the
                     # same order and adding NA for variables that may
                     # not have a value at this step
