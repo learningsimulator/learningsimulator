@@ -1192,80 +1192,51 @@ class ExportCmd(PostCmd):
                 w.writerows( rows )
 
     def _vwpn_export(self, file, simulation_data):
-        ydatas = []
-        legend_labels = []
-        n_ydata = None
-        for expr, expr0 in zip(self.exprs, self.exprs0):
-            label_expr = expr0  # beautify_expr_for_label(self.expr)
-            if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
-                post_expr = expr
-                ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
-                                            POST_MATH)
-                if err is not None:
-                    raise EvalException(f"Expression evaluation failed.", self.lineno)
-                legend_label = label_expr
-            else:
-                if self.cmd == kw.VEXPORT:
-                    ydata = simulation_data.vwpn_eval('v', expr, self.parameters, self.run_parameters)
-                    legend_label = f"v({label_expr})"
-                if self.cmd == kw.VSSEXPORT:
-                    ydata = simulation_data.vwpn_eval('vss', expr, self.parameters, self.run_parameters)
-                    legend_label = f"vss({label_expr})"
-                elif self.cmd == kw.WEXPORT:
-                    ydata = simulation_data.vwpn_eval('w', expr, self.parameters, self.run_parameters)
-                    legend_label = f"w({label_expr})"
-                elif self.cmd == kw.PEXPORT:
-                    ydata = simulation_data.vwpn_eval('p', expr, self.parameters, self.run_parameters)
-                    legend_label = f"p({label_expr})"
-                elif self.cmd == kw.NEXPORT:
-                    ydata = simulation_data.vwpn_eval('n', expr, self.parameters, self.run_parameters)
-                    legend_label = f"n({label_expr})"
-            ydatas.append(ydata)
-            legend_labels.append(legend_label)
-            if n_ydata is None:
-                n_ydata = len(ydata)
-
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w.writerow(['expr','subject','step','value'])
 
-            if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
-                subject_legend_labels = list()
+            ydatas = []
+            legend_labels = []
+            for expr, expr0 in zip(self.exprs, self.exprs0):
+                label_expr = expr0  # beautify_expr_for_label(self.expr)
+                if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
+                    post_expr = expr
+                    ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
+                                                POST_MATH)
+                    if err is not None:
+                        raise EvalException(f"Expression evaluation failed.", self.lineno)
+                    legend_label = label_expr
+                else:
+                    if self.cmd == kw.VEXPORT:
+                        ydata = simulation_data.vwpn_eval('v', expr, self.parameters, self.run_parameters)
+                        legend_label = f"v({label_expr})"
+                    if self.cmd == kw.VSSEXPORT:
+                        ydata = simulation_data.vwpn_eval('vss', expr, self.parameters, self.run_parameters)
+                        legend_label = f"vss({label_expr})"
+                    elif self.cmd == kw.WEXPORT:
+                        ydata = simulation_data.vwpn_eval('w', expr, self.parameters, self.run_parameters)
+                        legend_label = f"w({label_expr})"
+                    elif self.cmd == kw.PEXPORT:
+                        ydata = simulation_data.vwpn_eval('p', expr, self.parameters, self.run_parameters)
+                        legend_label = f"p({label_expr})"
+                    elif self.cmd == kw.NEXPORT:
+                        ydata = simulation_data.vwpn_eval('n', expr, self.parameters, self.run_parameters)
+                        legend_label = f"n({label_expr})"
+                ydatas.append(ydata)
+                legend_labels.append(legend_label)
 
-                for legend_label in legend_labels:
-                    for i in range(n_ydata):
-                        subject_legend_label = f"{legend_label} subject {i + 1}"
-                        subject_legend_labels.append(subject_legend_label)
-
-                # Write headers
-                w.writerow(['x'] + subject_legend_labels)
-
-                # Write data
-                maxlen = 0
-                for ydata in ydatas:
-                    for i in range(n_ydata):
-                        len_ydata_i = len(ydata[i])
-                        if len_ydata_i > maxlen:
-                            maxlen = len_ydata_i
-                for row in range(maxlen):
-                    datarow = [row]
-                    for ydata in ydatas:
-                        for i in range(n_ydata):
-                            if row < len(ydata[i]):
-                                datarow.append(ydata[i][row])
-                            else:
-                                datarow.append(' ')
-                    w.writerow(datarow)
-            else:
-                # Write headers
-                # w.writerow(['x', legend_label])
-                w.writerow(['x'] + legend_labels)
-
-                # Write data
-                for row in range(len(ydata)):
-                    datarow = [row]
-                    for ydata in ydatas:
-                        datarow.append(ydata[row])
-                    w.writerow(datarow)
+            for i in range(len(ydatas)):
+                ydata = ydatas[i]
+                legend_label = legend_labels[i]
+                for subject_ind in range(len(ydata)):
+                    subject_data = ydata[subject_ind]
+                    if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_AVERAGE:
+                        subject_label = ["average"]
+                    else:
+                        subject_label = subject_ind
+                        for step in range(len(subject_data)):
+                            w.writerow( [legend_label, subject_label, step, subject_data[step]] )
 
     def progress_label(self):
         # return f"{self.cmd} {self.exprs0}"
