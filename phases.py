@@ -165,7 +165,7 @@ class Phase():
             preceding_help_line_variables = list()
 
         variables_both = Variables.join(self.global_variables, self.local_variables)
-
+               
         if not ignore_response_increment:
             # if not self.is_first_line:
             if response is not None:
@@ -173,10 +173,9 @@ class Phase():
                 self.event_counter.increment_count_line(response)
                 self.event_counter.set_last_response(response)
 
-
         if self.first_stimulus_presented:
             if self.stop_condition.is_met(variables_both, self.event_counter):
-                return None, None, preceeding_help_lines, None, variables_both, preceding_help_line_variables
+                return None, None, preceeding_help_lines, None, variables_both, None
 
         if self.is_first_line:
             # assert(response is None)
