@@ -546,12 +546,12 @@ class TestExportMultiExpression(LsTestCase):
 
         exported_titles, exported_data = get_csv_file_contents(file_prop)
 
-        exported_titles_expected = ['expr','subject','step','value']
+        exported_titles_expected = ['run','expr','subject','step','value']
         self.assertListEqual(exported_titles, exported_titles_expected)
 
-        self.assertEqual(set(exprs), set([x[0] for x in exported_data]))
+        self.assertEqual(set(exprs), set([x[1] for x in exported_data]))
 
-        self.assertEqual(n_subjects, len(set([x[1] for x in exported_data])))
+        self.assertEqual(n_subjects, len(set([x[2] for x in exported_data])))
         
         pd = get_plot_data(figure_number=figure_number)
         self.assertPlotExportEqual(pd, exported_data)

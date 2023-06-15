@@ -157,11 +157,13 @@ class LsTestCase(unittest.TestCase):
 
     def assertPlotExportEqual(self, pd, exported_data):
         n_data_rows = len(exported_data)
-        print( "exported_data:", exported_data )
-        exported_exprs = list(set([exported_data[i][0] for i in range(n_data_rows)]))
-        print( "exported_exprs:", exported_exprs )
-        # The following fails for subject=='average', but we don't test that 
-        exported_subjects = list(set([int(exported_data[i][1]) for i in range(n_data_rows)]))
+        exported_exprs = list(set([exported_data[i][1] for i in range(n_data_rows)]))
+        exported_subjects = list(set([exported_data[i][2] for i in range(n_data_rows)]))
+        # convert exported_subjects to int, but handle "average" also 
+        for i in range(len(exported_subjects)):
+            if not exported_subjects[i] == "average":
+                exported_subjects[i] = int(exported_subjects[i])
+            
         print( "exported_subjects:", exported_subjects )
         for expr in exported_exprs:
             for subject_ind in exported_subjects:
@@ -171,21 +173,13 @@ class LsTestCase(unittest.TestCase):
                     if plot_legend not in pd:
                         raise Exception(f"No data for {expr} {subject_ind} in pd")
                 plot_data = pd[plot_legend]
-                print( "plot_legend:", plot_legend )
-                print( "plot_data:", plot_data )
                 data_index = list()
-                print( "subject_ind:", subject_ind )
                 for i in range(n_data_rows):
-                    print( "expr:", expr, exported_data[i][0] )
-                    print( "subject:", subject_ind == int(exported_data[i][1]) )
-                    if exported_data[i][0] == expr and int(exported_data[i][1]) == subject_ind:
+                    if exported_data[i][1] == expr and int(exported_data[i][2]) == subject_ind:
                         data_index.append(i)
-                print( "data_index:", data_index )                
                 self.assertEqual(len(data_index), len(plot_data['x']))
-                data_x = [float(exported_data[i][2]) for i in data_index]
-                print( "data_x:", data_x )
-                data_y = [float(exported_data[i][3]) for i in data_index]
-                print( "Data_y", data_y )
+                data_x = [float(exported_data[i][3]) for i in data_index]
+                data_y = [float(exported_data[i][4]) for i in data_index]
                 n_data = len(data_index)
 
                 # Check that all plot data have the same length as exported data 

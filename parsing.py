@@ -1193,9 +1193,10 @@ class ExportCmd(PostCmd):
                 w.writerows( rows )
 
     def _vwpn_export(self, file, simulation_data):
+        run_label = self.parameters.get(kw.EVAL_RUNLABEL)
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
-            w.writerow(['expr','subject','step','value'])
+            w.writerow(['run','expr','subject','step','value'])
 
             ydatas = []
             legend_labels = []
@@ -1236,7 +1237,7 @@ class ExportCmd(PostCmd):
                         subject_data = ydata[subject_ind]
                         subject_label = subject_ind + 1 # 1-based in CSV and figure output
                         for step in range(len(subject_data)):
-                            w.writerow( [legend_label, subject_label, step, subject_data[step]] )
+                            w.writerow( [run_label, legend_label, subject_label, step, subject_data[step]] )
                 else:
                     if eval_subject == kw.EVAL_AVERAGE:
                         subject_label = "average"
@@ -1246,7 +1247,7 @@ class ExportCmd(PostCmd):
                         # 'Internal error' because parameters have been checked already when parsing
                         raise EvalException(f"Internal error on eval_subject={eval_subject}.", self.lineno)
                     for step in range(len(ydata)):
-                        w.writerow( [legend_label, subject_label, step, ydata[step]] )
+                        w.writerow( [run_label, legend_label, subject_label, step, ydata[step]] )
 
     def progress_label(self):
         # return f"{self.cmd} {self.exprs0}"
