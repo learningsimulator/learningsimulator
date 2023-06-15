@@ -348,7 +348,7 @@ behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
 bind_trials          : off
 
-@phase acquisition stop: plant=150
+@phase acquisition stop: plant=200
 new_trial              | PLANT
 PLANT       plant     | approach: BERRY | new_trial
 BERRY       berry     | eat: REWARD     | NO_REWARD
