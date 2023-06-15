@@ -1187,7 +1187,8 @@ class ExportCmd(PostCmd):
                             step_variables.append(f"{variables[i].values[v]:.2g}")
                         else:
                             step_variables.append("")
-                    rows.append([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
+                    # Note: subject numbers are 1-based in CSV and figure output
+                    rows.append([run_label, phase, s+1, step, phase_line_labels[i], ','.join(compound), response] + intensities +
                                step_variables)
                 w.writerows( rows )
 
@@ -1229,14 +1230,23 @@ class ExportCmd(PostCmd):
             for i in range(len(ydatas)):
                 ydata = ydatas[i]
                 legend_label = legend_labels[i]
-                for subject_ind in range(len(ydata)):
-                    subject_data = ydata[subject_ind]
-                    if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_AVERAGE:
-                        subject_label = ["average"]
-                    else:
-                        subject_label = subject_ind
+                eval_subject = self.parameters.get(kw.EVAL_SUBJECT)
+                if eval_subject == "all":
+                    for subject_ind in range(len(ydata)):
+                        subject_data = ydata[subject_ind]
+                        subject_label = subject_ind + 1 # 1-based in CSV and figure output
                         for step in range(len(subject_data)):
                             w.writerow( [legend_label, subject_label, step, subject_data[step]] )
+                else:
+                    if eval_subject == kw.EVAL_AVERAGE:
+                        subject_label = "average"
+                    elif type(eval_subject) is int:
+                        subject_label = eval_subject + 1 # 1-base in CSV and figure output
+                    else:
+                        # 'Internal error' because parameters have been checked already when parsing
+                        raise EvalException(f"Internal error on eval_subject={eval_subject}.", self.lineno)
+                    for step in range(len(ydata)):
+                        w.writerow( [legend_label, subject_label, step, ydata[step]] )
 
     def progress_label(self):
         # return f"{self.cmd} {self.exprs0}"
