@@ -1127,7 +1127,7 @@ class ExportCmd(PostCmd):
     def _h_export(self, file, simulation_data):
         # evalprops = simulation_data._evalparse(self.parameters)
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
 
             run_label = self.parameters.get(kw.EVAL_RUNLABEL)
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
@@ -1195,7 +1195,7 @@ class ExportCmd(PostCmd):
     def _vwpn_export(self, file, simulation_data):
         run_label = self.parameters.get(kw.EVAL_RUNLABEL)
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
             w.writerow(['run','expr','subject','step','value'])
 
             ydatas = []
