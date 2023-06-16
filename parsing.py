@@ -1195,7 +1195,7 @@ class ExportCmd(PostCmd):
     def _vwpn_export(self, file, simulation_data):
         run_label = self.parameters.get(kw.EVAL_RUNLABEL)
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
             w.writerow(['run','expr','subject','step','value'])
 
             ydatas = []
