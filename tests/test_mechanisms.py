@@ -452,25 +452,25 @@ class TestRescorlaWagner(LsTestCase):
 
         self.assertIsNotNone(data)
 
-        expected_file_contents = '''"run","expr","subject","step","value"
-"run1","n(b1)","average",0,0.0
-"run1","n(b1)","average",1,0.0
-"run1","n(b1)","average",2,0.0
-"run1","n(b1)","average",3,0.0
-"run1","n(b1)","average",4,0.0
-"run1","n(b1)","average",5,0.0
-"run1","n(b1)","average",6,0.0
-"run1","n(b1)","average",7,0.0
-"run1","n(b1)","average",8,0.0
-"run1","n(b1)","average",9,0.0
-"run1","n(b1)","average",10,0.0
-"run1","n(b1)","average",11,0.0
-"run1","n(b1)","average",12,0.0
-"run1","n(b1)","average",13,0.0
-"run1","n(b1)","average",14,0.0
-"run1","n(b1)","average",15,0.0
-"run1","n(b1)","average",16,0.0
-"run1","n(b1)","average",17,0.0
+        expected_file_contents = '''run,expr,subject,step,value
+run1,n(b1),average,0,0.0
+run1,n(b1),average,1,0.0
+run1,n(b1),average,2,0.0
+run1,n(b1),average,3,0.0
+run1,n(b1),average,4,0.0
+run1,n(b1),average,5,0.0
+run1,n(b1),average,6,0.0
+run1,n(b1),average,7,0.0
+run1,n(b1),average,8,0.0
+run1,n(b1),average,9,0.0
+run1,n(b1),average,10,0.0
+run1,n(b1),average,11,0.0
+run1,n(b1),average,12,0.0
+run1,n(b1),average,13,0.0
+run1,n(b1),average,14,0.0
+run1,n(b1),average,15,0.0
+run1,n(b1),average,16,0.0
+run1,n(b1),average,17,0.0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
@@ -486,25 +486,25 @@ class TestRescorlaWagner(LsTestCase):
 
         self.assertIsNotNone(data)
 
-        expected_file_contents = '''"run","expr","subject","step","value"
-"run1","n(cs)","average",0,1.0
-"run1","n(cs)","average",1,1.0
-"run1","n(cs)","average",2,1.0
-"run1","n(cs)","average",3,1.0
-"run1","n(cs)","average",4,2.0
-"run1","n(cs)","average",5,2.0
-"run1","n(cs)","average",6,2.0
-"run1","n(cs)","average",7,2.0
-"run1","n(cs)","average",8,3.0
-"run1","n(cs)","average",9,3.0
-"run1","n(cs)","average",10,3.0
-"run1","n(cs)","average",11,3.0
-"run1","n(cs)","average",12,4.0
-"run1","n(cs)","average",13,4.0
-"run1","n(cs)","average",14,4.0
-"run1","n(cs)","average",15,4.0
-"run1","n(cs)","average",16,5.0
-"run1","n(cs)","average",17,5.0
+        expected_file_contents = '''run,expr,subject,step,value
+run1,n(cs),average,0,1.0
+run1,n(cs),average,1,1.0
+run1,n(cs),average,2,1.0
+run1,n(cs),average,3,1.0
+run1,n(cs),average,4,2.0
+run1,n(cs),average,5,2.0
+run1,n(cs),average,6,2.0
+run1,n(cs),average,7,2.0
+run1,n(cs),average,8,3.0
+run1,n(cs),average,9,3.0
+run1,n(cs),average,10,3.0
+run1,n(cs),average,11,3.0
+run1,n(cs),average,12,4.0
+run1,n(cs),average,13,4.0
+run1,n(cs),average,14,4.0
+run1,n(cs),average,15,4.0
+run1,n(cs),average,16,5.0
+run1,n(cs),average,17,5.0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
