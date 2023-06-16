@@ -100,10 +100,8 @@ class Progress():
         self.message1 = ""
         self.message2 = ""
 
-        # The dialog box for the progress bar
+        # Compatibility with gui.Progress
         self.dlg = None
-
-        # Set to True when the Stop button has been clicked
         self.stop_clicked = False
 
         self.exception = None
