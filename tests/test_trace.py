@@ -342,7 +342,7 @@ behaviors            : approach, eat, other
 stimulus_elements    : plant, berry, sugar, no_reward
 response_requirements: approach:plant, eat:berry
 start_v              : plant->other:0, berry->other:0, default:-1
-alpha_v              : 0.1
+alpha_v              : 0.15
 beta                 : 0.5
 behavior_cost        : approach:1, default: 0
 u                    : sugar:10, default:0
