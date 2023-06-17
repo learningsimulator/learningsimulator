@@ -65,6 +65,9 @@ class ParseUtil():
     STOP_COND = 0
     PHASE_LINE = 1
 
+    # Used to cache expression parse trees
+    parse_cache = dict()
+
     @staticmethod
     def is_float(expr):
         """
@@ -290,30 +293,41 @@ class ParseUtil():
             # expr = expr.replace("count(", f"count({PEC},")
             # expr = expr.replace("count_line(", f"count_line({PEC},")
 
-        # Make sure that the expression is valid
-        tree, err = ParseUtil.ast_parse(expr)
-        if err is not None:
-            return None, err
+        if variables is not None:
+            var_names = tuple(variables.values.keys())
+        else:
+            var_names = None
+        cache_index = (expr,var_names)
+        if cache_index in ParseUtil.parse_cache:
+            tree, has_boolean_operator = ParseUtil.parse_cache[cache_index]
+        else:
+            # Make sure that the expression is valid
+            tree, err = ParseUtil.ast_parse(expr)
+            if err is not None:
+                return None, err
 
-        # if phase_event_counter:
-        #     context.update({'count': phase_event_counter.get_count,
-        #                     'count_line': phase_event_counter.get_count_line})
+            # if phase_event_counter:
+            #     context.update({'count': phase_event_counter.get_count,
+            #                     'count_line': phase_event_counter.get_count_line})
 
-        # Check that all contained variables are in variables
-        has_boolean_operator = False
-        for node in ast.walk(tree):
-            if type(node) is ast.Name:
-                name = node.id
-                if name in context:
-                    continue
-                if (variables is not None) and variables.contains(name):
-                    continue
-                if (phase_event_counter is not None) and (name in phase_event_counter.count):
-                    continue
-                return None, f"Unknown variable '{name}'."
-            if type(node) is ast.BoolOp:
-                has_boolean_operator = True
+            # Check that all contained variables are in variables
+            has_boolean_operator = False
+            for node in ast.walk(tree):
+                if type(node) is ast.Name:
+                    name = node.id
+                    if name in context:
+                        continue
+                    if (variables is not None) and variables.contains(name):
+                        continue
+                    if (phase_event_counter is not None) and (name in phase_event_counter.count):
+                        continue
+                    return None, f"Unknown variable '{name}'."
+                if type(node) is ast.BoolOp:
+                    has_boolean_operator = True
 
+            # Store for later:
+            ParseUtil.parse_cache[cache_index] = [tree, has_boolean_operator]
+        
         # Now it is safe to evaluate using eval
         try:
             out = eval(expr, {"__builtins__": None}, context)
