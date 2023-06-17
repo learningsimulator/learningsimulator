@@ -4,6 +4,7 @@ import keywords as kw
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from output import ScriptOutput, RunOutput, RunOutputSubject
 import compute
+import random
 
 class Runs():
     def __init__(self):
@@ -74,6 +75,11 @@ class Run():
             omit_learn_using_new_trial = (is_bind_off and (is_new_trial or ("new_trial" in lower_phh)))
             return omit_learn_using_new_trial
 
+        # Set random seed
+        seed = self.mechanism_obj.parameters.get(kw.RANDOM_SEED)
+        if seed is not None:
+            random.seed( int(seed) + subject_ind )
+        
         # Reset mechanism and world for the next subject
         self.mechanism_obj.subject_reset()
         self.world.subject_reset()
