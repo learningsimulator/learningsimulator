@@ -1638,7 +1638,7 @@ class TestMultipleActions(LsTestCase):
             parse(text, 'phase_label')
 
         text = params + '''
-        @PHASE phase_label stop:e1=10
+        @PHASE phase_label stop:e1=100
         A e1       | b1: x1:1, x2:2, B  # Missing else
         B e2       | A
 
