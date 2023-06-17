@@ -293,7 +293,7 @@ class ParseUtil():
             # expr = expr.replace("count(", f"count({PEC},")
             # expr = expr.replace("count_line(", f"count_line({PEC},")
 
-        if not variables is None:
+        if variables is not None:
             var_names = tuple(variables.values.keys())
         else:
             var_names = None
