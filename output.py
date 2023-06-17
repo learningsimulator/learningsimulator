@@ -136,6 +136,10 @@ class RunOutput():
         self.output_subjects[subject_ind].write_phase_line_label(phase_line_label, step,
                                                                  preceeding_help_lines)
 
+    def write_variables(self, subject_ind, variables, step, preceding_help_line_variables):
+        self.output_subjects[subject_ind].write_variables(variables, step,
+                                                          preceding_help_line_variables)
+        
     def vwpn_eval(self, vwpn, expr, parameters, run_parameters):
         if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
             raise EvalException("Used mechanism does not have variable 'v'.")
@@ -195,12 +199,12 @@ class RunOutputSubject():
         # step numbers for help lines
         self.phase_line_labels_steps = list()
 
+        # List of variable values (managed like phase_line_labels
+        # because variables can change between steps)
+        self.variables = list()
+        
     def write_history(self, stimulus, response):
-        stimulus_tuple = tuple([e for e in stimulus if stimulus[e] != 0])
-        if len(stimulus_tuple) == 1:
-            self.history.append(stimulus_tuple[0])
-        else:
-            self.history.append(stimulus_tuple)
+        self.history.append( stimulus )
         self.history.append(response)
 
     def write_step(self, phase_label, step):
@@ -215,6 +219,12 @@ class RunOutputSubject():
                 self.phase_line_labels_steps.append(step)
         self.phase_line_labels.append(phase_line_label)
         self.phase_line_labels_steps.append(step)
+
+    def write_variables(self, variables, step, preceding_help_line_variables):
+        if preceding_help_line_variables:
+            for variables in preceding_help_line_variables:
+                self.variables.append(variables)
+        self.variables.append(variables)
 
     def write_v(self, stimulus, response, step, mechanism):
         '''stimulus is a dict.'''

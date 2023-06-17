@@ -1,0 +1,17 @@
+import multiprocessing
+
+lesim_compute_queue = multiprocessing.Queue()
+lesim_compute_process = multiprocessing.Process( target=lesim_compute, args=(lesim_compute_queue,) )
+lesim_compute_process.start()
+
+
+def lesim_compute( q ):
+    while True:
+        script_obj = q.get()
+        print("got script object") 
+        simulation_data = script_obj.run()
+        print("simulation done") 
+        q.put( simulation_data )
+        print("put data") 
+
+
