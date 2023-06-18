@@ -191,7 +191,7 @@ class Phase():
                 if type(intensity) is str:  # element[var] where var is a (local) variable
                     # We copy stimulus to avoid changing self.phase_lines[rowlbl].stimulus
                     # which would give wrong stimuli if variables change 
-                    stimulus = copy.copy( stimulus )
+                    stimulus = copy.copy(stimulus)
                     variables_both = Variables.join(self.global_variables, self.local_variables)
                     stimulus[element], err = ParseUtil.evaluate(intensity, variables=variables_both)
                     if err:
