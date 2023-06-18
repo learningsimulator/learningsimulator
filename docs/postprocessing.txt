@@ -670,7 +670,7 @@ The csv-file exported by :ref:`hexport` has one row for each event in the histor
 - subject: The ``subject`` to which the event occurred.
 - step: The time step at which the event occurred. The time step is incremented only when stimuli are presented to the subject. If a phase has lines that do not present stimuli, there will be multiple rows with the same time step. See also the next two points.
 - line: The name of the phase line in which the event occurred.
-- stimuli: The stimuli being presented when the event occured, or the empty string if no stimuli were being presented. In other words, this field is identical to the stimulus field of the phase line at which the event occurred (see :doc:`phase-line`).
+- stimuli: The stimuli being presented when the event occured, or the empty string if no stimuli were being presented. In other words, this field mirrors the stimulus field of the phase line at which the event occurred (see :doc:`phase-line`). However, for legibility, any element intensities are printed with two significant digits. Exact intensities values are printed in later columns. 
 - behavior: The behavior produced by the subject. 
 - Then follows a set of columns, one for each stimulus elements in the simulation, in the same order as in the ``stimulus_elements`` specification. Each column has the name of a stimulus element and its value is the intensity of that element at this specific stimulus presentation (see doc:`stimulus-specification`). If no intensity is specified, the intensity is 1. If the stimulus element was not presented, the intensity is 0.
 - Then follows another set of columns, one for each global or local variable. When a variable value is not set, its value is reported as the string "NA" (for Not Available).
