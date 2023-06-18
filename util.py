@@ -1202,7 +1202,7 @@ def find_and_cumsum(seq, pattern, use_exact_match):
     # switching from storing stimuli as strings in the history to
     # storing them as dicts broke this function, which expected
     # stimuli as strings. this is a quick fix:
-    seq = copy.copy( seq ) # don't change original seq!
+    seq = copy.copy(seq)  # don't change original seq!
     for i in range(len(seq)):
         s = seq[i]
         if type(s) is dict:
