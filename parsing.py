@@ -1129,128 +1129,125 @@ class ExportCmd(PostCmd):
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
 
-            # if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
             run_label = self.parameters.get(kw.EVAL_RUNLABEL)
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
-            subject_legend_labels = list()
-            for i in range(n_subjects):
-                # subject_legend_labels.append("phase line subject {}".format(i))
-                subject_legend_labels.append("stimulus subject {}".format(i))
-                subject_legend_labels.append("response subject {}".format(i))
+            all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
+            # Figure out variable names
+            variable_history = simulation_data.run_outputs[run_label].output_subjects[0].variables
+            all_variables = dict()
+            for v in variable_history:
+                for k in v.values.keys():
+                    all_variables[k] = 1
+            all_variables = list(all_variables.keys())
+            
             # Write headers
-            w.writerow(['step'] + subject_legend_labels)
-
-            # Write data
-            maxlen = 0
-
-            for i in range(n_subjects):
-                len_history_i = len(simulation_data.run_outputs[run_label].output_subjects[i].history)
-                if len_history_i > maxlen:
-                    maxlen = len_history_i
-            for histind in range(0, maxlen, 2):
-                datarow = [histind // 2]
-                for i in range(n_subjects):
-                    history = simulation_data.run_outputs[run_label].output_subjects[i].history
-                    # phase_line_labels = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels
-                    # phase_line_labels_steps = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels_steps
-                    # print(history)
-                    # print(phase_line_labels)
-                    # print(phase_line_labels_steps)
-                    if histind < len(history):
-                        stimulus = history[histind]
-                        response = history[histind + 1]
-                        # phase_line = phase_line_labels[]
-                        datarow.append(stimulus)
-                        datarow.append(response)
-                    else:
-                        datarow.append(' ')
-                        datarow.append(' ')
-                w.writerow(datarow)
-            # else:
-            #     # Write headers
-            #     w.writerow(['step', 'stimulus', 'response'])
-
-            #     # Write data
-            #     for row in range(len(ydata)):
-            #         datarow = [row, ydata[row]]
-            #         w.writerow(datarow)
+            w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements + all_variables)
+            
+            for s in range(n_subjects):
+                rows = list()
+                subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
+                history = subject_output.history
+                phase_line_labels = subject_output.phase_line_labels
+                phase_line_labels_steps = subject_output.phase_line_labels_steps
+                variables = subject_output.variables
+                first_step_phase = subject_output.first_step_phase
+                for i in range(len(phase_line_labels_steps)):
+                    step = phase_line_labels_steps[i]
+                    p = 0
+                    while first_step_phase[1][p+1] <= step:
+                        p += 1
+                    phase = first_step_phase[0][p]
+                    compound = [""]
+                    response = ""
+                    intensities = [""] * len(all_stimulus_elements)
+                    if i==len(phase_line_labels_steps)-1 or step != phase_line_labels_steps[i+1]:
+                        stimulus = history[2*(step-1)]
+                        response = history[2*(step-1)+1]
+                        # Next loop figures out element intensities and
+                        # the compound representation of stimulus
+                        intensities = []
+                        compound = []
+                        for e in all_stimulus_elements:
+                            if e in stimulus:
+                                intensity = stimulus[e]
+                                intensities.append(f"{intensity:.2g}")
+                                if intensity==1:
+                                    compound.append(f"{e}")
+                                else:
+                                    compound.append(f"{e}[{intensity:.2g}]")
+                            else:
+                                intensities.append("0")
+                    # Saving variables must take care of keeping the
+                    # same order and adding NA for variables that may
+                    # not have a value at this step
+                    step_variables = list()
+                    for v in all_variables:
+                        if v in variables[i].values:
+                            step_variables.append(f"{variables[i].values[v]:.2g}")
+                        else:
+                            step_variables.append("")
+                    # Note: subject numbers are 1-based in CSV and figure output
+                    rows.append([run_label, phase, s+1, step, phase_line_labels[i], ','.join(compound), response] + intensities +
+                               step_variables)
+                w.writerows( rows )
 
     def _vwpn_export(self, file, simulation_data):
-        ydatas = []
-        legend_labels = []
-        n_ydata = None
-        for expr, expr0 in zip(self.exprs, self.exprs0):
-            label_expr = expr0  # beautify_expr_for_label(self.expr)
-            if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
-                post_expr = expr
-                ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
-                                            POST_MATH)
-                if err is not None:
-                    raise EvalException(f"Expression evaluation failed.", self.lineno)
-                legend_label = label_expr
-            else:
-                if self.cmd == kw.VEXPORT:
-                    ydata = simulation_data.vwpn_eval('v', expr, self.parameters, self.run_parameters)
-                    legend_label = f"v({label_expr})"
-                if self.cmd == kw.VSSEXPORT:
-                    ydata = simulation_data.vwpn_eval('vss', expr, self.parameters, self.run_parameters)
-                    legend_label = f"vss({label_expr})"
-                elif self.cmd == kw.WEXPORT:
-                    ydata = simulation_data.vwpn_eval('w', expr, self.parameters, self.run_parameters)
-                    legend_label = f"w({label_expr})"
-                elif self.cmd == kw.PEXPORT:
-                    ydata = simulation_data.vwpn_eval('p', expr, self.parameters, self.run_parameters)
-                    legend_label = f"p({label_expr})"
-                elif self.cmd == kw.NEXPORT:
-                    ydata = simulation_data.vwpn_eval('n', expr, self.parameters, self.run_parameters)
-                    legend_label = f"n({label_expr})"
-            ydatas.append(ydata)
-            legend_labels.append(legend_label)
-            if n_ydata is None:
-                n_ydata = len(ydata)
-
+        run_label = self.parameters.get(kw.EVAL_RUNLABEL)
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
+            w.writerow(['run','expr','subject','step','value'])
 
-            if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
-                subject_legend_labels = list()
+            ydatas = []
+            legend_labels = []
+            for expr, expr0 in zip(self.exprs, self.exprs0):
+                label_expr = expr0  # beautify_expr_for_label(self.expr)
+                if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
+                    post_expr = expr
+                    ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
+                                                POST_MATH)
+                    if err is not None:
+                        raise EvalException(f"Expression evaluation failed.", self.lineno)
+                    legend_label = label_expr
+                else:
+                    if self.cmd == kw.VEXPORT:
+                        ydata = simulation_data.vwpn_eval('v', expr, self.parameters, self.run_parameters)
+                        legend_label = f"v({label_expr})"
+                    if self.cmd == kw.VSSEXPORT:
+                        ydata = simulation_data.vwpn_eval('vss', expr, self.parameters, self.run_parameters)
+                        legend_label = f"vss({label_expr})"
+                    elif self.cmd == kw.WEXPORT:
+                        ydata = simulation_data.vwpn_eval('w', expr, self.parameters, self.run_parameters)
+                        legend_label = f"w({label_expr})"
+                    elif self.cmd == kw.PEXPORT:
+                        ydata = simulation_data.vwpn_eval('p', expr, self.parameters, self.run_parameters)
+                        legend_label = f"p({label_expr})"
+                    elif self.cmd == kw.NEXPORT:
+                        ydata = simulation_data.vwpn_eval('n', expr, self.parameters, self.run_parameters)
+                        legend_label = f"n({label_expr})"
+                ydatas.append(ydata)
+                legend_labels.append(legend_label)
 
-                for legend_label in legend_labels:
-                    for i in range(n_ydata):
-                        subject_legend_label = f"{legend_label} subject {i + 1}"
-                        subject_legend_labels.append(subject_legend_label)
-
-                # Write headers
-                w.writerow(['x'] + subject_legend_labels)
-
-                # Write data
-                maxlen = 0
-                for ydata in ydatas:
-                    for i in range(n_ydata):
-                        len_ydata_i = len(ydata[i])
-                        if len_ydata_i > maxlen:
-                            maxlen = len_ydata_i
-                for row in range(maxlen):
-                    datarow = [row]
-                    for ydata in ydatas:
-                        for i in range(n_ydata):
-                            if row < len(ydata[i]):
-                                datarow.append(ydata[i][row])
-                            else:
-                                datarow.append(' ')
-                    w.writerow(datarow)
-            else:
-                # Write headers
-                # w.writerow(['x', legend_label])
-                w.writerow(['x'] + legend_labels)
-
-                # Write data
-                for row in range(len(ydata)):
-                    datarow = [row]
-                    for ydata in ydatas:
-                        datarow.append(ydata[row])
-                    w.writerow(datarow)
+            for i in range(len(ydatas)):
+                ydata = ydatas[i]
+                legend_label = legend_labels[i]
+                eval_subject = self.parameters.get(kw.EVAL_SUBJECT)
+                if eval_subject == "all":
+                    for subject_ind in range(len(ydata)):
+                        subject_data = ydata[subject_ind]
+                        subject_label = subject_ind + 1 # 1-based in CSV and figure output
+                        for step in range(len(subject_data)):
+                            w.writerow( [run_label, legend_label, subject_label, step, subject_data[step]] )
+                else:
+                    if eval_subject == kw.EVAL_AVERAGE:
+                        subject_label = "average"
+                    elif type(eval_subject) is int:
+                        subject_label = eval_subject + 1 # 1-base in CSV and figure output
+                    else:
+                        # 'Internal error' because parameters have been checked already when parsing
+                        raise EvalException(f"Internal error on eval_subject={eval_subject}.", self.lineno)
+                    for step in range(len(ydata)):
+                        w.writerow( [run_label, legend_label, subject_label, step, ydata[step]] )
 
     def progress_label(self):
         # return f"{self.cmd} {self.exprs0}"

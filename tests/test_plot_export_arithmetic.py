@@ -147,12 +147,11 @@ class TestPlotExportArithmetic(LsTestCase):
         # Test contents of exported file
         file = os.path.join('.', 'tests', 'exported_files', 'expr.csv')
         exported_titles, exported_data = get_csv_file_contents(file)
-        self.assertListEqual(exported_titles, ['x', 'v(stimulus->response) + 10 * p(stimulus->response) - w(stimulus)**3 / (1 + n(stimulus->response->reward))'])
+        exported_data = [exported_data[i][4] for i in range(len(exported_data))]
         x = 0
         for v, p, w, n, exported in zip(vplot, pplot, wplot, nplot, exported_data):
             e_python = v + 10 * p - w**3 / (1 + n)
-            self.assertAlmostEqual(float(exported[0]), x)
-            self.assertAlmostEqual(float(exported[1]), e_python)
+            self.assertAlmostEqual(float(exported), e_python)
             x += 1
 
     def test_consecutive_pplot(self):
@@ -289,7 +288,7 @@ subject: average
         # Test contents of exported file
         file = os.path.join('.', 'tests', 'exported_files', 'with_var.txt')
         exported_titles, exported_data = get_csv_file_contents(file)
-        self.assertListEqual(exported_titles, ['x', 'n(s)**y + x - z * round((5+y+z) * sin(n(s)))'])
+        exported_data = [[exported_data[i][3], exported_data[i][4]] for i in range(len(exported_data))]
         self.assertListEqual(exported_data, [['0', '-1.0'], ['1', '-24.0'], ['2', '-24.0'], ['3', '5.0'], ['4', '39.0']])
 
     def test_all_math_functions(self):
@@ -345,6 +344,11 @@ subject: average
         _, hyp_export = get_csv_file_contents(os.path.join('.', 'tests', 'exported_files', 'hyp.csv'))
         _, rounding_export = get_csv_file_contents(os.path.join('.', 'tests', 'exported_files', 'rounding.csv'))
         _, other_export = get_csv_file_contents(os.path.join('.', 'tests', 'exported_files', 'other.csv'))
+
+        trig_export = [trig_export[i][4] for i in range(len(trig_export))]
+        hyp_export = [hyp_export[i][4] for i in range(len(hyp_export))]
+        rounding_export = [rounding_export[i][4] for i in range(len(rounding_export))]
+        other_export = [other_export[i][4] for i in range(len(other_export))]
         
         self.assertEqual(len(trig), len(trig_export))
         self.assertEqual(len(hyp), len(hyp_export))
@@ -354,10 +358,10 @@ subject: average
         n = 0
         for t, h, r, o, t_e, h_e, r_e, o_e, v in zip(trig, hyp, rounding, other, trig_export, hyp_export, rounding_export, other_export, vplot):
             # Exported values are strings
-            t_e = float(t_e[1])
-            h_e = float(h_e[1])
-            r_e = float(r_e[1])
-            o_e = float(o_e[1])
+            t_e = float(t_e)
+            h_e = float(h_e)
+            r_e = float(r_e)
+            o_e = float(o_e)
 
             t_python = sin(n) + cos(n) + tan(n) + asin(n / (n + 1)) + acos(n / (n + 1)) + atan(n / (n + 1))
             self.assertAlmostEqual(t_python, t)

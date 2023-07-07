@@ -117,74 +117,43 @@ class TestExportMultiExpression(LsTestCase):
         vexport1_line = os.path.join('.', 'tests', 'exported_files', 'vexport1_line.txt')
         self.assertAlmostEqualFile(vexport1_prop, vexport1_line)
         exported_titles, exported_data = get_csv_file_contents(vexport1_prop)
-        self.assertListEqual(exported_titles, ["x", "v(stimulus->response)", "v(stimulus->no_response)"])
         pd = get_plot_data(figure_number=1)
-        self.assertPlotExportEqual(pd, ['v(stimulus->response)', 'v(stimulus->no_response)'],
-                                   exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
         vexport2_prop = os.path.join('.', 'tests', 'exported_files', 'vexport2_prop.txt')
         vexport2_line = os.path.join('.', 'tests', 'exported_files', 'vexport2_line.txt')
         self.assertAlmostEqualFile(vexport2_prop, vexport2_line)
         exported_titles, exported_data = get_csv_file_contents(vexport2_prop)
-        legends = ["x", "v(stimulus->response) subject 1", "v(stimulus->response) subject 2", "v(stimulus->response) subject 3", "v(stimulus->response) subject 4", "v(stimulus->response) subject 5", "v(stimulus->response) subject 6", "v(stimulus->response) subject 7", "v(stimulus->response) subject 8", "v(stimulus->response) subject 9", "v(stimulus->response) subject 10", "v(stimulus->no_response) subject 1", "v(stimulus->no_response) subject 2", "v(stimulus->no_response) subject 3", "v(stimulus->no_response) subject 4", "v(stimulus->no_response) subject 5", "v(stimulus->no_response) subject 6", "v(stimulus->no_response) subject 7", "v(stimulus->no_response) subject 8", "v(stimulus->no_response) subject 9", "v(stimulus->no_response) subject 10"]
-        self.assertListEqual(exported_titles, legends)
         pd = get_plot_data(figure_number=2)
-        self.assertPlotExportEqual(pd, legends[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
         wexport1_prop = os.path.join('.', 'tests', 'exported_files', 'wexport1_prop.txt')
         wexport1_line = os.path.join('.', 'tests', 'exported_files', 'wexport1_line.txt')
         self.assertAlmostEqualFile(wexport1_prop, wexport1_line)
         exported_titles, exported_data = get_csv_file_contents(wexport1_prop)
-        self.assertListEqual(exported_titles, ['x', 'w(background)', 'w(stimulus)', 'w(reward)'])
         pd = get_plot_data(figure_number=3)
-        self.assertPlotExportEqual(pd, ['w(background)', 'w(stimulus)', 'w(reward)'],
-                                   exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
         wexport2_prop = os.path.join('.', 'tests', 'exported_files', 'wexport2_prop.txt')
         wexport2_line = os.path.join('.', 'tests', 'exported_files', 'wexport2_line.txt')
         self.assertAlmostEqualFile(wexport2_prop, wexport2_line)
         exported_titles, exported_data = get_csv_file_contents(wexport2_prop)
-        legends = ["x", "w(background) subject 1", "w(background) subject 2", "w(background) subject 3", "w(background) subject 4", "w(background) subject 5", "w(background) subject 6", "w(background) subject 7", "w(background) subject 8", "w(background) subject 9", "w(background) subject 10", "w(stimulus) subject 1", "w(stimulus) subject 2", "w(stimulus) subject 3", "w(stimulus) subject 4", "w(stimulus) subject 5", "w(stimulus) subject 6", "w(stimulus) subject 7", "w(stimulus) subject 8", "w(stimulus) subject 9", "w(stimulus) subject 10", "w(reward) subject 1", "w(reward) subject 2", "w(reward) subject 3", "w(reward) subject 4", "w(reward) subject 5", "w(reward) subject 6", "w(reward) subject 7", "w(reward) subject 8", "w(reward) subject 9", "w(reward) subject 10"]
-        self.assertListEqual(exported_titles, legends)
         pd = get_plot_data(figure_number=4)
-        self.assertPlotExportEqual(pd, legends[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
         pexport1_prop = os.path.join('.', 'tests', 'exported_files', 'pexport1_prop.txt')
         pexport1_line = os.path.join('.', 'tests', 'exported_files', 'pexport1_line.txt')
         self.assertAlmostEqualFile(pexport1_prop, pexport1_line)
         exported_titles, exported_data = get_csv_file_contents(pexport1_prop)
-        legends = ["x", "p(stimulus[0.5],background[0.2]->response)", "p(reward[0.1],background[0.2]->no_response)"]
-        self.assertListEqual(exported_titles, legends)
         pd = get_plot_data(figure_number=5)
-        self.assertPlotExportEqual(pd, legends[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
         pexport2_prop = os.path.join('.', 'tests', 'exported_files', 'pexport2_prop.txt')
         pexport2_line = os.path.join('.', 'tests', 'exported_files', 'pexport2_line.txt')
         self.assertAlmostEqualFile(pexport2_prop, pexport2_line)
         exported_titles, exported_data = get_csv_file_contents(pexport2_prop)
-        legends = ["x", "p(stimulus[0.5],background[0.2]->response) subject 1",
-                        "p(stimulus[0.5],background[0.2]->response) subject 2",
-                        "p(stimulus[0.5],background[0.2]->response) subject 3",
-                        "p(stimulus[0.5],background[0.2]->response) subject 4",
-                        "p(stimulus[0.5],background[0.2]->response) subject 5",
-                        "p(stimulus[0.5],background[0.2]->response) subject 6",
-                        "p(stimulus[0.5],background[0.2]->response) subject 7",
-                        "p(stimulus[0.5],background[0.2]->response) subject 8",
-                        "p(stimulus[0.5],background[0.2]->response) subject 9",
-                        "p(stimulus[0.5],background[0.2]->response) subject 10",
-                        "p(reward[0.1],background[0.2]->no_response) subject 1",
-                        "p(reward[0.1],background[0.2]->no_response) subject 2",
-                        "p(reward[0.1],background[0.2]->no_response) subject 3",
-                        "p(reward[0.1],background[0.2]->no_response) subject 4",
-                        "p(reward[0.1],background[0.2]->no_response) subject 5",
-                        "p(reward[0.1],background[0.2]->no_response) subject 6",
-                        "p(reward[0.1],background[0.2]->no_response) subject 7",
-                        "p(reward[0.1],background[0.2]->no_response) subject 8",
-                        "p(reward[0.1],background[0.2]->no_response) subject 9",
-                        "p(reward[0.1],background[0.2]->no_response) subject 10"]
-        self.assertListEqual(exported_titles, legends)
         pd = get_plot_data(figure_number=6)
-        self.assertPlotExportEqual(pd, legends[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
     def test_semicolon_vss(self):
         text = """
@@ -224,22 +193,15 @@ class TestExportMultiExpression(LsTestCase):
         vssexport1_line = os.path.join('.', 'tests', 'exported_files', 'vssexport1_line.txt')
         self.assertAlmostEqualFile(vssexport1_prop, vssexport1_line)
         exported_titles, exported_data = get_csv_file_contents(vssexport1_prop)
-        self.assertListEqual(exported_titles, ["x", "vss(cs->us)", "vss(cs->cs)", "vss(us->cs)", "vss(us->us)"])
         pd = get_plot_data(figure_number=1)
-        self.assertPlotExportEqual(pd, ["vss(cs->us)", "vss(cs->cs)", "vss(us->cs)", "vss(us->us)"],
-                                   exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
         
         vssexport2_prop = os.path.join('.', 'tests', 'exported_files', 'vssexport2_prop.txt')
         vssexport2_line = os.path.join('.', 'tests', 'exported_files', 'vssexport2_line.txt')
         self.assertAlmostEqualFile(vssexport2_prop, vssexport2_line)
         exported_titles, exported_data = get_csv_file_contents(vssexport2_prop)
-        legends = ["x", "vss(cs->us) subject 1", "vss(cs->us) subject 2", "vss(cs->us) subject 3",
-                        "vss(cs->cs) subject 1", "vss(cs->cs) subject 2", "vss(cs->cs) subject 3",
-                        "vss(us->cs) subject 1", "vss(us->cs) subject 2", "vss(us->cs) subject 3",
-                        "vss(us->us) subject 1", "vss(us->us) subject 2", "vss(us->us) subject 3"]
-        self.assertListEqual(exported_titles, legends)
         pd = get_plot_data(figure_number=2)
-        self.assertPlotExportEqual(pd, legends[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)
 
     def test_asterisk_v(self):
         text = """
@@ -575,21 +537,21 @@ class TestExportMultiExpression(LsTestCase):
         self.checkExport('export2', n_subjects=3, exprs=exprs, figure_number=2)
 
     def checkExport(self, filename_base, n_subjects, exprs, figure_number):
-        exported_titles_expected = ['x']
-        if n_subjects == 1:
-            exported_titles_expected.extend(exprs)
-        else:
-            for expr in exprs:
-                for i in range(n_subjects):
-                    exported_titles_expected.append(expr + ' subject ' + str(i + 1))
-
         file_prop = filename_base + '_prop.txt'
         file_line = filename_base + '_line.txt'
 
         file_prop = os.path.join('.', 'tests', 'exported_files', file_prop)
         file_line = os.path.join('.', 'tests', 'exported_files', file_line)
         self.assertAlmostEqualFile(file_prop, file_line)
+
         exported_titles, exported_data = get_csv_file_contents(file_prop)
+
+        exported_titles_expected = ['run','expr','subject','step','value']
         self.assertListEqual(exported_titles, exported_titles_expected)
+
+        self.assertEqual(set(exprs), set([x[1] for x in exported_data]))
+
+        self.assertEqual(n_subjects, len(set([x[2] for x in exported_data])))
+        
         pd = get_plot_data(figure_number=figure_number)
-        self.assertPlotExportEqual(pd, exported_titles_expected[1:], exported_data)
+        self.assertPlotExportEqual(pd, exported_data)

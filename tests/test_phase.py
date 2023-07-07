@@ -1156,7 +1156,7 @@ class TestMultipleActions(LsTestCase):
         '''
         script_obj, script_output = run(text)
         history = script_output.run_outputs['foo'].output_subjects[0].history
-        self.assertEqual(history[::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
     def test_set_and_use_variable_on_same_line2(self):
         text = '''
@@ -1174,7 +1174,7 @@ class TestMultipleActions(LsTestCase):
         '''
         script_obj, script_output = run(text)
         history = script_output.run_outputs['foo'].output_subjects[0].history
-        self.assertEqual(history[::2], ['e1'] * 10)
+        self.assertEqual(history[::2], [{'e1':1}] * 10)
 
     def test_response_in_condition(self):
         text = '''
