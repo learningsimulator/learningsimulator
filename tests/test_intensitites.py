@@ -1,3 +1,4 @@
+import random
 import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase, run, get_plot_data
@@ -9,6 +10,7 @@ class TestBasic(LsTestCase):
         pass
 
     def tearDown(self):
+        random.seed()  # So that tests after this do not use the set random_seed
         plt.close('all')
 
     def test_overshadowing1(self):
@@ -410,3 +412,48 @@ runlabel: reward=10,reward[1]
             yend = y[-1]
             self.assertGreater(yend, yend_prev)
             yend_prev = yend
+
+    def test_zero_intensity_with_and_without_trace(self):
+        script = '''
+        behaviors             = b1, b2
+        stimulus_elements     = s1, s2, reward
+        mechanism             = a
+        alpha_v               = 0.1
+        beta                  = 1
+        u                     = reward:5, default:0
+        alpha_w               = 0.1
+        n_subjects            = 100
+        random_seed           = 1
+
+        @phase learn stop: S1=100
+        S1     s1,s2[0] | b1:S2     | @omit_learn, S1
+        S2     s2,s1[0] | b2:REWARD | @omit_learn, S1
+        REWARD reward               | @omit_learn, S1
+
+        xscale: S1
+
+        @run notrace learn
+
+        trace: 0.000001
+        @run trace learn
+
+        runlabel:notrace
+        @figure
+        @vplot s1->b1
+        @legend
+
+        runlabel:trace
+        @figure
+        @vplot s1->b1
+        @legend
+        '''
+
+        run(script)
+
+        y_notrace = get_plot_data(1)['y']
+        y_trace = get_plot_data(2)['y']
+        self.assertEqual(len(y_notrace), len(y_trace))
+        maxdiff = 0
+        for ind in range(len(y_notrace)):
+            maxdiff = max(maxdiff, abs(y_notrace[ind] - y_trace[ind]))
+        self.assertLess(maxdiff, 0.1)

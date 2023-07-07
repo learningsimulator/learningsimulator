@@ -16,11 +16,11 @@ class Mechanism():
         self.use_trace = (self.trace != 0)
 
         if self.use_trace:
-            self.stimulus_intensities = {s: 0 for s in parameters.get(kw.STIMULUS_ELEMENTS)}
-            self.prev_stimulus_intensities = dict(self.stimulus_intensities)
+            self.trace_stimulus = {s: 0 for s in parameters.get(kw.STIMULUS_ELEMENTS)}
+            self.prev_trace_stimulus = dict(self.trace_stimulus)
         else:
-            self.stimulus_intensities = None
-            self.prev_stimulus_intensities = None
+            self.trace_stimulus = None
+            self.prev_trace_stimulus = None
 
         self.v = None
         self.w = None
@@ -41,62 +41,52 @@ class Mechanism():
         if self.use_trace:
             self._reset_trace()
 
-    def foo_reset_trace(self, stimulus=None):
-        for s in self.stimulus_intensities:
-            if (stimulus is not None) and (s in stimulus):  # Keep intensities for the elements in stimulus
-                self.stimulus_intensities[s] = stimulus[s]
-            else:
-                self.stimulus_intensities[s] = 0
-        for s in self.prev_stimulus_intensities:
-            self.prev_stimulus_intensities[s] = 0
-
     def _reset_trace(self, stimulus=None):
-        for s in self.stimulus_intensities:
-            self.stimulus_intensities[s] = 0
-        for s in self.prev_stimulus_intensities:
-            self.prev_stimulus_intensities[s] = 0
+        for e in self.trace_stimulus:
+            self.trace_stimulus[e] = 0
+        if stimulus is not None:
+            for e in stimulus:
+                self.trace_stimulus[e] = stimulus[e]
 
-    def _decay_stimulus_intensities(self, stimulus):
+        for e in self.prev_trace_stimulus:
+            self.prev_trace_stimulus[e] = 0
+
+    def _decay_trace_stimulus(self, stimulus):
         '''stimulus is a dict.'''
-        for e in self.stimulus_intensities:
-            self.stimulus_intensities[e] *= self.trace
+        for e in self.trace_stimulus:
+            self.trace_stimulus[e] *= self.trace
         for e in stimulus:
-            self.stimulus_intensities[e] += stimulus[e]
+            self.trace_stimulus[e] += stimulus[e]
 
     def learn_and_respond(self, stimulus, omit=False):
         '''stimulus is a dict.'''
         if self.use_trace:
-            self._decay_stimulus_intensities(stimulus)
+            self._decay_trace_stimulus(stimulus)
 
         if (self.prev_stimulus is None) or omit:  # Do not update if first time or if omit
             pass
         else:
             if self.use_trace:
-                self.learn_i(stimulus)
+                self.learn(stimulus, self.prev_trace_stimulus)
             else:
-                self.learn(stimulus)
+                self.learn(stimulus, self.prev_stimulus)
 
         self.response = self._get_response(stimulus)
 
-        # if self.use_trace and omit:
-        #     # XXX Should be a separate @cleartrace or something that triggers
-        #     # this reset (separate from "omit learning")
-        #     self._reset_trace(stimulus)
+        if self.use_trace and omit:
+            self._reset_trace(stimulus)
 
         self.prev_stimulus = dict(stimulus)  # dict ok?
         if self.use_trace:
+            # self.prev_trace_stimulus = dict(self.trace_stimulus)
             for s in self.parameters.get(kw.STIMULUS_ELEMENTS):
-                self.prev_stimulus_intensities[s] = self.stimulus_intensities[s]
+                self.prev_trace_stimulus[s] = self.trace_stimulus[s]
 
         return self.response
 
-    def learn(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         # Must be overridden
         raise NotImplementedError
-
-    def learn_i(self, stimulus):
-        mechanism_name = self.parameters.get(kw.MECHANISM_NAME)
-        raise NotImplementedError(f"Trace not implemented in mechanism '{mechanism_name}'.")
 
     def _get_response(self, stimulus):
         x, feasible_behaviors = self._support_vector(stimulus)
@@ -110,7 +100,7 @@ class Mechanism():
         behaviors = self.parameters.get(kw.BEHAVIORS)
         beta = self.parameters.get(kw.BETA)
         mu = self.parameters.get(kw.MU)
-        return support_vector_static(stimulus, self.stimulus_intensities, behaviors,
+        return support_vector_static(stimulus, self.trace_stimulus, behaviors,
                                      self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
@@ -191,7 +181,7 @@ class StimulusResponse(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-    def learn(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
@@ -199,25 +189,12 @@ class StimulusResponse(Mechanism):
         usum, vsum = 0, 0
         for element, intensity in stimulus.items():
             usum += u[element] * intensity
-        for element, intensity in self.prev_stimulus.items():
+        for element, intensity in prev_stimulus.items():
             vsum += self.v[(element, self.response)] * intensity
-        for element, intensity in self.prev_stimulus.items():
+        for element, intensity in prev_stimulus.items():
             alpha_v_er = alpha_v[(element, self.response)]
             self.v[(element, self.response)] += alpha_v_er * (usum - vsum - c[self.response]) * intensity
 
-    def learn_i(self, stimulus):
-        u = self.parameters.get(kw.U)
-        c = self.parameters.get(kw.BEHAVIOR_COST)
-        alpha_v = self.parameters.get(kw.ALPHA_V)
-
-        usum, vsum = 0, 0
-        for element, intensity in stimulus.items():
-            usum += u[element] * intensity
-        for element, intensity in self.prev_stimulus_intensities.items():
-            vsum += self.v[(element, self.response)] * intensity
-        for element, intensity in self.prev_stimulus_intensities.items():
-            alpha_v_er = alpha_v[(element, self.response)]
-            self.v[(element, self.response)] += alpha_v_er * (usum - vsum - c[self.response]) * intensity
 
 # class SARSA(Mechanism):
 #     def __init__(self, **kwargs):
@@ -240,7 +217,7 @@ class EXP_SARSA(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-    def learn(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
@@ -273,7 +250,7 @@ class Qlearning(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-    def learn(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         behaviors = self.parameters.get(kw.BEHAVIORS)
         # stimulus_req = self.parameters.get(kw.STIMULUS_REQUIREMENTS)
         u = self.parameters.get(kw.U)
@@ -307,7 +284,7 @@ class ActorCritic(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-    def learn(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_v = self.parameters.get(kw.ALPHA_V)
@@ -344,31 +321,7 @@ class Enquist(Mechanism):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-    def learn(self, stimulus):
-        u = self.parameters.get(kw.U)
-        c = self.parameters.get(kw.BEHAVIOR_COST)
-        alpha_w = self.parameters.get(kw.ALPHA_W)
-        alpha_v = self.parameters.get(kw.ALPHA_V)
-        discount = self.parameters.get(kw.DISCOUNT)
-
-        vsum_prev, wsum_prev, usum, wsum = 0, 0, 0, 0
-        for element in self.prev_stimulus:
-            vsum_prev += self.v[(element, self.response)]
-            wsum_prev += self.w[element]
-        for element in stimulus:
-            usum += u[element]
-            wsum += self.w[element]
-        # v
-        for element in self.prev_stimulus:
-            alpha_v_er = alpha_v[(element, self.response)]
-            delta = alpha_v_er * (usum + discount * wsum - c[self.response] - vsum_prev)
-            self.v[(element, self.response)] += delta
-        # w
-        for element in self.prev_stimulus:
-            delta = alpha_w[element] * (usum + discount * wsum - c[self.response] - wsum_prev)
-            self.w[element] += delta
-
-    def learn_i(self, stimulus):
+    def learn(self, stimulus, prev_stimulus):
         u = self.parameters.get(kw.U)
         c = self.parameters.get(kw.BEHAVIOR_COST)
         alpha_w = self.parameters.get(kw.ALPHA_W)
@@ -376,25 +329,23 @@ class Enquist(Mechanism):
         discount = self.parameters.get(kw.DISCOUNT)
 
         usum, wsum = 0, 0
-        for element in stimulus:
-            usum += u[element]
-            wsum += self.w[element]
-        wsum *= discount
+        for element, intensity in stimulus.items():
+            usum += u[element] * intensity
+            wsum += self.w[element] * intensity
 
-        vsum_i, wsum_i = 0, 0
-        for element, intensity in self.prev_stimulus_intensities.items():
-            vsum_i += self.v[(element, self.response)] * intensity
-            wsum_i += self.w[element] * intensity
+        vsum_prev, wsum_prev = 0, 0
+        for element, intensity in prev_stimulus.items():
+            vsum_prev += self.v[(element, self.response)] * intensity
+            wsum_prev += self.w[element] * intensity
 
         # v
-        for element, intensity in self.prev_stimulus_intensities.items():
+        for element, intensity in prev_stimulus.items():
             alpha_v_er = alpha_v[(element, self.response)]
-            delta = alpha_v_er * (usum + wsum - c[self.response] - vsum_i) * intensity
+            delta = alpha_v_er * (usum + discount * wsum - c[self.response] - vsum_prev) * intensity
             self.v[(element, self.response)] += delta
         # w
-        for element, intensity in self.prev_stimulus_intensities.items():
-            alpha_w_e = alpha_w[element]
-            delta = alpha_w_e * (usum + wsum - c[self.response] - wsum_i) * intensity
+        for element, intensity in prev_stimulus.items():
+            delta = alpha_w[element] * (usum + discount * wsum - c[self.response] - wsum_prev) * intensity
             self.w[element] += delta
 
     def has_w(self):
@@ -414,7 +365,6 @@ class OriginalRescorlaWagner(Mechanism):
             # Do not update if first time or if omit
             self.learn(stimulus)
 
-        # self.response = self._get_response(stimulus)
         self.prev_stimulus = stimulus
         return None  # Dummy response
 

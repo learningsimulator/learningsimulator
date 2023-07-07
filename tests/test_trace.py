@@ -1,3 +1,4 @@
+import random
 import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase, run, get_plot_data
@@ -8,6 +9,7 @@ class TestBasic(LsTestCase):
         pass
 
     def tearDown(self):
+        random.seed()  # So that tests after this do not use the set random_seed
         plt.close('all')
 
     def test_plant_approach_berry(self):
@@ -149,6 +151,7 @@ stimulus_elements : background, stimulus, reward
 start_v           : default:-1
 alpha_v           : 0.1
 u                 : reward:10, default:0
+random_seed       : 2
 
 @PHASE training stop: stimulus=100
 new_trial  stimulus   | response: REWARD | NO_REWARD
@@ -170,19 +173,24 @@ runlabel: trace
 @vplot stimulus->response {'label':'trace'}
 @legend
 '''
-        script_obj, script_output = run(script)
+        run(script)
         plot_data = get_plot_data()
 
         self.assertIncreasing(plot_data['no trace']['y'][0:50])
         self.assertIncreasing(plot_data['trace']['y'][0:50])
 
-        # Check that trace line is almost straight after 80
-        ref = plot_data['trace']['y'][80]
-        for y in plot_data['trace']['y'][80:]:
-            self.assertLess(abs(y - ref), 0.0005)
+        # Check that trace line is the same as no trace (since trace is cleared at new_trial)
+        maxdiff = 0
+        for y, ytrace in zip(plot_data['trace']['y'][80:], plot_data['no trace']['y'][80:]):
+            maxdiff = max(maxdiff, abs(y - ytrace))
+        self.assertLess(maxdiff, 0.0001)
 
-        self.assertGreater(plot_data['trace']['y'][-1], 6.5)
-        self.assertLess(plot_data['trace']['y'][-1], 6.7)
+        # Check that trace line is almost straight after 80
+        ref = plot_data['trace']['y'][90]  # Midpoint of [80:]
+        maxdiff = 0
+        for y in plot_data['trace']['y'][80:]:
+            maxdiff = max(maxdiff, abs(y - ref))
+        self.assertLess(maxdiff, 0.005)
 
         self.assertGreater(plot_data['no trace']['y'][-1], 9.9)
         self.assertLess(plot_data['no trace']['y'][-1], 10)
@@ -198,65 +206,97 @@ response_requirements: bg_response:background
 start_v           : default:-1
 alpha_v           : 0.1
 u                 : reward:10, default:0
+random_seed       : 42
 
-@PHASE training stop: stimulus=100
-EXTINGUISH  background | count_line()<100:EXTINGUISH | NEW
+@PHASE extinguish stop: stimulus=100
+EXTINGUISH  background | count_line()<10:EXTINGUISH | NEW
 NEW         stimulus   | response: REWARD | NO_REWARD
-REWARD      reward     | NEW
-NO_REWARD   background | NEW
+REWARD      reward     | EXTINGUISH
+NO_REWARD   background | EXTINGUISH
 
-@run training runlabel:no_trace
+@PHASE omit stop: stimulus=100
+NEW         stimulus   | response: REWARD | NO_REWARD
+REWARD      reward     | @omit_learn, NEW
+NO_REWARD   background | @omit_learn, NEW
+
+@run extinguish runlabel:ext_no_trace
+@run omit       runlabel:omit_no_trace
 
 trace:0.05
-@run training runlabel:trace=0.05
+@run extinguish runlabel:ext_trace=0.05
+@run omit       runlabel:omit_trace=0.05
 
 trace:0.25
-@run training runlabel:trace=0.25
+@run extinguish runlabel:ext_trace=0.25
+@run omit       runlabel:omit_trace=0.25
 
 trace:0.5
-@run training runlabel:trace=0.5
+@run extinguish runlabel:ext_trace=0.5
+@run omit       runlabel:omit_trace=0.5
 
 xscale: stimulus
 subject: average
-runlabel: no_trace
 
-@figure
-@vplot stimulus->response {'label':'no trace'}
+@figure extinguish
+runlabel: ext_no_trace
+@vplot stimulus->response {'label':'ext no trace'}
 
-runlabel: trace=0.05
-@vplot stimulus->response {'label':'trace=0.05'}
+runlabel: ext_trace=0.05
+@vplot stimulus->response {'label':'ext trace=0.05'}
 
-runlabel: trace=0.25
-@vplot stimulus->response {'label':'trace=0.25'}
+runlabel: ext_trace=0.25
+@vplot stimulus->response {'label':'ext trace=0.25'}
 
-runlabel: trace=0.5
-@vplot stimulus->response {'label':'trace=0.5'}
+runlabel: ext_trace=0.5
+@vplot stimulus->response {'label':'ext trace=0.5'}
 
-@legend'''
+@legend
 
-        script_obj, script_output = run(script)
-        plot_data = get_plot_data()
+@figure omit
+runlabel: omit_no_trace
+@vplot stimulus->response {'label':'omit no trace'}
 
-        # Check first and last values for all vplots
-        for lbl in ['trace=0.05', 'trace=0.25', 'trace=0.5']:
-            self.assertEqual(plot_data[lbl]['y'][0], -1)
+runlabel: omit_trace=0.05
+@vplot stimulus->response {'label':'omit trace=0.05'}
 
-            # The first time stimulus is encountered, we still haven't
-            # updated v(stimulus->response) for the first time yet
-            self.assertEqual(plot_data[lbl]['y'][1], -1)
+runlabel: omit_trace=0.25
+@vplot stimulus->response {'label':'omit trace=0.25'}
 
-            self.assertLess(plot_data[lbl]['y'][-1], 10)
-            self.assertGreater(plot_data[lbl]['y'][-1], 9.8)
+runlabel: omit_trace=0.5
+@vplot stimulus->response {'label':'omit trace=0.5'}
 
-        # check that the smaller the trace-value, the closer to "no trace" the vplot is
-        sum_of_sqares = dict()
-        for lbl in ['trace=0.05', 'trace=0.25', 'trace=0.5']:
+@legend
+'''
+
+        run(script)
+
+        # For manual extinguish, check that the smaller the trace-value, the closer to "no trace" the vplot is
+        plot_data = get_plot_data(figure_number=1)
+        sum_of_dists = dict()
+        for lbl in ['ext trace=0.05', 'ext trace=0.25', 'ext trace=0.5']:
             ss = 0
             for i in range(len(plot_data[lbl]['y'])):
-                ss += abs(plot_data['no trace']['y'][i] - plot_data[lbl]['y'][i])
-            sum_of_sqares[lbl] = ss
-        self.assertLess(sum_of_sqares['trace=0.05'], sum_of_sqares['trace=0.25'])
-        self.assertLess(sum_of_sqares['trace=0.25'], sum_of_sqares['trace=0.5'])
+                ss += abs(plot_data['ext no trace']['y'][i] - plot_data[lbl]['y'][i])
+            sum_of_dists[lbl] = ss
+        self.assertLess(sum_of_dists['ext trace=0.05'], sum_of_dists['ext trace=0.25'])
+        self.assertLess(sum_of_dists['ext trace=0.25'], sum_of_dists['ext trace=0.5'])
+
+        # Check that these distances from no-trace are sufficiently large
+        self.assertGreater(sum_of_dists['ext trace=0.05'], 3)
+        self.assertGreater(sum_of_dists['ext trace=0.25'], 6)
+        self.assertGreater(sum_of_dists['ext trace=0.5'], 20)
+
+        # For @omit_learn, check that all lines are (almost) equal (since traces are cleared at @omit_learn)
+        plot_data = get_plot_data(figure_number=2)
+        sum_of_dists = dict()
+        for lbl in ['omit trace=0.05', 'omit trace=0.25', 'omit trace=0.5']:
+            ss = 0
+            for i in range(len(plot_data[lbl]['y'])):
+                ss += abs(plot_data['omit no trace']['y'][i] - plot_data[lbl]['y'][i])
+            sum_of_dists[lbl] = ss
+        self.assertLess(sum_of_dists['omit trace=0.05'], 1)
+        self.assertLess(sum_of_dists['omit trace=0.25'], 2)
+        self.assertLess(sum_of_dists['omit trace=0.25'], 3.5)
 
 
 class TestMechanisms(LsTestCase):
