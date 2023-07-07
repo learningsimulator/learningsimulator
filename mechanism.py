@@ -78,9 +78,7 @@ class Mechanism():
 
         self.prev_stimulus = dict(stimulus)  # dict ok?
         if self.use_trace:
-            # self.prev_trace_stimulus = dict(self.trace_stimulus)
-            for s in self.parameters.get(kw.STIMULUS_ELEMENTS):
-                self.prev_trace_stimulus[s] = self.trace_stimulus[s]
+            self.prev_trace_stimulus = dict(self.trace_stimulus)
 
         return self.response
 
