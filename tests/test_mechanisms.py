@@ -409,16 +409,16 @@ class TestRescorlaWagner(LsTestCase):
 
         self.assertIsNotNone(data)
 
-        expected_file_contents = '''"step","stimulus subject 0","response subject 0"
-0,"cs",""
-1,"us",""
-2,"cs",""
-3,"us",""
-4,"cs",""
-5,"us",""
-6,"cs",""
-7,"us",""
-8,"cs",""
+        expected_file_contents = '''run,phase,subject,step,line,stimuli,behavior,cs,us
+run1,foo,0,1,CS,cs,,1,0
+run1,foo,0,2,US,us,,0,1
+run1,foo,0,3,CS,cs,,1,0
+run1,foo,0,4,US,us,,0,1
+run1,foo,0,5,CS,cs,,1,0
+run1,foo,0,6,US,us,,0,1
+run1,foo,0,7,CS,cs,,1,0
+run1,foo,0,8,US,us,,0,1
+run1,foo,0,9,CS,cs,,1,0
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
@@ -453,24 +453,24 @@ class TestRescorlaWagner(LsTestCase):
         self.assertIsNotNone(data)
 
         expected_file_contents = '''"x","n(b1)"
-0,0.0
-1,0.0
-2,0.0
-3,0.0
-4,0.0
-5,0.0
-6,0.0
-7,0.0
-8,0.0
-9,0.0
-10,0.0
-11,0.0
-12,0.0
-13,0.0
-14,0.0
-15,0.0
-16,0.0
-17,0.0
+"0","0.0"
+"1","0.0"
+"2","0.0"
+"3","0.0"
+"4","0.0"
+"5","0.0"
+"6","0.0"
+"7","0.0"
+"8","0.0"
+"9","0.0"
+"10","0.0"
+"11","0.0"
+"12","0.0"
+"13","0.0"
+"14","0.0"
+"15","0.0"
+"16","0.0"
+"17","0.0"
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']
@@ -487,24 +487,24 @@ class TestRescorlaWagner(LsTestCase):
         self.assertIsNotNone(data)
 
         expected_file_contents = '''"x","n(cs)"
-0,1.0
-1,1.0
-2,1.0
-3,1.0
-4,2.0
-5,2.0
-6,2.0
-7,2.0
-8,3.0
-9,3.0
-10,3.0
-11,3.0
-12,4.0
-13,4.0
-14,4.0
-15,4.0
-16,5.0
-17,5.0
+"0","1.0"
+"1","1.0"
+"2","1.0"
+"3","1.0"
+"4","2.0"
+"5","2.0"
+"6","2.0"
+"7","2.0"
+"8","3.0"
+"9","3.0"
+"10","3.0"
+"11","3.0"
+"12","4.0"
+"13","4.0"
+"14","4.0"
+"15","4.0"
+"16","5.0"
+"17","5.0"
 '''
         self.assertEqual(data, expected_file_contents)
         filenames = ['test_rw_hexport.txt']

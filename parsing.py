@@ -1127,54 +1127,69 @@ class ExportCmd(PostCmd):
     def _h_export(self, file, simulation_data):
         # evalprops = simulation_data._evalparse(self.parameters)
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
 
-            # if self.eval_prop[EVAL_SUBJECT] == EVAL_ALL:
             run_label = self.parameters.get(kw.EVAL_RUNLABEL)
             n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
-            subject_legend_labels = list()
-            for i in range(n_subjects):
-                # subject_legend_labels.append("phase line subject {}".format(i))
-                subject_legend_labels.append("stimulus subject {}".format(i))
-                subject_legend_labels.append("response subject {}".format(i))
+            all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
 
+            # Figure out variable names
+            variable_history = simulation_data.run_outputs[run_label].output_subjects[0].variables
+            all_variables = dict()
+            for v in variable_history:
+                for k in v.values.keys():
+                    all_variables[k] = 1
+            all_variables = list(all_variables.keys())
+            
             # Write headers
-            w.writerow(['step'] + subject_legend_labels)
-
-            # Write data
-            maxlen = 0
-
-            for i in range(n_subjects):
-                len_history_i = len(simulation_data.run_outputs[run_label].output_subjects[i].history)
-                if len_history_i > maxlen:
-                    maxlen = len_history_i
-            for histind in range(0, maxlen, 2):
-                datarow = [histind // 2]
-                for i in range(n_subjects):
-                    history = simulation_data.run_outputs[run_label].output_subjects[i].history
-                    # phase_line_labels = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels
-                    # phase_line_labels_steps = simulation_data.run_outputs[run_label].output_subjects[i].phase_line_labels_steps
-                    # print(history)
-                    # print(phase_line_labels)
-                    # print(phase_line_labels_steps)
-                    if histind < len(history):
-                        stimulus = history[histind]
-                        response = history[histind + 1]
-                        # phase_line = phase_line_labels[]
-                        datarow.append(stimulus)
-                        datarow.append(response)
-                    else:
-                        datarow.append(' ')
-                        datarow.append(' ')
-                w.writerow(datarow)
-            # else:
-            #     # Write headers
-            #     w.writerow(['step', 'stimulus', 'response'])
-
-            #     # Write data
-            #     for row in range(len(ydata)):
-            #         datarow = [row, ydata[row]]
-            #         w.writerow(datarow)
+            w.writerow(['run','phase','subject','step','line','stimuli','behavior'] + all_stimulus_elements + all_variables)
+            
+            for s in range(n_subjects):
+                rows = list()
+                subject_output = simulation_data.run_outputs[run_label].output_subjects[s]
+                history = subject_output.history
+                phase_line_labels = subject_output.phase_line_labels
+                phase_line_labels_steps = subject_output.phase_line_labels_steps
+                variables = subject_output.variables
+                first_step_phase = subject_output.first_step_phase
+                for i in range(len(phase_line_labels_steps)):
+                    step = phase_line_labels_steps[i]
+                    p = 0
+                    while first_step_phase[1][p+1] <= step:
+                        p += 1
+                    phase = first_step_phase[0][p]
+                    compound = [""]
+                    response = ""
+                    intensities = [""] * len(all_stimulus_elements)
+                    if i==len(phase_line_labels_steps)-1 or step != phase_line_labels_steps[i+1]:
+                        stimulus = history[2*(step-1)]
+                        response = history[2*(step-1)+1]
+                        # Next loop figures out element intensities and
+                        # the compound representation of stimulus
+                        intensities = []
+                        compound = []
+                        for e in all_stimulus_elements:
+                            if e in stimulus:
+                                intensity = stimulus[e]
+                                intensities.append(stimulus[e])
+                                if intensity==1:
+                                    compound.append(f"{e}")
+                                else:
+                                    compound.append(f"{e}[{intensity:.2g}]")
+                            else:
+                                intensities.append("0")
+                    # Saving variables must take care of keeping the
+                    # same order and adding NA for variables that may
+                    # not have a value at this step
+                    step_variables = list()
+                    for v in all_variables:
+                        if v in variables[i].values:
+                            step_variables.append(f"{variables[i].values[v]}")
+                        else:
+                            step_variables.append("")
+                    rows.append([run_label, phase, s, step, phase_line_labels[i], ','.join(compound), response] + intensities +
+                               step_variables)
+                w.writerows( rows )
 
     def _vwpn_export(self, file, simulation_data):
         ydatas = []
@@ -1211,7 +1226,7 @@ class ExportCmd(PostCmd):
                 n_ydata = len(ydata)
 
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_ALL, escapechar=None)
 
             if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
                 subject_legend_labels = list()

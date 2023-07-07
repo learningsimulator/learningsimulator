@@ -3,7 +3,7 @@ import re
 import random
 import os
 import sys
-
+import copy
 
 SEMICOLON_ERR = "Cannot use semicolon-separated expressions with wildcard."
 
@@ -1213,6 +1213,17 @@ def find_and_cumsum(seq, pattern, use_exact_match):
             else:
                 return pattern == st
 
+    # switching from storing stimuli as strings in the history to
+    # storing them as dicts broke this function, which expected
+    # stimuli as strings. this is a quick fix:
+    seq = copy.copy(seq)  # don't change original seq!
+    for i in range(len(seq)):
+        s = seq[i]
+        if type(s) is dict:
+            seq[i] = tuple( s.keys() )
+            if len(seq[i])==1:
+                seq[i] = seq[i][0]
+                
     assert(type(seq) == list)
     for s in seq:
         s_type = type(s)
