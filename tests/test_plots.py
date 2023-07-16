@@ -358,11 +358,11 @@ class TestPlotProperties(LsTestCase):
         self.assertEqual(plot_data['y'], [0, 1, 2, 3, 4])
 
     def test_phase_order_not_run_order2(self):
-        """
-        Test that the first value in plot (x=0) is
-        - inital value if the first phase in 'phases' is the first run phase,
-        - last value of previous phase if the first phase in 'phases' is not the first run phase.
-        """
+        #
+        # Test that the first value in plot (x=0) is
+        # - inital value if the first phase in 'phases' is the first run phase,
+        # - last value of previous phase if the first phase in 'phases' is not the first run phase.
+        #
         text = '''
         mechanism: ga
         stimulus_elements: s1, s2, s3
@@ -384,10 +384,8 @@ class TestPlotProperties(LsTestCase):
         # (or start value if first phase)
 
     def test_run_phases(self):
-        """
-        Test that running two phases and plotting only the first is the same as running
-        and plotting only the first.
-        """
+        # Test that running two phases and plotting only the first is the same as running
+        # and plotting only the first.        
         text = '''
         mechanism: ga
         stimulus_elements: s1, s2

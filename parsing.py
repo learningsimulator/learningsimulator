@@ -1,4 +1,5 @@
 import platform
+import os
 import re
 import copy
 import matplotlib.pyplot as plt
@@ -64,6 +65,7 @@ class Script():
     def __init__(self, script):
         self.script = script
         self.script_parser = ScriptParser(self.script)
+        self.info_msg = list()
 
     def parse(self, is_gui=False):
         self.script_parser.parse()
@@ -79,16 +81,29 @@ class Script():
             progress.dlg.set_visibility2(False)
             progress.dlg.set_title("Plot/Export Progress")
 
-        self.script_parser.postcmds.run(simulation_data, progress)
+        self.script_parser.postcmds.run(simulation_data, self.info_msg, progress)
 
     def plot(self, block=True, progress=None):
         self.script_parser.postcmds.plot()
+        self.script_parser.postcmds.savefig(self.info_msg)
+
+        # nfigs_tot = self.script_parser.postcmds.get_n_total_figs()
+        # nfigs_export = self.script_parser.postcmds.get_n_exported_figs()
+        n_displayed_figs = self.script_parser.postcmds.get_n_displayed_figs()
+        display_figs = (n_displayed_figs >= 1)
+
+        if display_figs:  # Only if there are figures to show
+            plt.gcf().show()  # To make figures in front of gui
+
         if progress is not None:
             progress.close_dlg()
+
         isMac = platform.system().lower() == "darwin"
-        if isMac:
-            block = False
-        plt.show(block=block)
+        if display_figs:  # Only do plt.show() if there are figures to show
+            if isMac:
+                block = False
+            plt.show(block=block)
+
         if isMac:
             plt.draw()  # Issue with subplots on Mac (10.15 (Catalina))
 
@@ -342,9 +357,9 @@ class ScriptParser():
                 continue
 
             elif line_parser.line_type == LineParser.FIGURE:
-                figure_title, subplotgrid, mpl_prop = self._parse_figure(lineno, linesplit_space)
+                figure_title, subplotgrid, fig_prop, fname, savefig_prop = self._parse_figure(lineno, linesplit_space)
                 curr_figure_subplotgrid = FigureSubplotGrid(subplotgrid)
-                figure_cmd = FigureCmd(figure_title, mpl_prop)
+                figure_cmd = FigureCmd(figure_title, fig_prop, fname, savefig_prop)
                 self.postcmds.add(figure_cmd)
 
             elif line_parser.line_type == LineParser.SUBPLOT:
@@ -731,15 +746,14 @@ class ScriptParser():
         """
         @figure
         @figure title
-        @figure {mpl_prop}
-        @figure title {mpl_prop}
+        @figure {fig_prop}
+        @figure title {fig_prop}
+        @figure title {fig_prop} filename:fname {savefig_prop}
 
         @figure(mn) or @figure(m,n)
         @figure(mn) title
-        @figure(mn) {mpl_prop}
-        @figure(mn) title {mpl_prop}
-
-        linesplit_space is either @figure or @figure(mn) or @figure(m,n)
+        @figure(mn) {fig_prop}
+        @figure(mn) title {fig_prop}
         """
         def parse_fun_arg(fun_arg):
             """
@@ -768,17 +782,71 @@ class ScriptParser():
                 return None, ERR
             return arg_intlist, None
 
+        def get_ending_filename(string):
+            """
+            For the string "bla blah blo filename :  fname.ext", return
+            "bla blah blo", "fname.ext"
+
+            For the string "bla blah blo filename:  fname.ext hello ", return
+            "bla blah blo filename:  fname.ext hello ", None
+
+            For the string "bla blah blo", return
+            "bla blah blo", None
+            """
+            last_filename_ind = string.rfind(kw.FILENAME)
+            if last_filename_ind == -1:
+                return string, None
+            after_filename = string[last_filename_ind + len(kw.FILENAME) :]
+            after_filename = after_filename.strip()
+            if after_filename.startswith(':'):
+                after_filename = after_filename[1:].strip()
+            else:
+                return string, None
+            after_filename_split = after_filename.split()
+            if len(after_filename_split) != 1:
+                return string, None
+            else:
+                before_filename = string[0: last_filename_ind]
+                return before_filename, after_filename
+
         title = self.parameters.get(kw.TITLE)
         subplotgrid, err = parse_fun_arg(linesplit_space[0])
         if err:
             raise ParseException(lineno, err)
-        if len(linesplit_space) == 1:  # @figure
-            mpl_prop = dict()
-        elif len(linesplit_space) == 2:  # @figure args
-            title, mpl_prop = ParseUtil.get_ending_dict(linesplit_space[1])
-            if mpl_prop is None:
-                mpl_prop = dict()
-        return title, subplotgrid, mpl_prop
+        if len(linesplit_space) == 1:  # Only "@figure"
+            fig_prop = dict()
+            fname = None
+            savefig_prop = dict()
+        elif len(linesplit_space) == 2:
+            # @figure my title
+            # @figure my title {fig_props}
+            # @figure {fig_props}
+            # @figure filename:my_file
+            # @figure filename:my_file {savefig_props}
+            # @figure my title filename:my_file
+            # @figure my title {fig_props} filename:my_file
+            # @figure {fig_props} filename:my_file
+            # @figure my title filename:my_file {savefig_props}
+            # @figure my title {fig_props} filename:my_file {savefig_props}
+            # @figure {fig_props} filename:my_file {savefig_props}
+
+            args = linesplit_space[1]
+
+            # Does args end with "filename: file_name [{savefig_props}]"?
+            bef_dict, savefig_prop = ParseUtil.get_ending_dict(args)
+            bef_fname, fname = get_ending_filename(bef_dict)
+            if fname is None:
+                savefig_prop = None
+                fig_title, fig_prop = ParseUtil.get_ending_dict(args)
+            else:
+                fig_title, fig_prop = ParseUtil.get_ending_dict(bef_fname)
+            if len(fig_title):  # Title in @figure overrides parameter title
+                title = fig_title
+            if fig_prop is None:
+                fig_prop = dict()
+            if savefig_prop is None:
+                savefig_prop = dict()
+        return title, subplotgrid, fig_prop, fname, savefig_prop
 
     def _parse_run_lines(self, run_lines):
         # First line is of the form
@@ -913,7 +981,7 @@ class PostCmds():
     def add(self, cmd):
         self.cmds.append(cmd)
 
-    def run(self, simulation_data, progress=None):
+    def run(self, simulation_data, info_msg, progress=None):
         if progress:
             progress.reset1()
             progress.reset2()
@@ -923,7 +991,7 @@ class PostCmds():
             assert(isinstance(cmd, PostCmd))
             if progress and progress.stop_clicked:
                 raise InterruptedSimulation()
-            cmd.run(simulation_data)
+            cmd.run(simulation_data, info_msg)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
                 progress.progress1.set((i + 1) / n_commands * 100)
@@ -931,6 +999,41 @@ class PostCmds():
     def plot(self):
         for cmd in self.cmds:
             cmd.plot()
+
+    def savefig(self, info_msg):
+        for cmd in self.cmds:
+            cmd.savefig(info_msg)
+
+    # def get_n_total_figs(self):
+    #     fig_cnt = 0
+    #     for cmd in self.cmds:
+    #         if isinstance(cmd, FigureCmd):
+    #             fig_cnt += 1
+    #         elif isinstance(cmd, PlotCmd):
+    #             if fig_cnt == 0:  # Plot commands before first (if any) @figure
+    #                 fig_cnt += 1
+    #     return fig_cnt
+
+    # def get_n_exported_figs(self):
+    #     out = 0
+    #     for cmd in self.cmds:
+    #         if isinstance(cmd, FigureCmd):
+    #             if cmd.fname is not None:
+    #                 out += 1
+    #     return out
+
+    def get_n_displayed_figs(self):
+        fig_cnt = 0  # Countning occurences of @figure
+        out = 0
+        for cmd in self.cmds:
+            if isinstance(cmd, FigureCmd):
+                fig_cnt += 1
+                if cmd.fname is None:
+                    out += 1
+            elif isinstance(cmd, PlotCmd):
+                if fig_cnt == 0:  # Plot commands before first (if any) @figure
+                    out += 1
+        return out
 
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
@@ -957,10 +1060,13 @@ class PostCmd():
     def __init__(self):
         self.plot_data = None
 
-    def run(self, simulation_data, progress=None):
+    def run(self, simulation_data, info_msg, progress=None):
         pass  # All matplotlib commands should be done in plot()
 
     def plot(self):  # Matplotlib commands may be placed here
+        pass
+
+    def savefig(self, info_msg):
         pass
 
     def progress_label(self):
@@ -980,7 +1086,7 @@ class PlotCmd(PostCmd):
         self.mpl_prop = mpl_prop
         self.lineno = lineno
 
-    def run(self, simulation_data):
+    def run(self, simulation_data, info_msg):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
         start_at_1 = False
         if 'linewidth' not in self.mpl_prop:
@@ -1089,7 +1195,6 @@ class PlotData():
         # cfm.window.attributes('-topmost', True)
         # plt.get_current_fig_manager().show()  # To get figures in front of gui (Windows problem) when ProgressDlg has been up
         # plt.get_current_fig_manager().set_window_title("FOO")
-        plt.gcf().show()
 
 
 class ExportCmd(PostCmd):
@@ -1106,7 +1211,7 @@ class ExportCmd(PostCmd):
 
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
-    def run(self, simulation_data, progress=None):
+    def run(self, simulation_data, info_msg, progress=None):
         self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
@@ -1123,6 +1228,11 @@ class ExportCmd(PostCmd):
         except EvalException as ex:
             file.close()
             raise ex
+
+        # Add to message log
+        dirpath = os.path.dirname(os.path.abspath(__file__))
+        filepath = os.path.join(dirpath, filename)
+        info_msg.append(f"Exported file {filepath}.")
 
     def _h_export(self, file, simulation_data):
         # evalprops = simulation_data._evalparse(self.parameters)
@@ -1258,15 +1368,27 @@ class ExportCmd(PostCmd):
 
 
 class FigureCmd(PostCmd):
-    def __init__(self, title, mpl_prop):
+    def __init__(self, title, mpl_prop, fname, savefig_prop):
         super().__init__()
         self.title = title
         self.mpl_prop = mpl_prop
+        self.fname = fname
+        self.savefig_prop = savefig_prop
+        self.figure_object = None
 
     def plot(self):
         f = plt.figure(**self.mpl_prop)
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
+        self.figure_object = f
+
+    def savefig(self, info_msg):
+        if self.fname is not None:
+            self.figure_object.savefig(self.fname, **self.savefig_prop)
+            dirpath = os.path.dirname(os.path.abspath(__file__))
+            filepath = os.path.join(dirpath, self.fname)
+            info_msg.append(f"Saved figure image file {filepath}.")
+            plt.close(self.figure_object)
 
     def progress_label(self):
         return kw.FIGURE

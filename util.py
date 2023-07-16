@@ -483,8 +483,8 @@ class ParseUtil():
             get_ending_string(" foo  bar    {'a' : 1}")
             returns " foo  bar", {'a': 1}
 
-            get_ending_string(" foo  bar    {'a' : 1}")
-            returns " foo  bar", None
+            get_ending_string(" foo  bar    {'a' , 1}")
+            returns " foo  bar    {'a' , 1}", None
         """
         string_len = len(string)
         for i in reversed(range(string_len)):

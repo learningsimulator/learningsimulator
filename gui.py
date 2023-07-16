@@ -1,4 +1,5 @@
 import threading
+import time
 import traceback
 import os
 import platform
@@ -10,7 +11,7 @@ from matplotlib import pyplot as plt
 
 import tkinter as tk
 from tkinter import ttk
-from tkinter.constants import BOTH, YES, NO, DISABLED
+from tkinter.constants import BOTH, YES, NO, DISABLED, NORMAL, END
 # from tkinter.scrolledtext import ScrolledText
 from tkinter import messagebox, filedialog
 
@@ -216,7 +217,7 @@ class Gui():
         # button_frame.pack_propagate(False)
 
         # The message log field
-        self.msgField = tk.scrolledtext.ScrolledText(frame, height=2)
+        self.msgField = tk.scrolledtext.ScrolledText(frame, height=5)
         self.msgField.insert(1.0, "Welcome to Learning Simulator!\nThis is the message log.")
         self.msgField.pack(side="top", anchor="w", fill=BOTH, expand=NO)
 
@@ -235,6 +236,12 @@ class Gui():
         )
 
         frame.pack(fill=BOTH, expand=YES)
+
+    def add_msg(self, msg):
+        self.msgField.config(state=NORMAL)  # msgField.insert does not work if state=DISABLED
+        self.msgField.insert(END, '\n' + msg)
+        self.msgField.see(END)
+        self.msgField.config(state=DISABLED)
 
     def simulate_thread(self, event=None):
         try:
@@ -270,10 +277,14 @@ class Gui():
                 if not isinstance(self.progress.exception, InterruptedSimulation):
                     self.progress.close_dlg()
                     self.handle_exception(self.progress.exception, self.progress.exception_traceback)
+                else:
+                    self.add_msg("Simulation stopped.")
             else:
                 # This will also close the progress dialog box
                 try:
                     self.script_obj.plot(progress=self.progress)
+                    for msg in self.script_obj.info_msg:
+                        self.add_msg(msg)
                 except Exception as ex:
                     self.progress.close_dlg()
                     self.handle_exception(ex, traceback.format_exc())
@@ -282,8 +293,13 @@ class Gui():
             self.check_job = self.root.after(100, self.handle_simulation_end)
 
     def simulate(self):
+        self.add_msg("Starting simulation.")
+        t = time.time()
         try:
             self.simulation_data = self.script_obj.run(self.progress)
+            elapsed = time.time() - t
+            elapsed_rounded = round(elapsed, ndigits=4)
+            self.add_msg(f"Simulation completed in {elapsed_rounded} s.")
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
