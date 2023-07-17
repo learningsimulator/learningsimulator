@@ -12,7 +12,7 @@ The postprocessing commands are the following:
 +------------------+------------------------------------------------+------------------------------------------------------+
 | Command          | Description                                    | Affected by parameters                               |
 +==================+================================================+======================================================+
-| :ref:`figure`    | Creates a figure window                        | None                                                 |
+| :ref:`figure`    | Creates a figure window (or export image)      | None                                                 |
 +------------------+------------------------------------------------+------------------------------------------------------+
 | :ref:`subplot`   | Creates a subplot within the current           | None                                                 |
 | :ref:`panel`     | figure window                                  |                                                      |
@@ -96,24 +96,42 @@ The below plots show the components of a plot window:
 @figure
 *******
 
-Creates a new figure window.
+Creates a new figure window or saves the figure as an image file.
 
 Syntax::
 
+  # To display the figure window on screen:
   @figure
   @figure figure_title
   @figure figure_title figure_parameters
   @figure figure_parameters
 
+  # To save the figure as an image file:
+  @figure filename:my_imagefile [savefig_parameters]
+  @figure figure_title filename:my_imagefile [savefig_parameters]
+  @figure figure_title figure_parameters filename:my_imagefile [savefig_parameters]
+  @figure figure_parameters filename:my_imagefile [savefig_parameters]
+
 where
 
 - ``figure_title`` is an optional title of the figure (any string),
-- ``figure_parameters`` is an optional specification of `Matplotlib <https://matplotlib.org>`_ ``Figure`` parameters controlling figure size, colors, etc. of the format ``{param1:value1, param2:value2, ...}``. See `figure_parameters <https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html>`_ for the supported figure parameters.
+- ``figure_parameters`` is an optional specification of `Matplotlib <https://matplotlib.org>`_ ``Figure`` parameters controlling figure size, colors, etc. of the format ``{param1:value1, param2:value2, ...}``. See `figure_parameters <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html>`_ for the supported figure parameters.
+- ``savefig_parameters`` is an optional specification of `Matplotlib <https://matplotlib.org>`_ ``savefig`` parameters, for example ``dpi`` and ``format`` (see examples below).
+  See `savefig_parameters <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html>`_ for the supported parameters.
+  Supported file formats are eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff, and webp.
+
+.. note::
+  
+  - If ``format`` is set in ``savefig_props``, it determines the output format, and the file is saved as ``my_imagefile``. Note that the file name after `filename:`
+    is used verbatim, and there is no attempt to make the extension, if any, of the file name match ``format``, and no extension is appended.
+  - If ``format`` is `not` set, then the format is inferred from the extension of the specified file name, if there is one. If ``format``
+    is not set and the file name has no extension, then the file is saved with the Matplotlib default (probably 'png') and the appropriate extension is
+    appended to the specified file name.
 
 It is also possible to specify the subplot grid in parenthesis
 after ``@figure``::
 
-    @figure(1,3) [figure_title] [figure_parameters]
+    @figure(1,3) [figure_title] [figure_parameters] [filename:imagefile] [savefig_parameters]
     @subplot
     @plot ...  # This plot ends up in subplot 131
     @subplot
@@ -123,7 +141,7 @@ after ``@figure``::
 
 as an alternative form of::
 
-    @figure [figure_title] [figure_parameters]
+    @figure [figure_title] [figure_parameters] [filename:imagefile] [savefig_parameters]
     @subplot 131
     @plot ...  # This plot ends up in subplot 131
     @subplot 132
@@ -179,6 +197,27 @@ creates a figure without title and with a green edge (width 5) and magenta backg
 
 .. image:: postprocessing-figure3.png
   :scale: 60
+
+Example 5
+---------
+
+::
+
+  @figure This is the title {'facecolor':'red'} filename: my_image_file.png {'dpi':150}
+  or
+  @figure This is the title {'facecolor':'red'} filename: my_image_file.png {'dpi':150, 'format':'png'}
+
+saves the figure (containing the plots in the figure) with title "This is the title" and with a red background
+to the file ``my_image_file.png`` with 150 DPI (dots per inch).
+
+Example 6
+---------
+
+::
+
+  @figure filename: my_image_file {'dpi': 150, 'format': 'svg'}
+
+saves the figure (containing the plots in the figure) without title to the svg-file with the name ``my_image_file`` (without extension).
 
 .. _subplot:
 
@@ -716,6 +755,8 @@ Syntax::
   @export v(s1->b) + v(s2->b)
 
 The file name can be specified at the end of the command instead of using the parameter ``filename``::
+
+  @export v(s1->b) + v(s2->b) my_file.csv
 
 Note that wildcards (*) cannot be used in ``@export``.
 
