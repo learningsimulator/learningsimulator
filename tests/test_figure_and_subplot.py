@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 from .testutil import LsTestCase, run, get_plot_data, remove_exported_files, delete_exported_files_folder, create_exported_files_folder
 
 FILEFORMATS = ['eps', 'jpeg', 'jpg', 'pdf', 'png', 'ps', 
-               'pgf', # (possibly starts LaTeX)
+               # 'pgf', (requires LaTeX)
                'raw', 'rgba', 'svg', 'svgz', 'tif', 'tiff', 'webp']
 
 FILEFORMATS_SHORT = ['jpg', 'pdf', 'png', 'ps', 
-                     'pgf', # (possibly starts LaTeX)
+                     # 'pgf', (requires LaTeX)
                      'raw', 'rgba', 'svg', 'tif', 'webp']
 
 class TestBasic(LsTestCase):
