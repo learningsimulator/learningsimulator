@@ -3,10 +3,12 @@ import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase, run, get_plot_data, remove_exported_files, delete_exported_files_folder, create_exported_files_folder
 
-FILEFORMATS = ['eps', 'jpeg', 'jpg', 'pdf', 'png', 'ps', # pgf (possibly starts LaTeX)
+FILEFORMATS = ['eps', 'jpeg', 'jpg', 'pdf', 'png', 'ps', 
+               'pgf', # (possibly starts LaTeX)
                'raw', 'rgba', 'svg', 'svgz', 'tif', 'tiff', 'webp']
 
-FILEFORMATS_SHORT = ['jpg', 'pdf', 'png', 'ps', # pgf (possibly starts LaTeX)
+FILEFORMATS_SHORT = ['jpg', 'pdf', 'png', 'ps', 
+                     'pgf', # (possibly starts LaTeX)
                      'raw', 'rgba', 'svg', 'tif', 'webp']
 
 class TestBasic(LsTestCase):

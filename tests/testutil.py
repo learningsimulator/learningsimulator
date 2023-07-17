@@ -150,7 +150,7 @@ class LsTestCase(unittest.TestCase):
             self.assertTrue(os.path.isfile(filepath), msg=f"{filepath} does not exist.") 
 
     def assertImageFileFormat(self, f, fileformat):
-        cannot_open = ('pdf', 'raw', 'rgba', 'svg', 'svgz')
+        cannot_open = ('pdf', 'raw', 'rgba', 'svg', 'svgz', 'pgf')
         try:
             im = Image.open(f)
             self.assertTrue(fileformat not in cannot_open)
