@@ -841,3 +841,24 @@ class TestExceptions(LsTestCase):
         msg = "dpi must be positive"
         with self.assertRaisesMsg(msg):
             run(text)
+
+        text = '''
+        mechanism: sr
+        stimulus_elements: s1, s2, s3, s4
+        behaviors: b1, b2, b3, b4
+        alpha_v: 1
+
+        @phase foo stop:s1=10
+        L1 s1 | L1
+
+        @run foo
+
+        xscale: s1
+
+        # {savefig_props} without "filename:"
+        @figure mytitle {'dpi':200, 'format':'pgf'}
+        '''
+        msg = "Figure.set() got an unexpected keyword argument 'format'"
+        with self.assertRaisesMsg(msg):
+            run(text)
+
