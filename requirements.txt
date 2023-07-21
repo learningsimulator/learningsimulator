@@ -2,3 +2,4 @@ matplotlib
 numpy
 pytest
 Pillow
+python-dotenv
