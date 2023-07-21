@@ -1,4 +1,5 @@
 import platform
+import sys
 import os
 import re
 import copy
@@ -14,7 +15,8 @@ from simulation import Runs, Run
 from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
-from util import ParseUtil  # , eval_average
+from util import ParseUtil, SILENT  # , eval_average
+
 
 POST_MATH = {'sin': math.sin, 'cos': math.cos, 'tan': math.tan, 'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
              'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh, 'asinh': math.asinh, 'acosh': math.acosh, 'atanh': math.atanh,
@@ -87,25 +89,25 @@ class Script():
         self.script_parser.postcmds.plot()
         self.script_parser.postcmds.savefig(self.info_msg)
 
-        # nfigs_tot = self.script_parser.postcmds.get_n_total_figs()
-        # nfigs_export = self.script_parser.postcmds.get_n_exported_figs()
-        n_displayed_figs = self.script_parser.postcmds.get_n_displayed_figs()
-        display_figs = (n_displayed_figs >= 1)
+        curr_fig = self.script_parser.postcmds.gcf()
+        display_figs = (curr_fig is not None)
 
-        if display_figs:  # Only if there are figures to show
-            plt.gcf().show()  # To make figures in front of gui
+        if display_figs and not SILENT:
+            curr_fig.show()  # To make figures in front of gui
 
         if progress is not None:
             progress.close_dlg()
 
         isMac = platform.system().lower() == "darwin"
-        if display_figs:  # Only do plt.show() if there are figures to show
-            if isMac:
-                block = False
-            plt.show(block=block)
+        if display_figs and not SILENT:  # Only do plt.show() if there are figures to show
+            # if isMac:  TODO Check that block=True still works on mac
+            #     block = False
+            # plt.show(block=block)
+            self.script_parser.postcmds.show()
 
-        if isMac:
-            plt.draw()  # Issue with subplots on Mac (10.15 (Catalina))
+        if display_figs and not SILENT:
+            if isMac:
+                plt.draw()  # Issue with subplots on Mac (10.15 (Catalina))
 
 
 class LineParser():
@@ -1000,41 +1002,6 @@ class PostCmds():
         for cmd in self.cmds:
             cmd.plot()
 
-    def savefig(self, info_msg):
-        for cmd in self.cmds:
-            cmd.savefig(info_msg)
-
-    # def get_n_total_figs(self):
-    #     fig_cnt = 0
-    #     for cmd in self.cmds:
-    #         if isinstance(cmd, FigureCmd):
-    #             fig_cnt += 1
-    #         elif isinstance(cmd, PlotCmd):
-    #             if fig_cnt == 0:  # Plot commands before first (if any) @figure
-    #                 fig_cnt += 1
-    #     return fig_cnt
-
-    # def get_n_exported_figs(self):
-    #     out = 0
-    #     for cmd in self.cmds:
-    #         if isinstance(cmd, FigureCmd):
-    #             if cmd.fname is not None:
-    #                 out += 1
-    #     return out
-
-    def get_n_displayed_figs(self):
-        fig_cnt = 0  # Countning occurences of @figure
-        out = 0
-        for cmd in self.cmds:
-            if isinstance(cmd, FigureCmd):
-                fig_cnt += 1
-                if cmd.fname is None:
-                    out += 1
-            elif isinstance(cmd, PlotCmd):
-                if fig_cnt == 0:  # Plot commands before first (if any) @figure
-                    out += 1
-        return out
-
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
         # ax_average = fig_average.add_subplot(1, 1, 1)
@@ -1054,6 +1021,25 @@ class PostCmds():
         #             ax_average.plot(lines[0].get_xdata(), average, label=axis.get_title())
         #         ax_average.legend()
         #     ax_average.grid()
+
+
+    def savefig(self, info_msg):
+        for cmd in self.cmds:
+            cmd.savefig(info_msg)
+
+    def show(self):
+        for cmd in self.cmds:
+            if isinstance(cmd, FigureCmd):
+                if cmd.fname is None:
+                    cmd.figure_object.show()
+
+    def gcf(self):
+        '''Return the last Figure object among the PostCmd's to render on screen.'''
+        for cmd in reversed(self.cmds):
+            if isinstance(cmd, FigureCmd):
+                if cmd.fname is None:
+                    return cmd.figure_object
+        return None
 
 
 class PostCmd():
@@ -1388,7 +1374,6 @@ class FigureCmd(PostCmd):
             dirpath = os.path.dirname(os.path.abspath(__file__))
             filepath = os.path.join(dirpath, self.fname)
             info_msg.append(f"Saved figure image file {filepath}.")
-            plt.close(self.figure_object)
 
     def progress_label(self):
         return kw.FIGURE

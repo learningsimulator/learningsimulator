@@ -5,6 +5,15 @@ import os
 import sys
 
 
+SILENT = False
+IS_TEST = ('unittest' in sys.modules)
+if IS_TEST:
+    from dotenv import dotenv_values
+    env_vars = dotenv_values()
+    TEST_MODE = env_vars.get('TEST_MODE', None)
+    if TEST_MODE == 'silent':
+        SILENT = True
+
 SEMICOLON_ERR = "Cannot use semicolon-separated expressions with wildcard."
 
 

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase, run, get_plot_data, remove_exported_files, delete_exported_files_folder, create_exported_files_folder
 
+from util import SILENT
+
 FILEFORMATS = ['eps', 'jpeg', 'jpg', 'pdf', 'png', 'ps', 
                # 'pgf', (requires LaTeX)
                'raw', 'rgba', 'svg', 'svgz', 'tif', 'tiff', 'webp']
@@ -10,6 +12,17 @@ FILEFORMATS = ['eps', 'jpeg', 'jpg', 'pdf', 'png', 'ps',
 FILEFORMATS_SHORT = ['jpg', 'pdf', 'png', 'ps', 
                      # 'pgf', (requires LaTeX)
                      'raw', 'rgba', 'svg', 'tif', 'webp']
+
+
+def get_shown_fignums():
+    all_figs = plt.get_fignums()
+    out = set()
+    for fignum in all_figs:
+        f = plt.figure(fignum)
+        if f.canvas.manager._shown:
+            out.add(fignum)
+    return out
+
 
 class TestBasic(LsTestCase):
     @classmethod
@@ -334,8 +347,11 @@ class TestBasic(LsTestCase):
         red = (1.0, 0.0, 0.0, 1.0)
 
         # The displayed figures
-
-        self.assertEqual(set(plt.get_fignums()), {1, 2, 3, 4})  # Three figs to display
+        shown_figs = get_shown_fignums()
+        if SILENT:
+            self.assertEqual(shown_figs, set())  # The figs that should be displayed
+        else:
+            self.assertEqual(shown_figs, {1, 2, 3, 4})  # The figs that should be displayed
         
         self.assertEqual(plt.figure(2)._suptitle.get_text(), "my title")
         self.assertEqual(plt.figure(2).get_facecolor(), default_facecolor)
@@ -430,10 +446,12 @@ class TestBasic(LsTestCase):
         default_facecolor = plt.figure(1).get_facecolor()
         red = (1.0, 0.0, 0.0, 1.0)
 
-        # The displayed figures
+        shown_figs = get_shown_fignums()
+        if SILENT:
+            self.assertEqual(shown_figs, set())  # The figs that should be displayed
+        else:
+            self.assertEqual(shown_figs, {1, 2, 3, 4})  # The figs that should be displayed
 
-        self.assertEqual(set(plt.get_fignums()), {1, 2, 3, 4})  # Three figs to display
-        
         self.assertEqual(plt.figure(2)._suptitle.get_text(), "my title")
         self.assertEqual(plt.figure(2).get_facecolor(), default_facecolor)
 
@@ -527,6 +545,8 @@ class TestBasic(LsTestCase):
             for f in expected_created_files:
                 self.assertImageFileFormat(f"./tests/exported_files/{f}", fileformat)
 
+            plt.close('all')  # To avoid too may open figures (though invisible)
+
     def test_fileformats_with_ext(self):
         def get_script(fileformat, ext):
             text = f'''
@@ -553,6 +573,7 @@ class TestBasic(LsTestCase):
                     run(text)
                     self.assert_exported_files_exist([f'my_file.{ext}'])
                     self.assertImageFileFormat(f"./tests/exported_files/my_file.{ext}", fileformat)
+                    plt.close('all')  # To avoid too may open figures (though invisible)
 
     def test_default_fileformat(self):
         default_format = mpl.rcParams["savefig.format"]
