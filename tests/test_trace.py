@@ -149,6 +149,7 @@ stimulus_elements : background, stimulus, reward
 start_v           : default:-1
 alpha_v           : 0.1
 u                 : reward:10, default:0
+random_seed       : 1
 
 @PHASE training stop: stimulus=100
 new_trial  stimulus   | response: REWARD | NO_REWARD
@@ -170,7 +171,7 @@ runlabel: trace
 @vplot stimulus->response {'label':'trace'}
 @legend
 '''
-        script_obj, script_output = run(script)
+        run(script)
         plot_data = get_plot_data()
 
         self.assertIncreasing(plot_data['no trace']['y'][0:50])
