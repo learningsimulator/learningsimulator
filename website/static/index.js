@@ -87,7 +87,6 @@ function onLoad() { // DOM is loaded and ready
                 }
             }
             document.getElementById("settings-size").innerHTML = "Default chart size (can be resized)";
-            settingsDlgFileTypePlotlyCb();
         }
     }
 

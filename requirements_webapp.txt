@@ -4,6 +4,7 @@ Flask-Cors
 Flask-Login
 Flask-SQLAlchemy
 Flask-WTF
+flask_migrate
 greenlet
 itsdangerous
 Jinja2

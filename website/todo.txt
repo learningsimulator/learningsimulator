@@ -1,18 +1,11 @@
-Varning om @start_trial vs @omit
-
-Delete @export-files and images files when figure / "export-icon" is
-deleted (either Close All Figures or delete/close-icon). Not (only) at reload.
-
-Issue warning (somehow) if unsupported mpl-props for lines are used in plotly plot , saying "can be changed
-using advanced settings" or something like that. Only "color", "linewidth",
-"marker" and "markersize" (and "label") are supported.
-
 Tabbed layout with current script on one tab and demo script on the other
 
-Menu: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
-Menu: Search/Replace
-Menu: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
-Menu: Import demo script (replaces content of entire script window) - warn if nonempty
+Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
+Editor: Search/Replace
+Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
+Editor: Import demo script (replaces content of entire script window) - warn if nonempty
+
+Snyggare inloggningsskärm /login
 
 Logga in/ut uppe till höger - kanske med användarnamnet
 
@@ -56,7 +49,7 @@ Freeze mpl4 (and maybe other stuff) to make them local.
 
 Skriv ut versionsnummer någonstans (kanske även version av mpl3, plotly, etc.)
 
-Uniform styling of buttons
+Uniform styling of buttons (hovering color, click color, etc.)
 
 Move (all) inline styling to css
 
@@ -66,6 +59,8 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X Varning om @start_trial vs @omit
+
 X Add "Preview" to preview in "My Files"
 
 X Redis Queue + Progress bar
@@ -146,3 +141,14 @@ Plot parameters: Legend on/off, legend positioning
 Plot parameters: line color, thickness, marker, marker size, color, etc.
 
 Investigate if use_pyplot=False can be used in Tk frontend. (See issue about crashes.)
+
+Multiple @exports with the same filename gives several "icons" in the plot area pointing to the same file.
+That should create only one "icon".
+
+Delete @export-files and @plot-image-files when figure / "export-icon" is
+deleted (either Close All Figures or delete/close-icon).
+Not (only) at reload simulation page.
+
+Issue warning (somehow) if unsupported mpl-props for lines are used in plotly plot,
+saying "can be changed using advanced settings" or something like that.
+Only "color", "linewidth", "marker" and "markersize" (and "label") are supported.

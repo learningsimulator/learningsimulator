@@ -440,21 +440,18 @@ def run_mpl_fig():
         return jsonify({'imgfiles': out, 'exportcmds': export_cmds_json})
 
 
-@staticmethod
 def get_user_img_dir():
     user_dirname = f'user{current_user.id}'
     img_dir = os.path.join(views.root_path, 'static', 'mplfigimg', user_dirname)
     return user_dirname, img_dir
 
 
-@staticmethod
 def get_user_export_dir():
     user_dirname = f'user{current_user.id}'
     img_dir = os.path.join(views.root_path, 'static', 'export', user_dirname)
     return img_dir
 
 
-@staticmethod
 def delete_all_files_in(dir):
     if os.path.isdir(dir):
         for f in os.listdir(dir):
@@ -464,13 +461,17 @@ def delete_all_files_in(dir):
 @views.route('/simulate/<int:id>', methods=['GET'])
 @login_required
 def simulate(id):
-    script = DBScript.query.get_or_404(id)
-    demo_script_names = [ds['name'] for ds in demo_scripts]
-    settings = Settings.query.get(current_user.settings_id)
-
     # Delete image files in users img dir
     _, img_dir = get_user_img_dir()
     delete_all_files_in(img_dir)
+
+    # Delete exported files in users export dir
+    export_dir = get_user_export_dir()
+    delete_all_files_in(export_dir)
+
+    script = DBScript.query.get_or_404(id)
+    demo_script_names = [ds['name'] for ds in demo_scripts]
+    settings = Settings.query.get(current_user.settings_id)
 
     return render_template("simulate.html", user=current_user, settings=settings,
                            script=script, demo_script_names=demo_script_names)
