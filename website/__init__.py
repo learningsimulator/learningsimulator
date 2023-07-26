@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from werkzeug.routing import BaseConverter
 # from flask_cors import CORS
 
+from config import FLASK_APP_SECRET_KEY, DB_USER, DB_PW, DB_HOST_ADDRESS, DB_NAME
 
 db = SQLAlchemy()
 # DB_NAME = "database.db"
@@ -16,17 +17,13 @@ def create_app():
     # app.url_map.converters['csv_list'] = ListConverter
 
     # Used to encrypt the cookie and session data related to our web app
-    app.config['SECRET_KEY'] = '410d1f4eb7412ee625ed5a3562ec1cc6'
+    app.config['SECRET_KEY'] = FLASK_APP_SECRET_KEY
+
+    # The MySQL db
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{DB_USER}:{DB_PW}@{DB_HOST_ADDRESS}/{DB_NAME}"
 
     # The SQLite db
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
-
-    # The MySQL db
-    DB_USER = "birds"  # XXX Put these secret things in a config.py or similar
-    DB_PW = "xBqjfrF.9H6BT4G"
-    DB_HOST_ADDRESS = "birds.mysql.pythonanywhere-services.com"
-    DB_NAME = f"{DB_USER}@default"
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{DB_USER}:{DB_PW}@{DB_HOST_ADDRESS}/{DB_NAME}"
 
     # When running locally:
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:hejsan123@localhost/db_weblesim'
