@@ -5,7 +5,7 @@ from flask_login import LoginManager
 from werkzeug.routing import BaseConverter
 # from flask_cors import CORS
 
-from config import FLASK_APP_SECRET_KEY, DB_USER, DB_PW, DB_HOST_ADDRESS, DB_NAME
+from .config import FLASK_APP_SECRET_KEY, DB_USER, DB_PW, DB_HOST_ADDRESS, DB_NAME
 
 db = SQLAlchemy()
 # DB_NAME = "database.db"
