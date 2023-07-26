@@ -22,10 +22,11 @@ def create_app():
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 
     # The MySQL db
-    SECRET_DB_USER = "birds"  # XXX Put these secret things in a config.py or similar
-    SECRET_DB_PW = "xBqjfrF.9H6BT4G"
-    SECRET_DB_NAME = f"{SECRET_DB_USER}@default"
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{SECRET_DB_USER}:{SECRET_DB_PW}@mysql.server/{SECRET_DB_NAME}'
+    DB_USER = "birds"  # XXX Put these secret things in a config.py or similar
+    DB_PW = "xBqjfrF.9H6BT4G"
+    DB_HOST_ADDRESS = "birds.mysql.pythonanywhere-services.com"
+    DB_NAME = f"{SECRET_DB_USER}@default"
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{DB_USER}:{DB_PW}@{DB_HOST_ADDRESS}/{DB_NAME}"
 
     # When running locally:
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:hejsan123@localhost/db_weblesim'
