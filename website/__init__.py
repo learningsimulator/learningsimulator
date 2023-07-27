@@ -37,9 +37,9 @@ def create_app():
 
     from .models import User
 
-    # Workaround for SQLite not handling ALTER/DROP: use render_as_batch=True
     with app.app_context():
         if db.engine.url.drivername == 'sqlite':  
+            # Workaround for SQLite not handling ALTER/DROP: use render_as_batch=True
             migrate.init_app(app, db, render_as_batch=True)
         else:
             migrate.init_app(app, db)

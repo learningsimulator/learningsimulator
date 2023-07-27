@@ -74,6 +74,7 @@ def sign_up():
             # add_relations_to_user(new_user)
             flash("Account created!", category='success')
             login_user(new_user, remember=True)
+            add_relations_to_user(new_user)
             return redirect(url_for('views.my_scripts'))
         except Exception as e:
             db.session.rollback()
