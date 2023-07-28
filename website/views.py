@@ -52,6 +52,7 @@ def landing():
 
 
 def run_simulation(script):
+    progress = None
     try:
         script_obj = Script(script)
         script_obj.parse(is_webapp=True)  # Use is_webapp=True to discriminate Tkinter from browser frontend
@@ -71,7 +72,8 @@ def run_simulation(script):
     except Exception as ex:
         stop_clicked = isinstance(ex, InterruptedSimulation)
         err_msg, lineno, stack_trace = util.get_errormsg(ex)
-        progress.set_done(True)
+        if progress is not None:  # If parsing fails, ProgressWeb object is not created
+            progress.set_done(True)
         return True, (err_msg, lineno, stack_trace, stop_clicked), None
 
 
