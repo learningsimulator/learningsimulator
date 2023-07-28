@@ -17,13 +17,13 @@
         <th>username</th>
         <th>settings_id</th>
     </tr>
+    {% for user in all_users %}
     <tr>
-      {% for user in all_users %}
         <th>{{ user.id }}</th>
         <th>{{ user.username }}</th>
         <th>{{ user.settings_id}}</th>
-      {% endfor %}
     </tr>
+    {% endfor %}
   </table>
 
 </div>
