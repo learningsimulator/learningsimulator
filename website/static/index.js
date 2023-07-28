@@ -595,8 +595,9 @@ function onLoad() { // DOM is loaded and ready
                         if (!keep_current.checked) {
                             removeAllChartDivs();
                         }
-                        if (isMpl)
-                            postproc_mpl_fig(data.postcmds, plotArea);
+                        if (isMpl) {
+                            postproc_mpl_fig(data, plotArea);
+                        }
                         else {
                             postproc(data.postcmds, plotArea);
                         }

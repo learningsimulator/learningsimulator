@@ -416,10 +416,11 @@ def run_mpl_fig():
     code = request.json['code']
     settings = request.json['settings']
     file_type = settings['file_type_mpl']
-    is_err, simulation_output = run_simulation(code)
+    is_err, simulation_output, deprecated_warn = run_simulation(code)
     if is_err:
-        err_msg, lineno, stack_trace = simulation_output
-        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace})
+        err_msg, lineno, stack_trace, stop_clicked = simulation_output
+        return jsonify({'err_msg': err_msg, 'lineno': lineno, 'stack_trace': stack_trace,
+                        'stop_clicked': stop_clicked})
     else:
         postcmds = simulation_output
         figs = postcmds.plot_no_pyplot(settings)
@@ -439,7 +440,8 @@ def run_mpl_fig():
         for exportcmd in export_cmds:
             export_cmds_json.append(exportcmd.to_dict())
 
-        return jsonify({'imgfiles': out, 'exportcmds': export_cmds_json})
+        return jsonify({'imgfiles': out, 'exportcmds': export_cmds_json,
+                        'deprecated_warn': deprecated_warn})
 
 
 def get_user_img_dir():
