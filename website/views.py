@@ -4,7 +4,7 @@ import sqlalchemy
 import random
 import time
 
-from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
+from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  #, flash
 from flask_login import login_required, current_user
 from .models import DBScript, Settings, User, SimulationTask
 from . import db
@@ -259,7 +259,7 @@ def save_script():
         err = None
         try:
             db.session.commit()
-            flash('Script saved!', category='success')
+            # flash('Script saved!', category='success')
         except Exception as e:
             db.session.rollback()
             err = f"There was an error saving the script: {e}"

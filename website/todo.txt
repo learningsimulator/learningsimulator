@@ -9,7 +9,7 @@ Snyggare inloggningsskärm /login
 
 Logga in/ut uppe till höger - kanske med användarnamnet
 
-Begränsa storlek på plot (width, height)
+Begränsa storlek på plot (width, height validate)
 
 Begränsa längd på filnamn i export
 
