@@ -23,13 +23,12 @@ def login():
                 flash('Logged in successfully!', category='success')
                 login_user(user, remember=rememeber)
                 add_relations_to_user(user)
-                return render_template("my_scripts.html", user=current_user)
+                return redirect(url_for('views.my_scripts'))
             else:
                 flash('Incorrect password, try again.', category='error')
         else:
             flash('Email does not exist.', category='error')
 
-        # return render_template("my_scripts.html", user=current_user)
     return render_template("login.html", user=current_user, form=form)
 
 

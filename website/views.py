@@ -4,7 +4,7 @@ import sqlalchemy
 import random
 import time
 
-from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory  # flash
+from flask import Response, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
 from flask_login import login_required, current_user
 from .models import DBScript, Settings, User, SimulationTask
 from . import db
@@ -259,7 +259,7 @@ def save_script():
         err = None
         try:
             db.session.commit()
-            # flash('Script saved!', category='success')
+            flash('Script saved!', category='success')
         except Exception as e:
             db.session.rollback()
             err = f"There was an error saving the script: {e}"
@@ -302,7 +302,8 @@ class ProgressWeb():
         id = current_user.simulation_task_id
         self.db_task = SimulationTask.query.get_or_404(id)
 
-        self.DB_COMMIT_AT = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        # self.DB_COMMIT_AT = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100]
+        self.DB_COMMIT_AT = [0, 5, 20, 40, 60, 80, 95, 100]
         self.next_commit = self.DB_COMMIT_AT.pop(0)
 
         self.nsteps1 = sum(script_obj.script_parser.runs.get_n_subjects())

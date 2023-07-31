@@ -54,6 +54,8 @@
 #textarea-code-demo {
   height: 400px;
   width: 100%;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
 }
 
 #textarea-code-preview {
@@ -63,6 +65,7 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   color:lightgray;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* Font in list of script names */
@@ -118,7 +121,8 @@ input[type=checkbox] {
   /* margin-top: 5px; */
   /* margin-bottom: 5px; */
   line-height: 18px;
-  font-size: 15px
+  font-size: 15px;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 #linecounter {
@@ -137,14 +141,14 @@ input[type=checkbox] {
   display: flex;
   margin-top: 5px;
   margin-bottom: 5px;
-  height: calc(100% - 120px);
+  height: calc(100% - 130px);
 
   /* border: 2px solid blue; */
 }
 
 button {
     cursor: pointer;
-    background-color: #4CAF50;
+    /* background-color: #4CAF50; */
 }
 
 #button-run:hover {
@@ -224,6 +228,12 @@ button {
 }
 .close-button-plot:hover button {
   display: block;
+}
+
+legend {
+  font-size: 16px; 
+  margin: 0;
+  font-weight: bold;
 }
 
 /* ============================================================================= */

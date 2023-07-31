@@ -27,7 +27,7 @@ Check that html element constraints (min, max values, string lengths, required, 
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.
 (Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
-"Script ... saved" flash (how to use on single-page site)
+"Script ... saved" flash (how to use on same page)
 https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
 
 Plot: "Download" button for mpl image plots (instead of having to right-click and save image as)

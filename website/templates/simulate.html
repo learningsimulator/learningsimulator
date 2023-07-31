@@ -53,10 +53,10 @@ Learning Simulator
     <div style="margin-bottom: 5px; margin-top: 5px">
       <!-- <button type="button" id="button-savescript">Save</button> -->
 
-      <input type="checkbox" id="check-keep" style="width:20px;height:20px;">
-      <label for="check-keep" style="vertical-align: middle;">Keep current charts&nbsp;</label>
+      <input type="checkbox" id="check-keep" style="width:16px;height:16px;">
+      <label for="check-keep" style="vertical-align: middle;">Keep current charts&nbsp;&nbsp;</label>
 
-      <input type="checkbox" id="check-autosave" style="width:20px;height:20px;">
+      <input type="checkbox" id="check-autosave" style="width:16px;height:16px;">
       <label for="check-autosave" style="vertical-align: middle;">Always save before run</label>
 
     </div>
@@ -189,7 +189,7 @@ Learning Simulator
       <div style="margin-bottom: 5px">
         <label style="display:inline-block; width:120px">Plot as:</label>
         <!-- <select id="settings-plottype" style="width:130px;"> -->
-        <select id="settings-plottype" style="width:130px;">
+        <select id="settings-plottype" style="width:150px;">
           <option value="plot">Plotly chart</option>
           <option value="image">Matplotlib image</option>
         </select>
@@ -208,17 +208,17 @@ Learning Simulator
       </div>
 
       <!-- Horizontal/vertical plot orientation -->
-      <div style="margin-bottom: 5px">
+      <div style="margin-bottom: 10px">
         <label style="display:inline-block; width:120px">Plot orientation:</label>
-        <select id="settings-plotorientation" style="width:130px;">
+        <select id="settings-plotorientation" style="width:150px;">
           <option value="vertical">Vertical</option>
           <option value="horizontal">Horizontal</option>
         </select>
       </div>
 
       <!-- Plot size -->
-      <fieldset style="margin-left:0; margin-bottom: 5px;">
-        <legend id="settings-size"></legend>
+      <fieldset style="margin-left:0; margin-bottom: 10px;" class="border p-2">
+        <legend id="settings-size" class="float-none w-auto"></legend>
         <div style="margin-bottom: 5px">
           <label style="float:left; width:55px">Width:</label>
           <input id="settings-plotwidth" type="number" value="300" min="10" max="1000" style="width:50px;">
@@ -230,8 +230,8 @@ Learning Simulator
       </fieldset>
 
       <!-- Legend positioning -->
-      <fieldset style="margin-left:0; margin-bottom: 5px;" class="settings-plotly">
-        <legend>@legend</legend>
+      <fieldset style="margin-left:0; margin-bottom: 10px;" class="settings-plotly border p-2">
+        <legend class="float-none w-auto">@legend</legend>
         <!-- <div style="margin-bottom: 5px">
           <label style="float:left; width:150px">Relative x-coordinate:</label>
           <input id="settings-legendrelx" type="text" style="width:40px;" />
@@ -264,8 +264,8 @@ Learning Simulator
       </fieldset>
 
       <!-- Colors -->
-      <fieldset style="margin-left:0; margin-bottom: 5px;" class="settings-plotly">
-        <legend>Colors</legend>
+      <fieldset style="margin-left:0; margin-bottom: 15px;" class="settings-plotly border p-2">
+        <legend class="float-none w-auto">Colors</legend>
         <div style="margin-bottom: 5px">
           <label style="float:left; width:150px">Paper:</label>
           <input id="settings-paperbgcolor" type="color" value="#dfdfdf" style="vertical-align: middle;" />

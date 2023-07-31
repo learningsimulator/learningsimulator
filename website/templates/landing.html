@@ -2,19 +2,6 @@
 
 {% block title %}Learning Simulator{% endblock %}
 
-{% block navbar %}
-<div>
-    {% if user.is_authenticated %}
-      <a href="/my_scripts">My Scripts</a>
-      <a href="/logout">Logout</a>
-    {% else %}
-      <a href="/login">Login</a>
-      <a href="/sign_up">Register</a>
-    {% endif %}
-</div>
-{% endblock %}
-
-
 {% block content %}
 
 <div class="hvcenter">
