@@ -230,6 +230,11 @@ button {
   display: block;
 }
 
+.underline-on-hover:hover {
+  text-decoration: underline;
+  color: blue;
+}
+
 legend {
   font-size: 16px; 
   margin: 0;

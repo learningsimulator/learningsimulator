@@ -1,4 +1,44 @@
+Hur kan en nyreggad användare få "There is an ongoing simulation"?
+
+SimulationTask.is_done måste sättas till false vid fel
+(för att undvika "There is an ongoing simulation")
+
+Se till att Sim-object tas bort vid db-problem samt vid t.ex. inloggning/utloggning, för
+att undvika "There is an ongoing simulation"
+
+Säkra upp koden mot alla db-problem.
+
+Förstå de två PythonAnywhere db configs
+
+Gör mplfigimg och export directories till configs
+
+Använd app.config['X'] isf "import X from config"
+
+Use 
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+for all fetches
+
+Safeguard code against export file being deleted from server between run and download
+
+Add "Download" to the exported files, when checked that it works on PythonAnywhere.
+(Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
+
+(DB-)Admin page (skall åtminstone kunna lösa "There is already an ongoing simulation", "Set user's password", etc)
+
+try/except för get_sim_status så att simuleringen funkar trots db problem vid progress status.
+
+Ta bort simulation vid ALLA sorts fel så att inte  "There is an ongoing simulation" händer när det inte ska
+
+Varför fortsätter /get_sim_status även efter man klickat "Cancel" i progress dlg? Kolla om det är så.
+
+"Change password"-feature
+
+Should it be "Name" or "User name" in user account?
+
 Tabbed layout with current script on one tab and demo script on the other
+(or "Demo scripts" like "My scripts")
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
 Editor: Search/Replace
@@ -15,17 +55,12 @@ Begränsa längd på filnamn i export
 
 Make Navbar nice (with Bg-color) "Home, My Scripts, Log out" 
 
-(DB-)Admin page
-
 Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
 
 start_at_1
 
 Check that html element constraints (min, max values, string lengths, required, etc) match db
 -1 < legend_{x,y} < 2 kanske?
-
-Add "Download" to the exported files, when checked that it works on PythonAnywhere.
-(Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
 "Script ... saved" flash (how to use on same page)
 https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask

@@ -792,18 +792,18 @@ function onLoad() { // DOM is loaded and ready
         if (exportCmds.length > 0) {
             var exportDiv = document.createElement('div');
             exportDiv.id = makeRandomString(10);
-            // exportDiv.classList.add('closeplotbutton');
             exportDiv.className = 'close-button-export';
             for (let i = 0; i < exportCmds.length; i++) {
                 const cmd = exportCmds[i];
-                const filename = cmd['filename'];
                 const filenameNoPath = cmd['filename_no_path'];
-                var a = document.createElement('a');
-                let link = document.createTextNode(filenameNoPath);
-                a.appendChild(link);
-                // a.download = filename;
-                a.href = filename;
-                exportDiv.appendChild(a);
+
+                var downloadableFileName = document.createElement('span');
+                downloadableFileName.className = 'underline-on-hover'
+                let filenameText = document.createTextNode(filenameNoPath);
+                downloadableFileName.appendChild(filenameText);
+                downloadableFileName.addEventListener('click', () => downloadExportFile(filenameNoPath))
+
+                exportDiv.appendChild(downloadableFileName);
                 exportDiv.appendChild(document.createElement('br'));
             }
 
@@ -815,6 +815,30 @@ function onLoad() { // DOM is loaded and ready
 
             plotArea.appendChild(exportDiv);
         }
+    }
+
+    function downloadExportFile(filename) {
+        const get_url = "/download_export_file/" + filename;
+        fetch(get_url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(new Blob([blob], { type: "text/csv" }));
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        )
     }
 
     function plotlylegendLayout() {

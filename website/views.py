@@ -445,6 +445,12 @@ def run_mpl_fig():
                         'deprecated_warn': deprecated_warn})
 
 
+@views.route('/download_export_file/<path:filename>')
+def download_export_file(filename):
+    export_dir = get_user_export_dir()
+    return send_from_directory(export_dir, filename, as_attachment=True)
+
+
 def get_user_img_dir():
     user_dirname = f'user{current_user.id}'
     img_dir = os.path.join(views.root_path, 'static', 'mplfigimg', user_dirname)
