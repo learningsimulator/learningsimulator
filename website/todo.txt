@@ -1,18 +1,25 @@
+Lägg allt admin i admin.py som inte finns i repot (som config.py)
+
 Hur kan en nyreggad användare få "There is an ongoing simulation"?
+
+När is_done sätts till True, clear message1
 
 SimulationTask.is_done måste sättas till false vid fel
 (för att undvika "There is an ongoing simulation")
 
-Se till att Sim-object tas bort vid db-problem samt vid t.ex. inloggning/utloggning, för
+Se till att Sim-object tas bort (eller sätter is_done till True) vid db-problem samt vid t.ex. inloggning/utloggning, för
 att undvika "There is an ongoing simulation"
 
 Säkra upp koden mot alla db-problem.
 
-Förstå de två PythonAnywhere db configs
+Förstå de två PythonAnywhere db configs:
+    app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
+    app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
 
-Gör mplfigimg och export directories till configs
+Gör mplfigimg och export directories till configs, och inte under "static"
 
 Använd app.config['X'] isf "import X from config"
+( I __init__: app.config.from_pyfile('config.cfg') som i https://www.youtube.com/watch?v=0cySORIhkCg)
 
 Use 
     if (!response.ok) {
@@ -25,20 +32,22 @@ Safeguard code against export file being deleted from server between run and dow
 Add "Download" to the exported files, when checked that it works on PythonAnywhere.
 (Man får "Not allowed to load local resource:" i Inspect > Konsol när man kör lokalt.)
 
-(DB-)Admin page (skall åtminstone kunna lösa "There is already an ongoing simulation", "Set user's password", etc)
-
 try/except för get_sim_status så att simuleringen funkar trots db problem vid progress status.
 
-Ta bort simulation vid ALLA sorts fel så att inte  "There is an ongoing simulation" händer när det inte ska
+Ta bort simulation (sätt is_donw till True) vid ALLA sorts fel så att inte  "There is an ongoing simulation" händer när det inte ska
 
 Varför fortsätter /get_sim_status även efter man klickat "Cancel" i progress dlg? Kolla om det är så.
 
 "Change password"-feature
 
+How to generate password as admin?
+
 Should it be "Name" or "User name" in user account?
 
 Tabbed layout with current script on one tab and demo script on the other
 (or "Demo scripts" like "My scripts")
+
+
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
 Editor: Search/Replace
@@ -94,6 +103,8 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X (DB-)Admin page (skall åtminstone kunna lösa "There is already an ongoing simulation", "Set user's password", etc)
+
 X Varning om @start_trial vs @omit
 
 X Add "Preview" to preview in "My Files"
@@ -187,3 +198,5 @@ Not (only) at reload simulation page.
 Issue warning (somehow) if unsupported mpl-props for lines are used in plotly plot,
 saying "can be changed using advanced settings" or something like that.
 Only "color", "linewidth", "marker" and "markersize" (and "label") are supported.
+
+Protect the entire admin endpoint, not only its sub-pages

@@ -40,15 +40,19 @@ views = Blueprint('views', __name__)
 #         flash(f'There was an error updating the database: {e}', category='error')
 #     return redirect(url_for('views.home'))
 
-
-# @views.route('/', methods=['GET'])
-# def landing():
-#     return render_template("landing.html")
+@views.before_request
+def before_request_func():
+    print("before_request executing!")
 
 
 @views.route('/', methods=['GET'])
 def landing():
     return render_template("landing.html", user=current_user)
+
+
+# @views.route('/admini', methods=['GET'])
+# def admin_page():
+#     return redirect('/ewlr0249ler')
 
 
 def run_simulation(script):

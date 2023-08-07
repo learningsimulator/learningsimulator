@@ -3,8 +3,11 @@
 # ("from website.weblesim_flask_app import app as application")
 
 from . import create_app
+from .admin import add_admin_views
 
 app = create_app()
+add_admin_views(app)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

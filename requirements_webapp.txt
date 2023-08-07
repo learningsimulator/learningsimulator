@@ -20,3 +20,4 @@ mpld3
 pymysql
 redis
 rq
+Flask-Admin
