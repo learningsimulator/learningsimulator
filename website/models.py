@@ -75,6 +75,6 @@ class Settings(db.Model):
 class SimulationTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message1 = db.Column(db.String(50), default="")
-    progress1 = db.Column(db.Double(), default="")
-    is_done = db.Column(db.Boolean, default=False)
+    progress1 = db.Column(db.Double(), default=0)
+    is_done = db.Column(db.Boolean, default=True)
     stop_clicked = db.Column(db.Boolean, default=False)

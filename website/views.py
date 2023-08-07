@@ -40,9 +40,10 @@ views = Blueprint('views', __name__)
 #         flash(f'There was an error updating the database: {e}', category='error')
 #     return redirect(url_for('views.home'))
 
-@views.before_request
-def before_request_func():
-    print("before_request executing!")
+
+# @views.before_request
+# def before_request_func():
+#     print("before_request executing!")
 
 
 @views.route('/', methods=['GET'])
@@ -335,6 +336,9 @@ class ProgressWeb():
 
     def set_done(self, is_done):
         self.db_task.is_done = is_done
+        if is_done:
+            self.set_progress1(0)
+            self.report1("")
         db.session.commit()
 
     def get_n_runs(self):

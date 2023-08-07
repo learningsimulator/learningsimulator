@@ -1,10 +1,4 @@
-Lägg allt admin i admin.py som inte finns i repot (som config.py)
-
-Hur kan en nyreggad användare få "There is an ongoing simulation"?
-
-När is_done sätts till True, clear message1
-
-SimulationTask.is_done måste sättas till false vid fel
+SimulationTask.is_done måste sättas till True vid fel
 (för att undvika "There is an ongoing simulation")
 
 Se till att Sim-object tas bort (eller sätter is_done till True) vid db-problem samt vid t.ex. inloggning/utloggning, för
@@ -103,6 +97,10 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X När is_done sätts till True, clear message1, and set progress1 to 0
+
+X Hur kan en nyreggad användare få "There is an ongoing simulation"?
+
 X (DB-)Admin page (skall åtminstone kunna lösa "There is already an ongoing simulation", "Set user's password", etc)
 
 X Varning om @start_trial vs @omit
