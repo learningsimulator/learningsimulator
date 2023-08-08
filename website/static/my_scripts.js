@@ -71,11 +71,6 @@ function onLoad() { // DOM is loaded and ready
     }
 
     /* Listener. */
-    // function userScriptsSelectionChanged() {
-    //     handleVisibility();
-    // }
-
-    /* Listener. */
     function userScriptsSelectionChanged() {
         const selectedValues = getSelectedUserScripts();
 
@@ -94,13 +89,25 @@ function onLoad() { // DOM is loaded and ready
         else {
             const get_url = "/get/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
             fetch(get_url)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                    }
+                    return response.json();
+                }
+                )
                 .then(data => {
-                    const name = data['name'];
-                    const code = data['code'];
-                    previewCode.value = code;
-                    updateCachedScripts(selectedValue, name, code);
-                    handleVisibility();
+                    const error = data['error'];
+                    if (error) {
+                        alert(error);
+                    }
+                    else {
+                        const name = data['name'];
+                        const code = data['code'];
+                        previewCode.value = code;
+                        updateCachedScripts(selectedValue, name, code);
+                        handleVisibility();
+                    }
                 });
         }
     }
@@ -213,7 +220,13 @@ function onLoad() { // DOM is loaded and ready
                             "headers": {"Content-Type": "application/json"},
                             "body": JSON.stringify(dataSend)};
         fetch(delete_url, delete_arg)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                }
+                return response.json();
+            }
+            )
             .then(data => {
                 const error = data['error'];
                 if (error) {
@@ -249,10 +262,22 @@ function onLoad() { // DOM is loaded and ready
                          "body": JSON.stringify(dataSend)};
 
         fetch(add_url, add_arg)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                }
+                return response.json();
+            }
+            )
             .then(data => {
-                const newScriptValue = data['id'];
-                addOptionToUsersScripts(newScriptName, newScriptValue);
+                const error = data['error'];
+                if (error) {
+                    alert(error);
+                }
+                else {
+                    const newScriptValue = data['id'];
+                    addOptionToUsersScripts(newScriptName, newScriptValue);
+                }
             }
         );
 
@@ -265,7 +290,17 @@ function onLoad() { // DOM is loaded and ready
             return;
         }
         const selectedValue = selectedValues[0];
-        window.location.pathname = ('/simulate/' + selectedValue);
+
+        const get_url = "/simulate/" + selectedValue;  // XXX use Jinja2: {{ url_for("get") | tojson }}
+        fetch(get_url)
+            .then(response => {
+                if (!response.ok) {
+                    alert(`HTTP error: ${response.statusText} (${response.status})`);
+                    return;
+                }
+                window.location.pathname = ('/simulate/' + selectedValue);
+            });
+
 
         // // const dataSend = {'id': selectedValue};
         // const open_url = "/open/" + selectedValue;  // XXX use Jinja2: {{ url_for("delete") | tojson }}

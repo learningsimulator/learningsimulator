@@ -5,6 +5,18 @@ How to migrate
 - (`flask db stamp head`) if above gives error `ERROR [flask_migrate] Error: Target database is not up to date.` 
 - `flask db upgrade`
 
+
+How to migrate PythonAnywhere (https://blog.pythonanywhere.com/158/)
+--------------------------------------------------------------------
+In bash shell (with venv):
+
+- `flask db migrate`
+- `flask db stamp head`
+- (`flask db migrate` should now give "No changes in schema detected")
+- `flask db upgrade`
+- Reload-button
+
+
 SQL
 ---
 - Run "MySQL Shell" (file mysqlsh.exe in C:\Program Files\MySQL\MySQL Shell 8.0\bin)

@@ -1,11 +1,3 @@
-SimulationTask.is_done måste sättas till True vid fel
-(för att undvika "There is an ongoing simulation")
-
-Se till att Sim-object tas bort (eller sätter is_done till True) vid db-problem samt vid t.ex. inloggning/utloggning, för
-att undvika "There is an ongoing simulation"
-
-Säkra upp koden mot alla db-problem.
-
 Förstå de två PythonAnywhere db configs:
     app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
     app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
@@ -33,8 +25,6 @@ Ta bort simulation (sätt is_donw till True) vid ALLA sorts fel så att inte  "T
 Varför fortsätter /get_sim_status även efter man klickat "Cancel" i progress dlg? Kolla om det är så.
 
 "Change password"-feature
-
-How to generate password as admin?
 
 Should it be "Name" or "User name" in user account?
 
@@ -97,6 +87,11 @@ Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
 ------------------------------------------------------------------------
+X Säkra upp koden mot alla db-problem.
+
+X Se till att Sim-object tas bort (eller sätter is_done till True) vid db-problem samt vid t.ex. inloggning/utloggning, för
+X att undvika "There is an ongoing simulation"
+
 X När is_done sätts till True, clear message1, and set progress1 to 0
 
 X Hur kan en nyreggad användare få "There is an ongoing simulation"?
@@ -160,6 +155,11 @@ Move "Default legend position", "Default colors", "Default plot size" to "My Pre
 "Plot as" switch buttons instead of drop-down
 
 Log-window?
+
+In admin view, add a "generate hashed password"-feature using
+    from werkzeug.security import generate_password_hash
+    hashed = generate_password_hash(password, method='scrypt'))
+
 
 Inspiration:
 https://plotly.com/javascript/configuration-options/ - especially "editable mode"

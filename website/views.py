@@ -236,7 +236,7 @@ def save_settings():
     try:
         db.session.commit()
         # flash('Settings saved!', category='success')
-    except sqlalchemy.exc.DataError as e:
+    except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
         err = f"There was an error saving the settings:\n{e.args[0]}"
     return {'error': err}
@@ -255,6 +255,7 @@ def save_script():
     name = request.json['name']
     code = request.json['code']
     script_to_update = DBScript.query.get_or_404(id)
+    print(script_to_update)
     err = validate_script(name, id)
     if err:
         return {'error': err}
@@ -265,7 +266,7 @@ def save_script():
         try:
             db.session.commit()
             # flash('Script saved!', category='success')
-        except Exception as e:
+        except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
             err = f"There was an error saving the script: {e}"
         return {'error': err}
@@ -283,7 +284,7 @@ def add():
     db.session.add(new_script)
     db.session.commit()
     # flash('Script added!', category='success')
-    return {'id': new_script.id, 'errors': err}
+    return {'id': new_script.id, 'error': err}
 
 
 @views.route('/delete', methods=['POST'])
@@ -294,10 +295,10 @@ def delete():
         try:
             db.session.delete(script_to_delete)
             db.session.commit()
-        except Exception as e:
+        except sqlalchemy.exc.SQLAlchemyError as e:
             err = "There was a problem deleting that script: " + str(e)
-            return {'errors': err}
-    return {'errors': None}
+            return {'error': err}
+    return {'error': None}
 
 
 class ProgressWeb():
@@ -480,6 +481,12 @@ def delete_all_files_in(dir):
 @views.route('/simulate/<int:id>', methods=['GET'])
 @login_required
 def simulate(id):
+
+    # If ongoing simulation at reload, stop it
+    sim_status = get_sim_status()
+    if not sim_status['is_done']:
+        stop_simulation()
+
     # Delete image files in users img dir
     _, img_dir = get_user_img_dir()
     delete_all_files_in(img_dir)

@@ -238,12 +238,11 @@ function onLoad() { // DOM is loaded and ready
         try {
             // Since this function should return is_done, we have to wait for the Promise "response" to resolve
             const response = await fetch(get_url);  
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
+            if (!response.ok) {  // For example database server is down
+                throw new Error(`HTTP error: ${response.statusText} (${response.status})`);
             }
             const data = await response.json();
             return data['is_done'];
-            // return data;
         }
         catch (error) {
             alert(`Could not get simulation status: ${error}`);
@@ -251,12 +250,11 @@ function onLoad() { // DOM is loaded and ready
         }
     }
 
-    // When the user clicks on <span> (x), close the error dialog
-    progressDlgClose.onclick = function() {
-        progressDlgModalBg.style.display = "none";
-    }
+    // When the user clicks "Close" or on <span> (x), close the error dialog
+    progressDlgClose.onclick = closeErrorDlg;
+    progressDlgCancel.onclick = closeErrorDlg;
 
-    progressDlgCancel.onclick = function() {
+    function closeErrorDlg() {
         const url = "/stop_simulation";
         fetch(url)
             .then(response => response.json())
@@ -394,7 +392,13 @@ function onLoad() { // DOM is loaded and ready
     settingsDlgOK.onclick = function() {
         settings.readFromUI();
         settings.saveToDB()
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                }
+                return response.json();
+            }
+            )
             .then(data => {
                 const error = data['error'];
                 if (error) {
@@ -403,8 +407,7 @@ function onLoad() { // DOM is loaded and ready
                 else {
                     settingsDlgModalBg.style.display = "none";
                 }
-            }
-        );
+            })
     }
 
     // When the user clicks on Cancel, close the settings dialog
@@ -500,14 +503,14 @@ function onLoad() { // DOM is loaded and ready
                           "body": JSON.stringify(dataSend)};
         try {
             const response = await fetch(save_url, save_arg);
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
+            if (!response.ok) {  // For example database server is down
+                throw new Error(`HTTP error: ${response.statusText} (${response.status})`);
             }
             const data = await response.json();
             return data;
         }
-        catch (error) {
-            alert(`Could not save script: ${error}`);
+        catch (error) {  // Failed to fetch
+            return {error: `Could not save script: ${error}`};
         }
     }
 
@@ -531,6 +534,9 @@ function onLoad() { // DOM is loaded and ready
     async function runButtonClicked(textareaID, isDemo) {
         // Check if there is an ongoing simluation
         const isDone = await getSimulationTaskDone();
+        if (isDone === null) {
+            return;
+        }
         if (isDone === false) {
             alert("There is already an ongoing simulation.");
             return;
