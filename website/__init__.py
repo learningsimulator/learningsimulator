@@ -32,8 +32,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # XXX Possibly fixing "Lost connection to MySQL server during query"?
-    app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
-    app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
+    # app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
+    # app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
 
     # CORS(app)
 
