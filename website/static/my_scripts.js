@@ -29,6 +29,10 @@ function onLoad() { // DOM is loaded and ready
 
     handleVisibility();
 
+    function networkErrorMsg(response) {  // XXX Duplicated from index.js
+        return `Network response was not ok: ${response.statusText} (${response.status})`
+    }
+
     /* Get the values in the current selection in the users scripts list. */
     function getSelectedUserScripts() {
         return Array.from(usersScripts.querySelectorAll("option:checked"), e => e.value);
@@ -91,7 +95,7 @@ function onLoad() { // DOM is loaded and ready
             fetch(get_url)
                 .then(response => {
                     if (!response.ok) {
-                        return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                        return {error: networkErrorMsg(response)}
                     }
                     return response.json();
                 }
@@ -222,7 +226,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(delete_url, delete_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                    return {error: networkErrorMsg(response)}
                 }
                 return response.json();
             }
@@ -264,7 +268,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(add_url, add_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                    return {error: networkErrorMsg(response)}
                 }
                 return response.json();
             }
@@ -295,7 +299,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url)
             .then(response => {
                 if (!response.ok) {
-                    alert(`HTTP error: ${response.statusText} (${response.status})`);
+                    alert(networkErrorMsg(response));
                     return;
                 }
                 window.location.pathname = ('/simulate/' + selectedValue);

@@ -94,6 +94,7 @@ class Run():
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
+            # print(subject_ind)
             prev_phase_label = None  # For phases progress
             if progress:
                 if progress.get_n_runs() > 1:

@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", onLoad);
 
 
-
 function onLoad() { // DOM is loaded and ready
 
     // Check that this is home.html
@@ -58,6 +57,10 @@ function onLoad() { // DOM is loaded and ready
 
     settingsDlgPlotType.addEventListener("change", settingsDlgPlotTypeCb);
     settingsDlgFileTypeMpl.addEventListener("change", settingsDlgFileTypeMplCb);
+
+    function networkErrorMsg(response) {
+        return `Network response was not ok: ${response.statusText} (${response.status})`
+    }
 
     function settingsDlgPlotTypeCb() {
         if (settingsDlgPlotType.value === "image") {
@@ -228,7 +231,9 @@ function onLoad() { // DOM is loaded and ready
                 const message1 = data['message1'];
                 const progress1 = data['progress1'];
                 progressDlgMsg.textContent = message1;
-                progressDlgBar.style.width = progress1 + "%";
+                if (progress1) {  // progress1 is None if error from server 
+                    progressDlgBar.style.width = progress1 + "%";
+                }
             }
         );
     }
@@ -239,7 +244,7 @@ function onLoad() { // DOM is loaded and ready
             // Since this function should return is_done, we have to wait for the Promise "response" to resolve
             const response = await fetch(get_url);  
             if (!response.ok) {  // For example database server is down
-                throw new Error(`HTTP error: ${response.statusText} (${response.status})`);
+                throw new Error(networkErrorMsg(response));
             }
             const data = await response.json();
             return data['is_done'];
@@ -251,21 +256,32 @@ function onLoad() { // DOM is loaded and ready
     }
 
     // When the user clicks "Close" or on <span> (x), close the error dialog
-    progressDlgClose.onclick = closeErrorDlg;
-    progressDlgCancel.onclick = closeErrorDlg;
+    progressDlgClose.onclick = stopSimulation;
+    progressDlgCancel.onclick = stopSimulation;
 
-    function closeErrorDlg() {
+    function stopSimulation() {
+        closeProgressDlg();
+
         const url = "/stop_simulation";
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                // const err = data['err'];
-                // if (err) {
-                //     alert(err);
-                // }
-                progressDlgModalBg.style.display = "none";
-            }
-        );
+        try {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(networkErrorMsg(response));
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const err = data['err'];
+                    if (err) {
+                        alert(err);
+                    }
+                }
+            );
+        }
+        catch (error) {
+            alert(error);   
+        }
     }
 
     // ==================================================================================================
@@ -294,24 +310,34 @@ function onLoad() { // DOM is loaded and ready
             const settingsId = usersScriptCode.dataset.settingsid;
 
             const get_url = "/get_settings/" + settingsId;  // XXX use Jinja2: {{ url_for("get") | tojson }}
-            fetch(get_url)
-                .then(response => response.json())
-                .then(data => {
-                    this.plot_type = data['plot_type'];
-                    this.file_type_mpl = data['file_type_mpl'];
-                    this.file_type_plotly = data['file_type_plotly'];
-                    this.plot_orientation = data['plot_orientation'];
-                    this.plot_width = data['plot_width'];
-                    this.plot_height = data['plot_height'];
-                    // this.legend_x = data['legend_x'];
-                    // this.legend_y = data['legend_y'];
-                    // this.legend_x_anchor = data['legend_x_anchor'];
-                    // this.legend_y_anchor = data['legend_y_anchor'];
-                    this.legend_orientation = data['legend_orientation'];
-                    this.paper_color = data['paper_color'];
-                    this.plot_bgcolor = data['plot_bgcolor'];
-                }
-            );
+            try {
+                fetch(get_url)
+                    .then(response => {
+                        if (!response.ok) {  // For example database server is down
+                            throw new Error(networkErrorMsg(response));
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.plot_type = data['plot_type'];
+                        this.file_type_mpl = data['file_type_mpl'];
+                        this.file_type_plotly = data['file_type_plotly'];
+                        this.plot_orientation = data['plot_orientation'];
+                        this.plot_width = data['plot_width'];
+                        this.plot_height = data['plot_height'];
+                        // this.legend_x = data['legend_x'];
+                        // this.legend_y = data['legend_y'];
+                        // this.legend_x_anchor = data['legend_x_anchor'];
+                        // this.legend_y_anchor = data['legend_y_anchor'];
+                        this.legend_orientation = data['legend_orientation'];
+                        this.paper_color = data['paper_color'];
+                        this.plot_bgcolor = data['plot_bgcolor'];
+                    }
+                );
+            }
+            catch (error) {
+                alert(error);
+            }
         }
 
         readFromUI() {
@@ -394,7 +420,7 @@ function onLoad() { // DOM is loaded and ready
         settings.saveToDB()
             .then(response => {
                 if (!response.ok) {
-                    return {error: `HTTP error: ${response.statusText} (${response.status})`}
+                    return {error: networkErrorMsg(response)}
                 }
                 return response.json();
             }
@@ -504,13 +530,13 @@ function onLoad() { // DOM is loaded and ready
         try {
             const response = await fetch(save_url, save_arg);
             if (!response.ok) {  // For example database server is down
-                throw new Error(`HTTP error: ${response.statusText} (${response.status})`);
+                throw new Error(networkErrorMsg(response));
             }
             const data = await response.json();
             return data;
         }
-        catch (error) {  // Failed to fetch
-            return {error: `Could not save script: ${error}`};
+        catch (err) {  // Failed to fetch
+            return {error: err};
         }
     }
 
@@ -538,7 +564,7 @@ function onLoad() { // DOM is loaded and ready
             return;
         }
         if (isDone === false) {
-            alert("There is already an ongoing simulation.");
+            alert("There is already an ongoing simulation.\n\nIf this happened despite no ongoing simulation, save your script and refresh the page.");
             return;
         }
 
@@ -724,7 +750,7 @@ function onLoad() { // DOM is loaded and ready
                 chartDiv.style.height = settings.plot_height + "px";  // "300px";
                 chartDiv.style.resize = "both";
                 chartDiv.style.overflow = "hidden";
-                chartDiv.style.border = "3px solid green";
+                chartDiv.style.border = "1px solid black";
 
                 if (plotArea.id === 'plotarea-horiz') {
                     chartDiv.style.float = "left";
@@ -804,7 +830,7 @@ function onLoad() { // DOM is loaded and ready
                 const filenameNoPath = cmd['filename_no_path'];
 
                 var downloadableFileName = document.createElement('span');
-                downloadableFileName.className = 'underline-on-hover'
+                downloadableFileName.className = 'exported-file-name'
                 let filenameText = document.createTextNode(filenameNoPath);
                 downloadableFileName.appendChild(filenameText);
                 downloadableFileName.addEventListener('click', () => downloadExportFile(filenameNoPath))
@@ -813,11 +839,14 @@ function onLoad() { // DOM is loaded and ready
                 exportDiv.appendChild(document.createElement('br'));
             }
 
+            var exportCloseButtonSpan = document.createElement('span');
+            exportCloseButtonSpan.className = 'exported-files-delete'
             let exportDivCloseButton = document.createElement('button');
             exportDivCloseButton.dataset.id = exportDiv.id;  // So that close button knows which figure to close
-            exportDivCloseButton.innerText = "Delete";
+            exportDivCloseButton.innerText = "Delete files";
             exportDivCloseButton.addEventListener('click', closeExport);
-            exportDiv.appendChild(exportDivCloseButton);
+            exportCloseButtonSpan.appendChild(exportDivCloseButton);
+            exportDiv.appendChild(exportCloseButtonSpan);
 
             plotArea.appendChild(exportDiv);
         }
@@ -883,7 +912,11 @@ function onLoad() { // DOM is loaded and ready
         for (let i = 0; i < figImgs.length; i++)  {
             let chartDiv = document.createElement('div');
             chartDiv.id = "div-mpld3_" + makeRandomString(10);
-            chartDiv.style.border = "3px solid blue";
+            chartDiv.style.border = "1px solid black";
+
+            if (plotArea.id === 'plotarea-horiz') {
+                chartDiv.style.float = "left";
+            }
 
             let chartImg;
             if (settings.file_type_mpl === 'pdf') {

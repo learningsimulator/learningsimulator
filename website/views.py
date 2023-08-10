@@ -238,7 +238,7 @@ def save_settings():
         # flash('Settings saved!', category='success')
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
-        err = f"There was an error saving the settings:\n{e.args[0]}"
+        err = f"Error when saving the settings:\n{e}"
     return {'error': err}
 
 
@@ -255,7 +255,6 @@ def save_script():
     name = request.json['name']
     code = request.json['code']
     script_to_update = DBScript.query.get_or_404(id)
-    print(script_to_update)
     err = validate_script(name, id)
     if err:
         return {'error': err}
@@ -268,7 +267,7 @@ def save_script():
             # flash('Script saved!', category='success')
         except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
-            err = f"There was an error saving the script: {e}"
+            err = f"There was an error saving the script:\n{e}"
         return {'error': err}
 
 
@@ -282,8 +281,14 @@ def add():
                           code=code,
                           user_id=current_user.id)
     db.session.add(new_script)
-    db.session.commit()
-    # flash('Script added!', category='success')
+    err = None
+    try:
+        db.session.commit()
+        # flash('Script added!', category='success')
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        # If database server is down, this method add() cannot even be called
+        # because of @login_required (which calls current_user)
+        err = f"Error when adding script:\n{e}"
     return {'id': new_script.id, 'error': err}
 
 
@@ -296,7 +301,7 @@ def delete():
             db.session.delete(script_to_delete)
             db.session.commit()
         except sqlalchemy.exc.SQLAlchemyError as e:
-            err = "There was a problem deleting that script: " + str(e)
+            err = f"Error when deleting script:\n{e}"
             return {'error': err}
     return {'error': None}
 
@@ -402,12 +407,17 @@ def run():
 
 @views.route('/get_sim_status')
 def get_sim_status():
-    db.session.commit()
-    id = current_user.simulation_task_id
-    task_to_read = SimulationTask.query.get_or_404(id)
-    message1 = task_to_read.message1
-    progress1 = task_to_read.progress1
-    is_done = task_to_read.is_done
+    try:
+        db.session.commit()
+        id = current_user.simulation_task_id
+        task_to_read = SimulationTask.query.get_or_404(id)
+        message1 = task_to_read.message1
+        progress1 = task_to_read.progress1
+        is_done = task_to_read.is_done
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        message1 = f"Could not get simulation status."
+        progress1 = None
+        is_done = True
     return {'message1': message1, 'progress1': progress1,
             'is_done': is_done}
 
@@ -417,8 +427,13 @@ def stop_simulation():
     id = current_user.simulation_task_id
     db_task = SimulationTask.query.get_or_404(id)
     db_task.stop_clicked = True
-    db.session.commit()
-    return {'err': None}
+    db_task.is_done = True  # Needed when called from simulate(id)
+    err = None
+    try:
+        db.session.commit()
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        err = f"Error when stopping simulation:\n{e}"
+    return {'err': err}
 
 
 @views.route('/run_mpl_fig', methods=['POST'])

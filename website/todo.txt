@@ -1,21 +1,13 @@
-Exported files should appear in its own "frame", and 
-"Delete" should maybe say "Delete exported files".
-
-När man trycker "Cancel" eller (X) i progressdlg, skriv "Cancelling simulation..."
-i message1 DIREKT (verkar mer responsivt)
-
-try/except för get_sim_status så att simuleringen funkar trots db problem vid progress status.
-
-Uniform styling of buttons (hovering color, click color, etc.)
-
-Använd app.config['X'] isf "import X from config"
-( I __init__: app.config.from_pyfile('config.cfg') som i https://www.youtube.com/watch?v=0cySORIhkCg)
-
 Use 
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
 for ALL fetches
+
+Uniform styling of buttons (hovering color, click color, etc.)
+
+Använd app.config['X'] isf "import X from config"
+( I __init__: app.config.from_pyfile('config.cfg') som i https://www.youtube.com/watch?v=0cySORIhkCg)
 
 Should it be "Name" or "User name" in user account?
 
@@ -24,13 +16,20 @@ Tabbed layout with current script on one tab and demo script on the other
 
 Snyggare inloggningsskärm /login - testa "Remember me"
 
+favicon
 
+// XXX use Jinja2: {{ url_for("get") | tojson }}
+
+Better names of divs
 
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
 Editor: Search/Replace
 Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
 Editor: Import demo script (replaces content of entire script window) - warn if nonempty
+
+Make util.js used from both my_scripts.js and index.js and put for
+example networkErrorMsg(response) in it
 
 "Change password"-feature
 
@@ -72,7 +71,17 @@ Move (all) inline styling to css
 Report problems - link to GH Issues, maybe landing page
 Link to project page (somewhere, maybe landing page)
 
+Make regression tests
+
 ------------------------------------------------------------------------
+X try/except för get_sim_status så att simuleringen funkar trots db problem vid progress status.
+
+X När man trycker "Cancel" eller (X) i progressdlg, skriv "Cancelling simulation..."
+X i message1 DIREKT (verkar mer responsivt). Eller stäng den direkt.
+
+X Exported files should appear in its own "frame", and 
+X "Delete" should maybe say "Delete exported files".
+
 X Hide db passwd, SECRET_KEY, etc.
 
 X Make Navbar nice (with Bg-color) "Home, My Scripts, Log out" 

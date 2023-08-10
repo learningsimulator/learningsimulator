@@ -1,17 +1,5 @@
-/* body {
-    font-family:'Courier New', Courier, monospace;
-} */
-
 .row {
   height: 450px;
-  border: #000;
-  border-style: solid;
-  /* overflow-x: auto; */
-  /* overflow-y: hidden; */
-  /* display: inline-block;  */
-  /* white-space: nowrap; */
-  /* float:left; */
-  /* display:flex; */
 }
 
 /* Create three unequal columns that floats next to each other */
@@ -27,14 +15,13 @@
   padding: 5px;
   height: 600px;
   width: 600px;
-  border: 1px solid red;
+  border: 1px solid black;
   resize: both;
   overflow: hidden;
 }
 .right {
-  padding: 5px;
+  padding-left: 5px;
   width: auto;
-  border: 3px solid green;
 }
 .preview {
   margin-left: 5px;
@@ -142,8 +129,6 @@ input[type=checkbox] {
   margin-top: 5px;
   margin-bottom: 5px;
   height: calc(100% - 130px);
-
-  /* border: 2px solid blue; */
 }
 
 button {
@@ -167,12 +152,12 @@ button {
   background-color: #4CAF50;
   border: none;
   color: white;
-  padding: 13px 30px;
+  padding: 10px 30px;
   text-align: center;
   border-radius: 6px;
   font-size: 16px;
   margin-bottom: 4px;
-  margin-left: 2px;
+  margin-left: 0px;
   font-family: verdana, sans-serif;
 }
 
@@ -181,8 +166,8 @@ button {
   background-color: #4CAF50;
   border: none;
   color: white;
-  padding-top: 13px;
-  padding-bottom: 13px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   text-align: center;
   border-radius: 6px;
   font-size: 16px;
@@ -195,8 +180,8 @@ button {
   background-color: #4CAF50;
   border: none;
   color: white;
-  padding-top: 13px;
-  padding-bottom: 13px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   text-align: center;
   border-radius: 6px;
   font-size: 16px;
@@ -217,12 +202,13 @@ button {
   font-family: verdana, sans-serif;
 }
 
-.close-button-export > button {
-  display: none;
+.close-button-export {
+  border: 1px solid #000;
+  border-style: solid;
+  margin-top: 5px;
+  padding-bottom: 5px;
 }
-.close-button-export:hover > button {
-  display: block;
-}
+
 .close-button-plot button {
   display: none;
 }
@@ -230,9 +216,17 @@ button {
   display: block;
 }
 
-.underline-on-hover:hover {
+.exported-file-name {
+  padding: 5px;
+}
+
+.exported-file-name:hover {
   text-decoration: underline;
   color: blue;
+}
+
+.exported-files-delete {
+  margin: 5px;
 }
 
 legend {
