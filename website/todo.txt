@@ -1,13 +1,10 @@
-Use 
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-for ALL fetches
+All validation:
+- Begränsa storlek på plot (width, height validate)
+- Begränsa längd på filnamn i export
+- Check that html element constraints (min, max values, string lengths, required, etc) match db
+  -1 < legend_{x,y} < 2 kanske?
 
-Uniform styling of buttons (hovering color, click color, etc.)
-
-Använd app.config['X'] isf "import X from config"
-( I __init__: app.config.from_pyfile('config.cfg') som i https://www.youtube.com/watch?v=0cySORIhkCg)
+Ctrl-S in script editor should save
 
 Should it be "Name" or "User name" in user account?
 
@@ -20,7 +17,15 @@ favicon
 
 // XXX use Jinja2: {{ url_for("get") | tojson }}
 
-Better names of divs
+Better names of divs, better class names
+
+"Script ... saved" flash (how to use on same page)
+https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
+
+Test accessibility bugs:
+https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
+
+
 
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
@@ -28,35 +33,26 @@ Editor: Search/Replace
 Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
 Editor: Import demo script (replaces content of entire script window) - warn if nonempty
 
+After merge of branch for "@figure ... filename: foo.txt": Add download of
+these files, like @export:ed files
+
+Add lesim icon to "Home" in navbar
+
 Make util.js used from both my_scripts.js and index.js and put for
 example networkErrorMsg(response) in it
 
-"Change password"-feature
-
-Logga in/ut uppe till höger - kanske med användarnamnet
-
-Begränsa storlek på plot (width, height validate)
-
-Begränsa längd på filnamn i export
-
-Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
+One issue:
+- "Change password"-feature
+- Logga in/ut uppe till höger - kanske med användarnamnet
+- Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
 
 start_at_1
-
-Check that html element constraints (min, max values, string lengths, required, etc) match db
--1 < legend_{x,y} < 2 kanske?
-
-"Script ... saved" flash (how to use on same page)
-https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
 
 Plot: "Download" button for mpl image plots (instead of having to right-click and save image as)
 
 Plot: Subplot titles workaround
 (https://stackoverflow.com/questions/51592730/how-to-add-title-to-each-subplot-in-plotly-js, 
 https://codepen.io/mdnasirfardoush/pen/gjovjO?editors=1010)
-
-Test accessibility bugs:
-https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
 A clickable question-mark icon for help on some settings, at least plotly/mpl.
 (Include "This is the DEFAULT setting - it can be changed in each plot interactively
@@ -74,6 +70,17 @@ Link to project page (somewhere, maybe landing page)
 Make regression tests
 
 ------------------------------------------------------------------------
+X Använd app.config.from_pyfile('config.py') isf "import X from config"
+X (https://www.youtube.com/watch?v=0cySORIhkCg)
+
+X Uniform styling of buttons (hovering color, click color, etc.)
+
+X Use 
+X     if (!response.ok) {
+X         throw new Error('Network response was not ok');
+X     }
+X for ALL fetches
+
 X try/except för get_sim_status så att simuleringen funkar trots db problem vid progress status.
 
 X När man trycker "Cancel" eller (X) i progressdlg, skriv "Cancelling simulation..."

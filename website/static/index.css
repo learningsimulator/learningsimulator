@@ -1,9 +1,18 @@
+body {
+  /* #E9F1FA Light blue */
+  /* #00ABE4 Bright blue */
+  /* #f6fafd Very light blue - almost white */
+  /* #e3f2fd Navbar */
+  background: #f6fafd;
+}
+
 .row {
   height: 450px;
 }
 
 /* Create three unequal columns that floats next to each other */
 .column {
+  /* background: #00ABE4; */
   float: left;
 }
 .left {
@@ -57,14 +66,14 @@
 
 /* Font in list of script names */
 #select-userscripts, #select-demoscripts {
-    width: 100%;
-    height: calc(100% - 70px);
-    font-family: 'Courier New', Courier, monospace;
-    margin-bottom: 4px;
+  width: 100%;
+  height: calc(100% - 70px);
+  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 4px;
 }
 
 #button-deletescript {
-    float: right;
+  float: right;
 }
 
 #button-createscript {
@@ -93,7 +102,9 @@
 input[type=checkbox] {
   vertical-align: middle;
   margin-right: -1px;
-  accent-color: #4CAF50;  /* Background color in checkbox when selected */
+
+  /* Background color in checkbox when selected */
+  accent-color: #00ABE4;
 }
 
 /* Remove the outline displayed for a textarea upon selection */
@@ -128,78 +139,55 @@ input[type=checkbox] {
   display: flex;
   margin-top: 5px;
   margin-bottom: 5px;
-  height: calc(100% - 130px);
+  height: calc(100% - 125px);
 }
 
-button {
+button, input[type=submit] {
     cursor: pointer;
-    /* background-color: #4CAF50; */
+    background-color:#00ABE4;
+    border: none;
+    color: white;
+    text-align: center;
+    border-radius: 3px;
+    font-size: 16px;
+    margin-bottom: 4px;
+    margin-left: 0px;
+    /* font-family: verdana, sans-serif; */
 }
 
-#button-run:hover {
-    /* background-color:#002ead; */
-    background-color: green;
-    /* transition: 0.9s; */
+button:hover {
+  background-color:#0067e7;  
 }
 
-#button-run:active {
+button:active {
   background-color:#002ead;
-  /* background-color: green; */
-  /* transition: 0.9s; */
 }
 
 #button-run {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 10px 30px;
-  text-align: center;
-  border-radius: 6px;
-  font-size: 16px;
+  padding: 8px 30px;
   margin-bottom: 4px;
   margin-left: 0px;
-  font-family: verdana, sans-serif;
 }
 
 #button-settings {
   margin-left: -3px;
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  text-align: center;
-  border-radius: 6px;
-  font-size: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   margin-bottom: 4px;
-  font-family: verdana, sans-serif;
   width: 40px;
 }
 
 #button-closeall {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  text-align: center;
-  border-radius: 6px;
-  font-size: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   margin-bottom: 4px;
-  font-family: verdana, sans-serif;
 }
 
 #button-savescript {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
   padding-top: 3px;
   padding-bottom: 3px;
-  text-align: center;
-  border-radius: 6px;
   font-size: 20px;
   margin-left: 4px;
-  font-family: verdana, sans-serif;
 }
 
 .close-button-export {

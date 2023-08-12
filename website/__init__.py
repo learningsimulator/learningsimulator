@@ -5,36 +5,18 @@ from flask_login import LoginManager
 from werkzeug.routing import BaseConverter
 # from flask_cors import CORS
 
-from .config import FLASK_APP_SECRET_KEY, DB_USER, DB_PW, DB_HOST_ADDRESS, DB_NAME
-
 db = SQLAlchemy()
-# DB_NAME = "database.db"
-
 migrate = Migrate()
+
 
 def create_app():
     app = Flask(__name__)  # __name__ is 'website'
-    # app.url_map.converters['csv_list'] = ListConverter
 
-    # Used to encrypt the cookie and session data related to our web app
-    app.config['SECRET_KEY'] = FLASK_APP_SECRET_KEY
+    # Sets app.config[KEY] for the keys in config.py
+    app.config.from_pyfile('config.py')
 
-    # The MySQL db
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{DB_USER}:{DB_PW}@{DB_HOST_ADDRESS}/{DB_NAME}"
-
-    # The SQLite db
-    # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
-
-    # When running locally:
-    # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:hejsan123@localhost/db_weblesim'
-
-    # To avoid warning. We do not use the Flask-SQLAlchemy event system, anyway.
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # XXX Possibly fixing "Lost connection to MySQL server during query"?
-    # app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
-    # app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
-
+    # This enables CORS for all routes in the app, used when you want to allow or enable web pages
+    # from one domain to make requests to your Flask API, which is hosted on a different domain. 
     # CORS(app)
 
     db.init_app(app)
