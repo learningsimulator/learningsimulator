@@ -10,7 +10,7 @@
 
 <div class="column left" style="border: 1px solid black; resize: both; overflow: hidden;">
   <b>My scripts</b>
-  <button type="button" id="button-createscript">Create New</button>
+  <button type="button" id="button-createscript">Create new</button>
 
   <select multiple id="select-userscripts">
   {% if user.is_authenticated %}
@@ -21,7 +21,7 @@
   </select>
 
   {% if user.is_authenticated %}
-    <button type="button" id="button-deletescript">Delete Selected</button>
+    <button type="button" id="button-deletescript">Delete selected</button>
     <button type="button" id="button-openscript">Open</button>
   {% else %}
     <a href="/login">Login</a> to be able to create your own scripts here.

@@ -5,24 +5,23 @@ from sqlalchemy.sql import func
 
 from . import db  # From current package ("website") import db
 
-SCRIPTNAME_MAXLENGTH = 50
-CODE_MAXLENGTH = 10000
+from .global_variables import gvar
 
 
 class DBScript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_predef = db.Column(db.Integer, unique=True, nullable=True)  # Unique if not null
-    name = db.Column(db.String(SCRIPTNAME_MAXLENGTH))
-    code = db.Column(db.String(CODE_MAXLENGTH))
+    name = db.Column(db.String(gvar['SCRIPTNAME_MAXLENGTH']))
+    code = db.Column(db.String(gvar['CODE_MAXLENGTH']))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # null means predefined script
 
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     is_admin = db.Column(db.Boolean, default=False)
-    email = db.Column(db.String(150), unique=True)
-    password = db.Column(db.String(300))
-    username = db.Column(db.String(150))
+    email = db.Column(db.String(gvar['EMAIL_MAXLENGTH']), unique=True)
+    password = db.Column(db.String(gvar['PASSWORD_MAXLENGTH']))
+    username = db.Column(db.String(gvar['USERNAME_MAXLENGTH']))
     scripts = db.relationship('DBScript')
     settings_id = db.Column(db.Integer, db.ForeignKey('settings.id'), nullable=True, default=None)
     simulation_task_id = db.Column(db.Integer, db.ForeignKey('simulation_task.id'), nullable=True, default=None)

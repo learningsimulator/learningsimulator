@@ -51,14 +51,14 @@
         <div class="navbar-nav">
           {% if user.is_authenticated %}
             <a class="nav-item nav-link" id="home" style="margin-left:15px;" href="/">Home</a>
-            <a class="nav-item nav-link" id="my_scripts" href="/my_scripts">My Scripts</a>
-            <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
+            <a class="nav-item nav-link" id="my_scripts" href="/my_scripts">My scripts</a>
+            <a class="nav-item nav-link" id="logout" href="/logout">Log out</a>
             {% if user.is_admin %}
               <a class="nav-item nav-link" id="admin" href="/admin">Admin</a>
             {% endif %}  
           {% else %}
-            <a class="nav-item nav-link" id="login" style="margin-left:15px;" href="/login">Login</a>
-            <a class="nav-item nav-link" id="signUp" href="/sign_up">Sign Up</a>
+            <a class="nav-item nav-link" id="login" style="margin-left:15px;" href="/login">Log in</a>
+            <a class="nav-item nav-link" id="signUp" href="/sign_up">Sign up</a>
           {% endif %}
         </div>
       </div>

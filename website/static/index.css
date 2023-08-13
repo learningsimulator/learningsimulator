@@ -6,6 +6,27 @@ body {
   background: #f6fafd;
 }
 
+button, input[type=submit] {
+  cursor: pointer;
+  background-color:#00ABE4;
+  border: none;
+  color: white;
+  text-align: center;
+  border-radius: 3px;
+  font-size: 16px;
+  margin-bottom: 4px;
+  margin-left: 0px;
+  /* font-family: verdana, sans-serif; */
+}
+
+button:hover, input[type=submit]:hover {
+  background-color:#0067e7;  
+}
+
+button:active, input[type=submit]:active {
+  background-color:#002ead;
+}
+
 .row {
   height: 450px;
 }
@@ -90,6 +111,10 @@ body {
   flex: 1;
 }
 
+input:invalid {
+  border: 2px dashed red;
+}
+
 .form-error {
   color: red;
 }
@@ -140,27 +165,6 @@ input[type=checkbox] {
   margin-top: 5px;
   margin-bottom: 5px;
   height: calc(100% - 125px);
-}
-
-button, input[type=submit] {
-    cursor: pointer;
-    background-color:#00ABE4;
-    border: none;
-    color: white;
-    text-align: center;
-    border-radius: 3px;
-    font-size: 16px;
-    margin-bottom: 4px;
-    margin-left: 0px;
-    /* font-family: verdana, sans-serif; */
-}
-
-button:hover {
-  background-color:#0067e7;  
-}
-
-button:active {
-  background-color:#002ead;
 }
 
 #button-run {

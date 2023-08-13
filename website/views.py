@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 from .models import DBScript, Settings, User, SimulationTask
 from . import db
 from .demo_scripts import demo_scripts
+from .global_variables import gvar
 
 from exceptions import InterruptedSimulation
 
@@ -112,10 +113,14 @@ def dbadmin():
 #                            demo_script_names=demo_script_names)
 
 
-def validate_script(name, id=None):
+def validate_script(name, code, id=None):
     err = None
     if len(name) == 0:
         err = "Script name must not be empty."
+    elif len(name) > gvar['SCRIPTNAME_MAXLENGTH']:
+        err = f"Script name must not be longer than {gvar['SCRIPTNAME_MAXLENGTH']} characters."
+    elif len(code) > gvar['CODE_MAXLENGTH']:
+        err = f"Script must not be longer than {gvar['CODE_MAXLENGTH']} characters."
     else:
         if id is not None:
             id = int(id)
@@ -148,7 +153,6 @@ def get_settings(settings_id):
 
 
 def validate_settings(s):
-
     def is_hex_color(c):
         if len(c) != 4 and len(c) != 7:
             return False
@@ -164,27 +168,31 @@ def validate_settings(s):
 
     val = s['plot_type']
     if val not in ('plot', 'image'):
-        return PREFIX + "plot type: " + str(val)
+        return PREFIX + f"plot type: {str(val)}."
 
     val = s['file_type_mpl']
     if val not in ('png', 'jpg', 'svg', 'pdf'):
-        return PREFIX + "file type: " + str(val)
+        return PREFIX + f"file type: {str(val)}."
 
     val = s['file_type_plotly']
     if val not in ('png', 'jpeg', 'svg', 'webp'):
-        return PREFIX + "file type: " + str(val)
+        return PREFIX + f"file type: {str(val)}."
 
     val = s['plot_orientation']
     if val not in ('horizontal', 'vertical'):
-        return PREFIX + "plot orientation: " + str(val)
+        return PREFIX + f"plot orientation: {str(val)}."
 
     val, _ = ParseUtil.is_int(s['plot_width'])
-    if val is None or (val < 10 or val > 1000):
-        return PREFIX + "plot width: " + str(s['plot_width'])
+    if val is None:
+        return "Chart width not specified."
+    elif (val < gvar['PLOTWIDTH_MINLENGTH'] or val > gvar['PLOTWIDTH_MAXLENGTH']):
+        return PREFIX + f"chart width: {str(s['plot_width'])}. Width must be >= {gvar['PLOTWIDTH_MINLENGTH']} and <= {gvar['PLOTWIDTH_MAXLENGTH']}."
 
     val, _ = ParseUtil.is_int(s['plot_height'])
-    if val is None or (val < 10 or val > 1000):
-        return PREFIX + "plot height: " + str(s['plot_height'])
+    if val is None:
+        return "Chart height not specified."
+    elif (val < gvar['PLOTHEIGHT_MINLENGTH'] or val > gvar['PLOTHEIGHT_MAXLENGTH']):
+        return PREFIX + f"chart height: {str(s['plot_height'])}. Height must be >= {gvar['PLOTHEIGHT_MINLENGTH']} and <= {gvar['PLOTHEIGHT_MAXLENGTH']}."
 
     # val, _ = ParseUtil.is_float(s['legend_x'])
     # if val is None:
@@ -204,19 +212,16 @@ def validate_settings(s):
 
     val = s['legend_orientation']
     if val not in ('h', 'v'):
-        return PREFIX + "legend orientation: " + str(val)
+        return PREFIX + f"legend orientation: {str(val)}."
 
     val = s['paper_color']
     if not is_hex_color(val):
-        return PREFIX + "paper color: " + str(val)
+        return PREFIX + f"paper color: {str(val)}."
 
     val = s['plot_bgcolor']
     if not is_hex_color(val):
-        return PREFIX + "plot background color: " + str(val)
+        return PREFIX + f"plot background color: {str(val)}."
 
-    # val = s['keep_plots']
-    # if val not in (True, False):
-    #     return PREFIX + "keep plots: " + str(val)
     return None
 
 
@@ -255,7 +260,7 @@ def save_script():
     name = request.json['name']
     code = request.json['code']
     script_to_update = DBScript.query.get_or_404(id)
-    err = validate_script(name, id)
+    err = validate_script(name, code, id)
     if err:
         return {'error': err}
     else:
@@ -267,7 +272,7 @@ def save_script():
             # flash('Script saved!', category='success')
         except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
-            err = f"There was an error saving the script:\n{e}"
+            err = f"Error when saving script:\n{e}"
         return {'error': err}
 
 
@@ -276,7 +281,7 @@ def save_script():
 def add():
     name = request.json['name']
     code = request.json['code']
-    err = validate_script(name)
+    err = validate_script(name, code)
     new_script = DBScript(name=name,
                           code=code,
                           user_id=current_user.id)
@@ -288,6 +293,7 @@ def add():
     except sqlalchemy.exc.SQLAlchemyError as e:
         # If database server is down, this method add() cannot even be called
         # because of @login_required (which calls current_user)
+        db.session.rollback()
         err = f"Error when adding script:\n{e}"
     return {'id': new_script.id, 'error': err}
 
@@ -301,6 +307,7 @@ def delete():
             db.session.delete(script_to_delete)
             db.session.commit()
         except sqlalchemy.exc.SQLAlchemyError as e:
+            db.session.rollback()
             err = f"Error when deleting script:\n{e}"
             return {'error': err}
     return {'error': None}
@@ -432,6 +439,7 @@ def stop_simulation():
     try:
         db.session.commit()
     except sqlalchemy.exc.SQLAlchemyError as e:
+        db.session.rollback()
         err = f"Error when stopping simulation:\n{e}"
     return {'err': err}
 
@@ -515,4 +523,5 @@ def simulate(id):
     settings = Settings.query.get(current_user.settings_id)
 
     return render_template("simulate.html", user=current_user, settings=settings,
-                           script=script, demo_script_names=demo_script_names)
+                           script=script, demo_script_names=demo_script_names,
+                           gvar=gvar)

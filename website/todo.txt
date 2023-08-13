@@ -1,8 +1,4 @@
-All validation:
-- Begränsa storlek på plot (width, height validate)
-- Begränsa längd på filnamn i export
-- Check that html element constraints (min, max values, string lengths, required, etc) match db
-  -1 < legend_{x,y} < 2 kanske?
+For db errors in prod: "Error saving... Try again. If the problem persists, contact..."
 
 Ctrl-S in script editor should save
 
@@ -26,6 +22,7 @@ Test accessibility bugs:
 https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
 
+Move to separate private repo instead of merging to master
 
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
@@ -70,6 +67,11 @@ Link to project page (somewhere, maybe landing page)
 Make regression tests
 
 ------------------------------------------------------------------------
+X All validation:
+X - Begränsa storlek på plot (width, height validate)
+X - Begränsa längd på filnamn i export
+X - Check that html element constraints (min, max values, string lengths, required, etc) match db
+
 X Använd app.config.from_pyfile('config.py') isf "import X from config"
 X (https://www.youtube.com/watch?v=0cySORIhkCg)
 

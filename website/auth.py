@@ -70,13 +70,12 @@ def sign_up():
         
         try:
             db.session.commit()
-            # add_relations_to_user(new_user)
             flash("Account created!", category='success')
             login_user(new_user, remember=True)
             add_relations_to_user(new_user)
             return redirect(url_for('views.my_scripts'))
-        except Exception as e:
+        except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
-            flash(f"There was an error adding the user: {e}", category='error')
+            flash(f"Error adding user: {e}", category='error')
 
     return render_template("sign_up.html", form=form, user=current_user)

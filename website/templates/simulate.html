@@ -36,7 +36,7 @@ Learning Simulator
 
     <div id="div-scriptname">
       <!-- <label for="input-scriptname">Name of script:&nbsp;</label> -->
-      <input id="input-scriptname" maxlength="50" minlength="3" type="text" value="{{ script.name }}" required>
+      <input id="input-scriptname" maxlength="{{ gvar['SCRIPTNAME_MAXLENGTH'] }}" minlength="1" type="text" value="{{ script.name }}" required>
       <button type="button" id="button-savescript" title="Save script">
         <i style="color: white" class="fa fa-save"></i>
       </button>
@@ -44,7 +44,7 @@ Learning Simulator
 
     <div id="editor">
       <textarea id='linecounter' wrap='off' readonly>1</textarea>
-      <textarea id="textarea-code" maxlength="10000" wrap="off"
+      <textarea id="textarea-code" maxlength="{{ gvar['CODE_MAXLENGTH'] }}" wrap="off"
                 data-scriptid="{{ script.id }}"
                 data-settingsid="{{ settings.id }}">{{ script.code }}</textarea>
     </div>
