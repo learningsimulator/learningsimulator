@@ -98,13 +98,6 @@ def amend_export_filenames(cmds):
             cmd.parameters.set_filename(abspath_filename)
 
 
-@views.route('/dbadmin', methods=['GET'])
-def dbadmin():
-    all_users = User.query.all()
-    all_settings = Settings.query.all()
-    return render_template("dbadmin.html", all_users=all_users, all_settings=all_settings)
-
-
 # @views.route('/', methods=['GET'])
 # def home():
 #     demo_script_names = [script['name'] for script in demo_scripts]
@@ -240,7 +233,6 @@ def save_settings():
     err = None
     try:
         db.session.commit()
-        # flash('Settings saved!', category='success')
     except sqlalchemy.exc.SQLAlchemyError as e:
         db.session.rollback()
         err = f"Error when saving the settings:\n{e}"
@@ -269,7 +261,6 @@ def save_script():
         err = None
         try:
             db.session.commit()
-            # flash('Script saved!', category='success')
         except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
             err = f"Error when saving script:\n{e}"
@@ -289,7 +280,6 @@ def add():
     err = None
     try:
         db.session.commit()
-        # flash('Script added!', category='success')
     except sqlalchemy.exc.SQLAlchemyError as e:
         # If database server is down, this method add() cannot even be called
         # because of @login_required (which calls current_user)

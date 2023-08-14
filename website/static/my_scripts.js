@@ -2,6 +2,17 @@ document.addEventListener("DOMContentLoaded", onLoad);
 
 function onLoad() { // DOM is loaded and ready
 
+    // If there are any flash divs displayed, make them fade out
+    var flashDivs = document.getElementsByClassName("alert");
+    for (var flashDiv of flashDivs) {
+        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
+
+        // Start fading out after 1000 ms
+        setTimeout(function() {
+            flashDiv.style.opacity = '0';
+        }, 1000);
+    }
+
     const usersScripts = document.getElementById('select-userscripts');
     const createButton = document.getElementById('button-createscript');
     const deleteButton = document.getElementById('button-deletescript');
@@ -29,8 +40,8 @@ function onLoad() { // DOM is loaded and ready
 
     handleVisibility();
 
-    function networkErrorMsg(response) {  // XXX Duplicated from index.js
-        return `Network response was not ok: ${response.statusText} (${response.status})`
+    function networkErrorMsg(response, err) {
+        return `${err} Network response was not ok: ${response.statusText} (${response.status}) \n\n Please try again. If the problem persists, contact support.`
     }
 
     /* Get the values in the current selection in the users scripts list. */
@@ -95,7 +106,7 @@ function onLoad() { // DOM is loaded and ready
             fetch(get_url)
                 .then(response => {
                     if (!response.ok) {
-                        return {error: networkErrorMsg(response)}
+                        return {error: networkErrorMsg(response, "Error reading script.")}
                     }
                     return response.json();
                 }
@@ -226,7 +237,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(delete_url, delete_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: networkErrorMsg(response)}
+                    return {error: networkErrorMsg(response, "Error deleting script.")}
                 }
                 return response.json();
             }
@@ -268,7 +279,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(add_url, add_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: networkErrorMsg(response)}
+                    return {error: networkErrorMsg(response, "Error creating new script.")}
                 }
                 return response.json();
             }
@@ -299,7 +310,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url)
             .then(response => {
                 if (!response.ok) {
-                    alert(networkErrorMsg(response));
+                    alert(networkErrorMsg(response, "Error opening script."));
                     return;
                 }
                 window.location.pathname = ('/simulate/' + selectedValue);

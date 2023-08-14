@@ -6,7 +6,7 @@ body {
   background: #f6fafd;
 }
 
-button, input[type=submit] {
+button:not(.btn-close), input[type=submit] {
   cursor: pointer;
   background-color:#00ABE4;
   border: none;
@@ -16,15 +16,23 @@ button, input[type=submit] {
   font-size: 16px;
   margin-bottom: 4px;
   margin-left: 0px;
-  /* font-family: verdana, sans-serif; */
 }
 
-button:hover, input[type=submit]:hover {
+button:not(.btn-close):hover, input[type=submit]:hover {
   background-color:#0067e7;  
 }
 
-button:active, input[type=submit]:active {
+button:not(.btn-close):active, input[type=submit]:active {
   background-color:#002ead;
+}
+
+.tofadeout {
+  opacity: 1;
+  transition: opacity 2s;
+}
+
+.nav-item:hover {
+  background-color:#00ABE4;
 }
 
 .row {

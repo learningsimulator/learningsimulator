@@ -71,21 +71,21 @@
         {% if messages %}
             {% for category, message in messages %}
                 {% if category == 'error' %}
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show tofadeout" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% else %}
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <div class="alert alert-info alert-dismissible fade show tofadeout">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                {% endif %} 
+                {% endif %}
             {% endfor %} 
         {% endif %} 
     {% endwith %}
 
-    <div class="container-fluid">{% block content %} {% endblock %}</div>
+    <div id="block-content" class="container-fluid">{% block content %} {% endblock %}</div>
 
   </body>
 </html>

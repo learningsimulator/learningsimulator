@@ -1,7 +1,3 @@
-For db errors in prod: "Error saving... Try again. If the problem persists, contact..."
-
-Ctrl-S in script editor should save
-
 Should it be "Name" or "User name" in user account?
 
 Tabbed layout with current script on one tab and demo script on the other
@@ -15,14 +11,14 @@ favicon
 
 Better names of divs, better class names
 
-"Script ... saved" flash (how to use on same page)
-https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
-
 Test accessibility bugs:
 https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
 
-
 Move to separate private repo instead of merging to master
+
+
+
+
 
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
@@ -36,7 +32,7 @@ these files, like @export:ed files
 Add lesim icon to "Home" in navbar
 
 Make util.js used from both my_scripts.js and index.js and put for
-example networkErrorMsg(response) in it
+example networkErrorMsg(response) in it. also the code for fading flash alerts is duplicated.
 
 One issue:
 - "Change password"-feature
@@ -67,6 +63,15 @@ Link to project page (somewhere, maybe landing page)
 Make regression tests
 
 ------------------------------------------------------------------------
+X "Script ... saved" flash (how to use on same page)
+X https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
+
+X Ctrl-S in script editor should save
+
+X Make Navbar items hover bg color
+
+X For db errors in prod: "Error saving... Try again. If the problem persists, contact..."
+
 X All validation:
 X - Begränsa storlek på plot (width, height validate)
 X - Begränsa längd på filnamn i export
@@ -168,6 +173,8 @@ X using https://plotly.com/javascript/custom-buttons/ ?
 ============
 Maybe later
 ============
+Should F5 on simulate page run?
+
 Move "Default legend position", "Default colors", "Default plot size" to "My Preferences"?
 
 "Plot as" switch buttons instead of drop-down
@@ -198,6 +205,10 @@ Add "Note: Can be overwritten by @figure ... { figsize: [width, height] }"
 =========================================================
 Maybe make issue (later):
 =========================================================
+Remove delay of tooltip for Save script button (so one sees "Ctrl-S" quickly)
+
+Add "Support/Help" page (and in navbar)
+
 Plot parameters: paper color (paper_bgcolor), plot background color (plot_bgcolor)
 Plot parameters: Legend on/off, legend positioning
 Plot parameters: line color, thickness, marker, marker size, color, etc.

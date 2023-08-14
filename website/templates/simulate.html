@@ -6,7 +6,7 @@ Learning Simulator
 
 {% block content %}
 
-<div id="div-home"></div>
+<div id="div-simulate-page"></div>
 
 {% if user.is_authenticated %}
 <!-- <div class="row"> -->
@@ -37,7 +37,7 @@ Learning Simulator
     <div id="div-scriptname">
       <!-- <label for="input-scriptname">Name of script:&nbsp;</label> -->
       <input id="input-scriptname" maxlength="{{ gvar['SCRIPTNAME_MAXLENGTH'] }}" minlength="1" type="text" value="{{ script.name }}" required>
-      <button type="button" id="button-savescript" title="Save script">
+      <button type="button" id="button-savescript" title="Save script (Ctrl-S)">
         <i style="color: white" class="fa fa-save"></i>
       </button>
     </div>

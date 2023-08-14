@@ -3,11 +3,27 @@ document.addEventListener("DOMContentLoaded", onLoad);
 
 function onLoad() { // DOM is loaded and ready
 
-    // Check that this is home.html
-    homeDiv = document.getElementById('div-home');
+    // If there are any flash divs displayed, make them fade out
+    // XXX Duplicated from my_scripts.js
+    var flashDivs = document.getElementsByClassName("alert");
+    for (var flashDiv of flashDivs) {
+        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
+
+        // Start fading out after 1000 ms
+        setTimeout(function() {
+            flashDiv.style.opacity = '0';
+        }, 1000);
+    }
+
+    // Check that this is simulate.html
+    homeDiv = document.getElementById('div-simulate-page');
     if (!homeDiv) {
         return;
     }
+
+    alert("here");
+
+    const IS_MAC = (navigator.userAgent.indexOf('Mac OS X') != -1);
 
     const USERSCRIPT_CODE = 'textarea-code';
     const DEMOSCRIPT_CODE = 'textarea-code-demo';
@@ -58,8 +74,38 @@ function onLoad() { // DOM is loaded and ready
     settingsDlgPlotType.addEventListener("change", settingsDlgPlotTypeCb);
     settingsDlgFileTypeMpl.addEventListener("change", settingsDlgFileTypeMplCb);
 
-    function networkErrorMsg(response) {
-        return `Network response was not ok: ${response.statusText} (${response.status})`
+    function networkErrorMsg(response, err) {
+        return `${err} Network response was not ok: ${response.statusText} (${response.status}) \n\n Please try again. If the problem persists, contact support.`
+    }
+
+    /*
+     * Programmatically create the same flash as in base.html
+     *
+     * <div class="alert alert-warning alert-dismissible fade show">
+     *   {{ message }}
+     *   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+     * </div>
+    */
+    function displayFlashMessage(msg) {
+        const flashDiv = document.createElement('div');
+        flashDiv.className = "alert alert-warning alert-dismissible fade show flash-close-btn tofadeout";
+        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
+        const flashDivButton = document.createElement('button');
+        flashDivButton.type = "button";
+        flashDivButton.className = "btn-close";
+        flashDivButton.setAttribute("data-bs-dismiss", "alert");
+        flashDivButton.setAttribute("aria-label", "Close");
+        flashDiv.innerHTML = msg;
+        flashDiv.appendChild(flashDivButton);
+
+        // Insert the flash div efter the navbar, before {% block content %}
+        contentDiv = document.getElementById("block-content");
+        document.body.insertBefore(flashDiv, contentDiv);
+
+        // Start fading out after 1000 ms
+        setTimeout(function() {
+            flashDiv.style.opacity = '0';
+        }, 1000);
     }
 
     function settingsDlgPlotTypeCb() {
@@ -244,7 +290,7 @@ function onLoad() { // DOM is loaded and ready
             // Since this function should return is_done, we have to wait for the Promise "response" to resolve
             const response = await fetch(get_url);  
             if (!response.ok) {  // For example database server is down
-                throw new Error(networkErrorMsg(response));
+                throw new Error(networkErrorMsg(response, "Error getting simulation status."));
             }
             const data = await response.json();
             return data['is_done'];
@@ -267,7 +313,7 @@ function onLoad() { // DOM is loaded and ready
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(networkErrorMsg(response));
+                        throw new Error(networkErrorMsg(response, "Error stopping simulation."));
                     }
                     return response.json();
                 })
@@ -314,7 +360,7 @@ function onLoad() { // DOM is loaded and ready
                 fetch(get_url)
                     .then(response => {
                         if (!response.ok) {  // For example database server is down
-                            throw new Error(networkErrorMsg(response));
+                            throw new Error(networkErrorMsg(response, "Error reading settings."));
                         }
                         return response.json();
                     })
@@ -420,7 +466,7 @@ function onLoad() { // DOM is loaded and ready
         settings.saveToDB()
             .then(response => {
                 if (!response.ok) {
-                    return {error: networkErrorMsg(response)}
+                    return {error: networkErrorMsg(response, "Error saving settings.")}
                 }
                 return response.json();
             }
@@ -530,13 +576,24 @@ function onLoad() { // DOM is loaded and ready
         try {
             const response = await fetch(save_url, save_arg);
             if (!response.ok) {  // For example database server is down
-                throw new Error(networkErrorMsg(response));
+                throw new Error(networkErrorMsg(response, "Error saving script."));
             }
             const data = await response.json();
+            displayFlashMessage("Script saved");
             return data;
         }
         catch (err) {  // Failed to fetch
             return {error: err};
+        }
+    }
+
+    document.addEventListener('keydown', simulatePageKeyDown, false);
+    function simulatePageKeyDown(event) {
+        var name = event.key;
+        const isCtrl = IS_MAC ? event.metaKey : event.ctrlKey;
+        if (name === 's' && isCtrl) {
+            event.preventDefault();
+            saveScriptButtonClicked();
         }
     }
 
@@ -857,7 +914,7 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(networkErrorMsg(response, "Error downloading exported data file."));
                 }
                 return response.blob();
             })
