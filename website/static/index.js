@@ -21,8 +21,6 @@ function onLoad() { // DOM is loaded and ready
         return;
     }
 
-    alert("here");
-
     const IS_MAC = (navigator.userAgent.indexOf('Mac OS X') != -1);
 
     const USERSCRIPT_CODE = 'textarea-code';
