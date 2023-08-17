@@ -10,7 +10,7 @@ function onLoad() { // DOM is loaded and ready
         // Start fading out after 1000 ms
         setTimeout(function() {
             flashDiv.style.opacity = '0';
-        }, 1000);
+        }, 2000);
     }
 
     const usersScripts = document.getElementById('select-userscripts');

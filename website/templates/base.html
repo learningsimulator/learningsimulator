@@ -44,30 +44,19 @@
 
   <body>
 
-    {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color:#e3f2fd; margin-bottom:10px;">
-    <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-dark"> -->
-      <div class="collapse navbar-collapse" id="navbar">
-        <div class="navbar-nav">
-          {% if user.is_authenticated %}
-            <a class="nav-item nav-link" id="home" style="margin-left:15px;" href="/">Home</a>
-            <a class="nav-item nav-link" id="my_scripts" href="/my_scripts">My scripts</a>
-            <a class="nav-item nav-link" id="logout" href="/logout">Log out</a>
-            {% if user.is_admin %}
-              <a class="nav-item nav-link" id="admin" href="/admin">Admin</a>
-            {% endif %}  
-          {% else %}
-            <a class="nav-item nav-link" id="login" style="margin-left:15px;" href="/login">Log in</a>
-            <a class="nav-item nav-link" id="signUp" href="/sign_up">Sign up</a>
-          {% endif %}
-        </div>
+    <!-- <div style="width:200px; height: 100px; position: relative">
+      <div style="width:200px; height:100px; position:absolute; top:0; left:0">
+        This is the flash1 div.
       </div>
-    </nav>
-    {% endblock %}
-    
-    <!-- <hr> -->
+      <div style="width:200px; height:100px; position:absolute; top:0; left:0">
+        This is the flash2 div.
+      </div>
+    </div> -->
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <div id="navbar-and-flashes">
+
+      <div id="flashes">
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
                 {% if category == 'error' %}
@@ -76,14 +65,44 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% else %}
-                    <div class="alert alert-info alert-dismissible fade show tofadeout">
+                    <div class="alert alert-success alert-dismissible fade show tofadeout">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endif %}
             {% endfor %} 
         {% endif %} 
-    {% endwith %}
+        {% endwith %}
+      </div>
+
+      <div id="navbar-container">
+
+        {% block navbar %}
+        <nav class="navbar navbar-expand-lg navbar-light" style="background-color:#e3f2fd; margin-bottom:10px;">
+        <!-- <nav class="navbar navbar-expand-lg navbar-dark bg-dark"> -->
+          <div class="collapse navbar-collapse" id="navbar">
+            <div class="navbar-nav">
+              {% if user.is_authenticated %}
+                <a class="nav-item nav-link" id="home" style="margin-left:15px;" href="/">Home</a>
+                <a class="nav-item nav-link" id="my_scripts" href="/my_scripts">My scripts</a>
+                <a class="nav-item nav-link" id="logout" href="/logout">Log out</a>
+                {% if user.is_admin %}
+                  <a class="nav-item nav-link" id="admin" href="/admin">Admin</a>
+                {% endif %}
+              {% else %}
+                <a class="nav-item nav-link" id="login" style="margin-left:15px;" href="/login">Log in</a>
+                <a class="nav-item nav-link" id="signUp" href="/sign_up">Sign up</a>
+              {% endif %}
+            </div>
+          </div>
+        </nav>
+        {% endblock %}
+
+      </div>
+
+    </div>
+
+    <!-- <hr> -->
 
     <div id="block-content" class="container-fluid">{% block content %} {% endblock %}</div>
 

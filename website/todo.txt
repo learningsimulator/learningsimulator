@@ -1,4 +1,9 @@
-Should it be "Name" or "User name" in user account?
+// XXX use Jinja2: {{ url_for("get") | tojson }}
+ See https://stackoverflow.com/questions/21956500/use-jinja2-template-engine-in-external-javascript-file
+
+Make util.js used from both my_scripts.js and index.js and put for
+example networkErrorMsg(response) in it. Also the code for fading flash alerts is duplicated.
+- Flash when adding and deleting script (requires above)
 
 Tabbed layout with current script on one tab and demo script on the other
 (or "Demo scripts" like "My scripts")
@@ -6,8 +11,6 @@ Tabbed layout with current script on one tab and demo script on the other
 Snyggare inloggningsskärm /login - testa "Remember me"
 
 favicon
-
-// XXX use Jinja2: {{ url_for("get") | tojson }}
 
 Better names of divs, better class names
 
@@ -26,17 +29,20 @@ Editor: Search/Replace
 Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
 Editor: Import demo script (replaces content of entire script window) - warn if nonempty
 
+Document code
+
+Give custom name to new script
+
 After merge of branch for "@figure ... filename: foo.txt": Add download of
 these files, like @export:ed files
 
 Add lesim icon to "Home" in navbar
 
-Make util.js used from both my_scripts.js and index.js and put for
-example networkErrorMsg(response) in it. also the code for fading flash alerts is duplicated.
-
 One issue:
+- Should it be "Name" or "User name" in user account?
 - "Change password"-feature
-- Logga in/ut uppe till höger - kanske med användarnamnet
+- Logga in/ut uppe till höger - kanske med (användar)namnet
+- "My profile" med (användar)namn, etc.
 - Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
 
 start_at_1
@@ -63,6 +69,8 @@ Link to project page (somewhere, maybe landing page)
 Make regression tests
 
 ------------------------------------------------------------------------
+X Make flashed messages overlap navbar so contents doesn't jump
+
 X "Script ... saved" flash (how to use on same page)
 X https://stackoverflow.com/questions/40949746/how-to-display-flashing-message-without-reloading-the-page-in-flask
 

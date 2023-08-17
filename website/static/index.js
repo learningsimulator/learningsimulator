@@ -83,10 +83,10 @@ function onLoad() { // DOM is loaded and ready
      *   {{ message }}
      *   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
      * </div>
-    */
+     */
     function displayFlashMessage(msg) {
         const flashDiv = document.createElement('div');
-        flashDiv.className = "alert alert-warning alert-dismissible fade show flash-close-btn tofadeout";
+        flashDiv.className = "alert alert-success alert-dismissible fade show flash-close-btn tofadeout";
         flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
         const flashDivButton = document.createElement('button');
         flashDivButton.type = "button";
@@ -97,13 +97,13 @@ function onLoad() { // DOM is loaded and ready
         flashDiv.appendChild(flashDivButton);
 
         // Insert the flash div efter the navbar, before {% block content %}
-        contentDiv = document.getElementById("block-content");
-        document.body.insertBefore(flashDiv, contentDiv);
+        flashesDiv = document.getElementById("flashes");
+        flashesDiv.appendChild(flashDiv);
 
         // Start fading out after 1000 ms
         setTimeout(function() {
             flashDiv.style.opacity = '0';
-        }, 1000);
+        }, 2000);
     }
 
     function settingsDlgPlotTypeCb() {
@@ -476,6 +476,7 @@ function onLoad() { // DOM is loaded and ready
                 }
                 else {
                     settingsDlgModalBg.style.display = "none";
+                    displayFlashMessage("Settings saved")
                 }
             })
     }
