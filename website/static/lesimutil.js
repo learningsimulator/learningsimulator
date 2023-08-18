@@ -4,7 +4,8 @@ function networkErrorMsg(response, err) {
 
 
 function makeErrorMsg(error) {
-    if (error && error.stack && error.message) {  // It's an error object, probably
+    if (error && error.stack && error.message) {
+        // It's probably an error object (duck typing)
         return error.message + "\n\n-----------\nStack trace:\n\n" + error.stack;
     }
     else {

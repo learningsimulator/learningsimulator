@@ -16,6 +16,16 @@ Check what happens if internet is down in deployment (error catching)
 
 
 
+Fel i prod:
+
+1. "MySQL server has gone away"
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2006, "MySQL server has gone away (BrokenPipeError(32, 'Broken pipe'))")
+[SQL: SELECT user.id AS user_id, user.is_admin AS user_is_admin, user.email AS user_email, user.password AS user_password, user.username AS user_username, user.settings_id AS user_settings_id, user.simulation_task_id AS user_simulation_task_id 
+FROM user 
+WHERE user.id = %(pk_1)s]
+
+2. Lost connection to MySQL server during query
+sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2013, 'Lost connection to MySQL server during query')
 
 
 Editor: Set font size, color, bgcolor, line height, "color scheme": (font color, bg color, comment color)
@@ -23,7 +33,13 @@ Editor: Search/Replace
 Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
 Editor: Import demo script (replaces content of entire script window) - warn if nonempty
 
+app.config.from_object(config_class) instead of from_pyfile
+
+"from app import ..." instead of "from . import ..."
+
 Document code
+
+Make buttons that appear hovering a graph same width
 
 Give custom name to new script
 

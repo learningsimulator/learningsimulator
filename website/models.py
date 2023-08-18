@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 
 from . import db  # From current package ("website") import db
+from . import login_manager
 
 from .global_variables import gvar
 
@@ -77,3 +78,8 @@ class SimulationTask(db.Model):
     progress1 = db.Column(db.Double(), default=0)
     is_done = db.Column(db.Boolean, default=True)
     stop_clicked = db.Column(db.Boolean, default=False)
+
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))

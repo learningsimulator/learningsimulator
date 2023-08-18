@@ -7,6 +7,9 @@ from werkzeug.routing import BaseConverter
 
 db = SQLAlchemy()
 migrate = Migrate()
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.login_message = "Please log in to access this page"
 
 
 def create_app():
@@ -20,31 +23,24 @@ def create_app():
     # CORS(app)
 
     db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
 
     from .models import User
 
-    with app.app_context():
-        if db.engine.url.drivername == 'sqlite':  
-            # Workaround for SQLite not handling ALTER/DROP: use render_as_batch=True
-            migrate.init_app(app, db, render_as_batch=True)
-        else:
-            migrate.init_app(app, db)
-        create_database(app)
-        # db.create_all() 
+    # with app.app_context():
+    #     if db.engine.url.drivername == 'sqlite':
+    #         # Workaround for SQLite not handling ALTER/DROP: use render_as_batch=True
+    #         migrate.init_app(app, db, render_as_batch=True)
+    #     else:
+    #         migrate.init_app(app, db)
+    #     create_database(app)
 
     from .views import views
     from .auth import auth
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
-
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
 
     return app
 
