@@ -2,16 +2,7 @@ document.addEventListener("DOMContentLoaded", onLoad);
 
 function onLoad() { // DOM is loaded and ready
 
-    // If there are any flash divs displayed, make them fade out
-    var flashDivs = document.getElementsByClassName("alert");
-    for (var flashDiv of flashDivs) {
-        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
-
-        // Start fading out after 1000 ms
-        setTimeout(function() {
-            flashDiv.style.opacity = '0';
-        }, 2000);
-    }
+    makeFlashesFade();
 
     const usersScripts = document.getElementById('select-userscripts');
     const createButton = document.getElementById('button-createscript');
@@ -39,10 +30,6 @@ function onLoad() { // DOM is loaded and ready
     }
 
     handleVisibility();
-
-    function networkErrorMsg(response, err) {
-        return `${err} Network response was not ok: ${response.statusText} (${response.status}) \n\n Please try again. If the problem persists, contact support.`
-    }
 
     /* Get the values in the current selection in the users scripts list. */
     function getSelectedUserScripts() {
@@ -106,15 +93,14 @@ function onLoad() { // DOM is loaded and ready
             fetch(get_url)
                 .then(response => {
                     if (!response.ok) {
-                        return {error: networkErrorMsg(response, "Error reading script.")}
+                        throw new Error(networkErrorMsg(response, "Error reading script."));
                     }
                     return response.json();
-                }
-                )
+                })
                 .then(data => {
-                    const error = data['error'];
-                    if (error) {
-                        alert(error);
+                    const err = data['error'];
+                    if (err) {
+                        throw new Error(err);
                     }
                     else {
                         const name = data['name'];
@@ -123,6 +109,9 @@ function onLoad() { // DOM is loaded and ready
                         updateCachedScripts(selectedValue, name, code);
                         handleVisibility();
                     }
+                })
+                .catch (error => {
+                    alert(makeErrorMsg(error));
                 });
         }
     }
@@ -237,24 +226,27 @@ function onLoad() { // DOM is loaded and ready
         fetch(delete_url, delete_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: networkErrorMsg(response, "Error deleting script.")}
+                    throw new Error(networkErrorMsg(response, "Error deleting script."));
                 }
                 return response.json();
-            }
-            )
+            })
             .then(data => {
-                const error = data['error'];
-                if (error) {
-                    alert(error);
+                const err = data['error'];
+                const name = data['name'];
+                if (err) {
+                    throw new Error(err);
                 }
                 else {
                     for (let selectedValue of selectedValues) {
                         removeOptionFromUsersScripts(selectedValue);
                     }
+                    displayFlashMessage("Deleted script " + name);
                 }
                 handleVisibility();
-            }
-        );
+            })
+            .catch (error => {
+                alert(makeErrorMsg(error));
+            });
     }
 
     /* Listener. */
@@ -279,23 +271,24 @@ function onLoad() { // DOM is loaded and ready
         fetch(add_url, add_arg)
             .then(response => {
                 if (!response.ok) {
-                    return {error: networkErrorMsg(response, "Error creating new script.")}
+                    throw new Error(networkErrorMsg(response, "Error creating new script."));
                 }
                 return response.json();
-            }
-            )
+            })
             .then(data => {
-                const error = data['error'];
-                if (error) {
-                    alert(error);
+                const err = data['error'];
+                if (err) {
+                    throw new Error(err);
                 }
                 else {
                     const newScriptValue = data['id'];
                     addOptionToUsersScripts(newScriptName, newScriptValue);
+                    displayFlashMessage("Created script " + newScriptName);
                 }
-            }
-        );
-
+            })
+            .catch (error => {
+                alert(makeErrorMsg(error));
+            });
     }
 
     /* Listener. */
@@ -310,10 +303,12 @@ function onLoad() { // DOM is loaded and ready
         fetch(get_url)
             .then(response => {
                 if (!response.ok) {
-                    alert(networkErrorMsg(response, "Error opening script."));
-                    return;
+                    throw new Error(networkErrorMsg(response, "Error opening script."));
                 }
                 window.location.pathname = ('/simulate/' + selectedValue);
+            })
+            .catch (error => {
+                alert(makeErrorMsg(error));
             });
 
 

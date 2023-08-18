@@ -2,18 +2,7 @@ document.addEventListener("DOMContentLoaded", onLoad);
 
 
 function onLoad() { // DOM is loaded and ready
-
-    // If there are any flash divs displayed, make them fade out
-    // XXX Duplicated from my_scripts.js
-    var flashDivs = document.getElementsByClassName("alert");
-    for (var flashDiv of flashDivs) {
-        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
-
-        // Start fading out after 1000 ms
-        setTimeout(function() {
-            flashDiv.style.opacity = '0';
-        }, 1000);
-    }
+    makeFlashesFade();
 
     // Check that this is simulate.html
     homeDiv = document.getElementById('div-simulate-page');
@@ -72,39 +61,6 @@ function onLoad() { // DOM is loaded and ready
     settingsDlgPlotType.addEventListener("change", settingsDlgPlotTypeCb);
     settingsDlgFileTypeMpl.addEventListener("change", settingsDlgFileTypeMplCb);
 
-    function networkErrorMsg(response, err) {
-        return `${err} Network response was not ok: ${response.statusText} (${response.status}) \n\n Please try again. If the problem persists, contact support.`
-    }
-
-    /*
-     * Programmatically create the same flash as in base.html
-     *
-     * <div class="alert alert-warning alert-dismissible fade show">
-     *   {{ message }}
-     *   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-     * </div>
-     */
-    function displayFlashMessage(msg) {
-        const flashDiv = document.createElement('div');
-        flashDiv.className = "alert alert-success alert-dismissible fade show flash-close-btn tofadeout";
-        flashDiv.addEventListener('transitionend', () => flashDiv.remove());  // To remove the element from DOM when faded out
-        const flashDivButton = document.createElement('button');
-        flashDivButton.type = "button";
-        flashDivButton.className = "btn-close";
-        flashDivButton.setAttribute("data-bs-dismiss", "alert");
-        flashDivButton.setAttribute("aria-label", "Close");
-        flashDiv.innerHTML = msg;
-        flashDiv.appendChild(flashDivButton);
-
-        // Insert the flash div efter the navbar, before {% block content %}
-        flashesDiv = document.getElementById("flashes");
-        flashesDiv.appendChild(flashDiv);
-
-        // Start fading out after 1000 ms
-        setTimeout(function() {
-            flashDiv.style.opacity = '0';
-        }, 2000);
-    }
 
     function settingsDlgPlotTypeCb() {
         if (settingsDlgPlotType.value === "image") {
@@ -270,31 +226,48 @@ function onLoad() { // DOM is loaded and ready
     function updateProgressDlg() {
         const get_url = "/get_sim_status";
         fetch(get_url)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(networkErrorMsg(response, "Error updating simulation progress."));
+                }
+                return response.json();
+            })
             .then(data => {
+                const err = data['err'];
+                if (err) {
+                    throw new Error(err);
+                }
                 const message1 = data['message1'];
                 const progress1 = data['progress1'];
                 progressDlgMsg.textContent = message1;
                 if (progress1) {  // progress1 is None if error from server 
                     progressDlgBar.style.width = progress1 + "%";
                 }
-            }
-        );
+            })
+            .catch(error => {
+                closeProgressDlg();
+                alert(makeErrorMsg(error));
+            });
     }
 
     async function getSimulationTaskDone() {
         const get_url = "/get_sim_status";
         try {
             // Since this function should return is_done, we have to wait for the Promise "response" to resolve
-            const response = await fetch(get_url);  
-            if (!response.ok) {  // For example database server is down
+            const response = await fetch(get_url);  // This throws an error if server is down
+
+            if (!response.ok) {  // For example if the database is down so @login_required fails
                 throw new Error(networkErrorMsg(response, "Error getting simulation status."));
             }
             const data = await response.json();
+            const err = data['err'];
+            if (err) {
+                throw new Error(err);
+            }
             return data['is_done'];
         }
         catch (error) {
-            alert(`Could not get simulation status: ${error}`);
+            alert(makeErrorMsg(error));
             return null;
         }
     }
@@ -307,25 +280,22 @@ function onLoad() { // DOM is loaded and ready
         closeProgressDlg();
 
         const url = "/stop_simulation";
-        try {
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(networkErrorMsg(response, "Error stopping simulation."));
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const err = data['err'];
-                    if (err) {
-                        alert(err);
-                    }
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(networkErrorMsg(response, "Error stopping simulation."));
                 }
-            );
-        }
-        catch (error) {
-            alert(error);   
-        }
+                return response.json();
+            })
+            .then(data => {
+                const err = data['err'];
+                if (err) {
+                    throw new Error(err);
+                }
+            })
+            .catch (error => {
+                alert(makeErrorMsg(error)); 
+            });
     }
 
     // ==================================================================================================
@@ -354,34 +324,31 @@ function onLoad() { // DOM is loaded and ready
             const settingsId = usersScriptCode.dataset.settingsid;
 
             const get_url = "/get_settings/" + settingsId;  // XXX use Jinja2: {{ url_for("get") | tojson }}
-            try {
-                fetch(get_url)
-                    .then(response => {
-                        if (!response.ok) {  // For example database server is down
-                            throw new Error(networkErrorMsg(response, "Error reading settings."));
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.plot_type = data['plot_type'];
-                        this.file_type_mpl = data['file_type_mpl'];
-                        this.file_type_plotly = data['file_type_plotly'];
-                        this.plot_orientation = data['plot_orientation'];
-                        this.plot_width = data['plot_width'];
-                        this.plot_height = data['plot_height'];
-                        // this.legend_x = data['legend_x'];
-                        // this.legend_y = data['legend_y'];
-                        // this.legend_x_anchor = data['legend_x_anchor'];
-                        // this.legend_y_anchor = data['legend_y_anchor'];
-                        this.legend_orientation = data['legend_orientation'];
-                        this.paper_color = data['paper_color'];
-                        this.plot_bgcolor = data['plot_bgcolor'];
+            fetch(get_url)
+                .then(response => {
+                    if (!response.ok) {  // For example database server is down
+                        throw new Error(networkErrorMsg(response, "Error reading settings."));
                     }
-                );
-            }
-            catch (error) {
-                alert(error);
-            }
+                    return response.json();
+                })
+                .then(data => {
+                    this.plot_type = data['plot_type'];
+                    this.file_type_mpl = data['file_type_mpl'];
+                    this.file_type_plotly = data['file_type_plotly'];
+                    this.plot_orientation = data['plot_orientation'];
+                    this.plot_width = data['plot_width'];
+                    this.plot_height = data['plot_height'];
+                    // this.legend_x = data['legend_x'];
+                    // this.legend_y = data['legend_y'];
+                    // this.legend_x_anchor = data['legend_x_anchor'];
+                    // this.legend_y_anchor = data['legend_y_anchor'];
+                    this.legend_orientation = data['legend_orientation'];
+                    this.paper_color = data['paper_color'];
+                    this.plot_bgcolor = data['plot_bgcolor'];
+                })
+                .catch (error => {
+                    alert(makeErrorMsg(error));
+                });
         }
 
         readFromUI() {
@@ -410,7 +377,26 @@ function onLoad() { // DOM is loaded and ready
             const save_arg = {"method": "POST",
                               "headers": {"Content-Type": "application/json"},
                               "body": JSON.stringify(dataSend)};
-            return fetch(save_url, save_arg);
+            fetch(save_url, save_arg)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(networkErrorMsg(response, "Error saving settings."));
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const err = data['error'];
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    else {
+                        settingsDlgModalBg.style.display = "none";
+                        displayFlashMessage("Settings saved")
+                    }
+                })
+                .catch (error => {
+                    alert(makeErrorMsg(error));
+                });
         }
 
         updateUI() {
@@ -462,23 +448,6 @@ function onLoad() { // DOM is loaded and ready
     settingsDlgOK.onclick = function() {
         settings.readFromUI();
         settings.saveToDB()
-            .then(response => {
-                if (!response.ok) {
-                    return {error: networkErrorMsg(response, "Error saving settings.")}
-                }
-                return response.json();
-            }
-            )
-            .then(data => {
-                const error = data['error'];
-                if (error) {
-                    alert(error);
-                }
-                else {
-                    settingsDlgModalBg.style.display = "none";
-                    displayFlashMessage("Settings saved")
-                }
-            })
     }
 
     // When the user clicks on Cancel, close the settings dialog
@@ -581,8 +550,8 @@ function onLoad() { // DOM is loaded and ready
             displayFlashMessage("Script saved");
             return data;
         }
-        catch (err) {  // Failed to fetch
-            return {error: err};
+        catch (error) {
+            return {error: makeErrorMsg(error)};
         }
     }
 
@@ -690,8 +659,8 @@ function onLoad() { // DOM is loaded and ready
                             postproc(data.postcmds, plotArea);
                         }
                     }
-                    catch (err) {
-                        alert(err);
+                    catch (error) {
+                        alert(makeErrorMsg(error));
                     }
                 }
             });
@@ -928,8 +897,10 @@ function onLoad() { // DOM is loaded and ready
                 document.body.removeChild(a);
                 a.remove();
                 window.URL.revokeObjectURL(url);
-            }
-        )
+            })
+            .catch (error => {
+                alert(makeErrorMsg(error));
+            });
     }
 
     function plotlylegendLayout() {

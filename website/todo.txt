@@ -1,10 +1,3 @@
-// XXX use Jinja2: {{ url_for("get") | tojson }}
- See https://stackoverflow.com/questions/21956500/use-jinja2-template-engine-in-external-javascript-file
-
-Make util.js used from both my_scripts.js and index.js and put for
-example networkErrorMsg(response) in it. Also the code for fading flash alerts is duplicated.
-- Flash when adding and deleting script (requires above)
-
 Tabbed layout with current script on one tab and demo script on the other
 (or "Demo scripts" like "My scripts")
 
@@ -19,6 +12,7 @@ https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campa
 
 Move to separate private repo instead of merging to master
 
+Check what happens if internet is down in deployment (error catching)
 
 
 
@@ -68,7 +62,15 @@ Link to project page (somewhere, maybe landing page)
 
 Make regression tests
 
+Hide Flask endpoints in client code. But with "View source" one can still see them?
+See https://stackoverflow.com/questions/21956500/use-jinja2-template-engine-in-external-javascript-file
+
+
 ------------------------------------------------------------------------
+X Make util.js used from both my_scripts.js and index.js and put for
+X example networkErrorMsg(response) in it. Also the code for fading flash alerts is duplicated.
+X - Flash when adding and deleting script (requires above)
+
 X Make flashed messages overlap navbar so contents doesn't jump
 
 X "Script ... saved" flash (how to use on same page)

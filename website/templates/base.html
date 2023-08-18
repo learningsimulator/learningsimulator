@@ -8,6 +8,19 @@
     <!-- Needed on all pages (flash) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 
+    <!-- Common to all pages, so outside the block js -->
+    <script
+      type="text/javascript"
+      src="{{ url_for('static', filename='lesimutil.js') }}">
+    </script>
+
+    <!-- To hide the endpoints on client. These variables
+    are accessible in our js-files. But with "View source"
+    one still see this, so it doesn't really hide them? -->
+    <!-- <script>
+        var deleteUrl = '{{ url_for("views.delete") }}';
+    </script> -->
+
     {% block js %}
 
     <!-- Required external Javascript -->
@@ -20,7 +33,7 @@
       src="{{ url_for('static', filename='mpld3.v0.5.9-dev.min.js') }}">
     </script>
 
-    <!-- Our own js-file -->
+    <!-- Our own js-files -->
     <script
       type="text/javascript"
       src="{{ url_for('static', filename='index.js') }}">

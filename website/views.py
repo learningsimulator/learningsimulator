@@ -98,14 +98,6 @@ def amend_export_filenames(cmds):
             cmd.parameters.set_filename(abspath_filename)
 
 
-# @views.route('/', methods=['GET'])
-# def home():
-#     demo_script_names = [script['name'] for script in demo_scripts]
-#     settings = Settings.query.get(current_user.settings_id)
-#     return render_template("home.html", user=current_user, settings=settings, script=None,
-#                            demo_script_names=demo_script_names)
-
-
 def validate_script(name, code, id=None):
     err = None
     if len(name) == 0:
@@ -293,14 +285,15 @@ def delete():
     ids_to_delete = request.json['ids']
     for id in ids_to_delete:
         script_to_delete = DBScript.query.get_or_404(id)
+        script_to_delete_name = script_to_delete.name
         try:
             db.session.delete(script_to_delete)
             db.session.commit()
         except sqlalchemy.exc.SQLAlchemyError as e:
             db.session.rollback()
             err = f"Error when deleting script:\n{e}"
-            return {'error': err}
-    return {'error': None}
+            return {'name': script_to_delete_name, 'error': err}
+    return {'name': script_to_delete_name, 'error': None}
 
 
 class ProgressWeb():
@@ -383,6 +376,7 @@ class ProgressWeb():
 
 
 @views.route('/run', methods=['POST'])
+@login_required
 def run():
     code = request.json['code']
     is_err, simulation_output, deprecated_warn = run_simulation(code)
@@ -403,6 +397,7 @@ def run():
 
 
 @views.route('/get_sim_status')
+@login_required
 def get_sim_status():
     try:
         db.session.commit()
@@ -411,15 +406,18 @@ def get_sim_status():
         message1 = task_to_read.message1
         progress1 = task_to_read.progress1
         is_done = task_to_read.is_done
+        err = None
     except sqlalchemy.exc.SQLAlchemyError as e:
-        message1 = f"Could not get simulation status."
+        err = "Could not get simulation status."
+        message1 = err
         progress1 = None
         is_done = True
     return {'message1': message1, 'progress1': progress1,
-            'is_done': is_done}
+            'is_done': is_done, 'err': err}
 
 
 @views.route('/stop_simulation')
+@login_required
 def stop_simulation():
     id = current_user.simulation_task_id
     db_task = SimulationTask.query.get_or_404(id)
@@ -435,6 +433,7 @@ def stop_simulation():
 
 
 @views.route('/run_mpl_fig', methods=['POST'])
+@login_required
 def run_mpl_fig():
     code = request.json['code']
     settings = request.json['settings']
@@ -468,6 +467,7 @@ def run_mpl_fig():
 
 
 @views.route('/download_export_file/<path:filename>')
+@login_required
 def download_export_file(filename):
     export_dir = get_user_export_dir()
     return send_from_directory(export_dir, filename, as_attachment=True)
