@@ -1,18 +1,14 @@
-Tabbed layout with current script on one tab and demo script on the other
-(or "Demo scripts" like "My scripts")
-
-Snyggare inloggningsskärm /login - testa "Remember me"
-
-favicon
-
-Better names of divs, better class names
-
-Test accessibility bugs:
-https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
-
 Move to separate private repo instead of merging to master
+- use git subtree?
+
+Logga in/ut uppe till höger - kanske med (användar)namnet
+
+Give custom name to new script
 
 Check what happens if internet is down in deployment (error catching)
+
+
+
 
 
 
@@ -33,6 +29,14 @@ Editor: Search/Replace
 Editor: Insert block (parameters, variables, phase) - inserts at cursor (or at the end)
 Editor: Import demo script (replaces content of entire script window) - warn if nonempty
 
+Bättre favicon.ico?
+
+Test accessibility bugs (again)?:
+https://www.deque.com/codepen/?utm_source=codepen&utm_medium=sponsored&utm_campaign=202208_pen
+
+Tabbed layout with current script on one tab and demo script on the other
+(or "Demo scripts" like "My scripts")?
+
 app.config.from_object(config_class) instead of from_pyfile
 
 "from app import ..." instead of "from . import ..."
@@ -40,8 +44,6 @@ app.config.from_object(config_class) instead of from_pyfile
 Document code
 
 Make buttons that appear hovering a graph same width
-
-Give custom name to new script
 
 After merge of branch for "@figure ... filename: foo.txt": Add download of
 these files, like @export:ed files
@@ -51,7 +53,6 @@ Add lesim icon to "Home" in navbar
 One issue:
 - Should it be "Name" or "User name" in user account?
 - "Change password"-feature
-- Logga in/ut uppe till höger - kanske med (användar)namnet
 - "My profile" med (användar)namn, etc.
 - Possibility for user to delete account- "This cannot be undone", "will delete all your scripts..."
 
@@ -71,6 +72,7 @@ Freeze mpl4, Bootstrap (and maybe other stuff) to make them local.
 
 Skriv ut versionsnummer någonstans (kanske även version av mpl3, plotly, etc.)
 
+Better names of divs, better class names
 Move (all) inline styling to css
 
 Report problems - link to GH Issues, maybe landing page
@@ -83,6 +85,8 @@ See https://stackoverflow.com/questions/21956500/use-jinja2-template-engine-in-e
 
 
 ------------------------------------------------------------------------
+X favicon
+
 X Make util.js used from both my_scripts.js and index.js and put for
 X example networkErrorMsg(response) in it. Also the code for fading flash alerts is duplicated.
 X - Flash when adding and deleting script (requires above)

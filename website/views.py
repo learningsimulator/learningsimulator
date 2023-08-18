@@ -27,9 +27,9 @@ import keywords as kw
 views = Blueprint('views', __name__)
 
 
-# @views.route('/favicon.ico')
-# def fav():
-#     return send_from_directory(os.path.join(views.root_path, 'static'), 'favicon.ico')
+@views.route('/favicon.ico')
+def fav():
+    return send_from_directory(os.path.join(views.root_path, 'static'), 'favicon.ico')
 
 
 # @views.route('/update_predef')
