@@ -91,7 +91,6 @@ class TestBasic(LsTestCase):
         n_subjects = 1
         stimulus_elements: s1, s2
         behaviors: b1, b2
-        alpha_v: 1
         u: s1:0, s2:10, default:0
 
         @phase phase1 stop:s1=10
@@ -366,16 +365,14 @@ class TestExceptions(LsTestCase):
         with self.assertRaisesMsg(msg):
             run(text)
 
-        # Disabled test until this error message is propagated to GUI.
-        # Currently the error message depends on Python version.        
-        # text = """
-        # @figure(2,2)
-        # @subplot
-        # @subplot
-        # @subplot
-        # @subplot
-        # @subplot  # One too many
-        # """
-        # msg = "num must be 1 <= num <= 4, not 5"
-        # with self.assertRaisesMsg(msg):
-        #     run(text)
+        text = """
+        @figure(2,2)
+        @subplot
+        @subplot
+        @subplot
+        @subplot
+        @subplot  # One too many
+        """
+        msg = "num must be an integer with 1 <= num <= 4, not 5"
+        with self.assertRaisesMsg(msg):
+            run(text)

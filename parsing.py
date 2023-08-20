@@ -1,8 +1,17 @@
+import os
 import platform
 import re
 import copy
+
 import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
+
+from matplotlib.figure import Figure
+
 import csv
+import json
 import math
 
 import posteval
@@ -14,6 +23,7 @@ from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from util import ParseUtil  # , eval_average
+
 
 POST_MATH = {'sin': math.sin, 'cos': math.cos, 'tan': math.tan, 'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
              'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh, 'asinh': math.asinh, 'acosh': math.acosh, 'atanh': math.atanh,
@@ -65,8 +75,8 @@ class Script():
         self.script = script
         self.script_parser = ScriptParser(self.script)
 
-    def parse(self, is_gui=False):
-        self.script_parser.parse()
+    def parse(self, is_webapp=False):  # is_webapp is True from webrunner
+        self.script_parser.parse(is_webapp)
 
     def check_deprecated_syntax(self):
         return self.script_parser.check_deprecated_syntax()
@@ -75,9 +85,9 @@ class Script():
         return self.script_parser.runs.run(progress)
 
     def postproc(self, simulation_data, progress=None):
-        if (progress is not None) and (progress.dlg is not None):
-            progress.dlg.set_visibility2(False)
-            progress.dlg.set_title("Plot/Export Progress")
+        if progress is not None:
+            progress.set_dlg_visibility2(False)
+            progress.set_dlg_title("Plot/Export Progress")
 
         self.script_parser.postcmds.run(simulation_data, progress)
 
@@ -191,7 +201,7 @@ class ScriptParser():
         # Used to label unlabelled @phase-statements with "phase1", "phase2", ...
         self.unnamed_phase_cnt = 1
 
-    def parse(self):
+    def parse(self, is_webapp=False):
         if len(self.lines) == 0:
             raise ParseException(1, "Script is empty.")
         prop = None
@@ -279,6 +289,12 @@ class ScriptParser():
                     if not self.parameters.may_end_with_comma(prop):
                         raise ParseException(lineno, "Value for {} may not end by comma.".format(prop))
                     in_prop = self.parameters.is_csv(prop)
+
+                # Special treat filename, since it has different behavior depending on frontend
+                if prop == kw.FILENAME and is_webapp:
+                    # In web, filename cannot contain path
+                    self.check_is_filename_without_path(possible_val, lineno)
+
                 err = self.parameters.str_set(prop, possible_val, self.variables, self.phases,
                                               self.all_run_labels, line_endswith_comma)
                 if err:
@@ -382,11 +398,12 @@ class ScriptParser():
                 self.postcmds.add(legend_cmd)
 
             elif line_parser.line_type in (LineParser.XEXPORT, LineParser.EXPORT):
+                # expr, filename, expr0 = self._parse_export(lineno, linesplit_space)
                 isx = (line_parser.line_type == LineParser.XEXPORT)
                 if isx:
-                    exprs, filename, exprs_str = self._parse_xexport(lineno, linesplit_space)
+                    expr, filename, expr_str = self._parse_xexport(lineno, linesplit_space)
                 else:
-                    exprs, filename, exprs_str = self._parse_export(lineno, linesplit_space)
+                    expr, filename, expr_str = self._parse_export(lineno, linesplit_space)
                 cmd = linesplit_space[0].lower()
                 export_parameters = copy.deepcopy(self.parameters)  # Params may change betweeen exports
                 self._evalparse(lineno, export_parameters)
@@ -397,9 +414,12 @@ class ScriptParser():
                 else:
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
+                # In web, filename cannot contain path
+                if is_webapp:
+                    self.check_is_filename_without_path(filename, lineno)
+
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
-                export_cmd = ExportCmd(lineno, cmd, exprs, exprs_str,
-                                       export_parameters, run_parameters, self.variables)
+                export_cmd = ExportCmd(lineno, cmd, expr, expr_str, export_parameters, run_parameters, self.variables)
                 if not isx:
                     export_cmd.is_postexpr = True
                 self.postcmds.add(export_cmd)
@@ -411,6 +431,10 @@ class ScriptParser():
         if in_run:
             run, run_label = self._parse_run_lines(run_lines)
             self.runs.add(run, run_label)
+
+    def check_is_filename_without_path(self, filename, lineno):
+        if os.sep in filename:
+            raise ParseException(lineno, f"Filename cannot contain path (when run in web browser).")
 
     def parse_stop_colon_cond(self, stop_colon_cond):
         stop, condition = ParseUtil.split1_strip(stop_colon_cond, ':')
@@ -467,29 +491,35 @@ class ScriptParser():
 
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
-        args = linesplit_space[1]
+        
+        args = linesplit_space[1].strip()
+        
+        # expr0, filename = ParseUtil.split1_strip(args)
+        # expr = expr0
+        # if filename is None:
+        #     if len(filename_param) == 0:
+        #         raise ParseException(lineno, f"No filename given to {cmd}.")
+        #     else:
+        #         filename = filename_param
+        # args = linesplit_space[1].strip()
 
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
         if cmd == kw.VEXPORT:
-            exprs, exprs0, filename, err = ParseUtil.parse_element_behavior_semicolon(args, all_stimulus_elements, all_behaviors,
-                                                                                      allow_wildcard=True, allow_filename=True)
-
+            exprs, exprs0, filename, err = ParseUtil.parse_element_behavior(args, all_stimulus_elements, all_behaviors,
+                                                                            allow_wildcard=False, allow_filename=True)
         elif cmd == kw.VSSEXPORT:
-            exprs, exprs0, filename, err = ParseUtil.parse_element_element_semicolon(args, all_stimulus_elements,
-                                                                                     allow_wildcard=True,
-                                                                                     allow_filename=True)
+            exprs, exprs0, filename, err = ParseUtil.parse_element_element(args, all_stimulus_elements,
+                                                                           allow_wildcard=False, allow_filename=True)
         elif cmd == kw.PEXPORT:
-            exprs, exprs0, filename, err = ParseUtil.parse_stimulus_behavior_semicolon(args, all_stimulus_elements,
-                                                                                       all_behaviors, self.variables, allow_wildcard=True,
-                                                                                       allow_filename=True)
+            exprs, exprs0, filename, err = ParseUtil.parse_stimulus_behavior(args, all_stimulus_elements, all_behaviors,
+                                                                             self.variables, allow_wildcard=False,
+                                                                             allow_filename=True)
         elif cmd == kw.WEXPORT:
-            exprs, exprs0, filename, err = ParseUtil.parse_element_semicolon(args, all_stimulus_elements,
-                                                                             allow_wildcard=True, allow_filename=True)
+            exprs, exprs0, filename, err = ParseUtil.parse_element(args, all_stimulus_elements, allow_wildcard=False,
+                                                                   allow_filename=True)
         elif cmd == kw.NEXPORT:
             expr, expr0, filename, err = ParseUtil.parse_chain(args, all_stimulus_elements, all_behaviors, allow_filename=True)
-            exprs = [expr]
-            exprs0 = [expr0]
         else:
             err = f"Internal error."
         if err:
@@ -501,7 +531,11 @@ class ScriptParser():
             else:
                 filename = filename_param
 
-        return exprs, filename, exprs0
+        if cmd != kw.NEXPORT:
+            expr = exprs[0]
+            expr0 = exprs0[0]
+
+        return expr, filename, expr0
 
     def _parse_export(self, lineno, linesplit_space):
         """
@@ -519,56 +553,51 @@ class ScriptParser():
         expr0 = linesplit_space[1]  # E.g. n(plant -> approach) * 2
         expr = expr0
 
-        all_se = self.parameters.get(kw.STIMULUS_ELEMENTS)
-        all_b = self.parameters.get(kw.BEHAVIORS)
+        all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
+        all_behaviors = self.parameters.get(kw.BEHAVIORS)
 
-        exprs_list = [e.strip() for e in expr.split(';')]
-        exprs_str = list(exprs_list)
-        post_expr_objs = []
-        for e in exprs_list:
-            post_expr_obj, err = posteval.parse_postexpr(e, self.variables, POST_MATH)
+        post_expr_obj, err = posteval.parse_postexpr(expr, self.variables, POST_MATH)
+        if err:
+            raise ParseException(lineno, err)
+
+        # Don't allow mixing n with v, p, w, vss when xscale=all
+        if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
+            fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
+            if 'n' in fns:
+                if set(fns) == {'n'}:  # Only 'n' - ok
+                    pass
+                else:
+                    raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
+
+        for post_var in post_expr_obj.post_vars.values():
+            fn = post_var.fn
+            arg = post_var.arg
+
+            if fn == 'v':
+                parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_stimulus_elements, all_behaviors, allow_wildcard=False,
+                                                                         allow_filename=False)
+            elif fn == 'vss':
+                parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_stimulus_elements, allow_wildcard=False,
+                                                                        allow_filename=False)
+            elif fn == 'w':
+                parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_stimulus_elements, allow_wildcard=False, allow_filename=False)
+            elif fn == 'p':
+                parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_stimulus_elements, all_behaviors, self.variables,
+                                                                          allow_wildcard=False, allow_filename=False)
+            elif fn == 'n':
+                parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_stimulus_elements, all_behaviors, allow_filename=False)
+            else:
+                err = "Internal error."
             if err:
                 raise ParseException(lineno, err)
 
-            # Don't allow mixing n with v, p, w, vss when xscale=all
-            if self.parameters.get(kw.XSCALE) == kw.EVAL_ALL:
-                fns = [post_var.fn for post_var in post_expr_obj.post_vars.values()]
-                if 'n' in fns:
-                    if set(fns) == {'n'}:  # Only 'n' - ok
-                        pass
-                    else:
-                        raise ParseException(lineno, "Cannot mix n with v,p,w,vss when xscale is 'all'.")
+            if fn != 'n':
+                parsed_arg = parsed_arg[0]
 
-            for post_var in post_expr_obj.post_vars.values():
-                fn = post_var.fn
-                arg = post_var.arg
+            post_var.parsed_arg = parsed_arg
+            # post_expr_objs.append(post_expr_obj)
 
-                if fn == 'v':
-                    parsed_arg, _, _, err = ParseUtil.parse_element_behavior(arg, all_se, all_b, allow_wildcard=False,
-                                                                             allow_filename=False)
-                elif fn == 'vss':
-                    parsed_arg, _, _, err = ParseUtil.parse_element_element(arg, all_se, allow_wildcard=False,
-                                                                            allow_filename=False)
-                elif fn == 'w':
-                    parsed_arg, _, _, err = ParseUtil.parse_element(arg, all_se, allow_wildcard=False,
-                                                                    allow_filename=False)
-                elif fn == 'p':
-                    parsed_arg, _, _, err = ParseUtil.parse_stimulus_behavior(arg, all_se, all_b, self.variables,
-                                                                              allow_wildcard=False, allow_filename=False)
-                elif fn == 'n':
-                    parsed_arg, _, _, err = ParseUtil.parse_chain(arg, all_se, all_b, allow_filename=False)
-                else:
-                    err = "Internal error."
-                if err:
-                    raise ParseException(lineno, err)
-
-                if fn != 'n':
-                    parsed_arg = parsed_arg[0]
-
-                post_var.parsed_arg = parsed_arg
-                post_expr_objs.append(post_expr_obj)
-
-        return post_expr_objs, filename, exprs_str
+        return post_expr_obj, filename, expr0
 
     def _parse_xplot(self, lineno, linesplit_space):
         """
@@ -593,8 +622,7 @@ class ScriptParser():
             exprs, exprs_str, _, err = ParseUtil.parse_element_behavior_semicolon(expr_str, all_stimulus_elements,
                                                                                   all_behaviors)
         elif cmd == kw.VSSPLOT:
-            exprs, exprs_str, _, err = ParseUtil.parse_element_element_semicolon(expr_str, all_stimulus_elements,
-                                                                                 allow_filename=False)
+            exprs, exprs_str, _, err = ParseUtil.parse_element_element_semicolon(expr_str, all_stimulus_elements)
         elif cmd == kw.PPLOT:
             exprs, exprs_str, _, err = ParseUtil.parse_stimulus_behavior_semicolon(expr_str, all_stimulus_elements,
                                                                                    all_behaviors, self.variables)
@@ -841,9 +869,6 @@ class ScriptParser():
                 run_phase_labels_line = [(lbl.strip(), lineno) for lbl in run_phase_labels_line]
                 run_phase_labels.extend(run_phase_labels_line)
 
-        if len(run_phase_labels) == 0:
-            raise ParseException(run_lines[0][1], "No phase label given in @run.")
-
         if not got_run_label:
             run_label = f'run{self.unnamed_run_cnt}'
             self.unnamed_run_cnt += 1
@@ -921,16 +946,35 @@ class PostCmds():
         n_commands = len(self.cmds)
         for i, cmd in enumerate(self.cmds):
             assert(isinstance(cmd, PostCmd))
-            if progress and progress.stop_clicked:
+            if progress and progress.get_stop_clicked():
                 raise InterruptedSimulation()
             cmd.run(simulation_data)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
-                progress.progress1.set((i + 1) / n_commands * 100)
+                progress.set_progress1((i + 1) / n_commands * 100)
+                # progress.progress1.set((i + 1) / n_commands * 100)
 
     def plot(self):
         for cmd in self.cmds:
             cmd.plot()
+
+    def plot_no_pyplot(self, settings):
+        curr_fig = None
+        curr_ax = None
+        all_figs = []
+        for cmd in self.cmds:
+            if not isinstance(cmd, ExportCmd):
+                curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
+                if is_new_fig:
+                    all_figs.append(curr_fig)
+        return all_figs
+
+    def get_export_cmds(self):
+        export_cmds = []
+        for cmd in self.cmds:
+            if isinstance(cmd, ExportCmd):
+                export_cmds.append(cmd)
+        return export_cmds
 
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
@@ -952,6 +996,28 @@ class PostCmds():
         #         ax_average.legend()
         #     ax_average.grid()
 
+    # def plot_js(self):
+    #     def _extract_draw_figure(html, figind):
+    #         lines = html.split('\n')
+    #         for line in lines:
+    #             linestrip = line.strip()
+    #             if linestrip.startswith("mpld3.draw_figure"):
+    #                 first_comma_ind = linestrip.find(',')
+    #                 div_id = linestrip[19: (first_comma_ind - 1)]
+    #                 # linestrip = linestrip.replace('"width": 640.0, "height": 480.0', '"width": 2280.0, "height": 960.0')
+    #                 return linestrip.replace(div_id, "div-mpld3_" + str(figind))
+
+    #     import mpld3
+    #     self.plot()  # Plotting on the server like this yields "UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail."
+    #     figs = list(map(plt.figure, plt.get_fignums()))
+    #     out = []
+    #     plt.close('all')
+    #     for figind, fig in enumerate(figs):
+    #         html = mpld3.fig_to_html(fig, template_type="simple")
+    #         mpld3_draw_figure_cmd = _extract_draw_figure(html, figind)
+    #         out.append(mpld3_draw_figure_cmd)
+    #     return out
+
 
 class PostCmd():
     def __init__(self):
@@ -963,8 +1029,14 @@ class PostCmd():
     def plot(self):  # Matplotlib commands may be placed here
         pass
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        pass
+
     def progress_label(self):
         return ""
+
+    def to_dict(self):
+        return dict()
 
 
 class PlotCmd(PostCmd):
@@ -1046,7 +1118,7 @@ class PlotCmd(PostCmd):
             self.plot_args_list = list()
             for i, _ in enumerate(ydata):
                 if len(legend_label) > 0:
-                    subject_legend_label = f"{legend_label} subject {i + 1}"
+                    subject_legend_label = f"{legend_label}, subject {i + 1}"
                 else:
                     subject_legend_label = f"subject {i + 1}"
                 plot_args = dict({'label': subject_legend_label}, **self.mpl_prop)
@@ -1062,8 +1134,14 @@ class PlotCmd(PostCmd):
     def plot(self):
         self.plot_data.plot()
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        return self.plot_data.plot_no_pyplot(curr_fig, curr_ax, settings)
+
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
+
+    def to_dict(self):
+        return self.plot_data.to_dict()
 
 
 class PlotData():
@@ -1091,23 +1169,45 @@ class PlotData():
         # plt.get_current_fig_manager().set_window_title("FOO")
         plt.gcf().show()
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        if curr_ax is None:
+            curr_ax = curr_fig.add_subplot(1, 1, 1)
+        for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
+            if self.start_at_1:  # XXX Can start_at_1 be different for different ydata?
+                xdata = list(range(len(ydata)))
+                curr_ax.plot(xdata[1:], ydata[1:], **plot_args)
+            else:
+                curr_ax.plot(ydata, **plot_args)
+        curr_ax.grid(True)
+        return curr_fig, curr_ax, create_new_figure
+
+    def to_dict(self):
+        return {'type': 'plot',
+                'ydatas': json.dumps(self.ydata_list),
+                'plot_args': json.dumps(self.plot_args_list),
+                'start_at_1': json.dumps(self.start_at_1)}
+
 
 class ExportCmd(PostCmd):
-    def __init__(self, lineno, cmd, exprs, exprs0, parameters, run_parameters, variables):
+    def __init__(self, lineno, cmd, expr, expr0, parameters, run_parameters, variables):
         super().__init__()
         self.lineno = lineno
         self.cmd = cmd
-        self.exprs = exprs
+        self.expr = expr
         self.is_postexpr = False
-        self.exprs0 = exprs0
+        self.expr0 = expr0
         self.parameters = parameters
         self.run_parameters = run_parameters
+        self.filename_no_path = None  # Used from webapp
         self.variables = variables
 
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
-        self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
+        self.parameters.scalar_expand()  # If beta (or other postprocessing parameters) is not specified, scalar_expand has not been run
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
@@ -1177,84 +1277,74 @@ class ExportCmd(PostCmd):
             #         w.writerow(datarow)
 
     def _vwpn_export(self, file, simulation_data):
-        ydatas = []
-        legend_labels = []
-        n_ydata = None
-        for expr, expr0 in zip(self.exprs, self.exprs0):
-            label_expr = expr0  # beautify_expr_for_label(self.expr)
-            if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
-                post_expr = expr
-                ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
-                                            POST_MATH)
-                if err is not None:
-                    raise EvalException(f"Expression evaluation failed.", self.lineno)
-                legend_label = label_expr
-            else:
-                if self.cmd == kw.VEXPORT:
-                    ydata = simulation_data.vwpn_eval('v', expr, self.parameters, self.run_parameters)
-                    legend_label = f"v({label_expr})"
-                if self.cmd == kw.VSSEXPORT:
-                    ydata = simulation_data.vwpn_eval('vss', expr, self.parameters, self.run_parameters)
-                    legend_label = f"vss({label_expr})"
-                elif self.cmd == kw.WEXPORT:
-                    ydata = simulation_data.vwpn_eval('w', expr, self.parameters, self.run_parameters)
-                    legend_label = f"w({label_expr})"
-                elif self.cmd == kw.PEXPORT:
-                    ydata = simulation_data.vwpn_eval('p', expr, self.parameters, self.run_parameters)
-                    legend_label = f"p({label_expr})"
-                elif self.cmd == kw.NEXPORT:
-                    ydata = simulation_data.vwpn_eval('n', expr, self.parameters, self.run_parameters)
-                    legend_label = f"n({label_expr})"
-            ydatas.append(ydata)
-            legend_labels.append(legend_label)
-            if n_ydata is None:
-                n_ydata = len(ydata)
+        label_expr = self.expr0  # beautify_expr_for_label(self.expr)
+
+        if self.is_postexpr:  # @export v(s->b) + 2*w(s) / sin(n(s->b->s))
+            post_expr = self.expr
+            ydata, err = post_expr.eval(simulation_data, self.parameters, self.run_parameters, self.variables,
+                                        POST_MATH)
+            if err is not None:
+                raise EvalException(f"Expression evaluation failed.", self.lineno)
+            legend_label = label_expr
+        else:
+            if self.cmd == kw.VEXPORT:
+                ydata = simulation_data.vwpn_eval('v', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"v({label_expr})"
+            if self.cmd == kw.VSSEXPORT:
+                ydata = simulation_data.vwpn_eval('vss', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"vss({label_expr})"
+            elif self.cmd == kw.WEXPORT:
+                ydata = simulation_data.vwpn_eval('w', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"w({label_expr})"
+            elif self.cmd == kw.PEXPORT:
+                ydata = simulation_data.vwpn_eval('p', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"p({label_expr})"
+            elif self.cmd == kw.NEXPORT:
+                ydata = simulation_data.vwpn_eval('n', self.expr, self.parameters, self.run_parameters)
+                legend_label = f"n({label_expr})"
+
+        n_ydata = len(ydata)
 
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
 
             if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
                 subject_legend_labels = list()
-
-                for legend_label in legend_labels:
-                    for i in range(n_ydata):
-                        subject_legend_label = f"{legend_label} subject {i + 1}"
-                        subject_legend_labels.append(subject_legend_label)
+                for i, subject_ydata in enumerate(ydata):
+                    subject_legend_label = "{0} subject {1}".format(legend_label, i)
+                    subject_legend_labels.append(subject_legend_label)
 
                 # Write headers
                 w.writerow(['x'] + subject_legend_labels)
 
                 # Write data
                 maxlen = 0
-                for ydata in ydatas:
-                    for i in range(n_ydata):
-                        len_ydata_i = len(ydata[i])
-                        if len_ydata_i > maxlen:
-                            maxlen = len_ydata_i
+                for i in range(n_ydata):
+                    len_ydata_i = len(ydata[i])
+                    if len_ydata_i > maxlen:
+                        maxlen = len_ydata_i
                 for row in range(maxlen):
                     datarow = [row]
-                    for ydata in ydatas:
-                        for i in range(n_ydata):
-                            if row < len(ydata[i]):
-                                datarow.append(ydata[i][row])
-                            else:
-                                datarow.append(' ')
+                    for i in range(n_ydata):
+                        if row < len(ydata[i]):
+                            datarow.append(ydata[i][row])
+                        else:
+                            datarow.append(' ')
                     w.writerow(datarow)
             else:
                 # Write headers
-                # w.writerow(['x', legend_label])
-                w.writerow(['x'] + legend_labels)
+                w.writerow(['x', legend_label])
 
                 # Write data
                 for row in range(len(ydata)):
-                    datarow = [row]
-                    for ydata in ydatas:
-                        datarow.append(ydata[row])
+                    datarow = [row, ydata[row]]
                     w.writerow(datarow)
 
     def progress_label(self):
-        # return f"{self.cmd} {self.exprs0}"
-        return f"{self.cmd}"
+        return f"{self.cmd} {self.expr0}"
+
+    def to_dict(self):
+        return {'type': 'export', 'filename': self.parameters.get(kw.FILENAME), 'filename_no_path': self.filename_no_path}
 
 
 class FigureCmd(PostCmd):
@@ -1268,8 +1358,19 @@ class FigureCmd(PostCmd):
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        figsize = (int(settings['plot_width']) / 100, int(settings['plot_height']) / 100)
+        args = {'figsize': figsize, **self.mpl_prop}  # mpl_prop overrides settings
+        f = Figure(**args)
+        if self.title is not None:
+            f.suptitle(self.title)  # Figure title
+        return f, None, True
+
     def progress_label(self):
         return kw.FIGURE
+
+    def to_dict(self):
+        return {'type': 'figure', 'title': self.title, 'mpl_prop': json.dumps(self.mpl_prop)}
 
 
 class SubplotCmd(PostCmd):
@@ -1283,8 +1384,18 @@ class SubplotCmd(PostCmd):
     def plot(self):
         plt.subplot(*self.spec_list, **self.mpl_prop)
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        curr_ax = curr_fig.add_subplot(*self.spec_list, **self.mpl_prop)
+        return curr_fig, curr_ax, create_new_figure
+
     def progress_label(self):
         return kw.SUBPLOT
+
+    def to_dict(self):
+        return {'type': 'subplot', 'spec_list': json.dumps(self.spec_list), 'mpl_prop': json.dumps(self.mpl_prop)}
 
 
 class LegendCmd(PostCmd):
@@ -1299,5 +1410,13 @@ class LegendCmd(PostCmd):
         # else:
         plt.legend(**self.mpl_prop)
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        if curr_ax is not None:
+            curr_ax.legend(**self.mpl_prop)
+        return curr_fig, curr_ax, False
+
     def progress_label(self):
         return kw.LEGEND
+
+    def to_dict(self):
+        return {'type': 'legend', 'mpl_prop': json.dumps(self.mpl_prop)}
