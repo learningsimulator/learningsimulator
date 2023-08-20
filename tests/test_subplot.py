@@ -373,6 +373,6 @@ class TestExceptions(LsTestCase):
         @subplot
         @subplot  # One too many
         """
-        msg = "num must be 1 <= num <= 4, not 5"
+        msg = "num must be an integer with 1 <= num <= 4, not 5"
         with self.assertRaisesMsg(msg):
             run(text)

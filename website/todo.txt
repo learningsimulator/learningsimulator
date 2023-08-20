@@ -1,3 +1,5 @@
+Convert to org account
+
 Move to separate private repo instead of merging to master
 - use git subtree?
 
@@ -7,7 +9,7 @@ Give custom name to new script
 
 Check what happens if internet is down in deployment (error catching)
 
-
+Kortare flash bredd
 
 
 
