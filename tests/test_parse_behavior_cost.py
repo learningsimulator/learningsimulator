@@ -354,19 +354,17 @@ class TestExceptions(LsTestCase):
     def test_invalid_value(self):
         text = '''
         behaviors: b1, b2
-        behaviors: b1, b2
         {}: foo,>>>>////
         '''.format(name)
-        msg = "Error on line 4: Expected 'element:value' or 'default:value' in '{}', got 'foo'.".format(name)
+        msg = "Error on line 3: Expected 'element:value' or 'default:value' in '{}', got 'foo'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
         text = '''
         behaviors: b1, b2
-        behaviors: b1, b2
         {}: foo>>>>////
         '''.format(name)
-        msg = "Error on line 4: Expected 'element:value' or 'default:value' in '{}', got 'foo>>>>////'.".format(name)
+        msg = "Error on line 3: Expected 'element:value' or 'default:value' in '{}', got 'foo>>>>////'.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -472,12 +470,11 @@ class TestExceptions(LsTestCase):
             parse(text)
 
         text = '''
-        behaviors: will_be_overwritten1, will_be_overwritten2, will_be_overwritten3
         behaviors: b1, b2
         {}: b1:3.22, default:12,
                  b2:18, default:42
         '''.format(name)
-        msg = "Error on line 5: Default value for '{}' can only be stated once.".format(name)
+        msg = "Error on line 4: Default value for '{}' can only be stated once.".format(name)
         with self.assertRaisesMsg(msg):
             parse(text)
 
@@ -562,13 +559,12 @@ class TestExceptions(LsTestCase):
             parse(text)
 
         text = '''
-        behaviors: b1, b2, b3, b4
         behaviors: b1, b2
         {}: b1: 1+2*3,
                  b2: 4**2-3  *   2,
                  b3: 10-1/2,
                  b4: 0+0**1+0-0
         '''.format(name)
-        msg = "Error on line 6: Error in parameter 'behavior_cost': 'b3' is an invalid behavior name."
+        msg = "Error on line 5: Error in parameter 'behavior_cost': 'b3' is an invalid behavior name."
         with self.assertRaisesMsg(msg):
             parse(text)

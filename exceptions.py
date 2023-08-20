@@ -1,6 +1,9 @@
 class ParseException(Exception):
     def __init__(self, lineno, msg):
-        super().__init__("Error on line {}".format(lineno) + ": " + msg)
+        if lineno is not None:
+            super().__init__("Error on line {}".format(lineno) + ": " + msg)
+        else:
+            super().__init__("Error: " + msg)
         self.lineno = lineno
 
 

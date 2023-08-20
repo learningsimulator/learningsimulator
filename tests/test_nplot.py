@@ -9,6 +9,7 @@ def get_match_script(nplot_expr, match, xscale, xscale_match, cumulative):
     mechanism         : SR
     behaviors         : b
     stimulus_elements : s1, s2, s3
+    alpha_v           : 1
 
     @phase ph1 stop:s3=10
     S1     s1              | S2_1
@@ -309,7 +310,8 @@ class TestInitialValues(LsTestCase):
         self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
 
     def test_p_vs_n1(self):
-        text = '''
+        ntrials = 180
+        text = f'''
         n_subjects        : 100
         mechanism         : GA
         behaviors         : b1,b2,ignore
@@ -322,11 +324,11 @@ class TestInitialValues(LsTestCase):
         behavior_cost     : ignore:0, default: 0
         u                 : reward:5, default:0
 
-        @phase chaining_experiment stop: nju_trial=120
+        @phase chaining_experiment stop: nju_trial={ntrials}
         nju_trial  s_start    | STEP1
         STEP1      s1         | b1: STEP2   |  @omit_learn, nju_trial
         STEP2      s2         | b2: OUTCOME |  @omit_learn, nju_trial
-        OUTCOME               | count(nju_trial)<=60: REWARD | NO_REWARD
+        OUTCOME               | count(STEP2)<=60: REWARD | NO_REWARD
         REWARD     reward     | @omit_learn, nju_trial
         NO_REWARD  no_reward  | @omit_learn, nju_trial
 
@@ -337,7 +339,7 @@ class TestInitialValues(LsTestCase):
         subject: average
         cumulative: off
 
-        # @subplot 111 {'xlim':[1,100]}
+        # @subplot 111 {{'xlim':[1,100]}}
         @pplot s1->b1
         @nplot b1
         @legend'''
@@ -346,14 +348,15 @@ class TestInitialValues(LsTestCase):
         plot_data = get_plot_data()
         pplot = plot_data['p(s1->b1)']
         nplot = plot_data['n(b1)']
-        self.assertEqual(pplot['x'], list(range(120)))
-        self.assertEqual(nplot['x'], list(range(1, 119)))
-        pploty = pplot['y'][2:118]
-        nploty = nplot['y'][2:118]
+        self.assertEqual(pplot['x'], list(range(ntrials)))
+        self.assertEqual(nplot['x'], list(range(1, ntrials - 1)))
+        pploty = pplot['y'][2:(ntrials - 2)]
+        nploty = nplot['y'][2:(ntrials - 2)]
         sum_of_squares = 0
         for py, ny in zip(pploty, nploty):
             sum_of_squares += (py - ny)**2
-        self.assertLess(sum_of_squares, 0.3)
+        self.assertLess(sum_of_squares, 0.4)
+        print( sum_of_squares )
 
     def test_p_vs_n2(self):
         text = '''

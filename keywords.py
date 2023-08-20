@@ -28,6 +28,7 @@ PHASES = 'phases'
 CUMULATIVE = 'cumulative'
 MATCH = 'match'
 FILENAME = 'filename'
+RANDOM_SEED = 'random_seed'
 
 # Commands
 RUN = '@run'
@@ -50,6 +51,8 @@ NEXPORT = '@nexport'
 HEXPORT = '@hexport'
 VSSEXPORT = '@vssexport'
 EXPORT = '@export'
+
+OMIT_LEARN = '@omit_learn'
 
 # Other
 DEFAULT = 'default'
@@ -87,6 +90,7 @@ KEYWORDS = (BEHAVIORS,
             CUMULATIVE,
             MATCH,
             FILENAME,
+            RANDOM_SEED,
             VARIABLES,
             PHASE,
             RUN,

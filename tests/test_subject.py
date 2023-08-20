@@ -129,16 +129,16 @@ class TestBasic(LsTestCase):
         self.assertEqual(set(plot_data.keys()), {'x', 'y'})
 
         plot_data = get_plot_data(figure_number=2)
-        self.assertEqual(set(plot_data.keys()), {'v(stimulus->response), subject 1',
-                                                 'v(stimulus->response), subject 2',
-                                                 'v(stimulus->response), subject 3',
-                                                 'v(stimulus->response), subject 4',
-                                                 'v(stimulus->response), subject 5',
-                                                 'v(stimulus->response), subject 6',
-                                                 'v(stimulus->response), subject 7',
-                                                 'v(stimulus->response), subject 8',
-                                                 'v(stimulus->response), subject 9',
-                                                 'v(stimulus->response), subject 10'})
+        self.assertEqual(set(plot_data.keys()), {'v(stimulus->response) subject 1',
+                                                 'v(stimulus->response) subject 2',
+                                                 'v(stimulus->response) subject 3',
+                                                 'v(stimulus->response) subject 4',
+                                                 'v(stimulus->response) subject 5',
+                                                 'v(stimulus->response) subject 6',
+                                                 'v(stimulus->response) subject 7',
+                                                 'v(stimulus->response) subject 8',
+                                                 'v(stimulus->response) subject 9',
+                                                 'v(stimulus->response) subject 10'})
 
         for figure_number in [3, 4, 5, 6, 7, 8, 9, 10]:
             plot_data = get_plot_data(figure_number=figure_number)
@@ -148,7 +148,7 @@ class TestBasic(LsTestCase):
         # the 'all' subject plot
         for figure_number in [3, 4, 5, 6, 7, 8, 9, 10]:
             single_subject_plot_data = get_plot_data(figure_number=figure_number)
-            lbl = f"v(stimulus->response), subject {figure_number - 2}"
+            lbl = f"v(stimulus->response) subject {figure_number - 2}"
             all_subject_plot_data = get_plot_data(figure_number=2)[lbl]
             self.assertEqual(single_subject_plot_data, all_subject_plot_data)
 

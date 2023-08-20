@@ -1,4 +1,5 @@
 import os
+import random
 
 import keywords as kw
 import mechanism_names as mn
@@ -6,13 +7,13 @@ import mechanism
 from util import ParseUtil, make_readable_list_of_strings
 
 # All parameters and their defaults.
-PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings                  , REQ
-      kw.STIMULUS_ELEMENTS: set(),       # set of (restricted) strings                  , REQ
+PD = {kw.BEHAVIORS: list(),              # list of (restricted) strings                  , REQ
+      kw.STIMULUS_ELEMENTS: list(),      # list of (restricted) strings                  , REQ
       kw.MECHANISM_NAME: '',             # One of the available ones                      REQ
       kw.START_V: 0,                     # Scalar or list of se->b:val or default:val   ,
       kw.START_VSS: 0,                   # Scalar or list of se->se:val or default:val  ,
-      kw.ALPHA_V: 1,                     # -"-                                          ,
-      kw.ALPHA_VSS: 1,                   # Scalar or list of se->se:val or default:val  ,
+      kw.ALPHA_V: None,                  # -"-                                          , REQ
+      kw.ALPHA_VSS: None,                # Scalar or list of se->se:val or default:val  , REQ
       kw.BETA: 1,                        # -"-                                          ,
       kw.MU: 0,                          # -"-                                          ,
       kw.DISCOUNT: 1,                    # Scalar
@@ -20,7 +21,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.U: 0,                           # Scalar or list of se:val or default:val      ,
       kw.LAMBDA: 0,                      # Scalar or list of se:val or default:val      ,
       kw.START_W: 0,                     # -"-                                          ,
-      kw.ALPHA_W: 1,                     # -"-                                          ,
+      kw.ALPHA_W: None,                  # -"-                                          , REQ
       kw.BEHAVIOR_COST: 0,               # Scalar or list of b:val or default:val       ,
       kw.RESPONSE_REQUIREMENTS: dict(),  # List of b:se or b:(se1,se2,...)              ,
       kw.BIND_TRIALS: 'off',             # on or off
@@ -34,6 +35,7 @@ PD = {kw.BEHAVIORS: set(),               # set of (restricted) strings          
       kw.EVAL_PHASES: 'all',             # @post: all or list of phase labels           ,
       kw.CUMULATIVE: 'on',               # on or off
       kw.MATCH: 'subset',                # subset or exact
+      kw.RANDOM_SEED: None,              # Any number
       kw.FILENAME: ''}                   # valid path                                     REQ
 
 
@@ -165,21 +167,33 @@ class Parameters():
 
         # Valid path to writable file
         elif prop == kw.FILENAME:
-            filename = v_str
             return self.set_filename(filename)
 
-    def set_filename(self, filename):
+        elif prop == kw.RANDOM_SEED:
+            if self.val[kw.RANDOM_SEED] is not None:
+                return "Can only set random_seed once."
+            self.val[kw.RANDOM_SEED] = v_str  # Can be anything, really
+            random.seed(v_str)
+            return None
+
+
+    def set_filename(filename):
+        filename = v_str
+        file = None
         try:
             file = open(filename, 'w', newline='')
         except Exception as ex:
             return str(ex)
-        file.close()
-        try:
-            os.remove(filename)
-        except FileNotFoundError:
-            pass
+        finally:
+            if file is not None:
+                file.close()
+                try:
+                    os.remove(filename)
+                except Exception as ex:
+                    return str(ex)
         self.val[kw.FILENAME] = filename
         return None
+
 
     def make_mechanism_obj(self):
         """
@@ -192,6 +206,7 @@ class Parameters():
         RW = 'rw'
         MECHANISM_NAMES = (GA, SR, ES, QL, AC, RW)
         """
+
         mechanism_name = self.val[kw.MECHANISM_NAME]
         if not mechanism_name:
             return None, "Parameter 'mechanism' is not specified."
@@ -224,7 +239,9 @@ class Parameters():
         Example: "B1,  B2,B123" returns {'B1', 'B2', 'B123'}
         """
         if not is_appending:
-            self.val[kw.BEHAVIORS] = set()
+            if len(self.val[kw.BEHAVIORS]) > 0:
+                return "Parameter behaviors already defined."
+            self.val[kw.BEHAVIORS] = list()
         behaviors_list = behaviors_str.split(',')
         for b in behaviors_list:
             b = b.strip()
@@ -238,7 +255,7 @@ class Parameters():
                 return f"The behavior name '{b}' is invalid, since it is a variable name."
             if not b.isidentifier():
                 return f"Behavior name '{b}' is not a valid identifier."
-            self.val[kw.BEHAVIORS].add(b)
+            self.val[kw.BEHAVIORS].append(b)
         return None  # No error
 
     def _parse_stimulus_elements(self, stimulus_elements_str, variables, is_appending):
@@ -249,7 +266,9 @@ class Parameters():
         Example: "E1,  E2,E123" returns {'E1', 'E2', 'E123'}
         """
         if not is_appending:
-            self.val[kw.STIMULUS_ELEMENTS] = set()
+            if len(self.val[kw.STIMULUS_ELEMENTS]) > 0:
+                return "Parameter stimulus_elements already defined."
+            self.val[kw.STIMULUS_ELEMENTS] = list()
         stimulus_elements_list = stimulus_elements_str.split(',')
         for e in stimulus_elements_list:
             e = e.strip()
@@ -263,7 +282,7 @@ class Parameters():
                 return f"The stimulus element name '{e}' is invalid, since it is a variable name."
             if not e.isidentifier():
                 return f"Stimulus element name '{e}' is not a valid identifier."
-            self.val[kw.STIMULUS_ELEMENTS].add(e)
+            self.val[kw.STIMULUS_ELEMENTS].append(e)
         return None  # No error
 
     def _parse_mechanism_name(self, mechanism_name):
@@ -364,14 +383,6 @@ class Parameters():
         if not self.val[kw.BEHAVIORS]:
             return f"The parameter 'behaviors' must be assigned before the parameter '{NAME}'."
 
-        # Create and populate the struct with None values
-        if not is_appending:
-            self.val[NAME] = dict()
-            for e in self.val[kw.STIMULUS_ELEMENTS]:
-                for b in self.val[kw.BEHAVIORS]:
-                    self.val[NAME][(e, b)] = None
-            self.val[NAME][kw.DEFAULT] = None
-
         single_v, _ = ParseUtil.evaluate(sr_str, variables)
         if single_v is not None:
             if is_appending:
@@ -379,10 +390,16 @@ class Parameters():
             elif to_be_continued:
                 return f"A single value for '{NAME}' cannot be followed by other values."
             else:
-                for key in self.val[NAME]:
-                    self.val[NAME][key] = single_v
-                self.val[NAME].pop(kw.DEFAULT)
+                self.val[NAME] = single_v
         else:
+            # Create and populate the struct with None values
+            if not is_appending:
+                self.val[NAME] = dict()
+                for e in self.val[kw.STIMULUS_ELEMENTS]:
+                    for b in self.val[kw.BEHAVIORS]:
+                        self.val[NAME][(e, b)] = None
+                self.val[NAME][kw.DEFAULT] = None
+
             vs = ParseUtil.comma_split(sr_str)
             vs = [x.strip() for x in vs]
             for eb_v_str in vs:  # eb_v_str is 'e->b:value' or 'default:value'
@@ -710,12 +727,13 @@ class Parameters():
                 if set(start_vss.keys()) != expected_ss_keys:
                     self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS)
             else:  # scalar expand
-                self.val[param_name] = dict()
                 scalar = start_vss
-                for stimulus_element1 in stimulus_elements:
-                    for stimulus_element2 in stimulus_elements:
-                        key = (stimulus_element1, stimulus_element2)
-                        self.val[param_name][key] = scalar
+                if scalar is not None:  # alpha_vss is None by default. Don't scalar expand it, because we want to later on check if it is specified or not, since it is required
+                    self.val[param_name] = dict()
+                    for stimulus_element1 in stimulus_elements:
+                        for stimulus_element2 in stimulus_elements:
+                            key = (stimulus_element1, stimulus_element2)
+                            self.val[param_name][key] = scalar
 
         expected_sb_keys = set()
         for stimulus_element in stimulus_elements:
@@ -773,6 +791,8 @@ class Parameters():
     def _scalar_expand_element_behavior(self, param_name, stimulus_elements, behaviors,
                                         expected_sb_keys):
         val = self.val[param_name]
+        if val is None:  # Do not create start_v = {('e1','b1'): None, ('e2'.'b1'): None, ...}, but keep start_v = None
+            return
         if type(val) is dict:
             if set(val.keys()) != expected_sb_keys:
                 self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS, kw.BEHAVIORS)
@@ -786,6 +806,8 @@ class Parameters():
 
     def _scalar_expand_element(self, param_name, stimulus_elements, expected_s_keys):
         val = self.val[param_name]
+        if val is None:  # Do not create start_w = {'e1': None, 'e2': None, ...}, but keep start_w = None
+            return
         if type(val) is dict:
             if set(val.keys()) != expected_s_keys:
                 self._raise_match_err(param_name, kw.STIMULUS_ELEMENTS)

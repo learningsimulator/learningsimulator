@@ -5,21 +5,47 @@ The command @run
 ****************
 
 The command ``@run`` starts a simulation. It takes as input the name(s) of the phase(s) that should
-be used, in that order::
+be used, in that order. The phase names may be separated by space or comma or new line::
 
   @run phase_name
-
-or::
-
   @run phase_name1, phase_name2, ...
+  @run phase_name1 phase_name2 ...
+  @run phase_name1
+       phase_name2
+       ...
 
 With :ref:`multiple runs <multiple-runs>`, one may label the different ``@run`` commands to be able to
 refer to them in postprocessing::
 
-  @run phase_name runlabel:run1
-  ...
-  @run phase_name runlabel:run2
+  @run my_run1 phase_name1, phase_name2, ...
+  @run my_run2 phase_name1, phase_name2, ...
 
+The old syntax using ``runlabel`` may also be used::
+
+  @run phase_name1, phase_name2, ... runlabel:run1
+  @run phase_name1, phase_name2, ... runlabel:run2
+
+The phase names can be specified on separate lines, which
+may be useful when running many phases and/or running many
+phases with long names::
+
+  @run my_run1
+      phase_name1
+      phase_name2
+      ...
+
+The stop condition for the phase given in the ``@phase`` block
+can be overridden in the @run statment by giving the stop
+condition in parenthesis after the phase name::
+
+  @run my_run1
+      phase_name1(stop: stop_condition1)
+      phase_name2(stop: stop_condition2)
+      ...
+
+This means that it is possible to specify a ``@phase`` without
+a stop condition. If there is no stop condition, neither
+in ``@phase`` nor in ``@run``, an error will occur.
 
 .. _multiple-runs:
 
@@ -29,14 +55,14 @@ Multiple runs
 The simulation depends on the value of a number of parameters, such as
 ``n_subjects``, ``mechanism``, etc. It will use the values that are set at the point of the ``@run`` command.
 
-In other words, it is possible to re-set the value of a parameter and perform a ``@run`` again. In a script
-with several ``@run`` commands, use the label ``runlabel`` to label a ``@run`` command::
+This makes it possible to re-set the value of a parameter and perform a ``@run`` again. In a script
+with several ``@run`` commands, use the syntax specifying the run label described above::
 
   n_subjects = 10
-  @run phase_name runlabel:ten_individuals
+  @run ten_individuals phase_name
 
   n_subjects = 100
-  @run phase_name runlabel:hundred_individuals
+  @run hundred_individuals phase_name
 
 These labels (``ten_individuals`` and ``hundred_individuals``) can then be used in the postprocessing stage in order to, for example,
 plot the data from the simulation with ten individuals, or from the simulation with 100 individuals::
@@ -46,4 +72,3 @@ plot the data from the simulation with ten individuals, or from the simulation w
 
   runlabel = hundred_individuals
   @vplot e->b  # Plots the associative strength betweeen e and b in the simulation with 100 individuals
-

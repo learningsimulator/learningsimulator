@@ -18,13 +18,13 @@ class TestBasic(LsTestCase):
         stimulus_elements: B1, b1, B2, b2
         '''
         stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'B1', 'b1', 'B2', 'b2'})
+        self.assertEqual(stimulus_elements, ['B1', 'b1', 'B2', 'b2'])
 
         text = '''
                stimulus_elements   :    B1,b1,  B2,   b2          
                 '''
         stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'B1', 'b1', 'B2', 'b2'})
+        self.assertEqual(stimulus_elements, ['B1', 'b1', 'B2', 'b2'])
 
     def test_multiline(self):
         text = '''
@@ -32,7 +32,7 @@ class TestBasic(LsTestCase):
                    b3, b4
         '''
         stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'b1', 'b2', 'b3', 'b4'})
+        self.assertEqual(stimulus_elements, ['b1', 'b2', 'b3', 'b4'])
 
         text = '''
         stimulus_elements   :    b1,
@@ -41,22 +41,24 @@ class TestBasic(LsTestCase):
                 b5
         '''
         stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'b1', 'b2', 'b3', 'b4', 'b5'})
+        self.assertEqual(stimulus_elements, ['b1', 'b2', 'b3', 'b4', 'b5'])
 
     def test_redefinition(self):
         text = '''
         stimulus_elements: b1, b2, b3, b4
         stimulus_elements: x1, x2
         '''
-        stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'x1', 'x2'})
+        msg = "Error on line 3: Parameter stimulus_elements already defined."
+        with self.assertRaisesMsg(msg):
+            parse(text)
 
         text = '''
         stimulus_elements: x1, x2
         stimulus_elements: b1, b2, b3, b4
         '''
-        stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'b1', 'b2', 'b3', 'b4'})
+        msg = "Error on line 3: Parameter stimulus_elements already defined."
+        with self.assertRaisesMsg(msg):
+            parse(text)
 
         text = '''
         stimulus_elements: b1, b2,
@@ -64,8 +66,9 @@ class TestBasic(LsTestCase):
         stimulus_elements: x1,
                    x2
         '''
-        stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'x1', 'x2'})
+        msg = "Error on line 4: Parameter stimulus_elements already defined."
+        with self.assertRaisesMsg(msg):
+            parse(text)
 
         text = '''
         stimulus_elements: x1, x2
@@ -73,8 +76,9 @@ class TestBasic(LsTestCase):
                    b2, b3,
                    b4
         '''
-        stimulus_elements = parse(text)
-        self.assertEqual(stimulus_elements, {'b1', 'b2', 'b3', 'b4'})
+        msg = "Error on line 3: Parameter stimulus_elements already defined."
+        with self.assertRaisesMsg(msg):
+            parse(text)
 
 
 class TestParsestimulus_elementsErrors(LsTestCase):

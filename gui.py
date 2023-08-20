@@ -311,8 +311,8 @@ class Gui():
                 raise Exception("No simulation data to plot.")
 
             script = self.scriptField.text_box.get("1.0", "end-1c")
-            script_obj = Script(script)
-            script_obj.parse()
+            self.script_obj = Script(script)
+            self.script_obj.parse()
         except Exception as ex:
             self.handle_exception(ex)
             return
@@ -340,7 +340,8 @@ class Gui():
 
     def handle_exception(self, ex, stack_trace=None):
         if isinstance(ex, ParseException):
-            self._select_line(ex.lineno)
+            if ex.lineno is not None:
+                self._select_line(ex.lineno)
         # self.close_figs()  # Fix for issue #83. If ok, remove this line
 
         err_msg, lineno, stack_trace = util.get_errormsg(ex, stack_trace)

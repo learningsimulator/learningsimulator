@@ -94,7 +94,7 @@ After observing the next stimulus :math:`S'` (being a consequence of the decisio
 .. math::
   S \rightarrow B \rightarrow S'
 
-where :math:`S=\{E_1, E_2, \dotsc\}` and :math:`S=\{E'_1, E'_2, \dotsc\}`. In the table the following notation is used:
+where :math:`S=\{E_1, E_2, \dotsc\}` and :math:`S'=\{E'_1, E'_2, \dotsc\}`. In the table the following notation is used:
 
 .. math::
   u_S=\sum_{E\in S}u_E,\quad    w_S=\sum_{E\in S}w_E,\quad    v_{S\to B}=\sum_{E\in S}v_{E\to B},

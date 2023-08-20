@@ -1129,6 +1129,7 @@ class TestMultipleActions(LsTestCase):
         behaviors         : b1, b2
         stimulus_elements : e1, e2
         mechanism         : sr
+        alpha_v           : 1
 
         @PHASE phase_label stop:e1=10
         A e1       | x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.1) | C
@@ -1145,6 +1146,7 @@ class TestMultipleActions(LsTestCase):
         behaviors         : b1, b2
         stimulus_elements : e1, e2
         mechanism         : sr
+        alpha_v           : 1
 
         @PHASE phase_label stop:e1=10
         A e1       | p1:1, p2:2, p1=42: A | B
@@ -1162,6 +1164,7 @@ class TestMultipleActions(LsTestCase):
         behaviors         : b1, b2
         stimulus_elements : e1, e2
         mechanism         : sr
+        alpha_v           : 1
 
         @PHASE phase_label stop:e1=10
         A e1       | p1:142, p2:2, p1=142: A | B
@@ -1612,6 +1615,7 @@ class TestMultipleActions(LsTestCase):
         behaviors         : b1, b2
         stimulus_elements : e1, e2
         mechanism         : sr
+        alpha_v           : 1
 
         '''
 
@@ -1620,7 +1624,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | p1:1, p2:2, B,A(1.1)
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid condition 'B,A(1.1)'."
+        msg = "Error on line 9: Invalid condition 'B,A(1.1)'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1629,18 +1633,18 @@ class TestMultipleActions(LsTestCase):
         A e1       | p1:1, p2:2, B(1.1),A(1.1)
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid condition 'B(1.1),A(1.1)'. Expected a probability, got '1.1'."
+        msg = "Error on line 9: Invalid condition 'B(1.1),A(1.1)'. Expected a probability, got '1.1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
         text = params + '''
-        @PHASE phase_label stop:e1=10
+        @PHASE phase_label stop:e1=100
         A e1       | b1: x1:1, x2:2, B  # Missing else
         B e2       | A
 
         @run phase_label
         '''
-        msg = "Error on line 8: No condition in 'b1: x1:1, x2:2, B' was met for response 'b2'."
+        msg = "Error on line 9: No condition in 'b1: x1:1, x2:2, B' was met for response 'b2'."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1651,7 +1655,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "Error on line 8: Error in expression 'b1 b2 == x3 x4': invalid syntax."
+        msg = "Error on line 9: Error in expression 'b1 b2 == x3 x4': invalid syntax."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1661,7 +1665,7 @@ class TestMultipleActions(LsTestCase):
         B e2       | A
         C e1       | A
         '''
-        msg = "Error on line 8: The unconditional goto row label 'B' cannot be continued."
+        msg = "Error on line 9: The unconditional goto row label 'B' cannot be continued."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1673,7 +1677,7 @@ class TestMultipleActions(LsTestCase):
 
         @run phase_label
         '''
-        msg = "Error on line 8: Condition 'b1&5' is not a boolean expression."
+        msg = "Error on line 9: Condition 'b1&5' is not a boolean expression."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -1682,7 +1686,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1::1, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid statement 'x1::1'."
+        msg = "Error on line 9: Invalid statement 'x1::1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1691,7 +1695,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | foo:bar:1, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid statement 'foo:bar:1'."
+        msg = "Error on line 9: Invalid statement 'foo:bar:1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1700,7 +1704,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | foo:bar:baz:1, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 8: Invalid statement 'foo:bar:baz:1'."
+        msg = "Error on line 9: Invalid statement 'foo:bar:baz:1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1709,7 +1713,7 @@ class TestMultipleActions(LsTestCase):
         A          | b1:B | A
         B e2       | A
         '''
-        msg = "Error on line 8: Condition on help line cannot depend on response."
+        msg = "Error on line 9: Condition on help line cannot depend on response."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1719,7 +1723,7 @@ class TestMultipleActions(LsTestCase):
         A          | b1+cos(x)==2 and x==0:B | A
         B e2       | A
         '''
-        msg = "Error on line 9: Condition on help line cannot depend on response."
+        msg = "Error on line 10: Condition on help line cannot depend on response."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1730,7 +1734,7 @@ class TestMultipleActions(LsTestCase):
                                                  # phase out count(), so never mind
         B e2       | A
         '''
-        msg = "Error on line 9: Condition on help line cannot depend on response."
+        msg = "Error on line 10: Condition on help line cannot depend on response."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1739,7 +1743,7 @@ class TestMultipleActions(LsTestCase):
         A          | x1:1, x2:2, B, x3:3 | A
         B e2       | A
         '''
-        msg = "Error on line 8: Row label(s) must be the last action(s). Found 'x3:3' after row-label."
+        msg = "Error on line 9: Row label(s) must be the last action(s). Found 'x3:3' after row-label."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1748,7 +1752,7 @@ class TestMultipleActions(LsTestCase):
         A          | x0:0, x1:1, x2:2, x3:3 | A
         B e2       | A
         '''
-        msg = "Error on line 8: Last action must be a row label, found 'x3:3'."
+        msg = "Error on line 9: Last action must be a row label, found 'x3:3'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1757,7 +1761,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | b1=6: x1:1, x2:2, x3:3
         B e2       | A
         '''
-        msg = "Error on line 8: Last action must be a row label, found 'x3:3'."
+        msg = "Error on line 9: Last action must be a row label, found 'x3:3'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1766,7 +1770,7 @@ class TestMultipleActions(LsTestCase):
         A          | e1=1: 1x:1, B
         B e2       | A
         '''
-        msg = "Error on line 8: Variable name '1x' is not a valid identifier."
+        msg = "Error on line 9: Variable name '1x' is not a valid identifier."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1775,7 +1779,7 @@ class TestMultipleActions(LsTestCase):
         A          | x==2:1, B
         B e2       | A
         '''
-        msg = "Error on line 8: Unknown action '1'."
+        msg = "Error on line 9: Unknown action '1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1784,7 +1788,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | b1:1, B
         B e2       | A
         '''
-        msg = "Error on line 8: Unknown action '1'."
+        msg = "Error on line 9: Unknown action '1'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1793,7 +1797,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | e2:1, B
         B e2       | A
         '''
-        msg = "Error on line 8: Variable name 'e2' equals a stimulus element name."
+        msg = "Error on line 9: Variable name 'e2' equals a stimulus element name."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1803,7 +1807,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, glob:1, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 9: Cannot modify global variable inside a phase."
+        msg = "Error on line 10: Cannot modify global variable inside a phase."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1813,7 +1817,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, count_reset(foo), x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 9: Unknown event 'foo' in count_reset."
+        msg = "Error on line 10: Unknown event 'foo' in count_reset."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1823,7 +1827,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, blaps, x2:2, B
         B e2       | A
         '''
-        msg = "Error on line 9: Unknown action 'blaps'."
+        msg = "Error on line 10: Unknown action 'blaps'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1833,7 +1837,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, x2, x3:3, B
         B e2       | A
         '''
-        msg = "Error on line 9: Unknown action 'x2'."
+        msg = "Error on line 10: Unknown action 'x2'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1843,7 +1847,7 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, e2, x3:3, B
         B e2       | A
         '''
-        msg = "Error on line 9: Unknown action 'e2'."
+        msg = "Error on line 10: Unknown action 'e2'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
 
@@ -1853,48 +1857,9 @@ class TestMultipleActions(LsTestCase):
         A e1       | x1:1, b2, x3:3, B
         B e2       | A
         '''
-        msg = "Error on line 9: Unknown action 'b2'."
+        msg = "Error on line 10: Unknown action 'b2'."
         with self.assertRaisesMsg(msg):
             parse(text, 'phase_label')
-
-        text = params + '''
-        behaviors = b1
-        @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)
-        B e2       | A
-        C e1       | A
-
-        @run phase_label
-        '''
-        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1=5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
-        with self.assertRaisesMsg(msg):
-            run(text)
-
-        text = params + '''
-        behaviors = b1
-        @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)
-        B e2       | A
-        C e1       | A
-
-        @run phase_label
-        '''
-        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1 = 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
-        with self.assertRaisesMsg(msg):
-            run(text)
-
-        text = params + '''
-        behaviors = b1
-        @PHASE phase_label stop:e1=10
-        A e1       | x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)
-        B e2       | A
-        C e1       | A
-
-        @run phase_label
-        '''
-        msg = "Error on line 9: No condition in 'x1:1, x2:rand(1,3), b1 == 5: x:10, B(0.5),C(0.5)' was met for response 'b1'."
-        with self.assertRaisesMsg(msg):
-            run(text)
 
 
 class TestWithPlots(LsTestCase):
@@ -1909,6 +1874,7 @@ class TestWithPlots(LsTestCase):
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @phase phase1 stop:s=2
         NT s | NT
@@ -1928,6 +1894,7 @@ class TestWithPlots(LsTestCase):
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @phase phase1 stop:NT=2
         NT s | NT
@@ -1947,6 +1914,7 @@ class TestWithPlots(LsTestCase):
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @phase phase1 stop:s=2
         NT s | NT
@@ -1967,6 +1935,7 @@ class TestWithPlots(LsTestCase):
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @phase phase1 stop:s=2
         NT s | NT
@@ -1990,6 +1959,7 @@ class TestWithPlots(LsTestCase):
         mechanism: sr
         stimulus_elements: s
         behaviors: b
+        alpha_v: 1
 
         @phase phase1 stop:NT=2
         NT s | NT
@@ -2369,6 +2339,8 @@ class TestExceptions(LsTestCase):
         mechanism: ga
         stimulus_elements : lever1, lever2, lever3, reward
         behaviors : R
+        alpha_v: 1
+        alpha_w: 1
 
         @phase vi stop: reward=25000
         FI3 lever1       | count_line()=3:ON     | FI3
@@ -2380,7 +2352,7 @@ class TestExceptions(LsTestCase):
         """
         phase = parse(text, 'vi')
         stimulus = phase.next_stimulus(None)[0]
-        msg = "Error on line 10: No condition in 'ON(1/6),FI2(1/6),FI3(1/6)' was met for response 'R'."
+        msg = "Error on line 12: No condition in 'ON(1/6),FI2(1/6),FI3(1/6)' was met for response 'R'."
         with self.assertRaisesMsg(msg):
             for _ in range(100):
                 phase.next_stimulus('R')
@@ -2390,6 +2362,8 @@ class TestExceptions(LsTestCase):
         mechanism: ga
         stimulus_elements : lever1, lever2, lever3, reward
         behaviors : R
+        alpha_v: 1
+        alpha_w: 1
 
         @phase vi stop: reward=25000
         FI3 lever1       | count_line()=3:ON     | FI3
@@ -2399,7 +2373,7 @@ class TestExceptions(LsTestCase):
 
         @run vi
         """
-        msg = "Error on line 10: Sum of probabilities is 1.5>1."
+        msg = "Error on line 12: Sum of probabilities is 1.5>1."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2420,13 +2394,15 @@ class TestExceptions(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
+        alpha_v: 1
+
         @PHASE thelabel stop : e1==4
         L1  e1  | 42:L2 | L1
         L2  e2  | L1
 
         @run thelabel
         '''
-        msg = "Error on line 6: Condition '42' is not a boolean expression."
+        msg = "Error on line 8: Condition '42' is not a boolean expression."
         with self.assertRaisesMsg(msg):
             run(text)
             # phase = parse(text, 'thelabel')
@@ -2558,13 +2534,16 @@ class TestExceptions(LsTestCase):
             parse(text, 'thelabel')
 
         text = '''
+        mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
+        alpha_v: 1
+    
         @PHASE thelabel stop : e1==4
         L1  e1  | L22 | L1
         L2  e2  | L1
         '''
-        msg = "Error on line 5: Unknown action 'L22'."
+        msg = "Error on line 8: Unknown action 'L22'."
         with self.assertRaisesMsg(msg):
             parse(text, 'thelabel')
 
@@ -2572,6 +2551,8 @@ class TestExceptions(LsTestCase):
         mechanism: ga
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
+        alpha_v: 1
+        alpha_w: 1
 
         @PHASE thelabel stop : e1==4
         L1  e1  | L2(0.2),L1(0.9) | L1
@@ -2579,7 +2560,7 @@ class TestExceptions(LsTestCase):
 
         @run thelabel
         '''
-        msg = "Error on line 7: Sum of probabilities is 1.1>1."
+        msg = "Error on line 9: Sum of probabilities is 1.1>1."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2600,13 +2581,15 @@ class TestExceptions(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
+        alpha_v: 1
+
         @PHASE lbl stop : e1==4
         L1  e1  | x=choice(1,2,[32,23,43]), L2(0.2),L1(0.7) | L1
         L2  e2  | L1
 
         @run lbl
         '''
-        msg = "Error on line 6: Cannot evaluate expression 'choice(1,2,[32,23,43])': The number of weights does not match the population."
+        msg = "Error on line 8: Cannot evaluate expression 'choice(1,2,[32,23,43])': The number of weights does not match the population."
         with self.assertRaisesMsg(msg):
             run(text)
 
@@ -2614,12 +2597,14 @@ class TestExceptions(LsTestCase):
         mechanism: sr
         stimulus_elements: e1, e2
         behaviors: b1, b2, b3
+        alpha_v: 1
+
         @PHASE lbl stop : e1==4
         L1  e1  | x=choice([1,2],[32,23,43]), L2(0.2),L1(0.7) | L1
         L2  e2  | L1
 
         @run lbl
         '''
-        msg = "Error on line 6: Cannot evaluate expression 'choice([1,2],[32,23,43])': The number of weights does not match the population."
+        msg = "Error on line 8: Cannot evaluate expression 'choice([1,2],[32,23,43])': The number of weights does not match the population."
         with self.assertRaisesMsg(msg):
             run(text)
