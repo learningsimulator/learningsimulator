@@ -167,6 +167,7 @@ class Parameters():
 
         # Valid path to writable file
         elif prop == kw.FILENAME:
+            filename = v_str
             return self.set_filename(filename)
 
         elif prop == kw.RANDOM_SEED:
@@ -176,9 +177,7 @@ class Parameters():
             random.seed(v_str)
             return None
 
-
-    def set_filename(filename):
-        filename = v_str
+    def set_filename(self, filename):
         file = None
         try:
             file = open(filename, 'w', newline='')
@@ -193,7 +192,6 @@ class Parameters():
                     return str(ex)
         self.val[kw.FILENAME] = filename
         return None
-
 
     def make_mechanism_obj(self):
         """

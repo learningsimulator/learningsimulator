@@ -41,8 +41,11 @@ class PostExpr():
             try:
                 ydata[i] = eval(self.expr, {'__builtins__': {'round': round}}, alias_values)
             except Exception as e:
-                return None, f"Expression evaluation failed."
-        return ydata, None
+                ydata[i] = None
+        if n_values > 0 and ydata.count(None) == n_values:  # Evaluation failed for ALL i (allow occational divide by zero, for example)
+            return None, f"Expression evaluation failed."
+        else:
+            return ydata, None
 
 
 def is_arithmetic(expr, allowed_names):
