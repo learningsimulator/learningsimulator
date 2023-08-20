@@ -18,7 +18,7 @@ from tkinter import messagebox, filedialog
 
 from widgets import LineNumberedTextBox, ErrorDlg, ProgressDlg, LicenseDlg, WarningDlg
 from parsing import Script
-from exceptions import ParseException, EvalException, InterruptedSimulation
+from exceptions import ParseException, InterruptedSimulation
 
 from functools import partial
 
@@ -311,8 +311,8 @@ class Gui():
                 raise Exception("No simulation data to plot.")
 
             script = self.scriptField.text_box.get("1.0", "end-1c")
-            self.script_obj = Script(script)
-            self.script_obj.parse()
+            script_obj = Script(script)
+            script_obj.parse()
         except Exception as ex:
             self.handle_exception(ex)
             return
@@ -340,19 +340,10 @@ class Gui():
 
     def handle_exception(self, ex, stack_trace=None):
         if isinstance(ex, ParseException):
-            if ex.lineno is not None:
-                self._select_line(ex.lineno)
+            self._select_line(ex.lineno)
         # self.close_figs()  # Fix for issue #83. If ok, remove this line
 
-        err_msg = str(ex)
-        if err_msg.startswith("[Errno "):
-            rindex = err_msg.index("] ")
-            err_msg = err_msg[(rindex + 2):]
-        elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
-            err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
-
-        if stack_trace is None:
-            stack_trace = traceback.format_exc()
+        err_msg, lineno, stack_trace = util.get_errormsg(ex, stack_trace)
         ErrorDlg("Error", err_msg, stack_trace)
 
     def handle_exception_old(self, ex):
@@ -573,6 +564,9 @@ class Progress():
     def stop(self):
         self.stop_clicked = True
 
+    def get_stop_clicked(self):
+        return self.stop_clicked
+
     def set_done(self, done):
         self.done = done
 
@@ -583,6 +577,9 @@ class Progress():
 
     def get_n_runs(self):
         return len(self.nsteps2)
+
+    def set_progress1(self, val):
+        self.progress1.set(val)
 
     def increment1(self):
         self.progress1.set(self.progress1.get() + self.nsteps1_percent)
@@ -613,6 +610,14 @@ class Progress():
 
     def report2(self, message):
         self.message2.set(message)
+
+    def set_dlg_visibility2(self, visibility):
+        if self.dlg is not None:
+            self.dlg.set_visibility2(visibility)
+
+    def set_dlg_title(self, title):
+        if self.dlg is not None:
+            self.dlg.set_title(title)
 
 
 if __name__ == "__main__":
