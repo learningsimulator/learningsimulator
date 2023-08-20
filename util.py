@@ -1,8 +1,11 @@
+import traceback
 import ast
 import re
 import random
 import os
 import sys
+
+from exceptions import ParseException, EvalException
 
 
 SEMICOLON_ERR = "Cannot use semicolon-separated expressions with wildcard."
@@ -69,16 +72,29 @@ class ParseUtil():
     parse_cache = dict()
 
     @staticmethod
-    def is_float(expr):
+    def is_float(s):
         """
-        Check that the specified expression represents a number. Return the number (None if it
+        Check that the specified string represents a number. Return the number (None if it
         does not represent a number) and the error (None if it does represent a number).
         """
         try:
-            value = float(expr)
+            value = float(s)
             return value, None
         except ValueError:
-            err = "'{}' does not represent a number".format(expr)
+            err = "'{s}' does not represent a number"
+            return None, err
+
+    @staticmethod
+    def is_int(s):
+        """
+        Check that the specified string represents an integer. Return the integer (None if it
+        does not represent an integer) and the error (None if it does represent an integer).
+        """
+        try:
+            value = int(s)
+            return value, None
+        except ValueError:
+            err = f"'{s}' does not represent a number"
             return None, err
 
     # @staticmethod
@@ -1363,3 +1379,22 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+
+def get_errormsg(ex, stack_trace=None):
+    """Extract human readable error message and stack trace from specified Exception object."""
+    lineno = None
+    if isinstance(ex, ParseException):
+        lineno = ex.lineno
+    err_msg = str(ex)
+    if err_msg.startswith("[Errno "):
+        rindex = err_msg.index("] ")
+        err_msg = err_msg[(rindex + 2):]
+    elif (not isinstance(ex, ParseException)) and (not isinstance(ex, EvalException)):
+        err_msg = type(ex).__name__ + ": " + err_msg  # Prepend e.g. "KeyError: "
+
+    if stack_trace is None:
+        stack_trace = traceback.format_exc()
+
+    return err_msg, lineno, stack_trace
+

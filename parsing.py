@@ -1,8 +1,17 @@
+import os
 import platform
 import re
 import copy
+
 import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
+
+from matplotlib.figure import Figure
+
 import csv
+import json
 import math
 
 import posteval
@@ -14,6 +23,7 @@ from variables import Variables
 from phases import Phases
 from exceptions import ParseException, InterruptedSimulation, EvalException
 from util import ParseUtil  # , eval_average
+
 
 POST_MATH = {'sin': math.sin, 'cos': math.cos, 'tan': math.tan, 'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
              'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh, 'asinh': math.asinh, 'acosh': math.acosh, 'atanh': math.atanh,
@@ -65,8 +75,8 @@ class Script():
         self.script = script
         self.script_parser = ScriptParser(self.script)
 
-    def parse(self, is_gui=False):
-        self.script_parser.parse()
+    def parse(self, is_webapp=False):  # is_webapp is True from webrunner
+        self.script_parser.parse(is_webapp)
 
     def check_deprecated_syntax(self):
         return self.script_parser.check_deprecated_syntax()
@@ -75,9 +85,9 @@ class Script():
         return self.script_parser.runs.run(progress)
 
     def postproc(self, simulation_data, progress=None):
-        if (progress is not None) and (progress.dlg is not None):
-            progress.dlg.set_visibility2(False)
-            progress.dlg.set_title("Plot/Export Progress")
+        if progress is not None:
+            progress.set_dlg_visibility2(False)
+            progress.set_dlg_title("Plot/Export Progress")
 
         self.script_parser.postcmds.run(simulation_data, progress)
 
@@ -191,7 +201,7 @@ class ScriptParser():
         # Used to label unlabelled @phase-statements with "phase1", "phase2", ...
         self.unnamed_phase_cnt = 1
 
-    def parse(self):
+    def parse(self, is_webapp=False):
         if len(self.lines) == 0:
             raise ParseException(1, "Script is empty.")
         prop = None
@@ -279,6 +289,12 @@ class ScriptParser():
                     if not self.parameters.may_end_with_comma(prop):
                         raise ParseException(lineno, "Value for {} may not end by comma.".format(prop))
                     in_prop = self.parameters.is_csv(prop)
+
+                # Special treat filename, since it has different behavior depending on frontend
+                if prop == kw.FILENAME and is_webapp:
+                    # In web, filename cannot contain path
+                    self.check_is_filename_without_path(possible_val, lineno)
+
                 err = self.parameters.str_set(prop, possible_val, self.variables, self.phases,
                                               self.all_run_labels, line_endswith_comma)
                 if err:
@@ -397,6 +413,10 @@ class ScriptParser():
                 else:
                     run_parameters = self.runs.get_last_run_obj().mechanism_obj.parameters
 
+                # In web, filename cannot contain path
+                if is_webapp:
+                    self.check_is_filename_without_path(filename, lineno)
+
                 export_parameters.val[kw.FILENAME] = filename  # If filename only given on export line
                 export_cmd = ExportCmd(lineno, cmd, exprs, exprs_str,
                                        export_parameters, run_parameters, self.variables)
@@ -411,6 +431,10 @@ class ScriptParser():
         if in_run:
             run, run_label = self._parse_run_lines(run_lines)
             self.runs.add(run, run_label)
+
+    def check_is_filename_without_path(self, filename, lineno):
+        if os.sep in filename:
+            raise ParseException(lineno, f"Filename cannot contain path (when run in web browser).")
 
     def parse_stop_colon_cond(self, stop_colon_cond):
         stop, condition = ParseUtil.split1_strip(stop_colon_cond, ':')
@@ -467,7 +491,17 @@ class ScriptParser():
 
         if len(linesplit_space) == 1:  # @export
             raise ParseException(lineno, f"Invalid {cmd} command.")
-        args = linesplit_space[1]
+        
+        args = linesplit_space[1].strip()
+        
+        # expr0, filename = ParseUtil.split1_strip(args)
+        # expr = expr0
+        # if filename is None:
+        #     if len(filename_param) == 0:
+        #         raise ParseException(lineno, f"No filename given to {cmd}.")
+        #     else:
+        #         filename = filename_param
+        # args = linesplit_space[1].strip()
 
         all_stimulus_elements = self.parameters.get(kw.STIMULUS_ELEMENTS)
         all_behaviors = self.parameters.get(kw.BEHAVIORS)
@@ -921,16 +955,35 @@ class PostCmds():
         n_commands = len(self.cmds)
         for i, cmd in enumerate(self.cmds):
             assert(isinstance(cmd, PostCmd))
-            if progress and progress.stop_clicked:
+            if progress and progress.get_stop_clicked():
                 raise InterruptedSimulation()
             cmd.run(simulation_data)
             if progress:
                 progress.report1(f"Running {cmd.progress_label()}")
-                progress.progress1.set((i + 1) / n_commands * 100)
+                progress.set_progress1((i + 1) / n_commands * 100)
+                # progress.progress1.set((i + 1) / n_commands * 100)
 
     def plot(self):
         for cmd in self.cmds:
             cmd.plot()
+
+    def plot_no_pyplot(self, settings):
+        curr_fig = None
+        curr_ax = None
+        all_figs = []
+        for cmd in self.cmds:
+            if not isinstance(cmd, ExportCmd):
+                curr_fig, curr_ax, is_new_fig = cmd.plot_no_pyplot(curr_fig, curr_ax, settings)
+                if is_new_fig:
+                    all_figs.append(curr_fig)
+        return all_figs
+
+    def get_export_cmds(self):
+        export_cmds = []
+        for cmd in self.cmds:
+            if isinstance(cmd, ExportCmd):
+                export_cmds.append(cmd)
+        return export_cmds
 
         # # XXX Add average plots in all subplots
         # fig_average = plt.figure()
@@ -952,6 +1005,28 @@ class PostCmds():
         #         ax_average.legend()
         #     ax_average.grid()
 
+    # def plot_js(self):
+    #     def _extract_draw_figure(html, figind):
+    #         lines = html.split('\n')
+    #         for line in lines:
+    #             linestrip = line.strip()
+    #             if linestrip.startswith("mpld3.draw_figure"):
+    #                 first_comma_ind = linestrip.find(',')
+    #                 div_id = linestrip[19: (first_comma_ind - 1)]
+    #                 # linestrip = linestrip.replace('"width": 640.0, "height": 480.0', '"width": 2280.0, "height": 960.0')
+    #                 return linestrip.replace(div_id, "div-mpld3_" + str(figind))
+
+    #     import mpld3
+    #     self.plot()  # Plotting on the server like this yields "UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail."
+    #     figs = list(map(plt.figure, plt.get_fignums()))
+    #     out = []
+    #     plt.close('all')
+    #     for figind, fig in enumerate(figs):
+    #         html = mpld3.fig_to_html(fig, template_type="simple")
+    #         mpld3_draw_figure_cmd = _extract_draw_figure(html, figind)
+    #         out.append(mpld3_draw_figure_cmd)
+    #     return out
+
 
 class PostCmd():
     def __init__(self):
@@ -963,8 +1038,14 @@ class PostCmd():
     def plot(self):  # Matplotlib commands may be placed here
         pass
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        pass
+
     def progress_label(self):
         return ""
+
+    def to_dict(self):
+        return dict()
 
 
 class PlotCmd(PostCmd):
@@ -1062,8 +1143,14 @@ class PlotCmd(PostCmd):
     def plot(self):
         self.plot_data.plot()
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        return self.plot_data.plot_no_pyplot(curr_fig, curr_ax, settings)
+
     def progress_label(self):
         return f"{self.cmd} {self.expr0}"
+
+    def to_dict(self):
+        return self.plot_data.to_dict()
 
 
 class PlotData():
@@ -1091,6 +1178,27 @@ class PlotData():
         # plt.get_current_fig_manager().set_window_title("FOO")
         plt.gcf().show()
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        if curr_ax is None:
+            curr_ax = curr_fig.add_subplot(1, 1, 1)
+        for ydata, plot_args in zip(self.ydata_list, self.plot_args_list):
+            if self.start_at_1:  # XXX Can start_at_1 be different for different ydata?
+                xdata = list(range(len(ydata)))
+                curr_ax.plot(xdata[1:], ydata[1:], **plot_args)
+            else:
+                curr_ax.plot(ydata, **plot_args)
+        curr_ax.grid(True)
+        return curr_fig, curr_ax, create_new_figure
+
+    def to_dict(self):
+        return {'type': 'plot',
+                'ydatas': json.dumps(self.ydata_list),
+                'plot_args': json.dumps(self.plot_args_list),
+                'start_at_1': json.dumps(self.start_at_1)}
+
 
 class ExportCmd(PostCmd):
     def __init__(self, lineno, cmd, exprs, exprs0, parameters, run_parameters, variables):
@@ -1102,12 +1210,13 @@ class ExportCmd(PostCmd):
         self.exprs0 = exprs0
         self.parameters = parameters
         self.run_parameters = run_parameters
+        self.filename_no_path = None  # Used from webapp
         self.variables = variables
 
         # parse_eval_prop(cmd, expr, eval_prop, VALID_PROPS[cmd])
 
     def run(self, simulation_data, progress=None):
-        self.parameters.scalar_expand()  # If beta is not specified, scalar_expand has not been run
+        self.parameters.scalar_expand()  # If beta (or other postprocessing parameters) is not specified, scalar_expand has not been run
         filename = self.parameters.get(kw.EVAL_FILENAME)
         if len(filename) == 0:
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
@@ -1256,6 +1365,9 @@ class ExportCmd(PostCmd):
         # return f"{self.cmd} {self.exprs0}"
         return f"{self.cmd}"
 
+    def to_dict(self):
+        return {'type': 'export', 'filename': self.parameters.get(kw.FILENAME), 'filename_no_path': self.filename_no_path}
+
 
 class FigureCmd(PostCmd):
     def __init__(self, title, mpl_prop):
@@ -1268,8 +1380,19 @@ class FigureCmd(PostCmd):
         if self.title is not None:
             f.suptitle(self.title)  # Figure title
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        figsize = (int(settings['plot_width']) / 100, int(settings['plot_height']) / 100)
+        args = {'figsize': figsize, **self.mpl_prop}  # mpl_prop overrides settings
+        f = Figure(**args)
+        if self.title is not None:
+            f.suptitle(self.title)  # Figure title
+        return f, None, True
+
     def progress_label(self):
         return kw.FIGURE
+
+    def to_dict(self):
+        return {'type': 'figure', 'title': self.title, 'mpl_prop': json.dumps(self.mpl_prop)}
 
 
 class SubplotCmd(PostCmd):
@@ -1283,8 +1406,18 @@ class SubplotCmd(PostCmd):
     def plot(self):
         plt.subplot(*self.spec_list, **self.mpl_prop)
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        create_new_figure = (curr_fig is None)
+        if create_new_figure:
+            curr_fig = Figure()
+        curr_ax = curr_fig.add_subplot(*self.spec_list, **self.mpl_prop)
+        return curr_fig, curr_ax, create_new_figure
+
     def progress_label(self):
         return kw.SUBPLOT
+
+    def to_dict(self):
+        return {'type': 'subplot', 'spec_list': json.dumps(self.spec_list), 'mpl_prop': json.dumps(self.mpl_prop)}
 
 
 class LegendCmd(PostCmd):
@@ -1299,5 +1432,13 @@ class LegendCmd(PostCmd):
         # else:
         plt.legend(**self.mpl_prop)
 
+    def plot_no_pyplot(self, curr_fig, curr_ax, settings):
+        if curr_ax is not None:
+            curr_ax.legend(**self.mpl_prop)
+        return curr_fig, curr_ax, False
+
     def progress_label(self):
         return kw.LEGEND
+
+    def to_dict(self):
+        return {'type': 'legend', 'mpl_prop': json.dumps(self.mpl_prop)}

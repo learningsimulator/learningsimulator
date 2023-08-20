@@ -366,16 +366,14 @@ class TestExceptions(LsTestCase):
         with self.assertRaisesMsg(msg):
             run(text)
 
-        # Disabled test until this error message is propagated to GUI.
-        # Currently the error message depends on Python version.        
-        # text = """
-        # @figure(2,2)
-        # @subplot
-        # @subplot
-        # @subplot
-        # @subplot
-        # @subplot  # One too many
-        # """
-        # msg = "num must be 1 <= num <= 4, not 5"
-        # with self.assertRaisesMsg(msg):
-        #     run(text)
+        text = """
+        @figure(2,2)
+        @subplot
+        @subplot
+        @subplot
+        @subplot
+        @subplot  # One too many
+        """
+        msg = "num must be an integer with 1 <= num <= 4, not 5"
+        with self.assertRaisesMsg(msg):
+            run(text)
