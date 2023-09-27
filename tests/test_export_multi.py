@@ -593,3 +593,69 @@ class TestExportMultiExpression(LsTestCase):
         self.assertListEqual(exported_titles, exported_titles_expected)
         pd = get_plot_data(figure_number=figure_number)
         self.assertPlotExportEqual(pd, exported_titles_expected[1:], exported_data)
+
+
+
+class TestExceptions(LsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        plt.close('all')
+
+    def test_wrong_syntax_vexport(self):
+        def get_script(cmd):
+            return f"""
+                mechanism: ga
+                stimulus_elements: s1, s2
+                behaviors: b
+                alpha_v: 1
+                alpha_w: 1
+                start_v: s1->b:7, default:1.5
+
+                @phase foo stop:s1=2
+                L1 s1 | L1
+
+                filename: foo.txt
+
+                {cmd}
+            """
+
+        text = get_script("@vexport s1->b, s1->b->s2")
+        msg = "Error on line 14: Expression must include only one '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport s1->b, s1->b->s2,")
+        msg = "Error on line 14: Expression must include only one '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport s1->b, foo.txt")
+        msg = "Error on line 14: Expected a behavior name, got b,."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport xxx foo.txt")
+        msg = "Error on line 14: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport foo.txt")
+        msg = "Error on line 14: Expression must include a '->'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport s1->b b b foo.txt")
+        msg = "Error on line 14: Too many components: 's1->b b b foo.txt'."
+        with self.assertRaisesMsg(msg):
+            run(text)
+
+        text = get_script("@vexport s1->")
+        msg = "Error on line 14: Expected a behavior name, got ."
+        with self.assertRaisesMsg(msg):
+            run(text)
