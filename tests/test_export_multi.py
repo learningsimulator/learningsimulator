@@ -659,3 +659,8 @@ class TestExceptions(LsTestCase):
         msg = "Error on line 14: Expected a behavior name, got ."
         with self.assertRaisesMsg(msg):
             run(text)
+
+        text = get_script("@vexport s1->  ,  foo.txt")
+        msg = "Error on line 14: Expected a behavior name, got ,."
+        with self.assertRaisesMsg(msg):
+            run(text)
