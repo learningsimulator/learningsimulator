@@ -341,12 +341,13 @@ class LicenseDlg(tk.Toplevel):
     def _get_text():
         return """Learning Simulator is developed at Centre for Cultural Evolution at Stockholm University.
 When using this software in research, please cite it as
-    Jonsson, Ghirlanda, Lind, Enquist, Learning Simulator, (2020), GitHub repository,
-    https://github.com/learningsimulator/learningsimulator.
+    Jonsson, Ghirlanda, Lind, Vinken, Enquist, Learning Simulator: A simulation software for animal
+    and human learning, Journal of Open Source Software 6 (2021), no. 58, 2891.
 
-The souce code for this software is hosted on GitHub under the MIT license stated below. It is is built using
-- Python(R) (Copyright © 2001-2020 Python Software Foundation (PSF); All Rights Reserved)
-- Matplotlib (Copyright © 2012-2020 Matplotlib Development Team (MDT); All Rights Reserved)
+The souce code for this software is hosted on GitHub under the MIT license stated below. It is
+built using
+- Python(R) (Copyright © 2001-2023 Python Software Foundation (PSF); All Rights Reserved)
+- Matplotlib (Copyright © 2012-2023 Matplotlib Development Team (MDT); All Rights Reserved)
 
 The terms and conditions for these products can be found below."""
 
