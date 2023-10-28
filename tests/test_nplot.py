@@ -68,8 +68,8 @@ class TestInitialValues(LsTestCase):
         '''
         run(text)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 5, 5, 5, 5, 5, 5, 5, 5, 5])
 
     def test_simple_cumulative(self):
         def get_script(cumulative):
@@ -124,8 +124,8 @@ class TestInitialValues(LsTestCase):
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's1', 'b', 's2', 'b', 's3', 'b'] * 10)
 
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [4, 5, 5, 5, 5, 5, 5, 5, 5, 5])
 
     def test_match(self):
         # Count the five 'b' between each xscale="s3" (except that there are three 'b' before the first 's3')
@@ -184,8 +184,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
         plt.close('all')
 
@@ -209,8 +209,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
         plt.close('all')
 
@@ -234,8 +234,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [2, 2, 2, 2, 2, 2, 2, 2, 2])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
 
         plt.close('all')
 
@@ -259,8 +259,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [3, 3, 3, 3, 3, 3, 3, 3, 3])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
 
     def test_xscale_match(self):
         # Count the entries 's1','s2' exactly
@@ -282,8 +282,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 5, 5, 5, 5, 5, 5, 5, 5, 5])
 
         plt.close('all')
 
@@ -306,8 +306,8 @@ class TestInitialValues(LsTestCase):
         history = simulation_data.run_outputs["run1"].output_subjects[0].history
         self.assertEqual(history, ['s1', 'b', 's2', 'b', 's2', 'b', ('s1', 's2'), 'b', 's3', 'b'] * 10)
         plot_data = get_plot_data()
-        self.assertEqual(plot_data['x'], [1, 2, 3, 4, 5, 6, 7, 8, 9])
-        self.assertEqual(plot_data['y'], [5, 5, 5, 5, 5, 5, 5, 5, 5])
+        self.assertEqual(plot_data['x'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertEqual(plot_data['y'], [3, 5, 5, 5, 5, 5, 5, 5, 5, 5])
 
     def test_p_vs_n1(self):
         ntrials = 180
@@ -349,7 +349,7 @@ class TestInitialValues(LsTestCase):
         pplot = plot_data['p(s1->b1)']
         nplot = plot_data['n(b1)']
         self.assertEqual(pplot['x'], list(range(ntrials)))
-        self.assertEqual(nplot['x'], list(range(1, ntrials - 1)))
+        self.assertEqual(nplot['x'], list(range(ntrials - 1)))
         pploty = pplot['y'][2:(ntrials - 2)]
         nploty = nplot['y'][2:(ntrials - 2)]
         sum_of_squares = 0
@@ -389,7 +389,7 @@ class TestInitialValues(LsTestCase):
         pplot = plot_data['p(s->respond)']
         nplot = plot_data['n(reward)']
         self.assertEqual(pplot['x'], list(range(100)))
-        self.assertEqual(nplot['x'], list(range(1, 100)))
+        self.assertEqual(nplot['x'], list(range(0, 100)))
         pploty = pplot['y'][2:98]
         nploty = nplot['y'][2:98]
         sum_of_squares = 0

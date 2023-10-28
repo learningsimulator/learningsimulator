@@ -3,6 +3,8 @@ __pycache__/*
 tests/__pycache__/*
 *.py[cod]
 
+config.py
+
 # C extensions
 *.so
 
@@ -21,8 +23,9 @@ var/
 .installed.cfg
 *.egg
 
-# Virtual environment
+# Virtual environments
 venv
+venv-linux
 
 # .env-file
 .env

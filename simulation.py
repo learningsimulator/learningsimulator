@@ -94,6 +94,7 @@ class Run():
 
         # The actual simulation
         for subject_ind in range(self.n_subjects):
+            # print(subject_ind)
             prev_phase_label = None  # For phases progress
             if progress:
                 if progress.get_n_runs() > 1:
@@ -106,7 +107,7 @@ class Run():
             subject_done = False
             response = None
             while not subject_done:
-                if progress and progress.stop_clicked:
+                if progress and progress.get_stop_clicked():
                     raise InterruptedSimulation()
                 next_stimulus_out = self.world.next_stimulus(response)
                 stimulus, phase_label, phase_line_label, preceeding_help_lines, omit_learn = next_stimulus_out
