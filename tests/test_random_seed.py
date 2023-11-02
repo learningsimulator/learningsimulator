@@ -64,6 +64,7 @@ class TestSmall(LsTestCase):
         pass
 
     def tearDown(self):
+        random.seed()  # So that tests after this do not use the set random_seed
         plt.close('all')
         
     def test_without_seed(self):

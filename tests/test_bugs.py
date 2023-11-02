@@ -1,3 +1,4 @@
+import random
 import matplotlib.pyplot as plt
 
 from .testutil import LsTestCase, run, get_plot_data
@@ -12,6 +13,7 @@ class TestGitHubIssues(LsTestCase):
         pass
 
     def tearDown(self):
+        random.seed()  # So that tests after this do not use the set random_seed
         plt.close('all')
 
     def test_issue83(self):
@@ -389,6 +391,72 @@ class TestGitHubIssues(LsTestCase):
         @legend
         '''
         run(text)
+
+    def test_issue208(self):
+        text = '''
+        behaviors             = b1, b2
+        stimulus_elements     = s1, s2, reward
+        mechanism             = a
+        alpha_v               = 0.1
+        beta                  = 1
+        u                     = reward:5, default:0
+        alpha_w               = 0.1
+        n_subjects            = 100
+        random_seed           = 2
+
+        @variables x=1, y=0
+
+        @phase learn stop: S1=200
+        S1     s1[x],s2[y] | b1:S2      | @omit_learn, S1
+        S2     s1[y],s2[x] | b2:REWARD  | @omit_learn, S1
+        REWARD reward                   | @omit_learn, S1
+
+        xscale: S1
+        trace: 0
+        @run notrace learn
+
+        trace: 0.00001
+        @run trace learn
+
+        runlabel:notrace
+        @pplot s1[x],s2[y]->b1 {'label':'s1->b1 no trace'}
+        @pplot s1[y],s2[x]->b2 {'label':'s2->b2 no trace'}
+
+        runlabel:trace
+        @pplot s1[x],s2[y]->b1 {'label':'s1->b1 trace'}
+        @pplot s1[y],s2[x]->b2 {'label':'s2->b2 trace'}
+        '''
+        run(text)
+        plot_data = get_plot_data()
+        s1_trace = plot_data['s1->b1 trace']['y']
+        s1_notrace = plot_data['s1->b1 no trace']['y']
+        s2_trace = plot_data['s2->b2 trace']['y']
+        s2_notrace = plot_data['s2->b2 no trace']['y']
+
+        # Test that s1->b1 with and without trace are (almost) same
+        maxdiff = 0
+        for i in range(len(s1_trace)):
+            maxdiff = max(maxdiff, abs(s1_trace[i] - s1_notrace[i]))
+        self.assertLess(maxdiff, 0.01)
+
+        # Test that s2->b2 with and without trace are (almost) same
+        maxdiff = 0
+        for i in range(len(s2_trace)):
+            maxdiff = max(maxdiff, abs(s2_trace[i] - s2_notrace[i]))
+        self.assertLess(maxdiff, 0.05)
+
+        # Test that all lines are almost straight and equal (are between LOW and HIGH) from 100 onwards
+        LOW = 0.9932
+        HIGH = 0.9934
+        for s1t, s2t, s1n, s2n in zip(s1_trace[100:], s2_trace[100:], s1_notrace[100:], s1_notrace[100:]):
+            self.assertLess(s1t, HIGH)
+            self.assertLess(s2t, HIGH)
+            self.assertLess(s1n, HIGH)
+            self.assertLess(s2n, HIGH)
+            self.assertGreater(s1t, LOW)
+            self.assertGreater(s2t, LOW)
+            self.assertGreater(s1n, LOW)
+            self.assertGreater(s2n, LOW)
 
 
 class TestFoundBugs(LsTestCase):

@@ -105,10 +105,10 @@ class LsTestCase(unittest.TestCase):
     def assertRaisesMsg(self, msg):
         return super().assertRaisesRegex(Exception, '^' + re.escape(msg) + '$')
 
-    def assertAlmostEqualList(self, list1, list2, places=7):
+    def assertAlmostEqualList(self, list1, list2, places=None, delta=None):
         self.assertEqual(len(list1), len(list2))
         for val1, val2 in zip(list1, list2):
-            self.assertAlmostEqual(val1, val2, places)
+            self.assertAlmostEqual(val1, val2, places=places, delta=delta)
 
     def assertAlmostEqualFile(self, file1, file2, places=7):
         data1 = None
