@@ -249,12 +249,21 @@ subject: average
 
         @run phase1
 
+        subject = average
+        xscale: s
+        @plot n(s)  {'label': 'nplot'}
+        @plot n(s)**y + x - z * sin(n(s)) {'label': 'expr'}
+
+        @figure
+        subject = all
         xscale: s
         @plot n(s)  {'label': 'nplot'}
         @plot n(s)**y + x - z * sin(n(s)) {'label': 'expr'}
         """
         run(text)
-        pd = get_plot_data()
+        
+        # subject = average
+        pd = get_plot_data(figure_number=1)
         nplot = pd['nplot']['y']
         expr = pd['expr']['y']
         x = -1
@@ -263,6 +272,87 @@ subject: average
         for n, e_lesim in zip(nplot, expr):
             e_python = n**y + x - z * sin(n)
             self.assertAlmostEqual(e_lesim, e_python)
+
+        # subject = all
+        pd = get_plot_data(figure_number=2)
+        nplot = pd['nplot subject 1']['y']
+        expr = pd['expr subject 1']['y']
+        x = -1
+        y = 2
+        z = 3
+        for n, e_lesim in zip(nplot, expr):
+            e_python = n**y + x - z * sin(n)
+            self.assertAlmostEqual(e_lesim, e_python)
+
+    def test_plot_using_variables_multisubject(self):
+        text = """
+        mechanism: sr
+        n_subjects = 10
+        stimulus_elements: s
+        behaviors: b
+        alpha_v: 1
+
+        @variables x = -1, y = 2, z = 3
+
+        @phase phase1 stop:s=10
+        NT s | NT
+
+        @run phase1
+
+        subject = average
+        xscale: s
+        @plot n(s)  {'label': 'nplot'}
+        @plot n(s)**y + x - z * sin(n(s)) {'label': 'expr'}
+
+        @figure
+        subject = all
+        xscale: s
+        @plot n(s)  {'label': 'nplot'}
+        @plot n(s)**y + x - z * sin(n(s)) {'label': 'expr'}
+
+        @figure
+        subject = 7
+        xscale: s
+        @plot n(s)  {'label': 'nplot'}
+        @plot n(s)**y + x - z * sin(n(s)) {'label': 'expr'}
+        """
+        run(text)
+        
+        # subject = average
+        pd = get_plot_data(figure_number=1)
+        nplot = pd['nplot']['y']
+        expr = pd['expr']['y']
+        x = -1
+        y = 2
+        z = 3
+        for n, e_lesim in zip(nplot, expr):
+            e_python = n**y + x - z * sin(n)
+            self.assertAlmostEqual(e_lesim, e_python)
+
+        # subject = all
+        pd = get_plot_data(figure_number=2)
+        for subject in range(1, 11):
+            nplot = pd[f'nplot subject {subject}']['y']
+            expr = pd[f'expr subject {subject}']['y']
+            x = -1
+            y = 2
+            z = 3
+            for n, e_lesim in zip(nplot, expr):
+                e_python = n**y + x - z * sin(n)
+                self.assertAlmostEqual(e_lesim, e_python)
+
+        # subject = 7
+        pd = get_plot_data(figure_number=1)
+        print(pd)
+        nplot = pd['nplot']['y']
+        expr = pd['expr']['y']
+        x = -1
+        y = 2
+        z = 3
+        for n, e_lesim in zip(nplot, expr):
+            e_python = n**y + x - z * sin(n)
+            self.assertAlmostEqual(e_lesim, e_python)
+
 
     def test_export_using_variables(self):
         text = """
