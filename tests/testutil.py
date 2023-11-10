@@ -5,6 +5,7 @@ import re
 import csv
 
 from parsing import Script
+from PIL import Image, UnidentifiedImageError
 
 
 def run(text):
@@ -64,7 +65,9 @@ def delete_exported_files_folder():
         os.rmdir(exported_files_folder)
 
 
-def remove_exported_files(filenames):
+def remove_exported_files(filenames=None):
+    if filenames is None:
+        filenames = os.listdir(os.path.join('.', 'tests', 'exported_files')) 
     for filename in filenames:
         filepath = os.path.join('.', 'tests', 'exported_files', filename)
         if os.path.isfile(filepath):
@@ -134,15 +137,47 @@ class LsTestCase(unittest.TestCase):
         for data_row1, data_row2 in zip(data_rows1, data_rows2):
             self.assertAlmostEqualList(data_row1, data_row2)
 
-    def assert_exported_files_are_removed(self, filenames):
+    def assert_exported_files_are_removed(self, filenames=None):
+        if filenames is None:
+            filenames = os.listdir(os.path.join('.', 'tests', 'exported_files')) 
         for filename in filenames:
-            fullpath = "./tests/exported_files/{}".format(filename)
+            fullpath = os.path.join('.', 'tests', 'exported_files', filename)
             self.assertFalse(os.path.isfile(fullpath))
 
     def assert_exported_files_exist(self, filenames):
         for filename in filenames:
             filepath = os.path.join('.', 'tests', 'exported_files', filename)
-            self.assertTrue(os.path.isfile(filepath))
+            self.assertTrue(os.path.isfile(filepath), msg=f"{filepath} does not exist.") 
+
+    def assertImageFileFormat(self, f, fileformat):
+        cannot_open = ('pdf', 'raw', 'rgba', 'svg', 'svgz', 'pgf')
+        try:
+            im = Image.open(f)
+            self.assertTrue(fileformat not in cannot_open)
+        except UnidentifiedImageError as ex:
+            self.assertTrue(fileformat in cannot_open)
+            return
+        except Exception as ex:
+            self.assertTrue(False, f"Unexpected exception raised when opening {fileformat} file: {ex}")
+            return
+
+        info = im.info
+        im.close()
+
+        if fileformat in ('eps', 'ps'):
+            check = 'PS-Adobe' in info
+        elif fileformat in ('jpeg', 'jpg'):
+            check = 'jfif' in info
+        elif fileformat == 'png':
+            check = 'dpi' in info
+        elif fileformat in ('tif', 'tiff'):
+            check = ('dpi' in info and 'compression' in info)
+        elif fileformat == 'webp':
+            check = ('loop' in info and 'background' in info)
+        else:
+            assert(False), f"Internal error: Test for file format {fileformat} not implemented."
+        
+        self.assertTrue(check), f"File {f} is not a {fileformat} file."
 
     def assertIncreasing(self, list1):
         is_increasing = True
@@ -170,3 +205,10 @@ class LsTestCase(unittest.TestCase):
             for j, plot_legend in enumerate(plot_legends):
                 y = pd[plot_legend]['y'][i]
                 self.assertAlmostEqual(y, float(e[j + 1]))
+
+    def assertImageDPI(self, filename, dpi):
+        im = Image.open(filename)
+        dpi_x, dpi_y = im.info['dpi']
+        im.close()
+        self.assertAlmostEqual(dpi_x, dpi, delta=0.1)
+        self.assertAlmostEqual(dpi_y, dpi, delta=0.1)

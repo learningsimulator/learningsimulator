@@ -73,6 +73,7 @@ class TestSmall(LsTestCase):
         
         self.tearDown()    
 
+        text = get_script(seed=None)
         run(text)
         plot_data2 = get_plot_data()
 
