@@ -113,7 +113,7 @@ class Script():
             # if isMac:  TODO Check that block=True still works on mac
             #     block = False
             # plt.show(block=block)
-            self.script_parser.postcmds.show()
+            self.script_parser.postcmds.show(block=block)
 
         if display_figs and not SILENT:
             if isMac:
@@ -1102,11 +1102,14 @@ class PostCmds():
         for cmd in self.cmds:
             cmd.savefig(info_msg)
 
-    def show(self):
+    def show(self, block=False):
         for cmd in self.cmds:
             if isinstance(cmd, FigureCmd):
                 if cmd.fname is None:
-                    cmd.figure_object.show()
+                    if block:  # Running from command line. See https://matplotlib.org/stable/api/figure_api.html
+                        plt.show(block=True)
+                    else:
+                        cmd.figure_object.show()
 
     def gcf(self):
         '''Return the last Figure object among the PostCmd's to render on screen.'''
