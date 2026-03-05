@@ -54,3 +54,24 @@ the script window, then run it (with **Run** > **Simulate and Plot**, or the **S
 Running a script from within Emacs
 **********************************
 See https://github.com/drghirlanda/lesim-mode and https://github.com/drghirlanda/ob-lesim.
+
+.. _performance:
+
+Performance
+***********
+
+When a simulation has multiple subjects (``n_subjects`` > 1), Learning
+Simulator can run them concurrently using multiple threads. This is done
+automatically and requires no special configuration.
+
+However, if ``random_seed`` is set in the script, subjects are simulated
+sequentially instead. This is necessary because Python's random number
+generator has global state shared across threads, and concurrent access
+would make results non-reproducible. If you need both reproducibility and
+are working with a large number of subjects, consider running separate
+scripts with different seeds.
+
+In summary:
+
+- **No** ``random_seed``: subjects run concurrently (faster).
+- **With** ``random_seed``: subjects run sequentially (reproducible).
