@@ -1,17 +1,9 @@
-import multiprocessing
+import queue
 import threading
-import traceback
 
-def worker(q):
-    while True:
-        try:
-            script_obj = q.get()
-            simulation_data = script_obj.run()
-            q.put((simulation_data, ))
-        except Exception as ex:
-            q.put((ex, traceback.format_exc()))
+# Queue for progress messages from simulation workers to the GUI thread.
+# Messages are tuples like ("report1", "Running run1"), ("increment1",), etc.
+progress_queue = queue.Queue()
 
-worker_queue = multiprocessing.Queue()
-progress_queue = multiprocessing.Queue()
-process = multiprocessing.Process(target=worker, args=(worker_queue,))
+# Event to signal simulation workers to stop (e.g. when the user clicks Stop).
 stop = threading.Event()

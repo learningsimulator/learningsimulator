@@ -1,11 +1,11 @@
 import threading
+import time
 import traceback
 import os
 import platform
 import sys
 import webbrowser
 import pathlib
-import output
 # import matplotlib
 from matplotlib import pyplot as plt
 
@@ -261,9 +261,7 @@ class Gui():
         self.simulation_thread = threading.Thread(target=self.simulate)
         self.simulation_thread.daemon = True  # So that the thread dies if main program exits
 
-        # The Order of the next two lines matters: simulation.py:Run.run()
-        # stops if the compute.stop threading.Event is set
-        compute.stop.clear() 
+        compute.stop.clear()
         self.simulation_thread.start()
 
         self.check_job = self.root.after(100, self.handle_simulation_end)
@@ -277,6 +275,8 @@ class Gui():
                 if not isinstance(self.progress.exception, InterruptedSimulation):
                     self.progress.close_dlg()
                     self.handle_exception(self.progress.exception, self.progress.exception_traceback)
+                else:
+                    self.progress.close_dlg()
             else:
                 # This will also close the progress dialog box
                 try:
@@ -285,7 +285,8 @@ class Gui():
                     self.progress.close_dlg()
                     self.handle_exception(ex, traceback.format_exc())
         elif self.progress.stop_clicked:
-            compute.stop.set() # stops simulation.py:Run.run()
+            compute.stop.set()  # signals pool workers to stop
+            self.check_job = self.root.after(100, self.handle_simulation_end)
         else:
             assert(self.simulation_thread.is_alive())
             self.update_progress()
@@ -303,19 +304,17 @@ class Gui():
                 method()
 
     def simulate(self):
+        t = time.time()
         try:
-            compute.worker_queue.put( self.script_obj )
-            result = compute.worker_queue.get()
-            if type( result[0] ) is output.ScriptOutput:
-                self.simulation_data = result[0]
-                self.script_obj.postproc(self.simulation_data, self.progress)
-            else:
-                self.progress.exception = result[0]
-                self.progress.exception_traceback = result[1]
+            self.simulation_data = self.script_obj.run()
+            elapsed = time.time() - t
+            elapsed_rounded = round(elapsed, ndigits=4)
+            compute.progress_queue.put(("report1", f"Simulation completed in {elapsed_rounded} s."))
+            self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
             self.progress.exception_traceback = traceback.format_exc()
-        
+
         self.progress.set_done(True)
 
     def _select_line(self, lineno):
