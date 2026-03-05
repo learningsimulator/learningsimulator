@@ -105,6 +105,7 @@ class TestPlotExportArithmetic(LsTestCase):
     def test_correct_computations(self):
         text = """
         n_subjects        = 10
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
@@ -266,6 +267,7 @@ subject: average
 
     def test_export_using_variables(self):
         text = """
+        export_format: wide
         mechanism: sr
         stimulus_elements: s
         behaviors: b
@@ -295,6 +297,7 @@ subject: average
     def test_all_math_functions(self):
         text = """
         n_subjects        = 1
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, s, reward

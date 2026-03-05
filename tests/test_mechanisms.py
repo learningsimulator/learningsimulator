@@ -385,6 +385,7 @@ class TestRescorlaWagner(LsTestCase):
     def test_hexport(self):
         text = '''
         mechanism: rw
+        export_format: wide
         stimulus_elements: cs, us
         behaviors: b1, b2
 
@@ -428,6 +429,7 @@ class TestRescorlaWagner(LsTestCase):
     def test_nexport(self):
         text = '''
         mechanism: rw
+        export_format: wide
         stimulus_elements: cs, us
         behaviors: b1, b2
 

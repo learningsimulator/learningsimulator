@@ -52,6 +52,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_semicolon(self):
         text = """
         n_subjects        = 10
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
@@ -189,6 +190,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_semicolon_vss(self):
         text = """
         n_subjects = 3
+        export_format = wide
         mechanism: rw
         stimulus_elements: cs, us
 
@@ -244,6 +246,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_asterisk_v(self):
         text = """
         n_subjects        = 3
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
@@ -329,6 +332,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_asterisk_p(self):
         text = """
         n_subjects        = 3
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
@@ -413,6 +417,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_asterisk_w(self):
         text = """
         n_subjects        = 3
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward
@@ -454,6 +459,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_asterisk_vss(self):
         text = """
         n_subjects = 3
+        export_format = wide
         mechanism: rw
         stimulus_elements: cs, us
 
@@ -535,6 +541,7 @@ class TestExportMultiExpression(LsTestCase):
     def test_semicolon_export(self):
         text = """
         n_subjects        = 3
+        export_format     = wide
         mechanism         = a
         behaviors         = response, no_response
         stimulus_elements = background, stimulus, reward

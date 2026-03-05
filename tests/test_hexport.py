@@ -25,6 +25,7 @@ class TestHExport(LsTestCase):
 
         text = '''
         n_subjects: 2
+        export_format: wide
         stimulus_elements: s1, s2
         behaviors: b1, b2
         mechanism: ga

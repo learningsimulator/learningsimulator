@@ -36,6 +36,7 @@ PD = {kw.BEHAVIORS: list(),              # list of (restricted) strings         
       kw.CUMULATIVE: 'on',               # on or off
       kw.MATCH: 'subset',                # subset or exact
       kw.RANDOM_SEED: None,              # Any number
+      kw.EXPORT_FORMAT: 'long',          # 'long' or 'wide'
       kw.FILENAME: ''}                   # valid path                                     REQ
 
 
@@ -119,6 +120,14 @@ class Parameters():
             v_str_lower = v_str.lower()
             if v_str_lower not in ('on', 'off'):
                 return "Parameter '{}' must be 'on' or 'off'.".format(prop)
+            self.val[prop] = v_str_lower
+            return None
+
+        # 'long' or 'wide'
+        elif prop == kw.EXPORT_FORMAT:
+            v_str_lower = v_str.lower()
+            if v_str_lower not in ('long', 'wide'):
+                return "Parameter '{}' must be 'long' or 'wide'.".format(prop)
             self.val[prop] = v_str_lower
             return None
 
