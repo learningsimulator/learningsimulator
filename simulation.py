@@ -58,9 +58,9 @@ class Run():
         self.run_label = run_label
         self.world = world
         self.mechanism_obj = mechanism_obj
-        self.has_v = mechanism_obj.has_v()
-        self.has_w = mechanism_obj.has_w()
-        self.has_vss = mechanism_obj.has_vss()
+        self.has_v = mechanism_obj.has_variable('v')
+        self.has_w = mechanism_obj.has_variable('w')
+        self.has_vss = mechanism_obj.has_variable('vss')
         self.n_subjects = n_subjects
         self.bind_trials = bind_trials
 

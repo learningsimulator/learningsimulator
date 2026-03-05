@@ -10,6 +10,11 @@ seed()
 class Mechanism():
     '''Base class for mechanisms'''
 
+    variables = ('v',)
+
+    def has_variable(self, name):
+        return name in self.variables
+
     def __init__(self, parameters):
         self.parameters = parameters
         self.trace = self.parameters.get(kw.TRACE)
@@ -114,25 +119,17 @@ class Mechanism():
                                      self.stimulus_req, beta, mu, self.v)
 
     def check_compatibility_with_world(self, world):
-        if self.has_v():
+        if self.has_variable('v'):
             if self.parameters.get(kw.ALPHA_V) is None:
                 return "Parameter alpha_v not specified.", None
-        if self.has_w():
+        if self.has_variable('w'):
             if self.parameters.get(kw.ALPHA_W) is None:
                 return "Parameter alpha_w not specified.", None
-        if self.has_vss():
+        if self.has_variable('vss'):
             if self.parameters.get(kw.ALPHA_VSS) is None:
                 return "Parameter alpha_vss not specified.", None
         return None, None
 
-    def has_v(self):
-        return True
-
-    def has_w(self):
-        return False
-
-    def has_vss(self):
-        return False
 
 
 # This cache doesn't seem to speed things up.
@@ -304,6 +301,8 @@ class Qlearning(Mechanism):
 
 
 class ActorCritic(Mechanism):
+    variables = ('v', 'w')
+
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -336,11 +335,10 @@ class ActorCritic(Mechanism):
             alpha_w_e = alpha_w[element]
             self.w[element] += alpha_w_e * delta
 
-    def has_w(self):
-        return True
-
 
 class Enquist(Mechanism):
+    variables = ('v', 'w')
+
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -397,11 +395,10 @@ class Enquist(Mechanism):
             delta = alpha_w_e * (usum + wsum - c[self.response] - wsum_i) * intensity
             self.w[element] += delta
 
-    def has_w(self):
-        return True
-
 
 class OriginalRescorlaWagner(Mechanism):
+    variables = ('vss',)
+
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -465,9 +462,3 @@ class OriginalRescorlaWagner(Mechanism):
                         return err, lineno
 
         return None, None
-
-    def has_vss(self):
-        return True
-
-    def has_v(self):
-        return False
