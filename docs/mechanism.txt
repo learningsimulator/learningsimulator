@@ -12,7 +12,7 @@ Syntax
 
   mechanism = name
 
-where name is one of the following:
+where name is one of the following built-in mechanisms:
 
 - ``alearning``, ``ga``, or ``a`` (`A-learning (Guided associative learning)`)
 - ``stimulusresponse`` or ``sr`` (`Stimulus-response learning`)
@@ -23,16 +23,27 @@ where name is one of the following:
 
 See :ref:`the-mechanisms` for a description of the mechanisms.
 
+Custom mechanisms imported with :doc:`@import<import>` can also be used. In that case,
+``name`` is the name defined in the custom mechanism class.
+
 Description
 -----------
 
 ``mechanism = name`` sets the learning mechanism to ``name``.
 
-Example
--------
+Examples
+--------
 
 ::
 
   mechanism = sr
 
 sets the learning mechanism to `Stimulus-response learning`. See :ref:`the-mechanisms`.
+
+::
+
+  @import my_model.py
+  mechanism = mymodel
+
+sets the learning mechanism to a custom mechanism defined in ``my_model.py``.
+See :doc:`import` for details on writing custom mechanisms.

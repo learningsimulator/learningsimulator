@@ -46,6 +46,7 @@ Contents
   <li class="toctree-l2"><a class="reference internal" href="variables.html">Global variables</a></li>
   <li class="toctree-l2"><a class="reference internal" href="phases.html">Phases</a></li>
   <li class="toctree-l2"><a class="reference internal" href="run.html">The command <code class="docutils literal notranslate"><span class="pre">@run</span></code></a></li>
+  <li class="toctree-l2"><a class="reference internal" href="import.html">The command <code class="docutils literal notranslate"><span class="pre">@import</span></code></a></li>
   <li class="toctree-l2"><a class="reference internal" href="postprocessing.html">Postprocessing</a></li>
   </ul>
   </li>

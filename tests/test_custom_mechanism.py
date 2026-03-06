@@ -75,7 +75,6 @@ class TestImportMechanism(LsTestCase):
         text = f'''
         @import {self.mechanism_file}
         mechanism: mycustom
-        export_format: wide
         stimulus_elements: s1, s2
         behaviors: b1, b2
         alpha_v: 0.1
