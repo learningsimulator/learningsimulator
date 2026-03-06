@@ -79,6 +79,7 @@ class ParseUtil():
 
     # Used to cache expression parse trees
     parse_cache = dict()
+    _single2double_eq_cache = dict()
 
     @staticmethod
     def is_float(s):
@@ -187,10 +188,13 @@ class ParseUtil():
 
     @staticmethod
     def _single2double_eq(expr0):
+        if expr0 in ParseUtil._single2double_eq_cache:
+            return ParseUtil._single2double_eq_cache[expr0]
         expr = expr0
         if expr.find('=') >= 0:
             if expr.find('==') < 0 and expr.find('<=') < 0 and expr.find('>=') < 0:
                 expr = expr0.replace("=", "==")
+        ParseUtil._single2double_eq_cache[expr0] = expr
         return expr
 
     @staticmethod
@@ -324,7 +328,7 @@ class ParseUtil():
             var_names = None
         cache_index = (expr,var_names)
         if cache_index in ParseUtil.parse_cache:
-            tree, has_boolean_operator = ParseUtil.parse_cache[cache_index]
+            code, has_boolean_operator = ParseUtil.parse_cache[cache_index]
         else:
             # Make sure that the expression is valid
             tree, err = ParseUtil.ast_parse(expr)
@@ -350,12 +354,13 @@ class ParseUtil():
                 if type(node) is ast.BoolOp:
                     has_boolean_operator = True
 
-            # Store for later:
-            ParseUtil.parse_cache[cache_index] = [tree, has_boolean_operator]
-        
-        # Now it is safe to evaluate using eval
+            # Compile to code object and store for later:
+            code = compile(tree, filename='<expr>', mode='eval')
+            ParseUtil.parse_cache[cache_index] = [code, has_boolean_operator]
+
+        # Now it is safe to evaluate using the compiled code object
         try:
-            out = eval(expr, {"__builtins__": None}, context)
+            out = eval(code, {"__builtins__": None}, context)
         except Exception as ex:
             err = f"Cannot evaluate expression '{expr_orig}': {ex}"
             if not err.endswith("."):  # Some errors {ex} ends with period, some don't
@@ -371,8 +376,6 @@ class ParseUtil():
             return None, f"Error in expression '{expr_orig}'."
         else:
             return out, None
-        # code = compile(tree, filename='', mode='eval')
-        # return eval(code)
 
     @staticmethod
     def split1(string, sep=' '):
