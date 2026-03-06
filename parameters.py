@@ -50,6 +50,18 @@ def check_is_parameter_name(name):
 
 
 class Parameters():
+    # Registry for custom mechanism classes: {name_string: class}
+    custom_mechanisms = dict()
+
+    @classmethod
+    def register_mechanism(cls, mechanism_class):
+        name = mechanism_class.name.lower()
+        cls.custom_mechanisms[name] = mechanism_class
+
+    @classmethod
+    def reset_custom_mechanisms(cls):
+        cls.custom_mechanisms = dict()
+
     def __init__(self):
         # All parameters and their valuess
         self.val = dict(PD)
@@ -211,7 +223,9 @@ class Parameters():
 
         self.scalar_expand()
 
-        if mechanism_name in mn.SR:
+        if mechanism_name in self.custom_mechanisms:
+            mechanism_obj = self.custom_mechanisms[mechanism_name](self)
+        elif mechanism_name in mn.SR:
             mechanism_obj = mechanism.StimulusResponse(self)
         elif mechanism_name in mn.QL:
             mechanism_obj = mechanism.Qlearning(self)
@@ -288,12 +302,13 @@ class Parameters():
         Parse the string mechanism_name with a mechanism name and return the corrsponding string.
         """
         mn_lower = mechanism_name.lower()
-        if mn_lower not in mn.MECHANISM_NAMES:
-            cs_valid_names = ', '.join(sorted(mn.MECHANISM_NAMES))
-            return "Invalid mechanism name '{}'. ".format(mechanism_name) + \
-                   "Mechanism name must be one of the following: {}.".format(cs_valid_names)
-        self.val[kw.MECHANISM_NAME] = mn_lower
-        return None
+        if mn_lower in mn.MECHANISM_NAMES or mn_lower in self.custom_mechanisms:
+            self.val[kw.MECHANISM_NAME] = mn_lower
+            return None
+        all_names = sorted(mn.MECHANISM_NAMES + list(self.custom_mechanisms.keys()))
+        cs_valid_names = ', '.join(all_names)
+        return "Invalid mechanism name '{}'. ".format(mechanism_name) + \
+               "Mechanism name must be one of the following: {}.".format(cs_valid_names)
 
     def _parse_phases(self, v_str):
         if v_str == 'all':

@@ -136,6 +136,7 @@ class LineParser():
     PREV_DEFINED_VARIABLE = 12
     PLOT = 13
     EXPORT = 14
+    IMPORT = 15
 
     def __init__(self, line, global_variables):
         self.line = line
@@ -183,6 +184,8 @@ class LineParser():
             self.line_type = LineParser.EXPORT
         elif first_word == kw.LEGEND:
             self.line_type = LineParser.LEGEND
+        elif first_word == kw.IMPORT:
+            self.line_type = LineParser.IMPORT
 
 
 class FigureSubplotGrid():
@@ -202,6 +205,7 @@ class ScriptParser():
 
         self.variables = Variables()
 
+        Parameters.reset_custom_mechanisms()
         self.parameters = Parameters()
 
         self.phases = Phases()
@@ -335,6 +339,13 @@ class ScriptParser():
                     raise ParseException(lineno, err)
                 else:
                     continue
+
+            elif line_parser.line_type == LineParser.IMPORT:
+                if len(linesplit_space) < 2 or len(linesplit_space[1].strip()) == 0:
+                    raise ParseException(lineno, "@import requires a file path.")
+                import_path = linesplit_space[1].strip()
+                self._handle_import(import_path, lineno)
+                continue
 
             elif line_parser.line_type == LineParser.RUN:
                 in_run = True
@@ -720,6 +731,40 @@ class ScriptParser():
                 post_expr_objs.append(post_expr_obj)
 
         return post_expr_objs, mpl_prop, exprs_str
+
+    def _handle_import(self, import_path, lineno):
+        """Load a Python file and register any Mechanism subclasses it defines."""
+        import importlib.util
+        from mechanism import Mechanism
+
+        if not os.path.isabs(import_path):
+            # Resolve relative to the script's working directory
+            import_path = os.path.abspath(import_path)
+
+        if not os.path.isfile(import_path):
+            raise ParseException(lineno, f"Import file not found: {import_path}")
+
+        module_name = os.path.splitext(os.path.basename(import_path))[0]
+        spec = importlib.util.spec_from_file_location(module_name, import_path)
+        if spec is None:
+            raise ParseException(lineno, f"Cannot load module from: {import_path}")
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception as ex:
+            raise ParseException(lineno, f"Error loading {import_path}: {ex}")
+
+        found = False
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if (isinstance(attr, type) and issubclass(attr, Mechanism)
+                    and attr is not Mechanism and hasattr(attr, 'name')):
+                Parameters.register_mechanism(attr)
+                found = True
+
+        if not found:
+            raise ParseException(lineno,
+                                 f"No Mechanism subclass with a 'name' attribute found in {import_path}.")
 
     def _parse_subplot(self, lineno, linesplit_space, figure_subplotgrid):
         """
