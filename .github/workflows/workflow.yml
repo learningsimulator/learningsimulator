@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: "3.12"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -37,12 +37,12 @@ jobs:
         coverage html
         coverage-badge -o coverage.svg
     - name: Archive code coverage html
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: coverage-html
           path: htmlcov
     - name: Archive code coverage badge
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: coverage-badge
           path: coverage.svg
