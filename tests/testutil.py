@@ -93,7 +93,12 @@ def get_plot_data(figure_number=1, axes_number=1):
 
 def get_csv_file_contents(file):
     data = None
-    with open(file) as f:
+    if file.endswith('.gz'):
+        import gzip
+        f = gzip.open(file, 'rt')
+    else:
+        f = open(file)
+    with f:
         reader = csv.reader(f)
         data = list(reader)
     titles = data[0]

@@ -34,3 +34,10 @@ Description
 .. note::
 
   If the specified file already exists, the existing file will be overwritten without warning.
+
+.. note::
+
+  If the filename ends with ``.gz`` (for example ``my_file.csv.gz``), the exported file will be
+  automatically compressed using gzip. This can significantly reduce file size for large datasets.
+  Most data analysis tools (such as pandas and R) can read ``.csv.gz`` files directly without
+  manual decompression.
