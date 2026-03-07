@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 import csv
+import gzip
 import json
 import math
 
@@ -1300,7 +1301,10 @@ class ExportCmd(PostCmd):
             raise ParseException(self.lineno, f"Parameter {kw.EVAL_FILENAME} to {self.cmd} is mandatory.")
         # if not filename.endswith(".csv"):
         #     filename = filename + ".csv"
-        file = open(filename, 'w', newline='')
+        if filename.endswith('.gz'):
+            file = gzip.open(filename, 'wt', newline='')
+        else:
+            file = open(filename, 'w', newline='')
 
         try:
             if self.cmd == kw.HEXPORT:

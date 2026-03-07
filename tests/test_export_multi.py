@@ -596,6 +596,58 @@ class TestExportMultiExpression(LsTestCase):
 
 
 
+class TestExportGzip(LsTestCase):
+    def setUp(self):
+        create_exported_files_folder()
+
+    def tearDown(self):
+        plt.close('all')
+        filenames = ['vexport_gz.csv.gz', 'vexport_plain.csv']
+        remove_exported_files(filenames)
+        self.assert_exported_files_are_removed(filenames)
+        delete_exported_files_folder()
+
+    def test_gzip_export(self):
+        text = """
+        n_subjects        = 1
+        mechanism         = a
+        behaviors         = response, no_response
+        stimulus_elements = background, stimulus, reward
+        start_v           = -1
+        alpha_v           = 0.1
+        alpha_w           = 1
+        u                 = reward:10, default:0
+
+        @PHASE training stop: stimulus==3
+        START       stimulus   | response: REWARD | NO_REWARD
+        REWARD      reward     | @omit_learn, START
+        NO_REWARD   background | @omit_learn, START
+
+        @run training
+
+        xscale: stimulus
+        subject: 1
+
+        filename: ./tests/exported_files/vexport_gz.csv.gz
+        @vexport stimulus->response
+
+        filename: ./tests/exported_files/vexport_plain.csv
+        @vexport stimulus->response
+        """
+        run(text)
+
+        gz_file = os.path.join('.', 'tests', 'exported_files', 'vexport_gz.csv.gz')
+        plain_file = os.path.join('.', 'tests', 'exported_files', 'vexport_plain.csv')
+
+        gz_titles, gz_data = get_csv_file_contents(gz_file)
+        plain_titles, plain_data = get_csv_file_contents(plain_file)
+
+        self.assertListEqual(gz_titles, plain_titles)
+        self.assertEqual(len(gz_data), len(plain_data))
+        for gz_row, plain_row in zip(gz_data, plain_data):
+            self.assertListEqual(gz_row, plain_row)
+
+
 class TestExceptions(LsTestCase):
     @classmethod
     def setUpClass(cls):
