@@ -85,8 +85,8 @@ class Script():
     def check_deprecated_syntax(self):
         return self.script_parser.check_deprecated_syntax()
 
-    def run(self, progress=None):
-        return self.script_parser.runs.run(progress)
+    def run(self):
+        return self.script_parser.runs.run()
 
     def postproc(self, simulation_data, progress=None):
         if progress is not None:
@@ -1317,47 +1317,9 @@ class ExportCmd(PostCmd):
         info_msg.append(f"Exported file {filepath}.")
 
     def _h_export(self, file, simulation_data):
-        export_format = self.parameters.get(kw.EXPORT_FORMAT)
-        if export_format == 'long':
-            self._h_export_long(file, simulation_data)
-        else:
-            self._h_export_wide(file, simulation_data)
+        self._h_export_wide(file, simulation_data)
 
     def _h_export_wide(self, file, simulation_data):
-        with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
-
-            run_label = self.parameters.get(kw.EVAL_RUNLABEL)
-            n_subjects = len(simulation_data.run_outputs[run_label].output_subjects)
-            subject_legend_labels = list()
-            for i in range(n_subjects):
-                subject_legend_labels.append("stimulus subject {}".format(i))
-                subject_legend_labels.append("response subject {}".format(i))
-
-            # Write headers
-            w.writerow(['step'] + subject_legend_labels)
-
-            # Write data
-            maxlen = 0
-            for i in range(n_subjects):
-                len_history_i = len(simulation_data.run_outputs[run_label].output_subjects[i].history)
-                if len_history_i > maxlen:
-                    maxlen = len_history_i
-            for histind in range(0, maxlen, 2):
-                datarow = [histind // 2]
-                for i in range(n_subjects):
-                    history = simulation_data.run_outputs[run_label].output_subjects[i].history
-                    if histind < len(history):
-                        stimulus = history[histind]
-                        response = history[histind + 1]
-                        datarow.append(stimulus)
-                        datarow.append(response)
-                    else:
-                        datarow.append(' ')
-                        datarow.append(' ')
-                w.writerow(datarow)
-
-    def _h_export_long(self, file, simulation_data):
         with file as csvfile:
             w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
 
@@ -1372,7 +1334,7 @@ class ExportCmd(PostCmd):
                 for k in v.values.keys():
                     all_variables[k] = 1
             all_variables = list(all_variables.keys())
-
+            
             # Write headers
             w.writerow(['run', 'phase', 'subject', 'step', 'line', 'stimuli', 'behavior'] + all_stimulus_elements + all_variables)
 
@@ -1464,11 +1426,10 @@ class ExportCmd(PostCmd):
         n_ydata = len(ydatas[0]) if ydatas else 0
 
         with file as csvfile:
-            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC, escapechar=None)
+            w = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_MINIMAL, escapechar=None)
 
             if self.parameters.get(kw.EVAL_SUBJECT) == kw.EVAL_ALL:
                 subject_legend_labels = list()
-
                 for legend_label in legend_labels:
                     for i in range(n_ydata):
                         subject_legend_label = f"{legend_label} subject {i + 1}"

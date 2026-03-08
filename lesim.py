@@ -3,7 +3,6 @@ import sys
 import gui
 import parsing
 
-
 GUI = "gui"
 RUN = "run"
 HELP = "help"
@@ -59,6 +58,7 @@ if __name__ == "__main__":
                 script_obj.postproc(simulation_data)
                 block = (i == nfiles - 1)
                 script_obj.plot(block)
+
         elif arg1 == HELP:
             man_page = get_man_page()
             print(man_page)

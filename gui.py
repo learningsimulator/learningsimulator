@@ -24,6 +24,7 @@ from exceptions import ParseException, InterruptedSimulation
 from functools import partial
 
 import util
+import compute
 
 # matplotlib.use('Agg')
 
@@ -265,7 +266,10 @@ class Gui():
 
         self.simulation_thread = threading.Thread(target=self.simulate)
         self.simulation_thread.daemon = True  # So that the thread dies if main program exits
+
+        compute.stop.clear()
         self.simulation_thread.start()
+
         self.check_job = self.root.after(100, self.handle_simulation_end)
 
     def handle_simulation_end(self):
@@ -278,6 +282,7 @@ class Gui():
                     self.progress.close_dlg()
                     self.handle_exception(self.progress.exception, self.progress.exception_traceback)
                 else:
+                    self.progress.close_dlg()
                     self.add_msg("Simulation stopped.")
             else:
                 # This will also close the progress dialog box
@@ -288,25 +293,40 @@ class Gui():
                 except Exception as ex:
                     self.progress.close_dlg()
                     self.handle_exception(ex, traceback.format_exc())
+        elif self.progress.stop_clicked:
+            compute.stop.set()  # signals pool workers to stop
+            self.check_job = self.root.after(100, self.handle_simulation_end)
         else:
             assert(self.simulation_thread.is_alive())
+            self.update_progress()
             self.check_job = self.root.after(100, self.handle_simulation_end)
+
+    def update_progress(self):
+        if not self.progress:
+            return
+        while not self.progress.stop_clicked and not compute.progress_queue.empty():
+            message = compute.progress_queue.get()
+            method = getattr( self.progress, message[0] )
+            if len(message)>1:
+                method( message[1] )
+            else:
+                method()
 
     def simulate(self):
         self.add_msg("Starting simulation.")
         t = time.time()
         try:
-            self.simulation_data = self.script_obj.run(self.progress)
+            self.simulation_data = self.script_obj.run()
             elapsed = time.time() - t
             elapsed_rounded = round(elapsed, ndigits=4)
             self.add_msg(f"Simulation completed in {elapsed_rounded} s.")
+            compute.progress_queue.put(("report1", f"Simulation completed in {elapsed_rounded} s."))
             self.script_obj.postproc(self.simulation_data, self.progress)
         except Exception as ex:
             self.progress.exception = ex
             self.progress.exception_traceback = traceback.format_exc()
-        finally:
-            self.progress.set_done(True)
-        # return None  # XXX perhaps not needed? for threading
+
+        self.progress.set_done(True)
 
     def _select_line(self, lineno):
         start = f"{lineno}.0"

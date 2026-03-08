@@ -5,6 +5,10 @@ class ParseException(Exception):
         else:
             super().__init__("Error: " + msg)
         self.lineno = lineno
+        self.msg = msg
+
+    def __reduce__(self):
+        return (self.__class__, (self.lineno, self.msg))
 
 
 class EvalException(Exception):
@@ -13,7 +17,11 @@ class EvalException(Exception):
             super().__init__(msg)
         else:
             super().__init__("Error on line {}".format(lineno) + ": " + msg)
+        self.lineno = lineno
+        self.msg = msg
 
+    def __reduce__(self):
+        return (self.__class__, (self.msg, self.lineno))
 
 class InterruptedSimulation(Exception):
     def __init__(self):

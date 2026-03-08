@@ -1,6 +1,4 @@
 import os
-import random
-
 import keywords as kw
 import mechanism_names as mn
 import mechanism
@@ -183,7 +181,6 @@ class Parameters():
             if self.val[kw.RANDOM_SEED] is not None:
                 return "Can only set random_seed once."
             self.val[kw.RANDOM_SEED] = v_str  # Can be anything, really
-            random.seed(v_str)
             return None
 
     def set_filename(self, filename):

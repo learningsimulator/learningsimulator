@@ -19,6 +19,10 @@ Description
 
 ``n_subjects = n`` sets the number of subjects to ``n``.
 
+When ``n_subjects`` is greater than 1 and ``random_seed`` is not set,
+subjects are simulated concurrently using multiple threads, which can
+improve performance. See :doc:`random_seed` for details.
+
 Examples
 --------
 

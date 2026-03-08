@@ -205,13 +205,13 @@ class RunOutputSubject():
         # step numbers for help lines
         self.phase_line_labels_steps = list()
 
+        # List of variable values (managed like phase_line_labels
+        # because variables can change between steps)
+        self.variables = list()
+        
     def write_history(self, stimulus, response):
         self.stimulus_history.append(dict(stimulus))
-        stimulus_tuple = tuple([e for e in stimulus if stimulus[e] != 0])
-        if len(stimulus_tuple) == 1:
-            self.history.append(stimulus_tuple[0])
-        else:
-            self.history.append(stimulus_tuple)
+        self.history.append( stimulus )
         self.history.append(response)
 
     def write_step(self, phase_label, step):

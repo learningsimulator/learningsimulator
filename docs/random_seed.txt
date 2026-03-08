@@ -25,6 +25,15 @@ Description
 
 ``random_seed = n`` sets the random generator seed to ``n``.
 
+.. note::
+
+  Setting ``random_seed`` disables concurrent simulation of subjects.
+  When ``random_seed`` is set, all subjects are simulated sequentially
+  to guarantee reproducible results, because threads share Python's
+  global random number generator state. When ``random_seed`` is not
+  set and ``n_subjects`` is greater than 1, subjects are simulated
+  concurrently using multiple threads for better performance.
+
 Examples
 --------
 
