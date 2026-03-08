@@ -29,6 +29,7 @@ CUMULATIVE = 'cumulative'
 MATCH = 'match'
 FILENAME = 'filename'
 RANDOM_SEED = 'random_seed'
+EXPORT_FORMAT = 'export_format'
 
 # Commands
 RUN = '@run'
@@ -91,6 +92,7 @@ KEYWORDS = (BEHAVIORS,
             MATCH,
             FILENAME,
             RANDOM_SEED,
+            EXPORT_FORMAT,
             VARIABLES,
             PHASE,
             RUN,

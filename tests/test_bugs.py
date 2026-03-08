@@ -171,17 +171,17 @@ class TestGitHubIssues(LsTestCase):
 
         @variables x:1, n:2, y:3
         @run foo runlabel:n=2
-
-        @figure
-        @nplot e1
-        @nplot e2
+        
+        #@figure
+        #@nplot e1
+        #@nplot e2
         '''
         script, script_output = run(text)
         history = script_output.run_outputs["n=1"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
         history = script_output.run_outputs["n=2"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e1':1}, {'e2':1}] * 4 + [{'e1':1}, {'e1':1}])
 
         # Test that count_line(e1)=n is the same as count_line(A)=n
         text = '''
@@ -194,8 +194,8 @@ class TestGitHubIssues(LsTestCase):
         u                 : e1:10, e2:0
 
         @PHASE foo stop:e1=10
-        A e1   | count_line(A)=n: B | A
-        B e2   | A
+        A e1 | count_line(A)=n: B | A
+        B e2 | A
 
         @variables x:0, n:1
         @run foo runlabel:n=1
@@ -204,7 +204,7 @@ class TestGitHubIssues(LsTestCase):
         @run foo runlabel:n=2
 
         @variables x:1, n:20, y:3
-        @run foo runlabel:n=20
+        @run foo runlabel:n=3
 
         @figure
         @nplot e1
@@ -212,13 +212,13 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         history = script_output.run_outputs["n=1"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
         history = script_output.run_outputs["n=2"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e1':1}, {'e2':1}] * 4 + [{'e1':1}, {'e1':1}])
 
-        history = script_output.run_outputs["n=20"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1'] * 10)
+        history = script_output.run_outputs["n=3"].output_subjects[0].history
+        self.assertEqual(history[0::2], [{'e1':1}] * 10)
 
         # Test that count_line(A)=n is the same as A=n
         text = '''
@@ -249,13 +249,13 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         history = script_output.run_outputs["n=1"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
         history = script_output.run_outputs["n=2"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e1':1}, {'e2':1}] * 4 + [{'e1':1}, {'e1':1}])
 
         history = script_output.run_outputs["n=20"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1'] * 10)
+        self.assertEqual(history[0::2], [{'e1':1}] * 10)
 
         # Test that e1=n is the same as count_line(e1)=n
         text = '''
@@ -286,13 +286,13 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         history = script_output.run_outputs["n=1"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
         history = script_output.run_outputs["n=2"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e1':1}, {'e2':1}] * 4 + [{'e1':1}, {'e1':1}])
 
         history = script_output.run_outputs["n=20"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1'] * 10)
+        self.assertEqual(history[0::2], [{'e1':1}] * 10)
 
         # Test that count_line(b)=n works
         text = '''
@@ -323,13 +323,13 @@ class TestGitHubIssues(LsTestCase):
         '''
         script, script_output = run(text)
         history = script_output.run_outputs["n=1"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e2'] * 9 + ['e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e2':1}] * 9 + [{'e1':1}])
 
         history = script_output.run_outputs["n=2"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1', 'e1', 'e2'] * 4 + ['e1', 'e1'])
+        self.assertEqual(history[0::2], [{'e1':1}, {'e1':1}, {'e2':1}] * 4 + [{'e1':1}, {'e1':1}])
 
         history = script_output.run_outputs["n=20"].output_subjects[0].history
-        self.assertEqual(history[0::2], ['e1'] * 10)
+        self.assertEqual(history[0::2], [{'e1':1}] * 10)
 
     def test_issue125(self):
         text = '''

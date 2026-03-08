@@ -1,6 +1,4 @@
 import os
-import random
-
 import keywords as kw
 import mechanism_names as mn
 import mechanism
@@ -36,6 +34,7 @@ PD = {kw.BEHAVIORS: list(),              # list of (restricted) strings         
       kw.CUMULATIVE: 'on',               # on or off
       kw.MATCH: 'subset',                # subset or exact
       kw.RANDOM_SEED: None,              # Any number
+      kw.EXPORT_FORMAT: 'long',          # 'long' or 'wide'
       kw.FILENAME: ''}                   # valid path                                     REQ
 
 
@@ -122,6 +121,14 @@ class Parameters():
             self.val[prop] = v_str_lower
             return None
 
+        # 'long' or 'wide'
+        elif prop == kw.EXPORT_FORMAT:
+            v_str_lower = v_str.lower()
+            if v_str_lower not in ('long', 'wide'):
+                return "Parameter '{}' must be 'long' or 'wide'.".format(prop)
+            self.val[prop] = v_str_lower
+            return None
+
         # Positive integer
         elif prop == kw.N_SUBJECTS:
             v, err = ParseUtil.parse_posint(v_str, variables)
@@ -174,7 +181,6 @@ class Parameters():
             if self.val[kw.RANDOM_SEED] is not None:
                 return "Can only set random_seed once."
             self.val[kw.RANDOM_SEED] = v_str  # Can be anything, really
-            random.seed(v_str)
             return None
 
     def set_filename(self, filename):
