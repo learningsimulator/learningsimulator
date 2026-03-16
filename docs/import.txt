@@ -1,0 +1,115 @@
+:orphan:
+
+@import
+*******
+
+Imports a Python file that defines a custom learning mechanism. This makes it possible to
+extend *Learning Simulator* with new learning models without modifying the source code.
+
+Syntax
+------
+
+::
+
+  @import filepath
+
+where ``filepath`` is the path to a Python file. The path may be absolute or relative to the
+current working directory.
+
+Description
+-----------
+
+``@import filepath`` loads the specified Python file and registers any learning mechanism
+classes it defines. A valid mechanism class must:
+
+- Be a subclass of ``Mechanism`` (from ``mechanism.py``)
+- Have a ``name`` class attribute (a string used to refer to the mechanism in scripts)
+- Have a ``variables`` class attribute (a tuple of variable names the mechanism uses, such as ``('v',)`` or ``('v', 'w')``)
+- Implement the ``learn(self, stimulus)`` method
+
+After importing, the mechanism can be used with the ``mechanism`` parameter, using the name
+defined in the class.
+
+.. note::
+
+  ``@import`` must appear before the ``mechanism`` parameter assignment in the script.
+
+.. note::
+
+  The imported Python file is executed when loaded. Only import files that you trust.
+
+
+Writing a custom mechanism
+--------------------------
+
+A custom mechanism is a Python class that subclasses ``Mechanism`` and implements a learning rule.
+The base class provides:
+
+- ``self.parameters`` — access to all script parameters (via ``self.parameters.get()``)
+- ``self.v`` — a dict of v-values, keyed by ``(stimulus_element, behavior)`` tuples
+- ``self.w`` — a dict of w-values, keyed by stimulus element
+- ``self.prev_stimulus`` — the previous stimulus (a dict of element names to intensities)
+- ``self.response`` — the response to the previous stimulus
+
+The ``variables`` class attribute declares which of these variables the mechanism uses.
+The supported built-in variable names are ``'v'``, ``'w'``, and ``'vss'``. If your mechanism uses
+``v``, include ``'v'`` in the tuple. If it also uses ``w``, set ``variables = ('v', 'w')``.
+This controls which values are recorded during simulation and available for plotting and export.
+
+The ``learn(self, stimulus)`` method is called on each step after the first. The ``stimulus``
+argument is a dict mapping stimulus element names to their intensities. Use ``self.prev_stimulus``
+and ``self.response`` for the previous stimulus and the response to it.
+
+Parameters such as ``alpha_v``, ``alpha_w``, ``u``, ``beta``, ``behavior_cost``, and ``discount``
+are accessed through ``self.parameters.get(kw.ALPHA_V)``, etc. Custom constants can be defined
+using ``@variables`` in the script.
+
+
+Example
+-------
+
+The following file defines a simple custom mechanism that learns ``v`` and ``w`` values::
+
+  # my_model.py
+  from mechanism import Mechanism
+  import keywords as kw
+
+  class MyModel(Mechanism):
+      name = 'mymodel'
+      variables = ('v', 'w')
+
+      def learn(self, stimulus):
+          alpha_v = self.parameters.get(kw.ALPHA_V)
+          alpha_w = self.parameters.get(kw.ALPHA_W)
+          u = self.parameters.get(kw.U)
+          c = self.parameters.get(kw.BEHAVIOR_COST)
+
+          usum = sum(u[e] * i for e, i in stimulus.items())
+          wsum = sum(self.w[e] for e in self.prev_stimulus)
+
+          for element in self.prev_stimulus:
+              key = (element, self.response)
+              self.v[key] += alpha_v[key] * (usum - wsum - c[self.response])
+
+          for element in self.prev_stimulus:
+              self.w[element] += alpha_w[element] * (usum - wsum)
+
+A simulation script using this mechanism::
+
+  @import my_model.py
+
+  mechanism: mymodel
+  stimulus_elements: s1, s2
+  behaviors: b1, b2
+  alpha_v: 0.1
+  alpha_w: 0.1
+  u: s1:10, default:0
+
+  @phase training stop: s1=100
+  S1 s1 | S1
+  S2 s2 | S1
+
+  @run training
+
+  @vplot s1->b1
+  @wplot s1

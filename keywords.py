@@ -52,6 +52,7 @@ HEXPORT = '@hexport'
 VSSEXPORT = '@vssexport'
 EXPORT = '@export'
 
+IMPORT = '@import'
 OMIT_LEARN = '@omit_learn'
 
 # Other

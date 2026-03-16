@@ -137,11 +137,11 @@ class RunOutput():
                                                                  preceeding_help_lines)
 
     def vwpn_eval(self, vwpn, expr, parameters, run_parameters):
-        if vwpn in ('v', 'p') and not self.mechanism_obj.has_v():
+        if vwpn in ('v', 'p') and not self.mechanism_obj.has_variable('v'):
             raise EvalException("Used mechanism does not have variable 'v'.")
-        if vwpn == 'w' and not self.mechanism_obj.has_w():
+        if vwpn == 'w' and not self.mechanism_obj.has_variable('w'):
             raise EvalException("Used mechanism does not have variable 'w'.")
-        if vwpn == 'vss' and not self.mechanism_obj.has_vss():
+        if vwpn == 'vss' and not self.mechanism_obj.has_variable('vss'):
             raise EvalException("Used mechanism does not have variable 'vss'.")
 
         subject_ind = parameters.get(kw.EVAL_SUBJECT)
