@@ -3,6 +3,7 @@ import re
 
 from util import ParseUtil
 from exceptions import EvalException
+import keywords as kw
 
 
 class PostVar():
@@ -21,31 +22,45 @@ class PostExpr():
         self.post_vars = post_vars  # dict
 
     def eval(self, simulation_data, parameters, run_parameters, variables, POST_MATH):
+        single_ydata = (parameters.get(kw.SUBJECT) != kw.EVAL_ALL)  # Integer or "average"
+
         # Evaluate each variable v(s->b), w(s), n(s->b->s)
         var_ydata = dict()  # Dict with evaluated ydata for each PostVar, keyed by alias variable
         n_values = None
+        n_subjects = None
 
         for alias, var in self.post_vars.items():
             var_ydata[alias] = simulation_data.vwpn_eval(var.fn, var.parsed_arg, parameters, run_parameters)
-            if n_values is None:
-                n_values = len(var_ydata[alias])
-            else:  # Number of evaluated values should be the same for all variables
-                assert(n_values == len(var_ydata[alias])), f"{n_values} != {len(var_ydata[alias])}"
+            if single_ydata:  # Then vwpn_eval returns a list of floats. Otherwise a list of lists
+                var_ydata[alias] = [var_ydata[alias]]
+            n_subjects = len(var_ydata[alias])
+            for subject_ind in range(n_subjects):
+                if n_values is None:
+                    n_values = len(var_ydata[alias][subject_ind])
+                else:  # Number of evaluated values should be the same for all variables for all subjects
+                    assert(n_values == len(var_ydata[alias][subject_ind]))
 
         # Evaluate the expression using the evaluated variable values
-        ydata = [None] * n_values
-        for i in range(n_values):
-            alias_values = {key: val[i] for key, val in var_ydata.items()}
-            alias_values.update(POST_MATH)
-            alias_values.update(variables.values)
-            try:
-                ydata[i] = eval(self.expr, {'__builtins__': {'round': round}}, alias_values)
-            except Exception as e:
-                ydata[i] = None
-        if n_values > 0 and ydata.count(None) == n_values:  # Evaluation failed for ALL i (allow occational divide by zero, for example)
-            return None, f"Expression evaluation failed."
-        else:
-            return ydata, None
+        ydata = [None] * n_subjects
+        context = dict()
+        context.update(POST_MATH)
+        context.update(variables.values)
+        for i in range(n_subjects):
+            ydata[i] = [None] * n_values
+            for j in range(n_values):
+                alias_values = {key: val[i][j] for key, val in var_ydata.items()}
+                context.update(alias_values)
+                try:
+                    ydata[i][j] = eval(self.expr, {'__builtins__': {'round': round}}, context)
+                except Exception as e:
+                    ydata[i][j] = None
+            if n_values > 0 and all(y is None for y in ydata[i]):  # Evaluation failed for ALL i (allow occational divide by zero, for example)
+                return None, f"Expression evaluation failed."
+
+        if single_ydata:
+            ydata = ydata[0]
+
+        return ydata, None
 
 
 def is_arithmetic(expr, allowed_names):
